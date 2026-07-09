@@ -1,0 +1,5 @@
+schema: spec-driven
+created: 2026-07-09
+goal: Index a codebase into a SQLite-backed symbol graph with Merkle-based
+  incremental updates, queryable via CLI for callers/callees, definitions,
+  dependencies, and symbol search
