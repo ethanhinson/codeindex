@@ -1,6 +1,11 @@
-# clone cache for the benchmark spike
-bench/repos-cache/
+# secrets / local env
 .env
+
+# python bench spike
 __pycache__/
 *.pyc
-.env
+bench/repos-cache/
+
+# engine build artifacts
+/codeindex
+.codeindex/

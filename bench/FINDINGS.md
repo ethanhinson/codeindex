@@ -78,6 +78,17 @@ measures the real token delta of the output contract without the engine built.
 - **Output caps matter:** broad symbols (hundreds of callers) and `outline` of
   huge files need a `--limit` so answers stay bounded and context-friendly.
 
+## Confirmed with Claude's exact tokenizer
+
+Re-ran gin/prometheus/nest via the Anthropic `count_tokens` endpoint
+(`bench/results/quick-claude.json`, sample 20). Ratios hold and the weakest case
+improves: gin def 400×/callers 255×, prometheus def 198×/callers 92×, and
+**nest (small-file TS) def rose to 14.4× and callers to 10.8×** — both clear ≥10×
+now, because Claude's tokenizer scales both sides up (nest def baseline 452 vs
+tiktoken's 170). Absolute index answers run ~1.3–1.5× larger than cl100k but stay
+tiny (def ~28–37, callers ~42–105 tokens). Conclusion unchanged and slightly
+strengthened.
+
 ## Caveats / honesty
 
 - Token counts use `cl100k_base`, not Claude's exact tokenizer — ratios are

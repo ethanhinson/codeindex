@@ -34,7 +34,7 @@
 
 ## 6. Build orchestration (code-indexing)
 
-- [ ] 6.1 Implement `codeindex build`: walk → hash → parse (concurrent worker pool) → resolve → persist, reporting files indexed and symbols found
+- [~] 6.1 Implement `codeindex build`: walk → hash → parse (concurrent worker pool) → resolve → persist, reporting files indexed and symbols found — Go slice done in `engine-walking-skeleton`; extend to more languages here
 - [ ] 6.2 Skip files with no registered adapter without error
 - [ ] 6.3 Test: full build of a mixed Go+TS fixture repo produces the expected symbol/edge counts
 
@@ -60,7 +60,7 @@
 - [x] 9.0 Pre-implementation token-savings spike validating the core assumption against real OSS repos (`bench/`, `bench/FINDINGS.md`) — done: 100–500× for def/callers on large-file Go incl. kubernetes; file-size dependent; outline weaker; JSON ~1.5–1.7× text
 - [x] 9.0b Pre-implementation re-index spike (`bench/reindex_bench.py`) — done: change-detection walk cost (stat ~185ms vs hash ~980ms on kubernetes) and edge blast-radius (median 2–7 inbound, 10–13% hot up to ~4000; churn median 1 file/commit). Established fast-path/dir-shortcutting/vendored-exclusion as required; parse+patch throughput + incremental-correctness remain engine-only
 - [ ] 9.1 Pin reference corpora at fixed commits for each tier (small ~50k, medium ~500k, large ~5M LOC; mix of Go + TS/JS) and a fetch script — extend `bench/repos.json`, fold the spike's `rg`-proxy corpora into the real harness
-- [ ] 9.2 Implement the benchmark harness (`make bench` / `codeindex bench`) measuring cold build time, parallel efficiency, incremental latency, query p50/p95, index size, and peak build memory per tier
+- [~] 9.2 Implement the benchmark harness (`make bench` / `codeindex bench`) measuring cold build time, parallel efficiency, incremental latency, query p50/p95, index size, and peak build memory per tier — cold-build/incremental measurement de-risked in `engine-walking-skeleton` (all targets met on gin/prometheus/kubernetes; see `bench/engine/FINDINGS.md`); still need query p50/p95, index size, memory, parallel-efficiency
 - [ ] 9.3 Define the fixed navigation-question set and measure the token-savings ratio (codeindex answer tokens vs. grep+read source tokens); assert median ≥ 10×
 - [ ] 9.4 Add the size+mtime fast path and directory-mtime shortcutting so the lazy re-check meets the query-latency budget at the large tier
 - [ ] 9.5 Add a `--limit` to query commands and confirm typical answers stay ≤ ~500 tokens
@@ -69,6 +69,6 @@
 
 ## 10. Verification
 
-- [ ] 10.1 Integration test: build → query → edit a file → re-query, asserting incremental correctness end-to-end
+- [~] 10.1 Integration test: build → query → edit a file → re-query, asserting incremental correctness end-to-end — incremental==full-rebuild correctness proven in `engine-walking-skeleton` (real kubernetes, 116k symbols); extend with query assertions once queries exist
 - [ ] 10.2 Add a README documenting the CLI commands, the output contract, the performance targets, and the build toolchain (CGO note)
 - [ ] 10.3 Run `openspec validate core-indexing-engine` and confirm the change is valid and complete

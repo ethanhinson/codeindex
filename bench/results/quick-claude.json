@@ -1,0 +1,131 @@
+{
+  "token_counter": "anthropic-count_tokens",
+  "config": {
+    "sample": 20,
+    "seed": 7,
+    "limit": 50,
+    "smart_k": 5
+  },
+  "results": [
+    {
+      "repo": "gin",
+      "lang": "go",
+      "tier": "small",
+      "commit": "v1.10.0",
+      "n_symbols_total": 1213,
+      "n_sampled": 20,
+      "summary": {
+        "def": {
+          "n": 20,
+          "median_ratio_naive": 400.5,
+          "median_ratio_smart": 400.5,
+          "pct_meeting_10x_smart": 100.0,
+          "median_index_tokens": 28,
+          "p90_index_tokens": 33,
+          "median_index_json_tokens": 41,
+          "median_baseline_smart_tokens": 11174
+        },
+        "callers": {
+          "n": 20,
+          "median_ratio_naive": 281.7,
+          "median_ratio_smart": 255.1,
+          "pct_meeting_10x_smart": 100.0,
+          "median_index_tokens": 42,
+          "p90_index_tokens": 283,
+          "median_index_json_tokens": 69,
+          "median_baseline_smart_tokens": 13062
+        },
+        "outline": {
+          "n": 20,
+          "median_ratio_naive": 8.6,
+          "median_ratio_smart": 8.6,
+          "pct_meeting_10x_smart": 45.0,
+          "median_index_tokens": 668,
+          "p90_index_tokens": 2727,
+          "median_index_json_tokens": 957,
+          "median_baseline_smart_tokens": 11174
+        }
+      }
+    },
+    {
+      "repo": "prometheus",
+      "lang": "go",
+      "tier": "medium",
+      "commit": "v3.1.0",
+      "n_symbols_total": 4000,
+      "n_sampled": 20,
+      "summary": {
+        "def": {
+          "n": 20,
+          "median_ratio_naive": 198.3,
+          "median_ratio_smart": 198.3,
+          "pct_meeting_10x_smart": 100.0,
+          "median_index_tokens": 37,
+          "p90_index_tokens": 50,
+          "median_index_json_tokens": 50,
+          "median_baseline_smart_tokens": 7786
+        },
+        "callers": {
+          "n": 20,
+          "median_ratio_naive": 92.0,
+          "median_ratio_smart": 92.0,
+          "pct_meeting_10x_smart": 100.0,
+          "median_index_tokens": 105,
+          "p90_index_tokens": 880,
+          "median_index_json_tokens": 151,
+          "median_baseline_smart_tokens": 9155
+        },
+        "outline": {
+          "n": 20,
+          "median_ratio_naive": 13.8,
+          "median_ratio_smart": 13.8,
+          "pct_meeting_10x_smart": 75.0,
+          "median_index_tokens": 381,
+          "p90_index_tokens": 2303,
+          "median_index_json_tokens": 537,
+          "median_baseline_smart_tokens": 7786
+        }
+      }
+    },
+    {
+      "repo": "nest",
+      "lang": "ts",
+      "tier": "medium",
+      "commit": "v10.4.15",
+      "n_symbols_total": 1500,
+      "n_sampled": 20,
+      "summary": {
+        "def": {
+          "n": 20,
+          "median_ratio_naive": 14.4,
+          "median_ratio_smart": 14.4,
+          "pct_meeting_10x_smart": 60.0,
+          "median_index_tokens": 34,
+          "p90_index_tokens": 39,
+          "median_index_json_tokens": 47,
+          "median_baseline_smart_tokens": 452
+        },
+        "callers": {
+          "n": 20,
+          "median_ratio_naive": 13.5,
+          "median_ratio_smart": 10.8,
+          "pct_meeting_10x_smart": 55.0,
+          "median_index_tokens": 208,
+          "p90_index_tokens": 1511,
+          "median_index_json_tokens": 292,
+          "median_baseline_smart_tokens": 3076
+        },
+        "outline": {
+          "n": 20,
+          "median_ratio_naive": 15.6,
+          "median_ratio_smart": 15.6,
+          "pct_meeting_10x_smart": 65.0,
+          "median_index_tokens": 20,
+          "p90_index_tokens": 91,
+          "median_index_json_tokens": 30,
+          "median_baseline_smart_tokens": 452
+        }
+      }
+    }
+  ]
+}
