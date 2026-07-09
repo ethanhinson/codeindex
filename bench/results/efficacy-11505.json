@@ -1,0 +1,30 @@
+{
+  "issue": "prometheus/prometheus#11505",
+  "title": "remote write: When ingesting, check that labels are indeed sorted lexicographically",
+  "token_counter": "anthropic-count_tokens",
+  "symbols": [
+    "HasDuplicateLabelNames",
+    "Labels"
+  ],
+  "total_with_tokens": 5889,
+  "total_without_smart_tokens": 395624,
+  "total_without_naive_tokens": 1355742,
+  "savings_smart_x": 67.2,
+  "savings_naive_x": 230.2,
+  "rows": [
+    {
+      "symbol": "HasDuplicateLabelNames",
+      "with_tokens": 382,
+      "without_naive_tokens": 87402,
+      "without_smart_tokens": 87402,
+      "n_files": 8
+    },
+    {
+      "symbol": "Labels",
+      "with_tokens": 5507,
+      "without_naive_tokens": 1268340,
+      "without_smart_tokens": 308222,
+      "n_files": 227
+    }
+  ]
+}

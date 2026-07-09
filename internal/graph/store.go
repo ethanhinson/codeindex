@@ -200,6 +200,60 @@ func (s *Store) AllDstNames() (map[string]struct{}, error) {
 	return out, rows.Err()
 }
 
+// Definitions returns the symbols defined with the given name.
+func (s *Store) Definitions(name string) ([]Symbol, error) {
+	rows, err := s.db.Query(
+		`SELECT file, name, kind, signature, start_line, end_line
+		 FROM symbols WHERE name=? ORDER BY file, start_line`, name)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Symbol
+	for rows.Next() {
+		var sy Symbol
+		var kind string
+		if err := rows.Scan(&sy.File, &sy.Name, &kind, &sy.Signature, &sy.StartLine, &sy.EndLine); err != nil {
+			return nil, err
+		}
+		sy.Kind = SymbolKind(kind)
+		out = append(out, sy)
+	}
+	return out, rows.Err()
+}
+
+// Caller is a symbol that calls a queried name, with the call-site line.
+type Caller struct {
+	File      string
+	Name      string
+	Signature string
+	Line      int
+	Conf      Confidence
+}
+
+// Callers returns the symbols that call the given name (edges resolving to it).
+func (s *Store) Callers(name string) ([]Caller, error) {
+	rows, err := s.db.Query(`
+		SELECT sc.file, sc.name, sc.signature, e.line, e.confidence
+		FROM edges e JOIN symbols sc ON sc.id = e.src_symbol_id
+		WHERE e.dst_name = ? ORDER BY sc.file, e.line`, name)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Caller
+	for rows.Next() {
+		var c Caller
+		var conf string
+		if err := rows.Scan(&c.File, &c.Name, &c.Signature, &c.Line, &conf); err != nil {
+			return nil, err
+		}
+		c.Conf = Confidence(conf)
+		out = append(out, c)
+	}
+	return out, rows.Err()
+}
+
 // RefreshMerkle updates a file's change-detection state without touching its
 // graph (content unchanged, only mtime moved).
 func (s *Store) RefreshMerkle(tx *sql.Tx, m FileMeta) error {

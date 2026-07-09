@@ -34,6 +34,17 @@ func main() {
 		if err := runBench(root, out); err != nil {
 			fatal(err)
 		}
+	case "query":
+		if len(os.Args) < 4 {
+			fatal(fmt.Errorf("usage: codeindex query <repo-root> <symbol> [--limit N]"))
+		}
+		limit := 50
+		if len(os.Args) >= 6 && os.Args[4] == "--limit" {
+			fmt.Sscanf(os.Args[5], "%d", &limit)
+		}
+		if err := runQuery(root, os.Args[3], limit); err != nil {
+			fatal(err)
+		}
 	default:
 		fatal(fmt.Errorf("unknown command %q", cmd))
 	}
@@ -152,6 +163,46 @@ func runBench(root, out string) error {
 			return err
 		}
 		fmt.Printf("wrote %s\n", out)
+	}
+	return nil
+}
+
+// runQuery prints the compact index answer for a symbol: its definition(s) and
+// callers as `path:line  signature` references — the plugin's output contract.
+func runQuery(root, name string, limit int) error {
+	db := dbPath(root)
+	st, err := graph.Open(db)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+
+	defs, err := st.Definitions(name)
+	if err != nil {
+		return err
+	}
+	for _, d := range defs {
+		fmt.Printf("def  %s:%d  %s\n", d.File, d.StartLine, d.Signature)
+	}
+	if len(defs) == 0 {
+		fmt.Printf("def  %s: (not found in index)\n", name)
+	}
+
+	callers, err := st.Callers(name)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("callers (%d):\n", len(callers))
+	for i, c := range callers {
+		if i >= limit {
+			fmt.Printf("  ... (+%d more; use --limit)\n", len(callers)-limit)
+			break
+		}
+		flag := ""
+		if c.Conf == graph.ConfAmbiguous {
+			flag = "  [ambiguous]"
+		}
+		fmt.Printf("  %s:%d  %s%s\n", c.File, c.Line, c.Name, flag)
 	}
 	return nil
 }
