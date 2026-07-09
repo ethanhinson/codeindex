@@ -53,8 +53,18 @@
 - [ ] 8.5 Implement the output layer: default `path:line  signature` text and `--json` structured records (path, line, signature, edge kind, confidence)
 - [ ] 8.6 Test each query command end-to-end against the fixture repo in both text and JSON modes
 
-## 9. Verification
+## 9. Performance & benchmarks (performance)
 
-- [ ] 9.1 Integration test: build → query → edit a file → re-query, asserting incremental correctness end-to-end
-- [ ] 9.2 Add a README documenting the CLI commands, the output contract, and the build toolchain (CGO note)
-- [ ] 9.3 Run `openspec validate core-indexing-engine` and confirm the change is valid and complete
+- [ ] 9.1 Pin reference corpora at fixed commits for each tier (small ~50k, medium ~500k, large ~5M LOC; mix of Go + TS/JS) and a fetch script
+- [ ] 9.2 Implement the benchmark harness (`make bench` / `codeindex bench`) measuring cold build time, parallel efficiency, incremental latency, query p50/p95, index size, and peak build memory per tier
+- [ ] 9.3 Define the fixed navigation-question set and measure the token-savings ratio (codeindex answer tokens vs. grep+read source tokens); assert median ≥ 10×
+- [ ] 9.4 Add the size+mtime fast path and directory-mtime shortcutting so the lazy re-check meets the query-latency budget at the large tier
+- [ ] 9.5 Add a `--limit` to query commands and confirm typical answers stay ≤ ~500 tokens
+- [ ] 9.6 Record baseline results and add a CI job that fails on >20% regression, naming the metric and tier
+- [ ] 9.7 Verify each per-tier target in the `performance` spec is met (or record a documented, justified deviation)
+
+## 10. Verification
+
+- [ ] 10.1 Integration test: build → query → edit a file → re-query, asserting incremental correctness end-to-end
+- [ ] 10.2 Add a README documenting the CLI commands, the output contract, the performance targets, and the build toolchain (CGO note)
+- [ ] 10.3 Run `openspec validate core-indexing-engine` and confirm the change is valid and complete

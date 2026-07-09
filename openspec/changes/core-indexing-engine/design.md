@@ -86,6 +86,38 @@ isolation, hard to test independently).
 use; `--context N` opts into N source lines. Results are never full-file dumps —
 this is the whole token-savings mechanism.
 
+**D8 — Performance is specced and benchmarked, not assumed.** Because the entire
+justification for the tool is being faster and cheaper than grep+read, targets
+are first-class, measurable requirements (see the `performance` spec) with a
+reproducible harness and a CI regression guard.
+*Methodology:*
+- **Baseline machine:** 8 performance cores, NVMe SSD, warm OS file cache. All
+  absolute targets are relative to this; other hardware reports ratios.
+- **Tiers & corpora:** small (~50k LOC), medium (~500k LOC), large (~5M LOC),
+  each pinned to representative open-source reference repositories (a mix of Go
+  and TS/JS) at fixed commits for reproducibility.
+- **Dimensions measured:** cold build time + parallel efficiency, incremental
+  update latency (bounded by changed-file count), query p50/p95 including the
+  lazy re-check, token-savings ratio vs. grep+read over a fixed navigation
+  question set, index size, and peak build memory.
+- **Token-savings measurement:** for each fixed question, compare tokens in the
+  `codeindex` answer against the tokens of the source files a naive grep+read
+  would load to answer it; report the median ratio (target ≥ 10×).
+- **Regression guard:** the harness records a baseline; CI fails a run when any
+  metric regresses > 20%, naming the metric and tier.
+
+*Target table (baseline machine):*
+
+| Tier   | LOC  | Files | Cold build | Incremental (1 file) | Query p95 (unchanged) | Index size |
+| ------ | ---- | ----- | ---------- | -------------------- | --------------------- | ---------- |
+| Small  | 50k  | 500   | ≤ 3 s      | ≤ 150 ms             | ≤ 75 ms               | ≤ 25% src  |
+| Medium | 500k | 5k    | ≤ 30 s     | ≤ 300 ms             | ≤ 150 ms              | ≤ 25% src  |
+| Large  | 5M   | 50k   | ≤ 5 min    | ≤ 750 ms             | ≤ 400 ms              | ≤ 25% src  |
+
+*Alternatives:* leaving performance implicit (no way to catch regressions, and
+no evidence the token story holds); micro-benchmarks only (miss end-to-end query
+latency and the token-savings ratio that actually matters).
+
 ## Risks / Trade-offs
 
 - **Name collisions inflate edges** → `resolved_confidence` flags ambiguous
@@ -104,6 +136,15 @@ this is the whole token-savings mechanism.
 - **CGO dependency** (`go-tree-sitter`, `go-sqlite3`) complicates static builds
   → document the build toolchain; revisit pure-Go alternatives if distribution
   friction appears (deferred).
+- **Lazy re-check walk cost at the large tier** (50k stat calls on every query)
+  could blow the query-latency budget → size+mtime fast path avoids hashing, and
+  directory-mtime shortcutting skips subtrees whose directory mtime is unchanged;
+  if still too slow, fall back to an optional short-lived watch cache (deferred
+  to change 3, not required here).
+- **Token-savings target may not hold for broad queries** (e.g. a symbol with
+  hundreds of callers) → cap default result counts with a `--limit`, keep output
+  as references, and measure the ratio over a representative question set rather
+  than worst case.
 
 ## Migration Plan
 

@@ -101,6 +101,24 @@ Stored under `.codeindex/graph.db` (gitignored).
 - Edges carry `resolved_confidence` so ambiguous (name-only) matches are
   flagged, not silently presented as certain.
 
+## Performance & Benchmarks
+
+Performance is the entire justification for the tool, so targets are
+first-class, measurable requirements with a reproducible harness and a CI
+regression guard — not assumptions. Targets are defined against a baseline
+machine (8 performance cores, NVMe SSD, warm file cache) across three tiers.
+
+| Tier   | LOC  | Files | Cold build | Incremental (1 file) | Query p95 (unchanged) | Index size |
+| ------ | ---- | ----- | ---------- | -------------------- | --------------------- | ---------- |
+| Small  | 50k  | 500   | ≤ 3 s      | ≤ 150 ms             | ≤ 75 ms               | ≤ 25% src  |
+| Medium | 500k | 5k    | ≤ 30 s     | ≤ 300 ms             | ≤ 150 ms              | ≤ 25% src  |
+| Large  | 5M   | 50k   | ≤ 5 min    | ≤ 750 ms             | ≤ 400 ms              | ≤ 25% src  |
+
+Invariants: incremental work scales with changed-file count (not repo size);
+token savings ≥ 10× median vs. grep+read; build parallel efficiency ≥ 0.7 at 8
+cores; peak build memory ≤ 1 GB; CI fails on >20% regression. Full detail lives
+in the `performance` capability spec of the `core-indexing-engine` change.
+
 ## Technology Decisions
 
 - **Implementation:** Go — single static binary, fast concurrent parsing,

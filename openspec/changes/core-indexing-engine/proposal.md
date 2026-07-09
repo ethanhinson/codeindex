@@ -25,6 +25,11 @@ signature` references instead of full-file dumps.
   dependencies/dependents, and symbol search/outline.
 - Output is reference-based (`path:line  signature`) with an opt-in `--json`
   format and an opt-in `--context N` for pulling limited source lines.
+- A reproducible benchmark harness with measurable performance targets across
+  three repository tiers (small ~50k LOC, medium ~500k LOC, large ~5M LOC) for
+  cold build throughput, incremental update latency, query latency (including
+  the lazy re-check), token savings vs. grep+read, and index size — enforced as
+  a CI regression guard.
 
 Non-goals for this change: Python/PHP/.NET adapters, import/scope-aware precise
 resolution, the MCP server, and the Claude plugin packaging (all deferred to
@@ -43,6 +48,10 @@ later changes).
 - `graph-queries`: The CLI query surface over the graph — callers/callees,
   definition/signature lookup, dependencies/dependents, symbol search/outline,
   and the reference-based output contract (`--json`, `--context`).
+- `performance`: Measurable performance characteristics and the benchmark
+  harness — per-tier targets for cold build, incremental update, query latency,
+  token savings, and index size, plus build parallelism, memory bounds, and a
+  CI regression guard.
 
 ### Modified Capabilities
 
@@ -53,6 +62,8 @@ None (greenfield project).
 - New Go module and binary (`codeindex`); dependencies: `go-tree-sitter` (+
   TypeScript/TSX/JavaScript/Go grammars), `mattn/go-sqlite3` (or equivalent).
 - New on-disk artifact `.codeindex/graph.db` (gitignored).
+- New benchmark harness and reference corpora (representative OSS repos per
+  tier) plus a CI job that records baselines and fails on regression.
 - Establishes the language-adapter interface and SQLite schema that changes 2
   (more languages, precise resolution) and 3 (MCP + plugin) build on.
 - No existing code affected — greenfield.
