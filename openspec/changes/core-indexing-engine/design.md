@@ -51,14 +51,23 @@ indexed both-direction edge traversal, trivially inspectable.
 heavier/less familiar dependency); flat JSON/Parquet (awkward incremental
 updates); in-memory (loses persistence and the Merkle benefit).
 
-**D3 — Merkle tree for change detection only.** Leaves hash file contents;
-directory nodes hash their children's hashes up to a root. A query recomputes
-the root, and when it differs walks down only the branches whose hashes changed
-to find the exact set of changed files. The Merkle tree is *not* the
-relationship graph — it decides *what to re-parse*, and the graph holds the
-relationships.
+**D3 — Per-file content-hash change detection (flat table, not a tree).**
+Leaves hash file contents; a size+mtime fast path avoids hashing unchanged
+files; the diff against stored state yields the exact added/modified/deleted
+set. The change-detection layer is *not* the relationship graph — it decides
+*what to re-parse*, and the graph holds the relationships.
+**Revised by measurement:** the original design called for Merkle interior
+directory nodes and a root hash. The walking skeleton proved a flat per-file
+table meets every latency target (119 ms single-file patch on kubernetes), and
+testing showed interior nodes add nothing locally — you must stat leaves to
+notice changes anyway, and directory mtime provably does not change on content
+edits inside it (so subtree-skipping by dir mtime would *miss edits*). Interior
+hash nodes are deferred to a possible future index-sharing/dedup capability
+where comparing subtree hashes across machines has value.
 *Alternatives:* mtime-only (misses touch-without-change and clock issues);
-full rebuild each run (too slow); git-diff (misses uncommitted edits).
+full rebuild each run (too slow); git-diff (misses uncommitted edits); Merkle
+tree with root diff (measured: no local benefit, and the natural subtree
+shortcut is incorrect).
 
 **D4 — Lazy per-query re-check, no daemon.** `codeindex build` creates the
 initial index; every query does a Merkle diff first, patches changed files,
@@ -130,16 +139,25 @@ saves less (~6–17×), so its target is ≥5×, not ≥10×; (4) JSON output co
 kubernetes takes ~0.65s, reinforcing D2 (indexed SQLite lookups over per-query
 scanning) for the interactive/IDE latency budget.
 
-A second spike (`bench/reindex_bench.py`) validated the *re-index* path as far as
-possible without the engine: change-detection walk cost (stat ~185 ms vs full
-hash ~980 ms on kubernetes) and edge blast-radius (median 2–7 inbound refs,
-10–13% hot up to ~4000; real churn median 1 file/commit). These made the fast
-path, directory shortcutting, and vendored-tree exclusion *required* rather than
-optional, and clarified that re-parse is single-file while edge re-resolution is
-bounded by references-to-changed-names. Still engine-only and unmeasured:
-**parse+patch throughput** (tree-sitter re-parse + SQLite write per changed file)
-and **incremental-vs-full-rebuild correctness** — both deferred to the real
-harness (task 9.2) and integration test (task 10.1).
+A second spike (`bench/reindex_bench.py`) validated the *re-index* path:
+change-detection walk cost (stat ~185 ms vs full hash ~980 ms on kubernetes) and
+edge blast-radius (median 2–7 inbound refs, 10–13% hot up to ~4000; real churn
+median 1 file/commit). These made the fast path and vendored-tree exclusion
+*required* rather than optional.
+
+The `engine-walking-skeleton` change then built the real slice and closed the
+remaining engine-only unknowns (`bench/engine/FINDINGS.md`): parse+patch
+throughput meets every tier budget with headroom (kubernetes cold build 31.7 s,
+single-file patch 119 ms), and **incremental == full rebuild is proven** on real
+kubernetes (116k symbols) plus unit tests. A 109-symbol study over real GitHub
+issues (`bench/efficacy-FINDINGS.md`) grounded the token claim end-to-end
+statically (median 363× vs file-read, min 6×). Two originally-specced
+constraints were **falsified by measurement and revised**: the ≤25% index-size
+target (measured 1.7–2.2× source; target now ≤2× with interning as the known
+optimization) and directory-mtime subtree skipping (provably misses content
+edits; removed). Remaining unmeasured: query p50/p95 with the lazy re-check
+wired in, build memory, and — the decisive one — end-to-end agent task savings,
+covered by the `agent-ab-efficacy` change.
 
 ## Risks / Trade-offs
 
@@ -151,22 +169,29 @@ harness (task 9.2) and integration test (task 10.1).
   gaps aren't presented as certainties.
 - **Large-repo initial build cost** → parse files concurrently (Go worker
   pool); persist so the cost is paid once, then only incrementally.
-- **Merkle diff overhead on huge trees** → hashing on unchanged files can be
-  skipped via a size+mtime fast-path before content hashing; only hash when the
-  fast-path is inconclusive.
 - **SQLite write contention** → the CLI is single-writer per invocation; wrap
-  incremental patches in one transaction per query.
+  incremental patches in one transaction per query. NOTE for change 3: a
+  long-lived MCP server serving concurrent queries must serialize re-check
+  writes in-process (the lazy re-check design assumed a single-shot CLI) — spec
+  this when change 3 is drafted.
 - **CGO dependency** (`go-tree-sitter`, `go-sqlite3`) complicates static builds
   → document the build toolchain; revisit pure-Go alternatives if distribution
   friction appears (deferred).
-- **Lazy re-check walk cost at the large tier** — *measured* (re-index spike):
-  on kubernetes (~26k files, 231 MB) a stat-only walk is ~185 ms and a full
-  content hash is ~980 ms. Full hashing on the query path would exceed the 400 ms
-  large-tier budget, and stat-ing every file is a large fraction of it →
-  therefore the size+mtime fast path is **required**, directory-mtime
-  shortcutting (descend only into changed directories) is **required**, and
-  vendored/generated trees are excluded from the walk. If interactive latency is
-  still tight, a short-lived watch cache is the fallback (deferred to change 3).
+- **Lazy re-check walk cost at the large tier** — *measured*: full content
+  hashing on the query path (~980 ms on kubernetes) would exceed the 400 ms
+  budget → the size+mtime fast path is **required** and vendored/generated trees
+  are excluded. The real Go engine's stat walk measured ~119 ms serial on 11k
+  files; parallel stat covers polyglot repos with far more files. Directory-mtime
+  subtree skipping was considered and **rejected as incorrect** (dir mtime does
+  not change on content edits inside it — empirically verified). If a repo's file
+  count still blows the budget, the fallback is an opt-in filesystem-watch cache,
+  never a correctness compromise.
+- **Branch switching looks like a mass edit** — `git checkout` can change
+  thousands of files at once, a daily event. Measured cold-build throughput
+  (prometheus 253k LOC in 1.4 s) suggests even large change-sets patch in
+  seconds, but this is untested → add an explicit branch-switch benchmark case,
+  and fall back to a full rebuild above a changed-file threshold if patching is
+  slower than rebuilding.
 - **Hot-symbol edit ripple** — *measured*: the median symbol has 2–7 inbound
   references but 10–13% are "hot" (>100, up to ~4000). Editing a hot symbol
   re-resolves many edges → re-parse stays single-file, edge re-resolution runs
@@ -187,9 +212,21 @@ index is a derived artifact and safe to regenerate at any time.
 
 ## Open Questions
 
-- Exact Merkle granularity: per-file leaves only, or also chunk large files?
-  (Default: per-file leaves for the MVP.)
 - Should `.codeindex/graph.db` be committed or always gitignored? (Default:
   gitignored; it is a derived artifact.)
 - Ignore rules: honor `.gitignore` for the repo walk, plus a `.codeindexignore`?
-  (Default: honor `.gitignore` + built-in defaults for the MVP.)
+  (Default: honor `.gitignore` + built-in defaults for the MVP.) The skeleton's
+  hardcoded exclusion of `testdata/` is a decision to revisit — agents do ask
+  about test fixtures.
+- Schema normalization: the skeleton denormalizes file paths as TEXT on
+  `symbols`/`edges`; the full engine should adopt `file_id` + string interning
+  (also the main index-size lever) and add `parent_id` (required by the
+  qualified-names requirement in `symbol-graph`).
+- The skeleton's `query` command was an unspecced measurement aid: it does NOT
+  perform the lazy re-check and returns empty on an unbuilt repo. Change-1 tasks
+  7.1/7.2 must retrofit both behaviors before it becomes the real query path.
+- Precise-resolution strategy for change 2: before hand-building per-language
+  scope resolvers, measure name-based precision/recall against a compiler-grade
+  oracle (gopls / `go/types` for Go), and consider optional compiler-front-end
+  resolvers where available; receiver-aware method resolution may capture most
+  of the win cheaply.

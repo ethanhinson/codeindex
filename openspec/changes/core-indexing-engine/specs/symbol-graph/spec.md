@@ -19,6 +19,21 @@ and edges, with indexes supporting fast traversal in both directions.
   kind, and a resolution confidence
 - **AND** the edge kind is one of `calls`, `imports`, `extends`, `implements`,
   or `references`
+- **AND** the edge always retains the referenced name (`dst_name`) independent of
+  resolution, the call/reference site line, and its source-file linkage — these
+  are what make unresolved edges representable, per-file replacement cheap, and
+  name re-resolution proportional to reference count (proven by the walking
+  skeleton, which depends on all three)
+
+#### Scenario: Parent linkage and qualified names
+
+- **WHEN** a symbol is defined within another symbol (a method on a type, a
+  member of a class)
+- **THEN** the symbol records its parent so queries can report and accept
+  qualified names (`Type.Method`), not only bare names
+- **SO THAT** same-named members on different types are distinguishable — the
+  dominant source of ambiguity measured in the efficacy study (e.g. `Labels` →
+  25 same-named definitions)
 
 #### Scenario: Both-direction traversal is indexed
 

@@ -35,19 +35,19 @@ repository size within a tier.
 | Medium | ≤ 30 s            |
 | Large  | ≤ 5 min           |
 
+Basis: the walking skeleton measured cold builds far under budget on real repos
+(gin 0.15 s @ 18.8k LOC, prometheus 1.4 s @ 253k, kubernetes 31.7 s @ 3.05M —
+`bench/engine/FINDINGS.md`), so the budgets stand with headroom.
+
 #### Scenario: Cold build within budget
 
 - **WHEN** `codeindex build` runs against a reference repository for a tier with
   no existing index
 - **THEN** it completes within that tier's cold build budget on the baseline
   machine
-
-#### Scenario: Build parallelism
-
-- **WHEN** the cold build runs with the worker pool sized to the baseline's 8
-  cores versus a single worker
-- **THEN** the parallel build achieves at least 0.7 parallel efficiency
-  (at least a 5.6× speedup at 8 cores)
+- **AND** the benchmark reports the worker-pool size and per-worker throughput
+  (parallel efficiency is reported for diagnosis, not gated — the cold-build
+  budget is the requirement)
 
 ### Requirement: Incremental update latency
 
@@ -116,10 +116,11 @@ large-tier budget, so the mechanisms below are required, not optional.
 - **WHEN** a query runs on an unchanged repository
 - **THEN** the graph lookup itself completes in ≤ 20 ms via indexed SQLite
   access
-- **AND** the change-detection walk SHALL use the size+mtime fast path (never
-  content-hashing unchanged files) and directory-level shortcutting so the walk
-  does not stat every file in the repository
+- **AND** the change-detection walk uses the size+mtime fast path (never
+  content-hashing unchanged files) with parallel stat calls
 - **AND** vendored and generated trees are excluded from the walk
+- **AND** directory-mtime subtree skipping is NOT used for modification
+  detection (measured to miss content edits — see `code-indexing`)
 
 #### Scenario: Full-tree content hashing is not on the query path
 
@@ -137,11 +138,14 @@ dependencies/dependents query types. The outline query type has a lower target
 also scale with source file size, so the target is validated on the reference
 corpora, not on atypically small-file repositories.
 
-Basis: a pre-implementation validation spike (`bench/`, `bench/FINDINGS.md`)
-measured 100–500× median savings for definition and callers on large-file Go
-repositories (including kubernetes at the large tier) and ~9–12× on a
-small-file TypeScript repository, confirming the target and its file-size
-dependence.
+Basis: (1) a pre-implementation spike (`bench/FINDINGS.md`) measured 100–500×
+median savings for definition and callers on large-file Go repositories and
+~9–12× on a small-file TypeScript repository, confirming the target and its
+file-size dependence; (2) a 109-symbol study over real GitHub issues across
+three repos (`bench/efficacy-FINDINGS.md`) measured median 363× vs file-read
+with a worst case of 6.0×, and the index answer was smaller than raw `grep -n`
+output in 97% of symbols. Note these are static comparisons; end-to-end
+agent-task savings are measured by the separate `agent-ab-efficacy` change.
 
 #### Scenario: Token reduction for core query types
 
@@ -169,15 +173,25 @@ dependence.
 
 ### Requirement: Index size and build memory bounds
 
-The system SHALL keep the on-disk index small relative to source and SHALL bound
-peak memory during a build so it does not load the entire repository into
+The system SHALL keep the on-disk index bounded relative to source and SHALL
+bound peak memory during a build so it does not load the entire repository into
 memory.
+
+Basis: the original ≤25% target was set without evidence and falsified by
+measurement — the unoptimized skeleton index measured 2.2× source (gin), 1.67×
+(prometheus), and 1.72× (kubernetes, 178 MB). Edge rows dominate (repeated
+`dst_name`/`src_file` TEXT); string interning and edge dedup are the known
+optimizations. The bound below reflects measured reality with modest
+optimization headroom.
 
 #### Scenario: Index size bound
 
 - **WHEN** an index is built for a reference repository
-- **THEN** the resulting `.codeindex/graph.db` is at most 25% of the total
-  source byte size for that repository
+- **THEN** the resulting `.codeindex/graph.db` is at most 2× the total indexed
+  source byte size at the medium and large tiers
+- **AND** at the small tier the size is reported but not gated (fixed SQLite
+  overhead dominates small repos)
+- **AND** the benchmark reports index size per tier so regressions are visible
 
 #### Scenario: Build memory bound
 

@@ -25,17 +25,21 @@ resolution.
 
 ## Key Concepts
 
-**Symbol graph vs. Merkle tree — two distinct structures:**
+**Symbol graph vs. change-detection index — two distinct structures:**
 
 - **Symbol graph** — nodes are symbols (functions, methods, classes, types),
   edges are relationships (calls, imports, extends, implements, references).
   This is the queryable data.
-- **Merkle tree** — a tree of content hashes (hash each file, then each
-  directory from its children's hashes, up to a root). This is *only* for
-  change detection: diff two roots, walk down the branches whose hashes
-  differ, and you know exactly which files changed — so you re-parse only
-  those and patch only the affected graph edges. It is not the relationship
-  data itself.
+- **Content-hash change detection** — per-file content hashes with a size+mtime
+  fast path. Diff against stored state to get exactly which files were added,
+  modified, or deleted — so you re-parse only those and patch only the affected
+  graph edges. It is not the relationship data itself.
+  *(Revised by measurement: the original design was a full Merkle tree with
+  directory nodes and a root hash. The built engine proved a flat per-file
+  table meets every latency target, and interior nodes add nothing locally —
+  directory mtime provably does not change on content edits inside it, so the
+  natural subtree shortcut is incorrect. True Merkle interior nodes are
+  deferred to a possible future index-sharing/dedup capability.)*
 
 ## Architecture
 
@@ -70,15 +74,20 @@ language's adapter.
   stored root → for each changed leaf, re-parse that file and patch its
   symbols/edges → then answer. Always correct, no background daemon.
 
-## Storage — SQLite (sketch)
+## Storage — SQLite (sketch, updated to the proven skeleton schema)
 
-- `files(id, path, hash, lang, mtime)`
+- `files(id, path, hash, size, mtime, lang)` — doubles as the change-detection
+  state (per-file leaves; no directory/root rows)
 - `symbols(id, file_id, name, kind, signature, start_line, end_line, parent_id)`
-- `edges(src_symbol_id, dst_symbol_id, kind, resolved_confidence)`
-  where `kind ∈ {calls, imports, extends, implements, references}`
-- `merkle(path, hash, parent_path)`
-- Indexes on `symbols.name`, `edges.src_symbol_id`, `edges.dst_symbol_id`
-  for fast both-direction traversal.
+  — `parent_id` enables qualified names (`Type.Method`)
+- `edges(src_symbol_id, dst_symbol_id, dst_name, kind, resolved_confidence, line, src_file_id)`
+  where `kind ∈ {calls, imports, extends, implements, references}`; `dst_name`
+  makes unresolved edges representable and re-resolution cheap; `src_file_id`
+  makes per-file replacement cheap; `line` gives call-site references
+- Indexes on `symbols.name`, `edges.src_symbol_id`, `edges.dst_symbol_id`,
+  `edges.dst_name` for fast both-direction traversal and name re-resolution.
+- String interning / `file_id` normalization is the index-size lever (skeleton
+  measured 1.7–2.2× source unoptimized; target ≤2×).
 
 Stored under `.codeindex/graph.db` (gitignored).
 
@@ -110,14 +119,19 @@ machine (8 performance cores, NVMe SSD, warm file cache) across three tiers.
 
 | Tier   | LOC  | Files | Cold build | Incremental (1 file) | Query p95 (unchanged) | Index size |
 | ------ | ---- | ----- | ---------- | -------------------- | --------------------- | ---------- |
-| Small  | 50k  | 500   | ≤ 3 s      | ≤ 150 ms             | ≤ 75 ms               | ≤ 25% src  |
-| Medium | 500k | 5k    | ≤ 30 s     | ≤ 300 ms             | ≤ 150 ms              | ≤ 25% src  |
-| Large  | 5M   | 50k   | ≤ 5 min    | ≤ 750 ms             | ≤ 400 ms              | ≤ 25% src  |
+| Small  | 50k  | 500   | ≤ 3 s      | ≤ 150 ms             | ≤ 75 ms               | reported   |
+| Medium | 500k | 5k    | ≤ 30 s     | ≤ 300 ms             | ≤ 150 ms              | ≤ 2× src   |
+| Large  | 5M   | 50k   | ≤ 5 min    | ≤ 750 ms             | ≤ 400 ms              | ≤ 2× src   |
 
 Invariants: incremental work scales with changed-file count (not repo size);
-token savings ≥ 10× median vs. grep+read; build parallel efficiency ≥ 0.7 at 8
-cores; peak build memory ≤ 1 GB; CI fails on >20% regression. Full detail lives
-in the `performance` capability spec of the `core-indexing-engine` change.
+token savings ≥ 10× median vs. grep+read; peak build memory ≤ 1 GB; CI fails on
+>20% regression. (Two original invariants were revised by measurement: index
+size ≤25% was falsified — unoptimized skeleton measured 1.7–2.2× source; and
+the parallel-efficiency gate was dropped — the cold-build budget is the outcome
+and is met with headroom.) Full detail lives in the `performance` capability
+spec of the `core-indexing-engine` change. Walking-skeleton status: cold build,
+incremental latency, and incremental==full-rebuild are all measured/proven
+(`bench/engine/FINDINGS.md`).
 
 ## Technology Decisions
 
@@ -128,15 +142,22 @@ in the `performance` capability spec of the `core-indexing-engine` change.
   later upgraded to import/scope-aware precise edges.
 - **Freshness:** on-demand build + lazy Merkle re-check per query. No daemon.
 
-## Roadmap — three OpenSpec changes
+## Roadmap — OpenSpec changes (risk-ordered after review)
 
-1. **`core-indexing-engine` (MVP):** Merkle layer + SQLite graph + tree-sitter
-   adapters for **TypeScript/JS + Go** + name-based resolver + all four query
-   types + on-demand/lazy-recheck. Proves the full vertical slice.
-2. **`language-coverage-and-resolution`:** add **Python, PHP, .NET/C#**
-   adapters; upgrade resolver from name-based to import/scope-aware.
-3. **`mcp-and-plugin`:** MCP server wrapper + Claude plugin (slash commands
-   `/callers`, `/deps`, … + a skill teaching Claude to query before grepping).
-
-Change 1 is specced fully first; 2 and 3 are outlined and detailed when
-reached.
+0. **`engine-walking-skeleton`** — DONE. Real Go slice: tree-sitter → name-based
+   symbols+call edges → SQLite → content-hash change detection → build +
+   incremental patch + bench. Proved throughput and incremental==full-rebuild.
+1. **`agent-ab-efficacy`** — NEXT. A/B harness running real Claude agents on
+   real issues, with vs. without codeindex, measuring total task tokens, tool
+   calls, adoption, and task success. This is the goal metric; it gates
+   everything downstream.
+2. **`core-indexing-engine` (MVP):** SQLite graph + adapters for **TS/JS + Go**
+   + name-based resolver + query surface + lazy re-check — breadth shaped by
+   what agents actually queried in the A/B runs.
+3. **`language-coverage-and-resolution`:** add **Python, PHP, .NET/C#**
+   adapters; upgrade resolution *as the precision data demands* (measure
+   name-based precision/recall against a compiler-grade oracle first;
+   receiver-aware resolution may capture most of the win cheaply).
+4. **`mcp-and-plugin`:** MCP server wrapper + Claude plugin (slash commands +
+   skill). Must address concurrent-query serialization for the long-lived
+   server.

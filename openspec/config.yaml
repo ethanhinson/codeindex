@@ -17,8 +17,10 @@ context: |
     Start name-based, later upgrade to import/scope-aware resolution.
   - Storage: SQLite (single .codeindex/graph.db file), transactional
     incremental updates, indexed both-direction edge traversal.
-  - Merkle tree: incremental change detection only (NOT the relationship graph
-    itself). Diff roots → re-parse only changed files → patch affected edges.
+  - Change detection: flat per-file content hashes + size/mtime fast path (NOT
+    the relationship graph itself; NOT a Merkle tree — interior nodes were
+    measured unnecessary and dir-mtime subtree skipping provably misses edits).
+    Diff vs stored state → re-parse only changed files → patch affected edges.
   - Freshness: on-demand `build` + lazy Merkle re-check on every query
     (no daemon). Always-correct answers with minimal per-query overhead.
   - Output contract: results are references (path:line + signature), never full
@@ -26,15 +28,17 @@ context: |
     name-only matches are flagged.
   - Target languages: TypeScript/JS, Python, Go, PHP, .NET/C#.
 
-  Roadmap decomposed into three OpenSpec changes:
-  1. core-indexing-engine (this MVP): Merkle + SQLite graph + tree-sitter
-     adapters for TypeScript/JS + Go + name-based resolver + all four query
-     types (callers/callees, definition, dependencies, symbol search) via CLI,
-     with on-demand build and lazy re-check.
-  2. language-coverage-and-resolution: add Python, PHP, .NET/C# adapters and
-     upgrade resolver to import/scope-aware precise edges.
-  3. mcp-and-plugin: MCP server wrapper + Claude plugin (slash commands + a
-     skill teaching Claude to query before grepping).
+  Roadmap (risk-ordered):
+  0. engine-walking-skeleton — DONE: real Go slice proved throughput and
+     incremental==full-rebuild (bench/engine/FINDINGS.md).
+  1. agent-ab-efficacy — NEXT: A/B harness running real Claude agents on real
+     issues with vs. without codeindex; measures the actual goal metric (task
+     tokens, adoption, success) and gates everything downstream.
+  2. core-indexing-engine (MVP): SQLite graph + TS/JS + Go adapters +
+     name-based resolver + query surface + lazy re-check.
+  3. language-coverage-and-resolution: Python, PHP, .NET/C# adapters; precise
+     resolution as precision data demands (oracle-measured first).
+  4. mcp-and-plugin: MCP server + Claude plugin (slash commands + skill).
 
   Full design: docs/superpowers/specs/2026-07-08-codeindex-design.md
 

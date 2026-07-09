@@ -50,17 +50,33 @@ adding a language does not modify other adapters.
 - **AND** returns the raw references (calls, imports, extends, implements) found
   in that file for the resolver to link
 
-### Requirement: Merkle-based incremental update
+### Requirement: Content-hash change detection and incremental update
 
-The system SHALL maintain a Merkle content tree whose leaves hash file contents
-and whose interior nodes hash their children, and SHALL use it to detect exactly
-which files changed since the last index so that only those files are re-parsed.
+The system SHALL maintain per-file content hashes and SHALL use them, together
+with a size+mtime fast path, to compute the exact set of added, modified, and
+deleted files since the last index, so that only changed files are re-parsed.
+Change detection SHALL be correct: it MUST never miss a content edit (the
+walking-skeleton implementation — a flat per-file hash table with a stat walk —
+is the proven mechanism; interior directory hash nodes and a root hash are NOT
+required, as they add nothing to local change detection and are deferred to a
+possible future index-sharing capability).
 
 #### Scenario: Detecting changed files
 
-- **WHEN** the current Merkle root differs from the stored root
-- **THEN** the system walks only the subtrees whose hashes changed
-- **AND** identifies the exact set of added, modified, and deleted files
+- **WHEN** the change detector runs against the working tree
+- **THEN** it identifies the exact set of added, modified, and deleted files by
+  comparing per-file state (size, mtime, content hash) against stored state
+- **AND** a content edit is always detected, including edits that do not change
+  file size
+
+#### Scenario: Content edits inside subdirectories are never missed
+
+- **WHEN** a file's content is edited without adding, removing, or renaming any
+  directory entry (so no ancestor directory mtime changes)
+- **THEN** the change detector still identifies the file as modified
+- **AND** the system SHALL NOT use ancestor-directory mtime as a subtree-skipping
+  condition for modification detection (measured: directory mtime does not change
+  on content edits within it)
 
 #### Scenario: Patching only affected graph data
 
@@ -86,16 +102,19 @@ which files changed since the last index so that only those files are re-parsed.
 - **THEN** the system SHALL treat it as unchanged without content hashing
 - **AND** SHALL fall back to content hashing only when size or mtime differs
 
-#### Scenario: Directory-level change-detection shortcutting
+#### Scenario: Change-detection walk cost is bounded
 
 - **WHEN** the change-detection walk runs on a large repository
-- **THEN** the system SHALL descend only into directories whose recorded state
-  (e.g. directory mtime or stored subtree hash) indicates a possible change
-- **AND** SHALL skip directories excluded by ignore rules, including vendored and
-  generated trees (e.g. `vendor/`, `node_modules/`, build output), so the walk
-  does not stat every file on every query
-- **AND** the excluded/ignored trees are reported so coverage is not silently
-  reduced
+- **THEN** the walk stats candidate files in parallel and uses the size+mtime
+  fast path so no unchanged file is content-hashed (measured: a serial stat walk
+  of ~11k files completes in well under the incremental budget; parallelism
+  covers polyglot repos with far more files)
+- **AND** directories excluded by ignore rules — vendored and generated trees
+  (e.g. `vendor/`, `node_modules/`, build output) — are skipped entirely and
+  reported, so coverage is not silently reduced
+- **AND** if a repository's file count makes even a parallel stat walk exceed the
+  query-latency budget, the system MAY offer an opt-in filesystem-watch cache as
+  a documented fallback (correctness of the no-watch path is never compromised)
 
 ### Requirement: Lazy freshness on query
 
