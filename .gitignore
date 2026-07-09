@@ -3,3 +3,4 @@ bench/repos-cache/
 .env
 __pycache__/
 *.pyc
+.env

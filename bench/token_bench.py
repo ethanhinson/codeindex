@@ -39,6 +39,7 @@ from __future__ import annotations
 
 import argparse
 import glob
+import hashlib
 import json
 import os
 import random
@@ -85,27 +86,50 @@ def resolve_rg(override: str | None) -> str:
 
 _ENC = None
 _COUNTER_NAME = None
+_COUNT_CACHE: dict[str, int] = {}
+_ANTHROPIC_WARNED = False
+
+
+def load_dotenv() -> None:
+    """Load KEY=VALUE lines from bench/.env or the repo-root .env into the env.
+
+    Existing environment variables win (setdefault), so an exported key is not
+    overridden by the file.
+    """
+    here = Path(__file__).resolve().parent
+    for p in (here / ".env", here.parent / ".env"):
+        if not p.exists():
+            continue
+        for line in p.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, _, v = line.partition("=")
+            os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+
+
+def _tiktoken():
+    global _ENC
+    if _ENC is None:
+        import tiktoken
+
+        _ENC = tiktoken.get_encoding("cl100k_base")
+    return _ENC
 
 
 def _init_counter() -> str:
     """Select the best available token counter, once."""
-    global _ENC, _COUNTER_NAME
+    global _COUNTER_NAME
     if _COUNTER_NAME is not None:
         return _COUNTER_NAME
-    # 1) Anthropic API (accurate for Claude) — only if a key is present.
+    load_dotenv()
+    # 1) Anthropic count_tokens (exact for Claude) — if a key is present.
     if os.environ.get("ANTHROPIC_API_KEY"):
-        try:
-            import anthropic  # noqa: F401
-
-            _COUNTER_NAME = "anthropic-count_tokens"
-            return _COUNTER_NAME
-        except Exception:
-            pass
-    # 2) tiktoken cl100k_base — good proxy, ratios are tokenizer-robust.
+        _COUNTER_NAME = "anthropic-count_tokens"
+        return _COUNTER_NAME
+    # 2) tiktoken cl100k_base — good proxy; ratios are tokenizer-robust.
     try:
-        import tiktoken
-
-        _ENC = tiktoken.get_encoding("cl100k_base")
+        _tiktoken()
         _COUNTER_NAME = "tiktoken-cl100k_base"
         return _COUNTER_NAME
     except Exception:
@@ -115,7 +139,22 @@ def _init_counter() -> str:
     return _COUNTER_NAME
 
 
-_ANTHROPIC_CLIENT = None
+def _anthropic_count(text: str) -> int:
+    """Exact Claude token count via the REST count_tokens endpoint (no SDK)."""
+    import urllib.request
+
+    body = json.dumps({
+        "model": os.environ.get("ANTHROPIC_COUNT_MODEL", "claude-sonnet-4-6"),
+        "messages": [{"role": "user", "content": text}],
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        "https://api.anthropic.com/v1/messages/count_tokens",
+        data=body, method="POST")
+    req.add_header("x-api-key", os.environ["ANTHROPIC_API_KEY"])
+    req.add_header("anthropic-version", "2023-06-01")
+    req.add_header("content-type", "application/json")
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        return json.loads(resp.read())["input_tokens"]
 
 
 def count_tokens(text: str) -> int:
@@ -123,19 +162,23 @@ def count_tokens(text: str) -> int:
     if not text:
         return 0
     if name == "anthropic-count_tokens":
-        global _ANTHROPIC_CLIENT
-        import anthropic
-
-        if _ANTHROPIC_CLIENT is None:
-            _ANTHROPIC_CLIENT = anthropic.Anthropic()
-        resp = _ANTHROPIC_CLIENT.messages.count_tokens(
-            model="claude-sonnet-4-6",
-            messages=[{"role": "user", "content": text}],
-        )
-        return resp.input_tokens
+        key = hashlib.blake2b(text.encode("utf-8", "replace")).hexdigest()
+        if key in _COUNT_CACHE:
+            return _COUNT_CACHE[key]
+        try:
+            n = _anthropic_count(text)
+        except Exception as e:  # fall back per-call, warn once
+            global _ANTHROPIC_WARNED
+            if not _ANTHROPIC_WARNED:
+                print(f"  ! anthropic count_tokens failed ({e}); "
+                      f"falling back to tiktoken for remaining counts",
+                      file=sys.stderr)
+                _ANTHROPIC_WARNED = True
+            n = len(_tiktoken().encode(text, disallowed_special=()))
+        _COUNT_CACHE[key] = n
+        return n
     if name == "tiktoken-cl100k_base":
-        return len(_ENC.encode(text, disallowed_special=()))
-    # heuristic
+        return len(_tiktoken().encode(text, disallowed_special=()))
     return max(1, round(len(text) / 4))
 
 
