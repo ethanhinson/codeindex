@@ -147,11 +147,17 @@ incremental latency, and incremental==full-rebuild are all measured/proven
 0. **`engine-walking-skeleton`** — DONE. Real Go slice: tree-sitter → name-based
    symbols+call edges → SQLite → content-hash change detection → build +
    incremental patch + bench. Proved throughput and incremental==full-rebuild.
-1. **`agent-ab-efficacy`** — NEXT. A/B harness running real Claude agents on
-   real issues, with vs. without codeindex, measuring total task tokens, tool
-   calls, adoption, and task success. This is the goal metric; it gates
-   everything downstream.
-2. **`core-indexing-engine` (MVP):** SQLite graph + adapters for **TS/JS + Go**
+1. **`agent-ab-efficacy`** — DONE, **VERDICT: RED** (2026-07-09). Real Claude
+   agents on 24 tasks × 2 arms × 2 reps: codeindex *increased* cost ~17% (ITT) /
+   ~26% (when used), with identical success and 81% adoption — because a query is
+   an additive round-trip and native grep is already cheap for the tasks tested.
+   The static 363× "savings" were vs reading whole files, a baseline real Claude
+   does not use. **This gate is CLOSED:** downstream breadth is paused pending a
+   redesigned task set targeting expensive/insufficient-grep questions
+   (call-graph traversal, blast-radius, hot-name disambiguation) and/or a
+   non-round-trip integration. See `bench/agent_ab/FINDINGS.md`.
+2. **`core-indexing-engine` (MVP)** — ON HOLD pending the rethink above. When
+   unblocked: SQLite graph + adapters for **TS/JS + Go**
    + name-based resolver + query surface + lazy re-check — breadth shaped by
    what agents actually queried in the A/B runs.
 3. **`language-coverage-and-resolution`:** add **Python, PHP, .NET/C#**

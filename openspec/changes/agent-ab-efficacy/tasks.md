@@ -35,15 +35,15 @@
 - [x] 6.1 Paired per-task stats: medians over reps, paired deltas, seeded bootstrap 95% CI, win rate, success deltas
 - [x] 6.2 Adoption + per-protocol re-analysis + ITT-vs-PP gap callout
 - [x] 6.3 Verdict vs pre-registered thresholds; emits `report.md` with table, provenance, cost, caveats
-- [ ] 6.4 Determinism check (run after full experiment produces graded.jsonl)
+- [x] 6.4 Determinism check — report.py byte-identical across two runs
 
 ## 7. The experiment
 
-- [ ] 7.1 Freeze and commit `tasks.json` (thresholds included) BEFORE the full run
-- [ ] 7.2 Run `--full` within budget; monitor the first few runs' transcripts
-- [ ] 7.3 Generate the report; commit `runs.jsonl` (transcripts archived, large ones gitignored if needed), `report.md`, and a summary entry in `bench/agent_ab/README.md`
-- [ ] 7.4 Record the verdict and its roadmap consequence in `openspec/changes/agent-ab-efficacy/` (update this file) and surface the result to the maintainer — GREEN unblocks `core-indexing-engine` breadth + plugin; YELLOW triggers one registered iteration on the arm-B prompt; RED stops downstream work pending a consumption-model rethink
+- [x] 7.1 Froze + committed `tasks.json` (thresholds in header) before the run
+- [x] 7.2 Ran `--full` ($7.89, 96 runs, within $40 budget); monitored throughout
+- [x] 7.3 Report generated (`results/report.md`, `FINDINGS.md`); results committed
+- [x] 7.4 VERDICT: **RED** — codeindex +17% cost (ITT) / +26% (per-protocol), success parity, 81% adoption. Additive round-trip vs already-cheap native grep. Roadmap: STOP downstream breadth; redesign task set around expensive/insufficient-grep tasks before any further engineering. Recorded in proposal.md + FINDINGS.md
 
 ## 8. Verification
 
-- [ ] 8.1 `openspec validate agent-ab-efficacy` passes; README documents every command needed to reproduce from a clean checkout (build binary → clone repos → build tasks → smoke → full → report)
+- [x] 8.1 `openspec validate agent-ab-efficacy` passes; README + FINDINGS document reproduction from a clean checkout

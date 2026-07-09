@@ -1,3 +1,20 @@
+## Outcome (2026-07-09) — VERDICT: RED
+
+Ran ($7.89, 96 paired runs). **codeindex increased agent cost by ~17% (ITT) /
+~26% (when actually used) with identical task success (89.6% both arms) despite
+81% adoption.** Mechanism: the query is an additive round-trip and Claude's
+native Grep is already cheap for these tasks, so the extra call doesn't pay for
+itself; the more the tool was used, the worse the cost. Repo size did not flip
+the sign. Full analysis and caveats in `bench/agent_ab/FINDINGS.md`.
+
+Pre-registered RED action: **stop building breadth on the token-savings premise.**
+The static 363× studies compared against reading whole files — a baseline real
+Claude does not use. Honest limitation: the tasks tested are ones ripgrep already
+handles cheaply (`rg -l`); the untested frontier is expensive/insufficient-grep
+tasks (call-graph traversal, blast-radius, hot-name disambiguation). Next step is
+to redesign the task set around those before any further engineering — not to
+proceed to `core-indexing-engine` breadth, the resolver, or the plugin.
+
 ## Why
 
 Every codeindex validation so far is **static token arithmetic**: we compared
