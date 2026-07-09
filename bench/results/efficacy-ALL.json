@@ -1,0 +1,148 @@
+{
+  "overall": {
+    "n_symbols": 109,
+    "vs_grep_floor": {
+      "n": 109,
+      "min": 0.8,
+      "p25": 3.9,
+      "median": 43.6,
+      "p75": 232.5,
+      "max": 14106.4
+    },
+    "vs_smart_files": {
+      "n": 109,
+      "min": 6.0,
+      "p25": 83.5,
+      "median": 362.6,
+      "p75": 2294.7,
+      "max": 168018.1
+    },
+    "vs_naive_files": {
+      "n": 109,
+      "min": 12.6,
+      "p25": 179.4,
+      "median": 659.2,
+      "p75": 6631.3,
+      "max": 285238.3
+    },
+    "pct_index_beats_grep_floor": 97.2,
+    "with_answer_tokens": {
+      "n": 109,
+      "min": 17,
+      "p25": 77,
+      "median": 449,
+      "p75": 3335,
+      "max": 29661
+    }
+  },
+  "per_repo": {
+    "gin-gonic/gin": {
+      "n_symbols": 18,
+      "vs_grep_floor": {
+        "n": 18,
+        "min": 1.0,
+        "p25": 1.7,
+        "median": 3.8,
+        "p75": 8.2,
+        "max": 41.3
+      },
+      "vs_smart_files": {
+        "n": 18,
+        "min": 12.6,
+        "p25": 92.8,
+        "median": 282.3,
+        "p75": 659.2,
+        "max": 1359.2
+      },
+      "vs_naive_files": {
+        "n": 18,
+        "min": 12.6,
+        "p25": 92.8,
+        "median": 282.3,
+        "p75": 659.2,
+        "max": 1359.2
+      },
+      "pct_index_beats_grep_floor": 100.0,
+      "with_answer_tokens": {
+        "n": 18,
+        "min": 29,
+        "p25": 73,
+        "median": 106.5,
+        "p75": 201,
+        "max": 6570
+      }
+    },
+    "kubernetes/kubernetes": {
+      "n_symbols": 81,
+      "vs_grep_floor": {
+        "n": 81,
+        "min": 0.9,
+        "p25": 17.3,
+        "median": 88.9,
+        "p75": 526.0,
+        "max": 14106.4
+      },
+      "vs_smart_files": {
+        "n": 81,
+        "min": 6.0,
+        "p25": 92.9,
+        "median": 403.8,
+        "p75": 4942.2,
+        "max": 168018.1
+      },
+      "vs_naive_files": {
+        "n": 81,
+        "min": 24.9,
+        "p25": 236.7,
+        "median": 858.2,
+        "p75": 14369.5,
+        "max": 285238.3
+      },
+      "pct_index_beats_grep_floor": 98.8,
+      "with_answer_tokens": {
+        "n": 81,
+        "min": 17,
+        "p25": 98,
+        "median": 518,
+        "p75": 3335,
+        "max": 29661
+      }
+    },
+    "prometheus/prometheus": {
+      "n_symbols": 10,
+      "vs_grep_floor": {
+        "n": 10,
+        "min": 0.8,
+        "p25": 1.6,
+        "median": 4.7,
+        "p75": 11.6,
+        "max": 1353.6
+      },
+      "vs_smart_files": {
+        "n": 10,
+        "min": 7.6,
+        "p25": 50.4,
+        "median": 149.3,
+        "p75": 228.8,
+        "max": 4795.3
+      },
+      "vs_naive_files": {
+        "n": 10,
+        "min": 25.6,
+        "p25": 144.6,
+        "median": 204.1,
+        "p75": 382.6,
+        "max": 11031.7
+      },
+      "pct_index_beats_grep_floor": 80.0,
+      "with_answer_tokens": {
+        "n": 10,
+        "min": 28,
+        "p25": 39,
+        "median": 2461.5,
+        "p75": 5507,
+        "max": 27983
+      }
+    }
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "slug": "prometheus/prometheus",
+  "token_counter": "anthropic-count_tokens",
+  "n_symbols": 5,
+  "n_issues": 4,
+  "ratio_grep_floor": {
+    "n": 5,
+    "min": 1.6,
+    "p25": 7.3,
+    "median": 11.6,
+    "p75": 11.6,
+    "max": 1353.6
+  },
+  "ratio_smart_files": {
+    "n": 5,
+    "min": 50.4,
+    "p25": 56.0,
+    "median": 215.1,
+    "p75": 228.8,
+    "max": 3735.0
+  },
+  "ratio_naive_files": {
+    "n": 5,
+    "min": 144.6,
+    "p25": 144.6,
+    "median": 228.8,
+    "p75": 382.6,
+    "max": 11031.7
+  },
+  "pct_index_beats_grep_floor": 100.0,
+  "rows": [
+    {
+      "issue": 11505,
+      "symbol": "HasDuplicateLabelNames",
+      "n_defs": 3,
+      "n_callers": 11,
+      "n_files": 8,
+      "with_tokens": 382,
+      "grep_floor_tokens": 610,
+      "smart_files_tokens": 87402,
+      "naive_files_tokens": 87402
+    },
+    {
+      "issue": 11505,
+      "symbol": "Labels",
+      "n_defs": 25,
+      "n_callers": 199,
+      "n_files": 227,
+      "with_tokens": 5507,
+      "grep_floor_tokens": 63968,
+      "smart_files_tokens": 277783,
+      "naive_files_tokens": 796263
+    },
+    {
+      "issue": 16525,
+      "symbol": "Labels",
+      "n_defs": 25,
+      "n_callers": 199,
+      "n_files": 227,
+      "with_tokens": 5507,
+      "grep_floor_tokens": 63968,
+      "smart_files_tokens": 308222,
+      "naive_files_tokens": 796263
+    },
+    {
+      "issue": 11834,
+      "symbol": "Head",
+      "n_defs": 2,
+      "n_callers": 51,
+      "n_files": 36,
+      "with_tokens": 1481,
+      "grep_floor_tokens": 10835,
+      "smart_files_tokens": 318528,
+      "naive_files_tokens": 566620
+    },
+    {
+      "issue": 14398,
+      "symbol": "Service",
+      "n_defs": 1,
+      "n_callers": 0,
+      "n_files": 34,
+      "with_tokens": 28,
+      "grep_floor_tokens": 37900,
+      "smart_files_tokens": 104580,
+      "naive_files_tokens": 308888
+    }
+  ]
+}

@@ -1,0 +1,231 @@
+{
+  "slug": "gin-gonic/gin",
+  "token_counter": "anthropic-count_tokens",
+  "n_symbols": 18,
+  "n_issues": 7,
+  "ratio_grep_floor": {
+    "n": 18,
+    "min": 1.0,
+    "p25": 1.7,
+    "median": 3.8,
+    "p75": 8.2,
+    "max": 41.3
+  },
+  "ratio_smart_files": {
+    "n": 18,
+    "min": 12.6,
+    "p25": 92.8,
+    "median": 282.3,
+    "p75": 659.2,
+    "max": 1359.2
+  },
+  "ratio_naive_files": {
+    "n": 18,
+    "min": 12.6,
+    "p25": 92.8,
+    "median": 282.3,
+    "p75": 659.2,
+    "max": 1359.2
+  },
+  "pct_index_beats_grep_floor": 100.0,
+  "rows": [
+    {
+      "issue": 4733,
+      "symbol": "Engine",
+      "n_defs": 2,
+      "n_callers": 2,
+      "n_files": 17,
+      "with_tokens": 93,
+      "grep_floor_tokens": 2926,
+      "smart_files_tokens": 95084,
+      "naive_files_tokens": 114028
+    },
+    {
+      "issue": 4733,
+      "symbol": "StructValidator",
+      "n_defs": 2,
+      "n_callers": 0,
+      "n_files": 4,
+      "with_tokens": 48,
+      "grep_floor_tokens": 313,
+      "smart_files_tokens": 16258,
+      "naive_files_tokens": 16258
+    },
+    {
+      "issue": 4733,
+      "symbol": "ValidateStruct",
+      "n_defs": 1,
+      "n_callers": 5,
+      "n_files": 5,
+      "with_tokens": 116,
+      "grep_floor_tokens": 354,
+      "smart_files_tokens": 24459,
+      "naive_files_tokens": 24459
+    },
+    {
+      "issue": 4733,
+      "symbol": "defaultValidator",
+      "n_defs": 1,
+      "n_callers": 0,
+      "n_files": 5,
+      "with_tokens": 29,
+      "grep_floor_tokens": 1197,
+      "smart_files_tokens": 6548,
+      "naive_files_tokens": 6548
+    },
+    {
+      "issue": 4733,
+      "symbol": "lazyinit",
+      "n_defs": 1,
+      "n_callers": 2,
+      "n_files": 1,
+      "with_tokens": 65,
+      "grep_floor_tokens": 68,
+      "smart_files_tokens": 819,
+      "naive_files_tokens": 819
+    },
+    {
+      "issue": 4733,
+      "symbol": "validate",
+      "n_defs": 2,
+      "n_callers": 26,
+      "n_files": 17,
+      "with_tokens": 618,
+      "grep_floor_tokens": 1827,
+      "smart_files_tokens": 50967,
+      "naive_files_tokens": 55127
+    },
+    {
+      "issue": 4725,
+      "symbol": "Open",
+      "n_defs": 1,
+      "n_callers": 8,
+      "n_files": 7,
+      "with_tokens": 185,
+      "grep_floor_tokens": 300,
+      "smart_files_tokens": 35367,
+      "naive_files_tokens": 35367
+    },
+    {
+      "issue": 4721,
+      "symbol": "Query",
+      "n_defs": 1,
+      "n_callers": 13,
+      "n_files": 7,
+      "with_tokens": 226,
+      "grep_floor_tokens": 1008,
+      "smart_files_tokens": 81939,
+      "naive_files_tokens": 81939
+    },
+    {
+      "issue": 4688,
+      "symbol": "AsciiJSON",
+      "n_defs": 2,
+      "n_callers": 1,
+      "n_files": 7,
+      "with_tokens": 81,
+      "grep_floor_tokens": 551,
+      "smart_files_tokens": 86014,
+      "naive_files_tokens": 86014
+    },
+    {
+      "issue": 4688,
+      "symbol": "BytesToString",
+      "n_defs": 2,
+      "n_callers": 6,
+      "n_files": 6,
+      "with_tokens": 201,
+      "grep_floor_tokens": 299,
+      "smart_files_tokens": 18656,
+      "naive_files_tokens": 18656
+    },
+    {
+      "issue": 4688,
+      "symbol": "Data",
+      "n_defs": 2,
+      "n_callers": 2,
+      "n_files": 16,
+      "with_tokens": 97,
+      "grep_floor_tokens": 1757,
+      "smart_files_tokens": 73770,
+      "naive_files_tokens": 84234
+    },
+    {
+      "issue": 4688,
+      "symbol": "Render",
+      "n_defs": 19,
+      "n_callers": 62,
+      "n_files": 19,
+      "with_tokens": 1870,
+      "grep_floor_tokens": 3160,
+      "smart_files_tokens": 54259,
+      "naive_files_tokens": 60417
+    },
+    {
+      "issue": 4688,
+      "symbol": "String",
+      "n_defs": 3,
+      "n_callers": 296,
+      "n_files": 35,
+      "with_tokens": 6570,
+      "grep_floor_tokens": 11354,
+      "smart_files_tokens": 90685,
+      "naive_files_tokens": 179520
+    },
+    {
+      "issue": 4683,
+      "symbol": "Default",
+      "n_defs": 3,
+      "n_callers": 28,
+      "n_files": 17,
+      "with_tokens": 673,
+      "grep_floor_tokens": 2164,
+      "smart_files_tokens": 96690,
+      "naive_files_tokens": 118276
+    },
+    {
+      "issue": 4683,
+      "symbol": "FormFile",
+      "n_defs": 1,
+      "n_callers": 5,
+      "n_files": 6,
+      "with_tokens": 127,
+      "grep_floor_tokens": 294,
+      "smart_files_tokens": 78421,
+      "naive_files_tokens": 78421
+    },
+    {
+      "issue": 4683,
+      "symbol": "Logger",
+      "n_defs": 1,
+      "n_callers": 1,
+      "n_files": 8,
+      "with_tokens": 36,
+      "grep_floor_tokens": 648,
+      "smart_files_tokens": 48932,
+      "naive_files_tokens": 48932
+    },
+    {
+      "issue": 4683,
+      "symbol": "Recovery",
+      "n_defs": 1,
+      "n_callers": 3,
+      "n_files": 8,
+      "with_tokens": 73,
+      "grep_floor_tokens": 596,
+      "smart_files_tokens": 48121,
+      "naive_files_tokens": 48121
+    },
+    {
+      "issue": 4683,
+      "symbol": "ShouldBind",
+      "n_defs": 1,
+      "n_callers": 2,
+      "n_files": 4,
+      "with_tokens": 77,
+      "grep_floor_tokens": 756,
+      "smart_files_tokens": 77811,
+      "naive_files_tokens": 77811
+    }
+  ]
+}

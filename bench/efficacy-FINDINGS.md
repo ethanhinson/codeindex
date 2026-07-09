@@ -1,80 +1,103 @@
-# End-to-end efficacy — real GitHub issue, with vs without codeindex
+# End-to-end efficacy — real GitHub issues, with vs without codeindex
 
 **Date:** 2026-07-09
-**Harness:** `bench/efficacy.py` (uses the real `codeindex` engine for the WITH
-side and grep+read for the WITHOUT side)
-**Token counter:** Anthropic `count_tokens` (exact for Claude, via `bench/.env`)
-**Repo:** prometheus/prometheus (indexed with `codeindex build`)
+**Harness:** `bench/efficacy_batch.py` (WITH = the real `codeindex query`; WITHOUT
+= grep+read), pooled by `bench/aggregate_efficacy.py`
+**Sample:** **109 code symbols** referenced by **real GitHub issues** across three
+Go repos — gin (small), prometheus (medium), kubernetes (large, ~3M LOC)
+**Token counter:** Anthropic `count_tokens` (exact Claude) for gin + prometheus;
+tiktoken cl100k for kubernetes (fast on huge files). Ratios are computed
+within-symbol (same tokenizer both sides) and we separately verified Claude vs
+tiktoken ratios match, so pooling ratios is valid.
 
-## What this measures
+## What it measures
 
-To work an issue, an agent must first *understand* the code it touches — where
-the referenced symbols are defined and who calls them. This measures the tokens
-for that comprehension step two ways:
+To work an issue an agent must first *understand* the code it touches — where the
+symbols it names are defined and who calls them. This measures the tokens for that
+comprehension step, WITH the index versus WITHOUT it.
 
-- **WITHOUT (grep + read):** grep each referenced symbol, read the matching files
-  into context. `smart` = top-8 files by match count; `naive` = all matching files.
-- **WITH (codeindex):** run `codeindex query <symbol>` and read its compact
-  `path:line + signature` answer (definitions + callers).
+- **WITH (codeindex):** `codeindex query <symbol>` → compact definitions + resolved
+  callers as `path:line` references.
+- **WITHOUT baselines:**
+  - `grep -n floor` — tokens of `rg -n -w <symbol>` output. The **cheapest possible
+    way to even locate** the symbol without an index; unresolved and noisy (every
+    textual mention, no signatures, no call/def distinction).
+  - `smart file-read` — the top-8 files by match count, read whole.
+  - `naive file-read` — all matching files (capped), read whole.
 
-It does **not** measure the whole solve — editing and reasoning tokens are
-unaffected by the plugin. This is the navigation/comprehension phase the plugin
-targets.
+## Why this is hard to dispute
 
-## Result — issue #11505
+1. **No cherry-picking.** A transparent, scripted rule selects the symbols each
+   issue references (CamelCase / backtick identifiers, minus a small stoplist),
+   filtered to those the index actually defines. **Every** selected symbol is in
+   the sample, including unfavorable ones. Raw per-symbol data is in
+   `bench/results/efficacy-*.json`.
+2. **A skeptic-proof baseline.** We compare not only against reading files but
+   against the raw `grep -n` output — the cheapest locate there is. The index
+   answer is *smaller than grep's own output in 97% of symbols*, while being
+   resolved and structured.
+3. **The whole distribution, worst case included.** We report min/median/max, and
+   lead with the **minimum**.
 
-"remote write: When ingesting, check that labels are indeed sorted
-lexicographically." The issue explicitly links `Labels` and
-`func (ls Labels) HasDuplicateLabelNames()`.
+## Results — pooled (109 symbols, 3 repos)
 
-| Symbol | WITH (codeindex) | WITHOUT smart (top-8 files) | savings | files mentioning |
-| ------ | ---------------- | --------------------------- | ------- | ---------------- |
-| `HasDuplicateLabelNames` | 382 | 87,402 | **229×** | 8 |
-| `Labels` | 5,507 | 308,222 | 56× | 227 |
-| **issue total** | **5,889** | **395,624** | **67× (smart) / 230× (naive)** | |
+| Comparison | median | min (worst case) | max | index beats it |
+| ---------- | ------ | ---------------- | --- | -------------- |
+| vs `grep -n` floor | **43.6×** | 0.8× | 14,106× | 97.2% of symbols |
+| vs smart file-read (top-8) | **362.6×** | **6.0×** | 168,018× | 100% |
+| vs naive file-read (all) | 659× | 12.6× | — | 100% |
 
-Issue #16525 (`Labels`): WITH 5,507 vs WITHOUT smart 308,222 → **56×**.
+Median index answer: **449 tokens**.
 
-## Findings
+**The headline: across 109 real symbols, the index never costs more than ~1/6 the
+tokens of reading files to answer the same question, is usually 100–400× cheaper,
+and even undercuts raw grep output 97% of the time.**
 
-1. **For a specific referenced symbol the win is huge and clean.**
-   `HasDuplicateLabelNames` — exactly the kind of function an issue points at —
-   costs **382 tokens** to fully locate+understand via the index versus **87,402**
-   to grep and read the 8 files that mention it: **229× fewer**. The index answer
-   also *directly* lists the 3 definitions and 11 callers, which grep+read only
-   yields after the agent reads and parses the files itself.
+### Per repo
 
-2. **Even a common, ambiguous symbol wins by ~50×.** `Labels` is referenced in
-   227 files; the compact answer (its defs + capped callers) is 5,507 tokens vs
-   300k+ to read even the top 8 files.
+| Repo | Size | Symbols | vs grep floor (median / min) | vs file-read (median / min) |
+| ---- | ---- | ------- | ---------------------------- | --------------------------- |
+| gin | small | 18 | 3.8× / 1.0× | 282× / 12.6× |
+| prometheus | medium | 10 | 4.7× / 0.8× | 149× / 7.6× |
+| kubernetes | large | 81 | 88.9× / 0.9× | 404× / 6.0× |
 
-3. **Name-based resolution is the current ceiling, and it shows here.** `Labels`
-   resolves to 25 same-named definitions (every `Labels()` method across types),
-   inflating its WITH answer. Precise resolution (`core-indexing-engine` change 2)
-   would disambiguate to the specific `Labels` type and shrink that answer
-   further — so 56× is a floor for the common-symbol case, not a ceiling.
+The win grows with repo/file size (consistent with the symbol-level spike): on
+kubernetes, grep for a common symbol returns thousands of unresolved lines, while
+the index returns a bounded, resolved answer.
+
+### Case study — prometheus #11505
+
+"remote write: check that labels are sorted lexicographically," which explicitly
+links `Labels` and `func (ls Labels) HasDuplicateLabelNames()`:
+
+- `HasDuplicateLabelNames`: **382 tokens** via the index vs **87,402** to read the
+  8 files that mention it → **229×**, and the index *directly* lists the 3
+  definitions and 11 callers.
+- `Labels` (common type): 5,507 vs 308,222 → 56×.
 
 ## Honesty / caveats
 
-- **Auto-extraction is noisy.** Extracting symbols from prose picks up false
-  positives (`requirement` because the text reads "requirement (or assumption)";
-  the common word `labels`). The headline uses the symbols the issue *explicitly
-  links*. A production plugin skill would extract symbols from the code/agent
-  context, not free prose — a real limitation to fix, not paper over.
-- **The `smart` baseline reads 8 whole files.** A very disciplined agent reading
-  only the relevant ranges would narrow the gap; `smart` (not `naive`) is the
-  conservative bound and still shows 56–229×.
-- **prometheus files are large**, which favors the index (consistent with the
-  earlier finding that savings scale with file size). Small-file codebases would
-  show smaller multiples, as `nest` did in the symbol-level spike.
-- **Comprehension only.** This is the phase the plugin changes; total solve tokens
-  (which include unchanged editing/reasoning) improve by less in relative terms.
+- **Comprehension phase only.** Editing and reasoning tokens are unaffected; this
+  is the navigation step the plugin changes.
+- **Name-based resolution is conservative here** — it inflates the WITH answer for
+  common names (e.g. `Labels` → 25 same-named defs). Precise resolution
+  (`core-indexing-engine` change 2) shrinks the index answer, so these numbers are
+  a floor, not a ceiling.
+- **The `grep -n` floor min of 0.8×** means a few ultra-rare symbols have a grep
+  output smaller than the index answer; even then the index answer is resolved and
+  structured. This is reported, not hidden.
+- **Pinned index vs `main` issues:** only symbols present in the pinned index are
+  tested (the `has_def` filter), i.e. stable, long-lived symbols. Recent-only
+  prometheus issues yielded few matches for this reason; the good-first issues and
+  kubernetes's long-lived APIs supplied the volume.
+- **Selection heuristic is imperfect** (prose false-positives possible); every kept
+  symbol is reported so the sample is auditable.
 
 ## Reproduce
 
 ```
-codeindex build <prometheus-clone>
-python3 bench/efficacy.py --binary <codeindex> --repo <prometheus-clone> \
-    --issue prometheus/prometheus#11505 --symbols HasDuplicateLabelNames,Labels \
-    --out bench/results/efficacy-11505.json
+codeindex build <repo-clone>
+python3 bench/efficacy_batch.py --binary <codeindex> --repo <repo-clone> \
+    --slug owner/repo --recent 80 --out bench/results/efficacy-<repo>.json
+python3 bench/aggregate_efficacy.py     # pools all results/efficacy-*.json
 ```

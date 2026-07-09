@@ -1,0 +1,88 @@
+{
+  "slug": "prometheus/prometheus",
+  "token_counter": "anthropic-count_tokens",
+  "n_symbols": 5,
+  "n_issues": 2,
+  "ratio_grep_floor": {
+    "n": 5,
+    "min": 0.8,
+    "p25": 1.0,
+    "median": 1.6,
+    "p75": 2.1,
+    "max": 277.1
+  },
+  "ratio_smart_files": {
+    "n": 5,
+    "min": 7.6,
+    "p25": 13.0,
+    "median": 83.5,
+    "p75": 780.6,
+    "max": 4795.3
+  },
+  "ratio_naive_files": {
+    "n": 5,
+    "min": 25.6,
+    "p25": 35.4,
+    "median": 179.4,
+    "p75": 780.6,
+    "max": 9781.8
+  },
+  "pct_index_beats_grep_floor": 60.0,
+  "rows": [
+    {
+      "issue": 19114,
+      "symbol": "Close",
+      "n_defs": 69,
+      "n_callers": 977,
+      "n_files": 177,
+      "with_tokens": 27983,
+      "grep_floor_tokens": 27788,
+      "smart_files_tokens": 364023,
+      "naive_files_tokens": 716964
+    },
+    {
+      "issue": 19114,
+      "symbol": "Querier",
+      "n_defs": 16,
+      "n_callers": 101,
+      "n_files": 41,
+      "with_tokens": 3442,
+      "grep_floor_tokens": 7066,
+      "smart_files_tokens": 287527,
+      "naive_files_tokens": 617444
+    },
+    {
+      "issue": 19103,
+      "symbol": "Error",
+      "n_defs": 21,
+      "n_callers": 582,
+      "n_files": 209,
+      "with_tokens": 14557,
+      "grep_floor_tokens": 23764,
+      "smart_files_tokens": 111109,
+      "naive_files_tokens": 514905
+    },
+    {
+      "issue": 19103,
+      "symbol": "Request",
+      "n_defs": 1,
+      "n_callers": 0,
+      "n_files": 76,
+      "with_tokens": 39,
+      "grep_floor_tokens": 10805,
+      "smart_files_tokens": 187018,
+      "naive_files_tokens": 381491
+    },
+    {
+      "issue": 19103,
+      "symbol": "TestLoadConfig",
+      "n_defs": 1,
+      "n_callers": 0,
+      "n_files": 1,
+      "with_tokens": 37,
+      "grep_floor_tokens": 30,
+      "smart_files_tokens": 28882,
+      "naive_files_tokens": 28882
+    }
+  ]
+}
