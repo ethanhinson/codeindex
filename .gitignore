@@ -12,6 +12,6 @@ bench/repos-cache/
 
 # agent-ab harness: binary + live results (regenerated)
 bench/agent_ab/.bin/
-bench/agent_ab/results/runs.jsonl
-bench/agent_ab/results/graded.jsonl
+bench/agent_ab/results/runs*.jsonl
+bench/agent_ab/results/graded*.jsonl
 bench/agent_ab/results/transcripts/

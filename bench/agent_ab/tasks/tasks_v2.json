@@ -1,0 +1,450 @@
+{
+  "header": {
+    "generated_seed": 1729,
+    "repo_pins": {
+      "gin": {
+        "slug": "gin-gonic/gin",
+        "commit": "v1.10.0"
+      },
+      "prometheus": {
+        "slug": "prometheus/prometheus",
+        "commit": "v3.1.0"
+      }
+    },
+    "thresholds": {
+      "metric": "median paired reduction in total_cost_usd",
+      "green": "savings >= 30% AND success_delta >= -5pp AND adoption >= 70%",
+      "yellow": "savings 10-30%, OR adoption 40-70% with per-protocol savings >= 30%",
+      "red": "savings < 10% (ITT), OR success_delta < -5pp, OR adoption < 40% with per-protocol savings < 30%"
+    },
+    "n_tasks": 16,
+    "by_type": {
+      "comprehension": 0,
+      "localization": 0,
+      "caller_attribution": 16
+    },
+    "note": "Prompts contain the literal {REPO_PATH}; the runner substitutes the resolved absolute clone path. Ground truth is arm-neutral (ripgrep / merged-PR files)."
+  },
+  "tasks": [
+    {
+      "id": "callattr-gin-Next",
+      "type": "caller_attribution",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'Next'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "BenchmarkParallelGithub\tgithubapi_test.go",
+          "BenchmarkParallelGithubDefault\tgithubapi_test.go",
+          "CustomRecoveryWithWriter\trecovery.go",
+          "ErrorLoggerT\tlogger.go",
+          "LoggerWithConfig\tlogger.go",
+          "TestContextIsAborted\tcontext_test.go",
+          "TestContextResetInHandler\tcontext_test.go",
+          "TestInterceptedHeader\tcontext_test.go",
+          "TestMiddlewareAbort\tmiddleware_test.go",
+          "TestMiddlewareAbortHandlersChainAndNext\tmiddleware_test.go",
+          "TestMiddlewareFailHandlersChain\tmiddleware_test.go",
+          "TestMiddlewareGeneralCase\tmiddleware_test.go",
+          "TestMiddlewareNoMethodDisabled\tmiddleware_test.go",
+          "TestMiddlewareNoMethodEnabled\tmiddleware_test.go",
+          "TestMiddlewareNoRoute\tmiddleware_test.go",
+          "TestNewOptionFunc\tgin_test.go",
+          "TestRouteServeErrorWithWriteHeader\troutes_test.go",
+          "TestWithOptionFunc\tgin_test.go",
+          "handleHTTPRequest\tgin.go",
+          "serveError\tgin.go"
+        ]
+      },
+      "meta": {
+        "symbol": "Next",
+        "n_callers": 20
+      }
+    },
+    {
+      "id": "callattr-gin-AbortWithStatus",
+      "type": "caller_attribution",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'AbortWithStatus'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "AbortWithError\tcontext.go",
+          "BasicAuthForProxy\tauth.go",
+          "BasicAuthForRealm\tauth.go",
+          "TestContextAbortWithStatus\tcontext_test.go",
+          "TestCustomRecovery\trecovery_test.go",
+          "TestCustomRecoveryWithWriter\trecovery_test.go",
+          "TestMiddlewareAbort\tmiddleware_test.go",
+          "TestMiddlewareAbortHandlersChainAndNext\tmiddleware_test.go",
+          "TestPanicClean\trecovery_test.go",
+          "TestPanicWithAbort\trecovery_test.go",
+          "TestRecoveryWithWriterWithCustomRecovery\trecovery_test.go",
+          "TestRouteContextHoldsFullPath\troutes_test.go",
+          "TestRouterNotFound\troutes_test.go",
+          "defaultHandleRecovery\trecovery.go"
+        ]
+      },
+      "meta": {
+        "symbol": "AbortWithStatus",
+        "n_callers": 14
+      }
+    },
+    {
+      "id": "callattr-gin-IsDebugging",
+      "type": "caller_attribution",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'IsDebugging'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "CustomRecoveryWithWriter\trecovery.go",
+          "LoadHTMLFiles\tgin.go",
+          "LoadHTMLGlob\tgin.go",
+          "TestIsDebugging\tdebug_test.go",
+          "debugPrint\tdebug.go",
+          "debugPrintError\tdebug.go",
+          "debugPrintLoadTemplate\tdebug.go",
+          "debugPrintRoute\tdebug.go"
+        ]
+      },
+      "meta": {
+        "symbol": "IsDebugging",
+        "n_callers": 8
+      }
+    },
+    {
+      "id": "callattr-gin-mappingByPtr",
+      "type": "caller_attribution",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'mappingByPtr'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "Bind\tbinding/form.go",
+          "TestMappingArray\tbinding/form_mapping_test.go",
+          "TestMappingCustomPointerStructTypeWithFormTag\tbinding/form_mapping_test.go",
+          "TestMappingCustomPointerStructTypeWithURITag\tbinding/form_mapping_test.go",
+          "TestMappingCustomStructTypeWithFormTag\tbinding/form_mapping_test.go",
+          "TestMappingCustomStructTypeWithURITag\tbinding/form_mapping_test.go",
+          "TestMappingCustomUnmarshalParamHexWithFormTag\tbinding/form_mapping_test.go",
+          "TestMappingCustomUnmarshalParamHexWithURITag\tbinding/form_mapping_test.go",
+          "TestMappingDefault\tbinding/form_mapping_test.go",
+          "TestMappingIgnoreField\tbinding/form_mapping_test.go",
+          "TestMappingIgnoredCircularRef\tbinding/form_mapping_test.go",
+          "TestMappingMapField\tbinding/form_mapping_test.go",
+          "TestMappingPrivateField\tbinding/form_mapping_test.go",
+          "TestMappingPtrField\tbinding/form_mapping_test.go",
+          "TestMappingSkipField\tbinding/form_mapping_test.go",
+          "TestMappingSlice\tbinding/form_mapping_test.go",
+          "TestMappingStructField\tbinding/form_mapping_test.go",
+          "TestMappingTimeDuration\tbinding/form_mapping_test.go",
+          "TestMappingUnexportedField\tbinding/form_mapping_test.go",
+          "TestMappingUnknownFieldType\tbinding/form_mapping_test.go",
+          "mapFormByTag\tbinding/form_mapping.go",
+          "mapHeader\tbinding/header.go"
+        ]
+      },
+      "meta": {
+        "symbol": "mappingByPtr",
+        "n_callers": 22
+      }
+    },
+    {
+      "id": "callattr-gin-writeContentType",
+      "type": "caller_attribution",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'writeContentType'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "WriteContentType\trender/data.go",
+          "WriteContentType\trender/html.go",
+          "WriteContentType\trender/json.go",
+          "WriteContentType\trender/msgpack.go",
+          "WriteContentType\trender/protobuf.go",
+          "WriteContentType\trender/reader.go",
+          "WriteContentType\trender/text.go",
+          "WriteContentType\trender/toml.go",
+          "WriteContentType\trender/xml.go",
+          "WriteContentType\trender/yaml.go",
+          "WriteJSON\trender/json.go",
+          "WriteMsgPack\trender/msgpack.go",
+          "WriteString\trender/text.go"
+        ]
+      },
+      "meta": {
+        "symbol": "writeContentType",
+        "n_callers": 13
+      }
+    },
+    {
+      "id": "callattr-gin-Open",
+      "type": "caller_attribution",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'Open'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "Open\tfs.go",
+          "SaveUploadedFile\tcontext.go",
+          "TestBindingFormFilesMultipart\tbinding/binding_test.go",
+          "assertMultipartFileHeader\tbinding/multipart_form_mapping_test.go",
+          "createFormFilesMultipartRequest\tbinding/binding_test.go",
+          "createFormFilesMultipartRequestFail\tbinding/binding_test.go",
+          "createStaticHandler\troutergroup.go"
+        ]
+      },
+      "meta": {
+        "symbol": "Open",
+        "n_callers": 7
+      }
+    },
+    {
+      "id": "callattr-gin-AbortWithError",
+      "type": "caller_attribution",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'AbortWithError'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "BindUri\tcontext.go",
+          "MustBindWith\tcontext.go",
+          "Negotiate\tcontext.go",
+          "TestContextAbortWithError\tcontext_test.go",
+          "TestErrorLogger\tlogger_test.go",
+          "TestMiddlewareFailHandlersChain\tmiddleware_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "AbortWithError",
+        "n_callers": 6
+      }
+    },
+    {
+      "id": "callattr-gin-Written",
+      "type": "caller_attribution",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'Written'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "TestResponseWriterHijack\tresponse_writer_test.go",
+          "TestResponseWriterReset\tresponse_writer_test.go",
+          "TestResponseWriterStatusCode\tresponse_writer_test.go",
+          "TestResponseWriterWriteHeader\tresponse_writer_test.go",
+          "TestResponseWriterWriteHeadersNow\tresponse_writer_test.go",
+          "WriteHeader\tresponse_writer.go",
+          "WriteHeaderNow\tresponse_writer.go",
+          "serveError\tgin.go"
+        ]
+      },
+      "meta": {
+        "symbol": "Written",
+        "n_callers": 8
+      }
+    },
+    {
+      "id": "callattr-prometheus-WriteFile",
+      "type": "caller_attribution",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'WriteFile'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "Delete\ttsdb/block.go",
+          "TestBackfillLabels\tcmd/promtool/rules_test.go",
+          "TestChunkSnapshotReplayBug\ttsdb/head_test.go",
+          "TestDirLockerUsage\ttsdb/tsdbutil/dir_locker_testutil.go",
+          "TestGenerateChecksum\tconfig/reload_test.go",
+          "TestGroup_QueryOffset\trules/manager_test.go",
+          "TestNewFileReaderErrorNoOpenFiles\ttsdb/index/index_test.go",
+          "TestScrapeFailureLogFile\tcmd/prometheus/scrape_failure_log_test.go",
+          "TestWriteAndReadbackTombstones\ttsdb/tombstones/tombstones_test.go",
+          "copyFile\ttsdb/fileutil/fileutil.go",
+          "createMultiRuleTestFiles\tcmd/promtool/rules_test.go",
+          "createSingleRuleTestFiles\tcmd/promtool/rules_test.go",
+          "runTestSteps\tcmd/prometheus/reload_test.go",
+          "write\ttsdb/compact.go"
+        ]
+      },
+      "meta": {
+        "symbol": "WriteFile",
+        "n_callers": 14
+      }
+    },
+    {
+      "id": "callattr-prometheus-appendSample",
+      "type": "caller_attribution",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'appendSample'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "append\tpromql/promqltest/test.go",
+          "appendCustomHistogram\tpromql/promqltest/test.go",
+          "appendTill\tpromql/promqltest/test.go",
+          "testHeadMinOOOTimeUpdate\ttsdb/head_test.go",
+          "testOOOAppendWithNoSeries\ttsdb/head_test.go",
+          "testOOOMmapReplay\ttsdb/head_test.go",
+          "testOOOWALWrite\ttsdb/db_test.go",
+          "testOutOfOrderSamplesMetric\ttsdb/head_test.go",
+          "testWBLReplay\ttsdb/head_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "appendSample",
+        "n_callers": 9
+      }
+    },
+    {
+      "id": "callattr-prometheus-nodeName",
+      "type": "caller_attribution",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'nodeName'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "NewEndpointSlice\tdiscovery/kubernetes/endpointslice.go",
+          "NewEndpoints\tdiscovery/kubernetes/endpoints.go",
+          "NewPod\tdiscovery/kubernetes/pod.go",
+          "TestNodeName\tdiscovery/kubernetes/kubernetes_test.go",
+          "enqueue\tdiscovery/kubernetes/node.go"
+        ]
+      },
+      "meta": {
+        "symbol": "nodeName",
+        "n_callers": 5
+      }
+    },
+    {
+      "id": "callattr-prometheus-LastChunkSnapshot",
+      "type": "caller_attribution",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'LastChunkSnapshot'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "ChunkSnapshot\ttsdb/head_wal.go",
+          "Init\ttsdb/head.go",
+          "TestChunkSnapshot\ttsdb/head_test.go",
+          "TestChunkSnapshotTakenAfterIncompleteSnapshot\ttsdb/head_test.go",
+          "TestSnapshotAheadOfWALError\ttsdb/head_test.go",
+          "TestSnapshotError\ttsdb/head_test.go",
+          "loadChunkSnapshot\ttsdb/head_wal.go"
+        ]
+      },
+      "meta": {
+        "symbol": "LastChunkSnapshot",
+        "n_callers": 7
+      }
+    },
+    {
+      "id": "callattr-prometheus-LastCheckpoint",
+      "type": "caller_attribution",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'LastCheckpoint'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "Checkpoint\ttsdb/wlog/checkpoint.go",
+          "Init\ttsdb/head.go",
+          "Run\ttsdb/wlog/watcher.go",
+          "TestCheckpointSeriesReset\ttsdb/wlog/watcher_test.go",
+          "TestDeletedSamplesAndSeriesStillInWALAfterCheckpoint\ttsdb/head_test.go",
+          "TestLastCheckpoint\ttsdb/wlog/checkpoint_test.go",
+          "TestMetadataCheckpointingOnlyKeepsLatestEntry\ttsdb/db_test.go",
+          "TestOneCheckpointPerCompactCall\ttsdb/db_test.go",
+          "TestReadCheckpointMultipleSegments\ttsdb/wlog/watcher_test.go",
+          "garbageCollectSeries\ttsdb/wlog/watcher.go",
+          "replayWAL\ttsdb/agent/db.go"
+        ]
+      },
+      "meta": {
+        "symbol": "LastCheckpoint",
+        "n_callers": 11
+      }
+    },
+    {
+      "id": "callattr-prometheus-OpenBlock",
+      "type": "caller_attribution",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'OpenBlock'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "BenchmarkCompaction\ttsdb/compact_test.go",
+          "BenchmarkLabelValuesWithMatchers\ttsdb/block_test.go",
+          "BenchmarkOpenBlock\ttsdb/block_test.go",
+          "BenchmarkQuerier\ttsdb/querier_bench_test.go",
+          "BenchmarkQuerierSelect\ttsdb/querier_bench_test.go",
+          "BenchmarkQueries\ttsdb/querier_test.go",
+          "BenchmarkQueryIterator\ttsdb/querier_test.go",
+          "BenchmarkQuerySeek\ttsdb/querier_test.go",
+          "BenchmarkSetMatcher\ttsdb/querier_test.go",
+          "Block\ttsdb/db.go",
+          "CompactWithBlockPopulator\ttsdb/compact.go",
+          "TestBlockIndexReader_PostingsForLabelMatching\ttsdb/block_test.go",
+          "TestBlockQuerierAndBlockChunkQuerier\ttsdb/db_test.go",
+          "TestBlockQuerierReturnsSortedLabelValues\ttsdb/block_test.go",
+          "TestBlockSize\ttsdb/block_test.go",
+          "TestBlockWriter\ttsdb/blockwriter_test.go",
+          "TestCompactEmptyResultBlockWithTombstone\ttsdb/compact_test.go",
+          "TestCorruptedChunk\ttsdb/block_test.go",
+          "TestCreateBlock\ttsdb/block_test.go",
+          "TestHeadCompactionWithHistograms\ttsdb/compact_test.go",
+          "TestLabelNamesWithMatchers\ttsdb/block_test.go",
+          "TestLabelValuesWithMatchers\ttsdb/block_test.go",
+          "TestMergeQuerierConcurrentSelectMatchers\ttsdb/querier_test.go",
+          "TestReadIndexFormatV1\ttsdb/block_test.go",
+          "TestSetCompactionFailed\ttsdb/block_test.go",
+          "TestTombstoneCleanFail\ttsdb/db_test.go",
+          "TestTombstoneCleanRetentionLimitsRace\ttsdb/db_test.go",
+          "Write\ttsdb/db_test.go",
+          "openBlocks\ttsdb/db.go"
+        ]
+      },
+      "meta": {
+        "symbol": "OpenBlock",
+        "n_callers": 29
+      }
+    },
+    {
+      "id": "callattr-prometheus-AddInterval",
+      "type": "caller_attribution",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'AddInterval'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "Decode\ttsdb/tombstones/tombstones.go",
+          "Delete\ttsdb/block.go",
+          "Delete\ttsdb/head.go",
+          "NewTestMemTombstones\ttsdb/tombstones/tombstones.go",
+          "TestBlockQuerier_TrimmingDoesNotModifyOriginalTombstoneIntervals\ttsdb/querier_test.go",
+          "TestChunkSnapshot\ttsdb/head_test.go",
+          "TestDeletingTombstones\ttsdb/tombstones/tombstones_test.go",
+          "TestMemTombstonesConcurrency\ttsdb/tombstones/tombstones_test.go",
+          "TestSnapshotError\ttsdb/head_test.go",
+          "TestTombstoneCleanFail\ttsdb/db_test.go",
+          "TestTombstoneCleanRetentionLimitsRace\ttsdb/db_test.go",
+          "TestTombstonesGetWithCopy\ttsdb/tombstones/tombstones_test.go",
+          "TestTruncateBefore\ttsdb/tombstones/tombstones_test.go",
+          "TestWriteAndReadbackTombstones\ttsdb/tombstones/tombstones_test.go",
+          "loadChunkSnapshot\ttsdb/head_wal.go",
+          "loadWAL\ttsdb/head_wal.go"
+        ]
+      },
+      "meta": {
+        "symbol": "AddInterval",
+        "n_callers": 16
+      }
+    },
+    {
+      "id": "callattr-prometheus-MaxOOOTime",
+      "type": "caller_attribution",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'MaxOOOTime'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "LabelValues\ttsdb/ooo_head_read.go",
+          "Querier\ttsdb/db.go",
+          "blockChunkQuerierForRange\ttsdb/db.go",
+          "testOOOAppendAndQuery\ttsdb/db_test.go",
+          "testWBLAndMmapReplay\ttsdb/db_test.go",
+          "testWBLReplay\ttsdb/head_test.go",
+          "updateMinOOOMaxOOOTime\ttsdb/head.go"
+        ]
+      },
+      "meta": {
+        "symbol": "MaxOOOTime",
+        "n_callers": 7
+      }
+    }
+  ]
+}

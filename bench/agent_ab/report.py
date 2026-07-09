@@ -85,8 +85,18 @@ def success_rate(rows, arm):
 
 
 def main():
-    rows = [json.loads(l) for l in GRADED.read_text().splitlines() if l.strip()]
-    header = json.loads(TASKS.read_text())["header"]
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--tag", default="")
+    args = ap.parse_args()
+    suffix = f"_{args.tag}" if args.tag else ""
+    graded_file = HERE / "results" / f"graded{suffix}.jsonl"
+    tasks_file = HERE / "tasks" / f"tasks{suffix}.json"
+    global REPORT
+    REPORT = HERE / "results" / f"report{suffix}.md"
+
+    rows = [json.loads(l) for l in graded_file.read_text().splitlines() if l.strip()]
+    header = json.loads(tasks_file.read_text())["header"]
     thresholds = header["thresholds"]
     all_task_ids = sorted({r["task_id"] for r in rows})
 

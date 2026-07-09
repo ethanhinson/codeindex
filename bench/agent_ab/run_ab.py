@@ -148,11 +148,11 @@ def run_one(task: dict, arm: str, rep: int, repo: Path, model: str,
     }
 
 
-def load_done() -> set:
-    if not RUNS.exists():
+def load_done(runs_file: Path) -> set:
+    if not runs_file.exists():
         return set()
     done = set()
-    for ln in RUNS.read_text().splitlines():
+    for ln in runs_file.read_text().splitlines():
         try:
             done.add(json.loads(ln)["key"])
         except Exception:
@@ -160,11 +160,11 @@ def load_done() -> set:
     return done
 
 
-def spent_so_far() -> float:
-    if not RUNS.exists():
+def spent_so_far(runs_file: Path) -> float:
+    if not runs_file.exists():
         return 0.0
     total = 0.0
-    for ln in RUNS.read_text().splitlines():
+    for ln in runs_file.read_text().splitlines():
         try:
             c = json.loads(ln).get("cost_usd")
             if c:
@@ -184,20 +184,29 @@ def main():
     ap.add_argument("--timeout", type=int, default=300)
     ap.add_argument("--budget-usd", type=float, default=60.0)
     ap.add_argument("--seed", type=int, default=1729)
+    ap.add_argument("--tag", default="", help="suffix for tasks/runs files (e.g. v2)")
     args = ap.parse_args()
 
     if not (args.smoke or args.full):
         args.smoke = True  # smoke is the default guard
 
-    data = json.loads(TASKS.read_text())
+    suffix = f"_{args.tag}" if args.tag else ""
+    tasks_file = HERE / "tasks" / f"tasks{suffix}.json"
+    runs_file = RESULTS / f"runs{suffix}.jsonl"
+    data = json.loads(tasks_file.read_text())
     tasks = data["tasks"]
     repos = load_repos()
 
     if args.smoke:
-        comp = next(t for t in tasks if t["type"] == "comprehension")
-        loc = next(t for t in tasks if t["type"] == "localization")
-        tasks, reps = [comp, loc], 1
-        print("SMOKE MODE: 2 tasks x 2 arms x 1 rep")
+        # one task of each distinct type present, up to 2
+        seen, picked = set(), []
+        for t in tasks:
+            if t["type"] not in seen:
+                seen.add(t["type"]); picked.append(t)
+            if len(picked) == 2:
+                break
+        tasks, reps = picked, 1
+        print(f"SMOKE MODE: {len(tasks)} tasks x 2 arms x 1 rep")
     else:
         reps = args.reps
         if args.tasks:
@@ -220,7 +229,7 @@ def main():
     matrix = [(t, arm, r) for t in tasks for arm in ("A", "B") for r in range(reps)]
     random.Random(args.seed).shuffle(matrix)
 
-    done = load_done()
+    done = load_done(runs_file)
     cli_ver = claude_version()
     RESULTS.mkdir(parents=True, exist_ok=True)
     ran = 0
@@ -228,7 +237,7 @@ def main():
         key = f"{task['id']}_{arm}_r{rep}"
         if key in done:
             continue
-        spent = spent_so_far()
+        spent = spent_so_far(runs_file)
         if spent >= args.budget_usd:
             print(f"BUDGET STOP: ${spent:.2f} >= ${args.budget_usd}")
             break
@@ -239,7 +248,7 @@ def main():
         row["claude_version"] = cli_ver
         row["task_sha"] = data["header"].get("generated_seed")
         git_reset(rp)
-        with open(RUNS, "a") as f:
+        with open(runs_file, "a") as f:
             f.write(json.dumps(row) + "\n")
         c = row.get("cost_usd")
         print(f"       cost=${c if c else 0:.4f} turns={row.get('num_turns')} "
@@ -248,7 +257,7 @@ def main():
               f"{'TIMEOUT' if row['timed_out'] else ''}")
         ran += 1
 
-    print(f"\ndone: {ran} new runs, total spent ${spent_so_far():.2f}")
+    print(f"\ndone: {ran} new runs, total spent ${spent_so_far(runs_file):.2f}")
     if args.smoke:
         print("Inspect results/transcripts/*.jsonl and results/runs.jsonl, then "
               "run grade.py + report.py before --full.")

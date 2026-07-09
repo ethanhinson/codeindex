@@ -26,9 +26,13 @@ import json
 import os
 import random
 import re
+import sqlite3
+import subprocess
 import sys
 import urllib.request
 from pathlib import Path
+
+BIN = Path(__file__).resolve().parent / ".bin" / "codeindex"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # import token_bench
 import token_bench as tb  # noqa: E402
@@ -129,6 +133,62 @@ def comprehension_tasks(name: str, rp: Path, n: int, rng: random.Random) -> list
             },
             "meta": {"symbol": sym, "n_defs": len(defs), "n_files": len(files),
                      "bucket": "hot" if (len(defs) > 1 or len(files) > 20) else "clean"},
+        })
+    return tasks
+
+
+# --------------------------------------------------------------------------- #
+# Caller-attribution tasks (v2) — the discriminating task type.
+#
+# "List the FUNCTIONS that call X." Grep gives file:line match locations but NOT
+# the enclosing function name, so an agent must open many files to name callers;
+# codeindex returns caller names directly. Ground truth is read straight from the
+# index (graph.db), restricted to unambiguously-resolving unique-name targets so
+# name-based resolution is exact (verified by hand-check on a sample).
+# --------------------------------------------------------------------------- #
+
+CALLER_PROMPT = (
+    "In the repository at {REPO_PATH}, find every function or method that CALLS "
+    "'{symbol}'. For each calling function, give its name and the file it is in. "
+    "Answer as a 'CALLERS:' section with one entry per line in the exact form "
+    "'<functionName>  <file>' (repo-relative path), nothing else. Base every "
+    "entry on evidence from the code, not memory."
+)
+
+
+def ensure_index(rp: Path):
+    if not (rp / ".codeindex" / "graph.db").exists():
+        subprocess.run([str(BIN), "build", str(rp)], capture_output=True, check=True)
+
+
+def caller_attribution_tasks(name: str, rp: Path, n: int, rng: random.Random) -> list[dict]:
+    ensure_index(rp)
+    con = sqlite3.connect(str(rp / ".codeindex" / "graph.db"))
+    uniq = [r[0] for r in con.execute(
+        "SELECT name FROM symbols WHERE kind IN('func','method') AND length(name)>=4 "
+        "GROUP BY name HAVING COUNT(*)=1").fetchall()]
+    cand = []
+    for sym in uniq:
+        rows = con.execute(
+            "SELECT DISTINCT sc.name, sc.file FROM edges e "
+            "JOIN symbols sc ON sc.id=e.src_symbol_id "
+            "WHERE e.dst_name=? AND e.confidence='unambiguous'", (sym,)).fetchall()
+        files = {f for _, f in rows}
+        prod = [(nm, f) for nm, f in rows if not f.endswith("_test.go")]
+        # 5-30 distinct (caller,file) pairs across >=3 files, with real prod callers
+        if 5 <= len(rows) <= 30 and len(files) >= 3 and len(prod) >= 3:
+            cand.append((sym, sorted(f"{nm}\t{f}" for nm, f in rows)))
+    con.close()
+    rng.shuffle(cand)
+    tasks = []
+    for sym, pairs in cand[:n]:
+        tasks.append({
+            "id": f"callattr-{name}-{sym}",
+            "type": "caller_attribution",
+            "repo": name,
+            "prompt": CALLER_PROMPT.format(REPO_PATH="{REPO_PATH}", symbol=sym),
+            "ground_truth": {"caller_pairs": pairs},
+            "meta": {"symbol": sym, "n_callers": len(pairs)},
         })
     return tasks
 
@@ -247,10 +307,15 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--comprehension-per-repo", type=int, default=8)
     ap.add_argument("--localization-per-repo", type=int, default=4)
+    ap.add_argument("--caller-attribution-per-repo", type=int, default=8)
+    ap.add_argument("--types", default="comprehension,localization",
+                    help="comma list of: comprehension,localization,caller_attribution")
     ap.add_argument("--seed", type=int, default=1729)
     ap.add_argument("--repos", default="gin,prometheus")
+    ap.add_argument("--out", default=str(TASKS_DIR / "tasks.json"))
     ap.add_argument("--selftest", action="store_true")
     args = ap.parse_args()
+    types = [t.strip() for t in args.types.split(",") if t.strip()]
 
     repos = load_repos()
     if args.selftest:
@@ -269,11 +334,17 @@ def main():
             print(f"  ! {rp} missing; skipping {name}", file=sys.stderr)
             continue
         pins[name] = {"slug": info["slug"], "commit": info["commit"]}
-        comp = comprehension_tasks(name, rp, args.comprehension_per_repo, rng)
-        loc = localization_tasks(name, info["slug"], rp, args.localization_per_repo)
-        print(f"{name}: {len(comp)} comprehension, {len(loc)} localization")
-        all_tasks.extend(comp)
-        all_tasks.extend(loc)
+        counts = {}
+        if "comprehension" in types:
+            t = comprehension_tasks(name, rp, args.comprehension_per_repo, rng)
+            all_tasks.extend(t); counts["comprehension"] = len(t)
+        if "caller_attribution" in types:
+            t = caller_attribution_tasks(name, rp, args.caller_attribution_per_repo, rng)
+            all_tasks.extend(t); counts["caller_attribution"] = len(t)
+        if "localization" in types:
+            t = localization_tasks(name, info["slug"], rp, args.localization_per_repo)
+            all_tasks.extend(t); counts["localization"] = len(t)
+        print(f"{name}: {counts}")
 
     header = {
         "generated_seed": args.seed,
@@ -281,13 +352,13 @@ def main():
         "thresholds": THRESHOLDS,
         "n_tasks": len(all_tasks),
         "by_type": {t: sum(1 for x in all_tasks if x["type"] == t)
-                    for t in ("comprehension", "localization")},
+                    for t in ("comprehension", "localization", "caller_attribution")},
         "note": "Prompts contain the literal {REPO_PATH}; the runner substitutes "
                 "the resolved absolute clone path. Ground truth is arm-neutral "
                 "(ripgrep / merged-PR files).",
     }
-    TASKS_DIR.mkdir(parents=True, exist_ok=True)
-    out = TASKS_DIR / "tasks.json"
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps({"header": header, "tasks": all_tasks}, indent=2))
     th = hashlib.sha1(out.read_bytes()).hexdigest()[:12]
     print(f"\nwrote {out}  ({len(all_tasks)} tasks, sha1 {th})")

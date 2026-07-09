@@ -99,11 +99,48 @@ def grade_localization(answer, gt, repo_prefix):
                    "n_claim_files": len(claim)}, unparseable
 
 
+def grade_caller_attribution(answer, gt, repo_prefix):
+    """Grade F1 on (caller_name, file) pairs. Grep gives file:line but not the
+    caller function name, so producing the names is the discriminating work."""
+    a = answer or ""
+    up = a.upper()
+    ci = up.find("CALLERS")
+    region = a[ci:] if ci >= 0 else a
+    truth = set(gt["caller_pairs"])  # "name\tfile"
+    truth_files = {p.split("\t", 1)[1] for p in truth}
+    claim = set()
+    for line in region.splitlines():
+        fm = GO_FILE.search(line)
+        if not fm:
+            continue
+        f = norm_path(fm.group(1), repo_prefix)
+        # caller name: first identifier token on the line that isn't in the path
+        before = line[:fm.start()]
+        names = re.findall(r"[A-Za-z_]\w{2,}", before)
+        names = [n for n in names if n.lower() not in ("func", "method", "the", "calls", "in")]
+        if names:
+            claim.add(f"{names[-1]}\t{f}")
+    unparseable = not claim
+    score, prec, rec = f1(claim, truth)
+    return score, {"precision": round(prec, 3), "recall": round(rec, 3),
+                   "n_claim": len(claim), "n_truth": len(truth),
+                   "n_truth_files": len(truth_files)}, unparseable
+
+
 def main():
-    tasks = {t["id"]: t for t in json.loads(TASKS.read_text())["tasks"]}
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--tag", default="")
+    args = ap.parse_args()
+    suffix = f"_{args.tag}" if args.tag else ""
+    tasks_file = HERE / "tasks" / f"tasks{suffix}.json"
+    runs_file = HERE / "results" / f"runs{suffix}.jsonl"
+    graded_file = HERE / "results" / f"graded{suffix}.jsonl"
+
+    tasks = {t["id"]: t for t in json.loads(tasks_file.read_text())["tasks"]}
     prefixes = {}
     rows = []
-    for ln in RUNS.read_text().splitlines():
+    for ln in runs_file.read_text().splitlines():
         if not ln.strip():
             continue
         r = json.loads(ln)
@@ -116,6 +153,8 @@ def main():
         gt = task["ground_truth"]
         if task["type"] == "comprehension":
             score, detail, unp = grade_comprehension(r.get("answer", ""), gt, prefix)
+        elif task["type"] == "caller_attribution":
+            score, detail, unp = grade_caller_attribution(r.get("answer", ""), gt, prefix)
         else:
             score, detail, unp = grade_localization(r.get("answer", ""), gt, prefix)
         if r.get("timed_out") or not r.get("has_result"):
@@ -124,10 +163,10 @@ def main():
                   "unparseable": unp, "grade_detail": detail})
         rows.append(r)
 
-    GRADED.write_text("\n".join(json.dumps(r) for r in rows))
+    graded_file.write_text("\n".join(json.dumps(r) for r in rows))
     n_succ = sum(1 for r in rows if r["success"])
     n_unp = sum(1 for r in rows if r["unparseable"])
-    print(f"graded {len(rows)} runs -> {GRADED}")
+    print(f"graded {len(rows)} runs -> {graded_file}")
     print(f"  success: {n_succ}/{len(rows)}   unparseable: {n_unp}")
     for r in rows:
         print(f"  {r['key']:<40} arm={r['arm']} f1={r['f1']:.2f} "
