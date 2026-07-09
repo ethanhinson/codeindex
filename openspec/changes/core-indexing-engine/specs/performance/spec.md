@@ -74,6 +74,18 @@ not by repository size, so that a small edit is cheap regardless of tier.
   within a small constant factor between the two tiers
 - **AND** does not grow proportionally to total repository size
 
+#### Scenario: Hot-symbol edits stay bounded
+
+- **WHEN** an edit changes a defined symbol name that is referenced widely (the
+  re-index spike measured up to ~4000 inbound references for the hottest 10–13%
+  of symbols; the median symbol has only 2–7)
+- **THEN** the re-parse cost is still that of the single changed file
+- **AND** the additional edge re-resolution cost is proportional to the number of
+  references to the changed name(s), performed via indexed name lookups
+- **AND** the single-file edit budget is interpreted for the common case (median
+  change-set of ~1 file editing a non-hot symbol); hot-symbol edits are permitted
+  a re-resolution cost proportional to their reference count
+
 ### Requirement: Query latency including lazy re-check
 
 The system SHALL answer queries against an unchanged repository within the
@@ -85,6 +97,11 @@ overhead plus the indexed graph lookup.
 | Small  | ≤ 75 ms                    |
 | Medium | ≤ 150 ms                   |
 | Large  | ≤ 400 ms                   |
+
+Basis: the re-index spike (`bench/reindex_bench.py`, `bench/FINDINGS.md`)
+measured, on kubernetes (~26k files, 231 MB), a stat-only walk of ~185 ms and a
+full-content-hash walk of ~980 ms. Full hashing on every query would exceed the
+large-tier budget, so the mechanisms below are required, not optional.
 
 #### Scenario: Query on an unchanged repository
 
@@ -99,8 +116,16 @@ overhead plus the indexed graph lookup.
 - **WHEN** a query runs on an unchanged repository
 - **THEN** the graph lookup itself completes in ≤ 20 ms via indexed SQLite
   access
-- **AND** the change-detection walk uses the size+mtime fast path to avoid
-  content hashing of unchanged files
+- **AND** the change-detection walk SHALL use the size+mtime fast path (never
+  content-hashing unchanged files) and directory-level shortcutting so the walk
+  does not stat every file in the repository
+- **AND** vendored and generated trees are excluded from the walk
+
+#### Scenario: Full-tree content hashing is not on the query path
+
+- **WHEN** a query runs on an unchanged large-tier repository
+- **THEN** the re-check SHALL NOT content-hash the whole tree (which measured
+  ~980 ms on kubernetes and would exceed the 400 ms budget)
 
 ### Requirement: Token savings versus grep-and-read
 

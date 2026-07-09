@@ -70,11 +70,32 @@ which files changed since the last index so that only those files are re-parsed.
 - **AND** removes symbols and edges belonging to deleted files
 - **AND** leaves unchanged files' graph data untouched
 
-#### Scenario: Unchanged-file fast path
+#### Scenario: Re-resolving inbound edges only when defined names change
+
+- **WHEN** a changed file's set of defined symbol names is unchanged (e.g. a
+  function body was edited without adding, removing, or renaming a symbol)
+- **THEN** the system does not re-resolve edges that resolve into that file
+- **WHEN** a changed file adds, removes, or renames a defined symbol name
+- **THEN** the system re-resolves edges that reference the affected name(s)
+- **AND** that re-resolution uses indexed name lookups whose cost is proportional
+  to the number of references to the affected names, not to repository size
+
+#### Scenario: Unchanged-file fast path (required)
 
 - **WHEN** a file's size and mtime match the stored values
-- **THEN** the system MAY skip content hashing for that file and treat it as
-  unchanged
+- **THEN** the system SHALL treat it as unchanged without content hashing
+- **AND** SHALL fall back to content hashing only when size or mtime differs
+
+#### Scenario: Directory-level change-detection shortcutting
+
+- **WHEN** the change-detection walk runs on a large repository
+- **THEN** the system SHALL descend only into directories whose recorded state
+  (e.g. directory mtime or stored subtree hash) indicates a possible change
+- **AND** SHALL skip directories excluded by ignore rules, including vendored and
+  generated trees (e.g. `vendor/`, `node_modules/`, build output), so the walk
+  does not stat every file on every query
+- **AND** the excluded/ignored trees are reported so coverage is not silently
+  reduced
 
 ### Requirement: Lazy freshness on query
 

@@ -130,6 +130,17 @@ saves less (~6–17×), so its target is ≥5×, not ≥10×; (4) JSON output co
 kubernetes takes ~0.65s, reinforcing D2 (indexed SQLite lookups over per-query
 scanning) for the interactive/IDE latency budget.
 
+A second spike (`bench/reindex_bench.py`) validated the *re-index* path as far as
+possible without the engine: change-detection walk cost (stat ~185 ms vs full
+hash ~980 ms on kubernetes) and edge blast-radius (median 2–7 inbound refs,
+10–13% hot up to ~4000; real churn median 1 file/commit). These made the fast
+path, directory shortcutting, and vendored-tree exclusion *required* rather than
+optional, and clarified that re-parse is single-file while edge re-resolution is
+bounded by references-to-changed-names. Still engine-only and unmeasured:
+**parse+patch throughput** (tree-sitter re-parse + SQLite write per changed file)
+and **incremental-vs-full-rebuild correctness** — both deferred to the real
+harness (task 9.2) and integration test (task 10.1).
+
 ## Risks / Trade-offs
 
 - **Name collisions inflate edges** → `resolved_confidence` flags ambiguous
@@ -148,11 +159,21 @@ scanning) for the interactive/IDE latency budget.
 - **CGO dependency** (`go-tree-sitter`, `go-sqlite3`) complicates static builds
   → document the build toolchain; revisit pure-Go alternatives if distribution
   friction appears (deferred).
-- **Lazy re-check walk cost at the large tier** (50k stat calls on every query)
-  could blow the query-latency budget → size+mtime fast path avoids hashing, and
-  directory-mtime shortcutting skips subtrees whose directory mtime is unchanged;
-  if still too slow, fall back to an optional short-lived watch cache (deferred
-  to change 3, not required here).
+- **Lazy re-check walk cost at the large tier** — *measured* (re-index spike):
+  on kubernetes (~26k files, 231 MB) a stat-only walk is ~185 ms and a full
+  content hash is ~980 ms. Full hashing on the query path would exceed the 400 ms
+  large-tier budget, and stat-ing every file is a large fraction of it →
+  therefore the size+mtime fast path is **required**, directory-mtime
+  shortcutting (descend only into changed directories) is **required**, and
+  vendored/generated trees are excluded from the walk. If interactive latency is
+  still tight, a short-lived watch cache is the fallback (deferred to change 3).
+- **Hot-symbol edit ripple** — *measured*: the median symbol has 2–7 inbound
+  references but 10–13% are "hot" (>100, up to ~4000). Editing a hot symbol
+  re-resolves many edges → re-parse stays single-file, edge re-resolution runs
+  only when the changed file's defined-name set changes, and uses indexed name
+  lookups whose cost is proportional to reference count (not repo size). Real
+  change-sets are tiny (median 1 file/commit), so this is a tail case, not the
+  norm.
 - **Token-savings target may not hold for broad queries** (e.g. a symbol with
   hundreds of callers) → cap default result counts with a `--limit`, keep output
   as references, and measure the ratio over a representative question set rather

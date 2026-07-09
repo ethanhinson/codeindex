@@ -1,0 +1,109 @@
+{
+  "results": [
+    {
+      "repo": "gin",
+      "lang": "go",
+      "tier": "small",
+      "walk_cost": {
+        "n_files": 111,
+        "total_mb": 0.7,
+        "stat_walk_ms": 1.1,
+        "stat_files_per_s": 97042,
+        "hash_sampled_files": 111,
+        "hash_mb_per_s": 96,
+        "full_hash_est_ms": 7.7
+      },
+      "blast_radius": {
+        "n_symbols_sampled": 30,
+        "inbound_median": 2,
+        "inbound_p90": 21,
+        "inbound_max": 59,
+        "pct_hot_gt_100": 0.0,
+        "pct_cold_le_10": 70.0,
+        "defs_per_file_median": 6,
+        "defs_per_file_p90": 29
+      },
+      "commit_churn": null
+    },
+    {
+      "repo": "prometheus",
+      "lang": "go",
+      "tier": "medium",
+      "walk_cost": {
+        "n_files": 1358,
+        "total_mb": 23.6,
+        "stat_walk_ms": 9.3,
+        "stat_files_per_s": 146260,
+        "hash_sampled_files": 1358,
+        "hash_mb_per_s": 382,
+        "full_hash_est_ms": 61.5
+      },
+      "blast_radius": {
+        "n_symbols_sampled": 30,
+        "inbound_median": 5,
+        "inbound_p90": 101,
+        "inbound_max": 4005,
+        "pct_hot_gt_100": 13.3,
+        "pct_cold_le_10": 80.0,
+        "defs_per_file_median": 7,
+        "defs_per_file_p90": 42
+      },
+      "commit_churn": {
+        "commits_analyzed": 84,
+        "files_per_commit_median": 1,
+        "files_per_commit_p90": 6,
+        "files_per_commit_max": 10
+      }
+    },
+    {
+      "repo": "nest",
+      "lang": "ts",
+      "tier": "medium",
+      "walk_cost": {
+        "n_files": 1932,
+        "total_mb": 4.5,
+        "stat_walk_ms": 12.7,
+        "stat_files_per_s": 152311,
+        "hash_sampled_files": 1932,
+        "hash_mb_per_s": 71,
+        "full_hash_est_ms": 63.7
+      },
+      "blast_radius": {
+        "n_symbols_sampled": 30,
+        "inbound_median": 7,
+        "inbound_p90": 58,
+        "inbound_max": 151,
+        "pct_hot_gt_100": 10.0,
+        "pct_cold_le_10": 63.3,
+        "defs_per_file_median": 1,
+        "defs_per_file_p90": 2
+      },
+      "commit_churn": null
+    },
+    {
+      "repo": "kubernetes",
+      "lang": "go",
+      "tier": "large",
+      "walk_cost": {
+        "n_files": 25931,
+        "total_mb": 230.9,
+        "stat_walk_ms": 185.5,
+        "stat_files_per_s": 139821,
+        "hash_sampled_files": 20000,
+        "hash_mb_per_s": 235,
+        "full_hash_est_ms": 980.4
+      },
+      "blast_radius": {
+        "n_symbols_sampled": 30,
+        "inbound_median": 2,
+        "inbound_p90": 248,
+        "inbound_max": 2891,
+        "pct_hot_gt_100": 13.3,
+        "pct_cold_le_10": 73.3,
+        "defs_per_file_median": 6,
+        "defs_per_file_p90": 27
+      },
+      "commit_churn": null
+    }
+  ]
+}

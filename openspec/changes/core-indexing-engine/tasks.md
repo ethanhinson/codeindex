@@ -42,7 +42,9 @@
 
 - [ ] 7.1 Implement a pre-query hook: recompute Merkle root, diff, re-parse+patch only changed files in one transaction, before answering
 - [ ] 7.2 Build the index automatically if `.codeindex/graph.db` is missing when a query runs
-- [ ] 7.3 Test: query after an edit reflects new content; query with no changes makes zero graph writes; query before any build triggers a build
+- [ ] 7.3 Implement change-detection walk per the measured constraints: mandatory size+mtime fast path, directory-level shortcutting, and vendored/generated-tree exclusion (so the walk does not stat every file); report excluded trees
+- [ ] 7.4 Implement inbound-edge re-resolution: diff the changed file's set of defined symbol names; only when it changes, re-resolve edges referencing the affected names via indexed name lookups (cost ∝ reference count, not repo size)
+- [ ] 7.5 Test: query after an edit reflects new content; query with no changes makes zero graph writes; query before any build triggers a build; editing a function body (no name-set change) triggers no inbound re-resolution; renaming a hot symbol re-resolves its referencing edges correctly
 
 ## 8. Query engine + output (graph-queries)
 
@@ -56,6 +58,7 @@
 ## 9. Performance & benchmarks (performance)
 
 - [x] 9.0 Pre-implementation token-savings spike validating the core assumption against real OSS repos (`bench/`, `bench/FINDINGS.md`) — done: 100–500× for def/callers on large-file Go incl. kubernetes; file-size dependent; outline weaker; JSON ~1.5–1.7× text
+- [x] 9.0b Pre-implementation re-index spike (`bench/reindex_bench.py`) — done: change-detection walk cost (stat ~185ms vs hash ~980ms on kubernetes) and edge blast-radius (median 2–7 inbound, 10–13% hot up to ~4000; churn median 1 file/commit). Established fast-path/dir-shortcutting/vendored-exclusion as required; parse+patch throughput + incremental-correctness remain engine-only
 - [ ] 9.1 Pin reference corpora at fixed commits for each tier (small ~50k, medium ~500k, large ~5M LOC; mix of Go + TS/JS) and a fetch script — extend `bench/repos.json`, fold the spike's `rg`-proxy corpora into the real harness
 - [ ] 9.2 Implement the benchmark harness (`make bench` / `codeindex bench`) measuring cold build time, parallel efficiency, incremental latency, query p50/p95, index size, and peak build memory per tier
 - [ ] 9.3 Define the fixed navigation-question set and measure the token-savings ratio (codeindex answer tokens vs. grep+read source tokens); assert median ≥ 10×

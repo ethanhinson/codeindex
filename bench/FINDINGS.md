@@ -89,6 +89,67 @@ measures the real token delta of the output contract without the engine built.
   only ranges would narrow the gap — `smart` (top-5 files) is the conservative
   bound and still shows 8–215×.
 
+## Re-index / incremental update findings (`reindex_bench.py`)
+
+The token spike could not touch the re-index path. This second spike measures the
+two incremental-update assumptions that are testable without the engine.
+
+### Change-detection walk cost (the lazy per-query re-check)
+
+| Repo | Files | MB | stat-walk (fast-path) | full content hash (est) |
+| ---- | ----- | -- | --------------------- | ----------------------- |
+| gin | 111 | 0.7 | 1.1 ms | 7.7 ms |
+| prometheus | 1358 | 23.6 | 9.3 ms | 61.5 ms |
+| nest | 1932 | 4.5 | 12.7 ms | 63.7 ms |
+| kubernetes | 25,931 | 230.9 | **185 ms** | **~980 ms** |
+
+### Edge blast-radius (inbound references per defined symbol)
+
+| Repo | median | p90 | max | % hot (>100) | % cold (≤10) |
+| ---- | ------ | --- | --- | ------------ | ------------ |
+| gin | 2 | 21 | 59 | 0% | 70% |
+| prometheus | 5 | 101 | 4005 | 13.3% | 80% |
+| nest | 7 | 58 | 151 | 10% | 63.3% |
+| kubernetes | 2 | 248 | 2891 | 13.3% | 73.3% |
+
+Commit churn (prometheus, 84 commits): **median 1 code file/commit, p90 6, max 10.**
+
+### Findings
+
+1. **Change detection, not the graph query, is the latency risk at scale.**
+   Full content hashing of kubernetes (~1s) would blow the 400 ms large-tier
+   query budget on every query. Consequences for the design:
+   - The **size+mtime fast path is mandatory**, not optional (stat-walk 185 ms).
+   - Even stat-ing 26k files (185 ms) is a large fraction of the budget →
+     **directory-mtime shortcutting** (descend only into changed directories) and
+     **ignoring vendored/generated trees** (kubernetes's 231 MB is dominated by
+     `vendor/`) are required, not nice-to-haves.
+
+2. **Typical edits are cheap; hot symbols ripple.** Median inbound references are
+   2–7, so editing a normal symbol re-resolves a handful of edges. But 10–13% of
+   symbols are "hot" (>100 refs, up to ~4000). Key distinction the data forces:
+   - **Re-parse is always just the changed file** — the claim "incremental work ∝
+     changed files" holds for *parsing*.
+   - The ripple is edge **re-resolution** (name lookups, cheap per edge), and it
+     only needs to run when the changed file's **set of defined symbol names**
+     changes. Editing a function body does not ripple; adding/removing/renaming a
+     symbol does. So edge re-resolution is ∝ references-to-changed-*names*, and
+     must stay index-lookup cheap even for hot symbols (up to a few thousand).
+
+3. **Real change-sets are tiny.** Median 1 file/commit (agents edit one file at a
+   time), so the common incremental case is: re-parse 1 file + patch its symbols +
+   possibly re-resolve a handful of inbound edges. This is the design's sweet spot.
+
+### Still NOT covered (engine-only)
+
+- **Parse + patch throughput** — re-parsing a changed file with tree-sitter and
+  writing SQLite. The proxy has no parser or store. Must be benchmarked once the
+  Go engine exists (OpenSpec task 9.2).
+- **Correctness of incremental patching** — that an incremental update yields a
+  graph identical to a full rebuild. Requires the engine; specced as a scenario
+  in `code-indexing` ("Rebuilding over an existing index") and covered by
+  integration task 10.1.
+
 ## Reproduce
 
 ```
@@ -96,4 +157,6 @@ python3 bench/token_bench.py --only gin,prometheus,nest --sample 40 --seed 7 \
     --work <clone-dir> --out bench/results/quick.json
 python3 bench/token_bench.py --only kubernetes --sample 25 --seed 7 \
     --work <clone-dir> --out bench/results/kubernetes.json
+python3 bench/reindex_bench.py --only gin,prometheus,nest,kubernetes --sample 30 \
+    --seed 7 --churn prometheus --work <clone-dir> --out bench/results/reindex.json
 ```
