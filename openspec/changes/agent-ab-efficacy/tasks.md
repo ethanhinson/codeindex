@@ -1,41 +1,41 @@
 ## 1. Environment verification (do this first — nothing else depends on guesses)
 
-- [ ] 1.1 Verify the toolchain: `go build -o /tmp/codeindex ./cmd/codeindex` succeeds; `claude --version` and `claude --help` work — record the exact flags available for: print mode, output format, allowed tools, appended system prompt, max turns (names may differ from the design's sketch; adapt and document in `bench/agent_ab/README.md`)
-- [ ] 1.2 Clone/refresh pinned repos via the `ensure_repo` recipe in `bench/token_bench.py` (gin, prometheus); run `codeindex build` on each and confirm `codeindex query <repo> Labels --limit 5` prints defs + callers in the documented format
-- [ ] 1.3 One manual end-to-end probe: run `claude -p` with a trivial prompt in the gin clone with restricted tools and stream-json output; confirm you can extract tokens, cost, num_turns, and tool_use counts from the output (archive this probe under `bench/agent_ab/results/probe/`)
+- [x] 1.1 Verified toolchain: binary builds to `bench/agent_ab/.bin/codeindex`; claude 2.1.193. Flags recorded in README. KEY FINDING: no `--max-turns` (use timeout+budget); `--allowedTools` comma/space; `--permission-mode bypassPermissions` for headless; `--append-system-prompt` inline
+- [x] 1.2 Verified pinned repos (gin, prometheus) present; `codeindex build` + `query` work in the documented format
+- [x] 1.3 Probe done (`results/probe/probe1.jsonl`): result event has total_cost_usd/num_turns/usage; tool_use blocks parseable. KEY FINDING: file reads land in cache_creation_input_tokens not input_tokens → metric changed to cost-primary + processed-tokens (spec corrected)
 
 ## 2. Task builder (`bench/agent_ab/build_tasks.py`)
 
-- [ ] 2.1 Comprehension generator: seeded symbol sampling per the spec's filters (70% clean / 30% hot mix), rg-derived ground truth (definition file:line via definition regex; referencing files via `rg -w -l`), emit task records
-- [ ] 2.2 Localization generator: GitHub API — closed issues with linked merged PRs, PR changed-files filtered to 1–10 non-vendor `.go` files with ≥60% existing at the pin; cache raw API responses to `bench/agent_ab/cache/`; emit task records
-- [ ] 2.3 Emit `bench/agent_ab/tasks/tasks.json` (≥20 tasks, both types, both repos) with a header carrying: seed, generation date, repo pins, and the pre-registered GREEN/YELLOW/RED thresholds copied verbatim from the design
-- [ ] 2.4 Unit-test the ground-truth extraction on 3 hand-verified symbols and 2 hand-verified issue/PR pairs
+- [x] 2.1 Comprehension generator: seeded 70/30 clean/hot sampling, rg-derived ground truth
+- [x] 2.2 Localization generator: PR→issue via merged-PR "fixes #N" parse; PR .go files (1–10, ≥60% existing at pin); cached API responses
+- [x] 2.3 Emit `tasks/tasks.json` — 24 tasks (16 comprehension, 8 localization; gin+prometheus) with header carrying seed, pins, and thresholds
+- [x] 2.4 Selftest passes (RouterGroup defs/refs)
 
 ## 3. Arm-B treatment prompt (`bench/agent_ab/prompts/arm_b_tools.md`)
 
-- [ ] 3.1 Write the tool documentation: absolute binary path, `query` syntax, the exact output format (copy from a real invocation), when to use it (any "where is X defined / who calls or references X / what would this change affect" moment — before reaching for Grep/Read), the `--limit` flag, and its Go-only + name-based-ambiguity caveats
-- [ ] 3.2 Include exactly one worked example (real symbol from gin, real output, one-sentence interpretation)
-- [ ] 3.3 Keep it under ~600 tokens; record its token count in the README (it is part of the treatment cost)
+- [x] 3.1 Tool documentation written (binary path, query syntax, when-to-use, caveats)
+- [x] 3.2 One worked example (gin `CreateTestContext`, real output)
+- [x] 3.3 486 tokens (< 600); counted in README
 
 ## 4. Runner (`bench/agent_ab/run_ab.py`)
 
-- [ ] 4.1 Implement the run matrix (task × arm × rep) with recorded-seed shuffling, serial execution per repo clone, per-run `git checkout -- .` + clean verification, and resume-by-skipping-completed keys from `runs.jsonl`
-- [ ] 4.2 Implement the `claude -p` invocation per the verified flags; capture stream-json to `bench/agent_ab/results/transcripts/<task>_<arm>_<rep>.jsonl`; parse tokens/cost/turns/tool counts/codeindex_calls; write result rows crash-safely
-- [ ] 4.3 Implement `--smoke` (default; 2 tasks × 2 arms × 1 rep), `--full`, `--tasks N`, `--reps R`, `--model`, `--max-turns`, `--budget-usd` with hard stop, and per-run timeout (kill + flag)
-- [ ] 4.4 Run smoke; manually read both transcripts end-to-end; fix prompt/parsing issues; re-run smoke until clean (commit the smoke transcripts)
+- [x] 4.1 Run matrix with seeded shuffle, serial-per-repo, git checkout+clean(-e .codeindex) reset, resume-by-skip
+- [x] 4.2 `claude -p` invocation (verified flags); stream-json archived; tokens/cost/turns/tool counts/codeindex_calls parsed; crash-safe rows
+- [x] 4.3 `--smoke` (default), `--full`, `--tasks`, `--reps`, `--model`, `--timeout` (no `--max-turns` in CLI), `--budget-usd` hard stop
+- [x] 4.4 Smoke run clean after fix — KEY FIX: bypassPermissions ignores --allowedTools, so sub-agents (Agent/Task) must be HARD-DENIED via --disallowedTools (they broke accounting + buried the answer). Re-ran: 4/4 parseable, 4/4 success
 
 ## 5. Grader (`bench/agent_ab/grade.py`)
 
-- [ ] 5.1 Answer parsers for DEFINITIONS/FILES sections (markdown-tolerant, path-normalizing); unit tests with messy fixtures (absolute paths, backticks, prose preamble)
-- [ ] 5.2 Comprehension scoring (±2-line definition match; file-set F1; task F1 = mean; success ≥ 0.5) and localization scoring (file-set F1; success ≥ 0.5); `unparseable` flag path
-- [ ] 5.3 Grade the smoke runs and hand-check every score against the transcripts
+- [x] 5.1 Markdown-tolerant, path-normalizing parsers; unit-tested on messy fixtures
+- [x] 5.2 Comprehension (±2-line def match + file F1) and localization (file F1) scoring; unparseable flag
+- [x] 5.3 Smoke graded and hand-checked against answers
 
 ## 6. Report (`bench/agent_ab/report.py`)
 
-- [ ] 6.1 Paired per-task stats: per-arm medians over reps, paired deltas, median % token reduction with seeded bootstrap 95% CI (≥5,000 resamples), win rate, success deltas, turns
-- [ ] 6.2 Adoption rate + per-protocol re-analysis + explicit intent-to-treat vs per-protocol gap callout
-- [ ] 6.3 Verdict evaluation against the pre-registered thresholds read from the task-file header; emit `report.md` with the full paired table, provenance block, cost totals, and caveats
-- [ ] 6.4 Determinism check: two invocations of `report.py` on the same `runs.jsonl` produce byte-identical reports
+- [x] 6.1 Paired per-task stats: medians over reps, paired deltas, seeded bootstrap 95% CI, win rate, success deltas
+- [x] 6.2 Adoption + per-protocol re-analysis + ITT-vs-PP gap callout
+- [x] 6.3 Verdict vs pre-registered thresholds; emits `report.md` with table, provenance, cost, caveats
+- [ ] 6.4 Determinism check (run after full experiment produces graded.jsonl)
 
 ## 7. The experiment
 

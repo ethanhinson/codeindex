@@ -61,9 +61,12 @@ treatment's appended system prompt, and with per-run isolation.
 #### Scenario: Arm configuration parity
 
 - **WHEN** a task runs in either arm
-- **THEN** both arms use the same model, `--max-turns` cap, allowed tools
-  (`Bash,Read,Grep,Glob` — no Edit/Write), working directory (the pinned repo
-  clone), and prompt
+- **THEN** both arms use the same model, per-run wall-clock timeout, allowed
+  tools (`Bash Read Grep Glob` allowed, `Edit Write` disallowed, permission mode
+  `bypassPermissions`), working directory (the pinned repo clone), and prompt
+- **AND** because the installed `claude` CLI (2.1.193) has no `--max-turns`
+  flag, run length is bounded by the per-run timeout and the global budget
+  guard, not a turn cap (verified — see `bench/agent_ab/README.md`)
 - **AND** arm B additionally receives `--append-system-prompt` with the
   contents of `bench/agent_ab/prompts/arm_b_tools.md`: documentation of the
   codeindex binary at its ABSOLUTE path (outside the repo tree), its `query`
@@ -105,10 +108,22 @@ tokens, cost, behavior counts, grading inputs, and provenance.
 - **WHEN** a run completes
 - **THEN** the result row records: task id, arm, rep, model, `claude` CLI
   version, start/end wall time, `num_turns`, input tokens, output tokens, cache
-  read/creation tokens, `total_cost_usd`, tool-call counts by tool name, the
-  count of Bash invocations of the codeindex binary (`codeindex_calls`), the
-  agent's final answer text, the path to the archived full transcript
-  (stream-json), and an error/timeout flag
+  creation tokens, cache read tokens, `total_cost_usd`, tool-call counts by tool
+  name, the count of Bash invocations of the codeindex binary
+  (`codeindex_calls`), the agent's final answer text, the path to the archived
+  full transcript (stream-json), and an error/timeout flag
+
+#### Scenario: Primary and secondary token metrics
+
+- **WHEN** metrics are derived from a run's `result` event
+- **THEN** the PRIMARY comparison metric is `total_cost_usd` (it prices
+  input/output/cache-creation/cache-read correctly)
+- **AND** the SECONDARY "processed tokens" metric is `input_tokens +
+  output_tokens + cache_creation_input_tokens` — because file reads land in
+  `cache_creation_input_tokens`, not `input_tokens` (verified via probe), so a
+  bare input+output metric would miss the effect being measured
+- **AND** `cache_read_input_tokens` is recorded but excluded from the headline
+  metric (dominated by the fixed Claude Code system prompt replayed per turn)
 - **AND** rows are appended to `bench/agent_ab/results/runs.jsonl` immediately
   after each run (crash-safe; a re-run resumes by skipping completed
   (task, arm, rep) keys)
@@ -159,13 +174,13 @@ pre-registered thresholds.
 #### Scenario: Paired statistics
 
 - **WHEN** the report runs over `runs.jsonl`
-- **THEN** for each task it computes per-arm medians over reps of total tokens
-  (input+output), cost, and turns, then the paired per-task deltas and
-  percentage reductions (B vs A)
-- **AND** reports the median paired token reduction with a 95% bootstrap
+- **THEN** for each task it computes per-arm medians over reps of cost
+  (`total_cost_usd`, primary), processed tokens (secondary), and turns, then the
+  paired per-task deltas and percentage reductions (B vs A)
+- **AND** reports the median paired cost reduction with a 95% bootstrap
   confidence interval (≥ 5,000 resamples over tasks), the win rate (% of tasks
-  where B used fewer tokens), success rates per arm with their delta, and
-  median turns per arm
+  where B cost less), success rates per arm with their delta, and median turns
+  per arm
 
 #### Scenario: Adoption and per-protocol view
 

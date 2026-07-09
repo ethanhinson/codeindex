@@ -1,0 +1,580 @@
+{
+  "header": {
+    "generated_seed": 1729,
+    "repo_pins": {
+      "gin": {
+        "slug": "gin-gonic/gin",
+        "commit": "v1.10.0"
+      },
+      "prometheus": {
+        "slug": "prometheus/prometheus",
+        "commit": "v3.1.0"
+      }
+    },
+    "thresholds": {
+      "metric": "median paired reduction in total_cost_usd",
+      "green": "savings >= 30% AND success_delta >= -5pp AND adoption >= 70%",
+      "yellow": "savings 10-30%, OR adoption 40-70% with per-protocol savings >= 30%",
+      "red": "savings < 10% (ITT), OR success_delta < -5pp, OR adoption < 40% with per-protocol savings < 30%"
+    },
+    "n_tasks": 24,
+    "by_type": {
+      "comprehension": 16,
+      "localization": 8
+    },
+    "note": "Prompts contain the literal {REPO_PATH}; the runner substitutes the resolved absolute clone path. Ground truth is arm-neutral (ripgrep / merged-PR files)."
+  },
+  "tasks": [
+    {
+      "id": "comp-gin-Stream",
+      "type": "comprehension",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, where is 'Stream' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'Stream'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "context.go:1116"
+        ],
+        "files": [
+          "CHANGELOG.md",
+          "context.go",
+          "context_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "Stream",
+        "n_defs": 1,
+        "n_files": 3,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-gin-ShouldBindBodyWithXML",
+      "type": "comprehension",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, where is 'ShouldBindBodyWithXML' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'ShouldBindBodyWithXML'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "context.go:783"
+        ],
+        "files": [
+          "context.go",
+          "context_test.go",
+          "docs/doc.md"
+        ]
+      },
+      "meta": {
+        "symbol": "ShouldBindBodyWithXML",
+        "n_defs": 1,
+        "n_files": 3,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-gin-WriteContentType",
+      "type": "comprehension",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, where is 'WriteContentType' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'WriteContentType'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "context_test.go:656",
+          "render/data.go:23",
+          "render/html.go:90",
+          "render/json.go:111",
+          "render/json.go:149",
+          "render/json.go:175",
+          "render/json.go:188",
+          "render/json.go:61",
+          "render/json.go:88",
+          "render/msgpack.go:29",
+          "render/protobuf.go:34",
+          "render/reader.go:36",
+          "render/redirect.go:29",
+          "render/text.go:28",
+          "render/toml.go:34",
+          "render/xml.go:26",
+          "render/yaml.go:34"
+        ],
+        "files": [
+          "context.go",
+          "context_test.go",
+          "render/data.go",
+          "render/html.go",
+          "render/json.go",
+          "render/msgpack.go",
+          "render/protobuf.go",
+          "render/reader.go",
+          "render/redirect.go",
+          "render/render.go",
+          "render/render_msgpack_test.go",
+          "render/render_test.go",
+          "render/text.go",
+          "render/toml.go",
+          "render/xml.go",
+          "render/yaml.go"
+        ]
+      },
+      "meta": {
+        "symbol": "WriteContentType",
+        "n_defs": 17,
+        "n_files": 16,
+        "bucket": "hot"
+      }
+    },
+    {
+      "id": "comp-gin-PureJSON",
+      "type": "comprehension",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, where is 'PureJSON' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'PureJSON'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "context.go:1016",
+          "render/json.go:45"
+        ],
+        "files": [
+          "CHANGELOG.md",
+          "context.go",
+          "context_test.go",
+          "docs/doc.md",
+          "render/json.go",
+          "render/render_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "PureJSON",
+        "n_defs": 2,
+        "n_files": 6,
+        "bucket": "hot"
+      }
+    },
+    {
+      "id": "comp-gin-Logger",
+      "type": "comprehension",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, where is 'Logger' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'Logger'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "logger.go:191"
+        ],
+        "files": [
+          "CHANGELOG.md",
+          "debug.go",
+          "debug_test.go",
+          "docs/doc.md",
+          "gin.go",
+          "logger.go",
+          "mode.go",
+          "recovery.go"
+        ]
+      },
+      "meta": {
+        "symbol": "Logger",
+        "n_defs": 1,
+        "n_files": 8,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-gin-countParams",
+      "type": "comprehension",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, where is 'countParams' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'countParams'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "tree.go:94"
+        ],
+        "files": [
+          "CHANGELOG.md",
+          "gin.go",
+          "tree.go",
+          "tree_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "countParams",
+        "n_defs": 1,
+        "n_files": 4,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-gin-With",
+      "type": "comprehension",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, where is 'With' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'With'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "gin.go:320"
+        ],
+        "files": [
+          "CONTRIBUTING.md",
+          "README.md",
+          "binding/form_mapping_test.go",
+          "docs/doc.md",
+          "gin.go",
+          "gin_test.go",
+          "tree_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "With",
+        "n_defs": 1,
+        "n_files": 7,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-gin-debugPrintWARNINGNew",
+      "type": "comprehension",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, where is 'debugPrintWARNINGNew' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'debugPrintWARNINGNew'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "debug.go:89"
+        ],
+        "files": [
+          "debug.go",
+          "debug_test.go",
+          "gin.go"
+        ]
+      },
+      "meta": {
+        "symbol": "debugPrintWARNINGNew",
+        "n_defs": 1,
+        "n_files": 3,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "loc-gin-2088",
+      "type": "localization",
+      "repo": "gin",
+      "prompt": "You are triaging a GitHub issue in the repository at {REPO_PATH}.\n\nISSUE TITLE: Recovery middleware does not add error to context\n\nISSUE BODY:\n- go version: go version go1.12.1 darwin/amd64\r\n- gin version (or commit ref): v1.4.0\r\n- operating system: OSX 10.14.3\r\n\r\n## Description\r\nCurrently the recovery middleware only adds a recovered error to context when there is a broken pipe:  https://github.com/gin-gonic/gin/blob/master/recovery.go#L75\r\n```\r\nif brokenPipe {\r\n    c.Error(err.(error)) // nolint: errcheck\r\n    c.Abort()\r\n} else {\r\n    c.AbortWithStatus(http.StatusInternalServerError)\r\n}\r\n````\r\n\r\nIt would be great to have the else case also add the error to the context so that middleware higher in the chain can process those errors (in tracing middleware for example). This could be done by simply adding: `c.Error(errors.New(fmt.Sprintf(\"%v\", err)))` or doing some switching on the err type. \r\n\r\nIf this is desirable I can create a PR with the changes.\n\nIdentify which files in the repository would need to change to fix this issue. Answer with a 'FILES:' section listing repo-relative paths, nothing else. Base your answer on evidence from the repository.",
+      "ground_truth": {
+        "files": [
+          "recovery.go",
+          "recovery_test.go"
+        ]
+      },
+      "meta": {
+        "issue": 2088,
+        "pr": 4698,
+        "pr_go_files": 2,
+        "existing": 2
+      }
+    },
+    {
+      "id": "loc-gin-4622",
+      "type": "localization",
+      "repo": "gin",
+      "prompt": "You are triaging a GitHub issue in the repository at {REPO_PATH}.\n\nISSUE TITLE: SaveUploadedFile: unexpected chmod on existing directories (breaks /tmp usage)\n\nISSUE BODY:\n## Description\n\nAfter upgrading from v1.10.1 to v1.12.0, `Context.SaveUploadedFile` started to fail when saving files directly into existing system directories like `/tmp`.\n\nThe failure happens due to an attempt to call `os.Chmod` on the target directory, even if it already exists and is not owned by the process.\n\nRelevant code:\nhttps://github.com/gin-gonic/gin/blob/v1.12.0/context.go#L734\n\n## Reproduction\n\n```go\nfile, _ := c.FormFile(\"file\")\n\n// Saving directly into /tmp\nerr := c.SaveUploadedFile(file, \"/tmp/test.txt\")\nif err != nil {\n  panic(err)\n}\n```\n\n## Actual behavior\n\nThe call fails with:\n\nchmod /tmp: operation not permitted\n\n## Expected behavior\n\nIf the directory already exists, especially for system directories like `/tmp`, `SaveUploadedFile` should not attempt to modify its permissions.\n\nThe previous behavior (v1.10.1) only used `os.MkdirAll`, which does not change permissions on existing directories.\n\n## Impact\n\nThis is a breaking change for common usage patterns such as:\n\n* saving files to `/tmp/<filename>`\n* writing into pre-existing directories managed by the OS or container runtime\n\n## Context\n\nThis behavior appears to be introduced together with the change that allows specifying permissions for created directories (see #4068). However, applying `chmod` unconditionally also affects already existing directories.\n\n## Suggested fix\n\nOnly apply `os.Chmod` when the directory is newly created, or make it optional.\n\nFor example:\n\n* skip `chmod` if directory already exists\n* or provide a flag to control this behavior\n\n## Additional notes\n\nThis change is not mentioned as breaking in release notes, but it alters previously working behavior.\n\n\n### Gin Version\n\nv1.12.0\n\n### Can you reproduce the bug?\n\nYes\n\n### Source Code\n\n```go\nfile, _ := c.FormFile(\"file\")\n\n// Saving directly into /tmp\nerr := c.SaveUploadedFile(file, \"/tmp/test.txt\")\nif err != nil {\n   panic(err)\n}\n```\n\n### Go Version\n\n1.26.1\n\n### Operating System\n\nlinux\n\nIdentify which files in the repository would need to change to fix this issue. Answer with a 'FILES:' section listing repo-relative paths, nothing else. Base your answer on evidence from the repository.",
+      "ground_truth": {
+        "files": [
+          "context.go",
+          "context_test.go"
+        ]
+      },
+      "meta": {
+        "issue": 4622,
+        "pr": 4702,
+        "pr_go_files": 2,
+        "existing": 2
+      }
+    },
+    {
+      "id": "loc-gin-4460",
+      "type": "localization",
+      "repo": "gin",
+      "prompt": "You are triaging a GitHub issue in the repository at {REPO_PATH}.\n\nISSUE TITLE: http.TimeoutHandler panics when used with Gin\n\nISSUE BODY:\n### Description\n\n## `responseWriter.Flush()` panics when underlying ResponseWriter doesn't implement `http.Flusher`\n\n### Description\n\nGin's `responseWriter.Flush()` method performs a direct type assertion without checking if the underlying `ResponseWriter` implements `http.Flusher`. This causes a panic when Gin is used with middleware that wraps the `ResponseWriter` with a type that doesn't implement `Flusher` (e.g., `http.TimeoutHandler`).\n\n### How to reproduce\n\n### Expected behavior\n\nThe `Flush()` call should be a no-op when the underlying writer doesn't support flushing, similar to how `httputil.ReverseProxy` handles it.\n\n### Actual behavior\n\nPanic:\n```\ninterface conversion: *http.timeoutWriter is not http.Flusher: missing method Flush\n```\n\nStack trace points to `response_writer.go:123`:\n```\n(*responseWriter).Flush: w.ResponseWriter.(http.Flusher).Flush()\n```\n\n### Root cause\n\nIn [`response_writer.go`](https://github.com/gin-gonic/gin/blob/master/response_writer.go#L123):\n\n```go\nfunc (w *responseWriter) Flush() {\n\tw.ResponseWriter.(http.Flusher).Flush()\n}\n```\n\nThis performs an unchecked type assertion that panics if the underlying `ResponseWriter` doesn't implement `http.Flusher`.\n\n### Suggested fix\n\n```\nfunc (w *responseWriter) Flush() {\n\tif f, ok := w.ResponseWriter.(http.Flusher); ok {\n\t\tf.Flush()\n\t}\n}\n```\n\nThis is the standard pattern used by `httputil.ReverseProxy` and other stdlib code.\n\n### Gin Version\n\nv1.10.1\n\n### Can you reproduce the bug?\n\nYes\n\n### Source Code\n\n```go\npackage main\n\nimport (\n\t\"net/http\"\n\t\"net/http/httputil\"\n\t\"net/url\"\n\t\"time\"\n\n\t\"github.com/gin-gonic/gin\"\n)\n\nfunc main() {\n\t// Backend that streams data\n\tgo func() {\n\t\thttp.HandleFunc(\"/download\", func(w http.ResponseWriter, r *http.Request) {\n\t\t\tfor i := 0; i < 5; i++ {\n\t\t\t\tw.Write(make([]byte, 50*1024))\n\t\t\t\tif f, ok := w.(http.Flusher); ok {\n\t\t\t\t\tf.Flush()\n\t\t\t\t}\n\t\t\t\ttime.Sleep(100 * time.Millisecond)\n\t\t\t}\n\t\t})\n\t\thttp.ListenAndServe(\":8081\", nil)\n\t}()\n\ttime.Sleep(100 * time.Millisecond)\n\n\t//\n\nIdentify which files in the repository would need to change to fix this issue. Answer with a 'FILES:' section listing repo-relative paths, nothing else. Base your answer on evidence from the repository.",
+      "ground_truth": {
+        "files": [
+          "response_writer_test.go"
+        ]
+      },
+      "meta": {
+        "issue": 4460,
+        "pr": 4699,
+        "pr_go_files": 1,
+        "existing": 1
+      }
+    },
+    {
+      "id": "loc-gin-4638",
+      "type": "localization",
+      "repo": "gin",
+      "prompt": "You are triaging a GitHub issue in the repository at {REPO_PATH}.\n\nISSUE TITLE: Unsafe type assertions in Hijack() and CloseNotify() cause panic with http.TimeoutHandler\n\nISSUE BODY:\n### Description\n\n## Problem\n\nSimilar to #4460 (fixed for `Flush()` in #4479), `Hijack()` and `CloseNotify()` still use direct type assertions that panic when the underlying writer doesn't implement the interface:\n\n```go\n// panics with http.TimeoutHandler (timeoutWriter is not http.Hijacker)\nreturn w.ResponseWriter.(http.Hijacker).Hijack()\n\n// panics with http.TimeoutHandler (timeoutWriter is not http.CloseNotifier)\nreturn w.ResponseWriter.(http.CloseNotifier).CloseNotify()\n```\n## Environment                                                                                                                                                                              \n                                                                                   \n- **Go version:** go1.25.0 linux/amd64                                                                                                                                                      - **Gin version:** v1.12.0                                                       \n- **OS:** Linux 6.17.0 (Ubuntu) \n\n## Expected behavior\n\nSame graceful degradation already implemented in `Flush()` \u2014 return error / nil instead of panicking.\n\n### Gin Version\n\nd3ffc9985281dcf4d3bef604cce4e662b1a327a6\n\n### Can you reproduce the bug?\n\nYes\n\n### Source Code\n\n```go                                                                                                                                                                                       \n  package main                                                                                                                                                                                \n                                                                   \n  import (                                                                                                                                                                                    \n      \"net/http\"                                                \n\nIdentify which files in the repository would need to change to fix this issue. Answer with a 'FILES:' section listing repo-relative paths, nothing else. Base your answer on evidence from the repository.",
+      "ground_truth": {
+        "files": [
+          "response_writer.go",
+          "response_writer_test.go"
+        ]
+      },
+      "meta": {
+        "issue": 4638,
+        "pr": 4645,
+        "pr_go_files": 2,
+        "existing": 2
+      }
+    },
+    {
+      "id": "comp-prometheus-readResponse",
+      "type": "comprehension",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, where is 'readResponse' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'readResponse'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "scrape/scrape.go:813",
+          "scrape/scrape_test.go:2908"
+        ],
+        "files": [
+          "scrape/scrape.go",
+          "scrape/scrape_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "readResponse",
+        "n_defs": 2,
+        "n_files": 2,
+        "bucket": "hot"
+      }
+    },
+    {
+      "id": "comp-prometheus-GetCreatedTimestamp",
+      "type": "comprehension",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, where is 'GetCreatedTimestamp' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'GetCreatedTimestamp'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "prompb/io/prometheus/client/metrics.pb.go:230",
+          "prompb/io/prometheus/client/metrics.pb.go:356",
+          "prompb/io/prometheus/client/metrics.pb.go:511",
+          "prompb/io/prometheus/write/v2/types.pb.go:286"
+        ],
+        "files": [
+          "model/textparse/protobufparse.go",
+          "prompb/io/prometheus/client/metrics.pb.go",
+          "prompb/io/prometheus/write/v2/types.pb.go"
+        ]
+      },
+      "meta": {
+        "symbol": "GetCreatedTimestamp",
+        "n_defs": 4,
+        "n_files": 3,
+        "bucket": "hot"
+      }
+    },
+    {
+      "id": "comp-prometheus-HPoint",
+      "type": "comprehension",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, where is 'HPoint' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'HPoint'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "promql/value.go:118"
+        ],
+        "files": [
+          "promql/engine.go",
+          "promql/engine_test.go",
+          "promql/functions.go",
+          "promql/promqltest/test.go",
+          "promql/value.go",
+          "web/api/v1/json_codec.go",
+          "web/api/v1/json_codec_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "HPoint",
+        "n_defs": 1,
+        "n_files": 7,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-prometheus-EnrichParseError",
+      "type": "comprehension",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, where is 'EnrichParseError' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'EnrichParseError'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "promql/parser/parse.go:153"
+        ],
+        "files": [
+          "promql/parser/parse.go",
+          "promql/promqltest/test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "EnrichParseError",
+        "n_defs": 1,
+        "n_files": 2,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-prometheus-addServiceLabels",
+      "type": "comprehension",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, where is 'addServiceLabels' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'addServiceLabels'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "discovery/kubernetes/endpoints.go:469"
+        ],
+        "files": [
+          "discovery/kubernetes/endpoints.go",
+          "discovery/kubernetes/endpointslice.go"
+        ]
+      },
+      "meta": {
+        "symbol": "addServiceLabels",
+        "n_defs": 1,
+        "n_files": 2,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-prometheus-sdCheckResult",
+      "type": "comprehension",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, where is 'sdCheckResult' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'sdCheckResult'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "cmd/promtool/sd.go:34"
+        ],
+        "files": [
+          "cmd/promtool/sd.go",
+          "cmd/promtool/sd_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "sdCheckResult",
+        "n_defs": 1,
+        "n_files": 2,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-prometheus-NewTestEngineWithOpts",
+      "type": "comprehension",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, where is 'NewTestEngineWithOpts' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'NewTestEngineWithOpts'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "promql/promqltest/test.go:104"
+        ],
+        "files": [
+          "promql/bench_test.go",
+          "promql/engine_test.go",
+          "promql/functions_test.go",
+          "promql/promql_test.go",
+          "promql/promqltest/test.go",
+          "rules/alerting_test.go",
+          "rules/manager_test.go",
+          "rules/recording_test.go",
+          "web/api/v1/api_test.go",
+          "web/api/v1/errors_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "NewTestEngineWithOpts",
+        "n_defs": 1,
+        "n_files": 10,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-prometheus-OverlapsClosedInterval",
+      "type": "comprehension",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, where is 'OverlapsClosedInterval' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'OverlapsClosedInterval'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "tsdb/block.go:729"
+        ],
+        "files": [
+          "tsdb/block.go",
+          "tsdb/chunks/chunks.go",
+          "tsdb/db.go",
+          "tsdb/head.go",
+          "tsdb/head_read.go",
+          "tsdb/ooo_head_read.go",
+          "tsdb/querier.go"
+        ]
+      },
+      "meta": {
+        "symbol": "OverlapsClosedInterval",
+        "n_defs": 1,
+        "n_files": 7,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "loc-prometheus-15185",
+      "type": "localization",
+      "repo": "prometheus",
+      "prompt": "You are triaging a GitHub issue in the repository at {REPO_PATH}.\n\nISSUE TITLE: Add more `t.Parallel()` to speed up tests\n\nISSUE BODY:\n### Proposal\n\nLet's save some time.\n\n- The packages/subdirectories to be checked:\n  - [x] `cmd/prometheus`, see https://github.com/prometheus/prometheus/pull/14618\n  - [x] `cmd/promtool`, see https://github.com/prometheus/prometheus/pull/15226\n  - [x] ~`config/`, Unnecessary, see: https://github.com/prometheus/prometheus/pull/15408~\n  - [ ] `discovery/`\n    - [x] `kubernetes`, see https://github.com/prometheus/prometheus/pull/15227\n  - [x] ~`model/` Unnecessary, see https://github.com/prometheus/prometheus/pull/15349~\n  - [ ] `notifier/`\n  - [x] `rules/` https://github.com/prometheus/prometheus/pull/17012\n  - [x] `scrape/` https://github.com/prometheus/prometheus/pull/17013/files\n  - [ ] `storage/`\n    - [x] `queue_manager_test.go` https://github.com/prometheus/prometheus/pull/17018 \n  - [ ] `tsdb/`\n    - [x] `wlog/` https://github.com/prometheus/prometheus/pull/17019\n    - [x] `compact`, `db`, `head` https://github.com/prometheus/prometheus/pull/17017/files\n  - [ ] `util/`\n  - [ ] `web/`, see https://github.com/prometheus/prometheus/pull/15248\n  - [ ] `tracing/`\n  \n  \nNote that:\n- Some tests may not be designed to run in parallel.\n- We should avoid sacrificing test readability (correctness a well of course :)) to make them runnable in parallel.\n- Check if subtests can be run in parallel as well.\n- If a test runs subtests unofficially (without t.Run()), consider adding the needed wrappers to run the subtests in parallel.\n- ~Please make sure to run the tests locally with the race detector enabled (-race) as it's temporarily disabled in the CI.~\n- Of course, only make the test run in parallel when it will reduce execution time and not cause other tests to run slower.\n-  Let's say it's worthwhile when we can save at least one second (per package), less than that it might just be fluctuation.\n- Let's consider the wall-clock time/execution time of the test in the CI as a key reference point for measuring improvements.\n\nTests can always be run sequentially using`-parallel\n\nIdentify which files in the repository would need to change to fix this issue. Answer with a 'FILES:' section listing repo-relative paths, nothing else. Base your answer on evidence from the repository.",
+      "ground_truth": {
+        "files": [
+          "storage/remote/azuread/azuread_test.go"
+        ]
+      },
+      "meta": {
+        "issue": 15185,
+        "pr": 19106,
+        "pr_go_files": 1,
+        "existing": 1
+      }
+    },
+    {
+      "id": "loc-prometheus-19114",
+      "type": "localization",
+      "repo": "prometheus",
+      "prompt": "You are triaging a GitHub issue in the repository at {REPO_PATH}.\n\nISSUE TITLE: tsdb: Close() errors silently discarded in Querier and blockChunkQuerierForRange cleanup\n\nISSUE BODY:\nI noticed a couple of cleanup paths in `tsdb/db.go` where errors returned from `Close()` are currently ignored.\n\nThis happens in `Querier()` and `blockChunkQuerierForRange()`:\n\n```go\nfor _, q := range blockQueriers {\n    _ = q.Close()\n}\n```\n\nThese cleanup defers run while handling an error path from the surrounding function. If one of the queriers also fails during `Close()`, that information is currently discarded, so the caller only sees the original error.\n\nOne possible improvement would be to preserve both errors using `errors.Join()` so the cleanup failure is not lost, for example:\n\n```go\nif closeErr := q.Close(); closeErr != nil {\n    err = errors.Join(err, fmt.Errorf(\"close querier during cleanup: %w\", closeErr))\n}\n```\n\nThis would keep the original failure while still surfacing any cleanup issues that happen while closing the queriers.\n\n\n\nIdentify which files in the repository would need to change to fix this issue. Answer with a 'FILES:' section listing repo-relative paths, nothing else. Base your answer on evidence from the repository.",
+      "ground_truth": {
+        "files": [
+          "tsdb/db.go"
+        ]
+      },
+      "meta": {
+        "issue": 19114,
+        "pr": 19120,
+        "pr_go_files": 1,
+        "existing": 1
+      }
+    },
+    {
+      "id": "loc-prometheus-18358",
+      "type": "localization",
+      "repo": "prometheus",
+      "prompt": "You are triaging a GitHub issue in the repository at {REPO_PATH}.\n\nISSUE TITLE: promtool: `push metrics <url>` always suffixes the path in the url with `/api/v1/write`\n\nISSUE BODY:\n`promtool` allows pushing arbitrary metric files to a Prometheus compatible remote write endpoint. But only if the endpoint path ends with `/api/v1/write`.\n\nThe problem being that `/api/v1/write` is always appended to the url given to promtool.\n`http://localhost:8080/my/ep -> http://localhost:8080/my/ep/api/v1/write`\n\nMimir specifically only accepts metrics on `/api/v1/push` and promtool currently does not allow any way to overwrite this aside from prefixing the default path.\n\nThe Path is always appended with the default path value \"/api/v1/write\".\nhttps://github.com/prometheus/client_golang/blob/8f78afd82a7fa242c008ec04280a9a836ee28808/exp/api/remote/remote_api.go#L151\n\nhttps://github.com/prometheus/client_golang/blob/8f78afd82a7fa242c008ec04280a9a836ee28808/exp/api/remote/remote_api.go#L81\n\nBut the API options include the `WithAPIPath` func which allows overwriting the default:\nhttps://github.com/prometheus/client_golang/blob/8f78afd82a7fa242c008ec04280a9a836ee28808/exp/api/remote/remote_api.go#L101-L107\n\nWould you consider either changing the behaviour of how the `<url>` path is handled to instead overwrite the default path or alternatively be open to a PR adding a new parameter allowing users to override the default path?\n\nIdentify which files in the repository would need to change to fix this issue. Answer with a 'FILES:' section listing repo-relative paths, nothing else. Base your answer on evidence from the repository.",
+      "ground_truth": {
+        "files": [
+          "cmd/promtool/main.go",
+          "cmd/promtool/metrics.go"
+        ]
+      },
+      "meta": {
+        "issue": 18358,
+        "pr": 19086,
+        "pr_go_files": 3,
+        "existing": 2
+      }
+    },
+    {
+      "id": "loc-prometheus-18534",
+      "type": "localization",
+      "repo": "prometheus",
+      "prompt": "You are triaging a GitHub issue in the repository at {REPO_PATH}.\n\nISSUE TITLE: Deltas: Annotate a warning when start times overlap\n\nISSUE BODY:\nWe have seen situations where delta samples have overlapping spans: the start time is previous to some preexisting timestamp. Some systems reject these samples, but we don't yet.  But we should warn users at query time that this situation exists, and we can use the annotation mechanism to do so.\n\n\n\nIdentify which files in the repository would need to change to fix this issue. Answer with a 'FILES:' section listing repo-relative paths, nothing else. Base your answer on evidence from the repository.",
+      "ground_truth": {
+        "files": [
+          "promql/functions.go",
+          "util/annotations/annotations.go"
+        ]
+      },
+      "meta": {
+        "issue": 18534,
+        "pr": 18557,
+        "pr_go_files": 3,
+        "existing": 2
+      }
+    }
+  ]
+}

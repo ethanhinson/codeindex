@@ -124,14 +124,25 @@ codeindex invocation (measures the tool's effect when used). A large gap
 between them is itself a finding: the tool works but the prompt/skill doesn't.
 
 **D7 — Pre-registered thresholds (record in tasks.json header before the full
-run; do not change after):**
-- **GREEN** — proceed to MVP + plugin: median paired reduction in total task
-  tokens ≥ 30%, task-success delta ≥ −5 pp, arm-B adoption ≥ 70%.
+run; do not change after). Savings = median paired reduction in `total_cost_usd`
+(primary metric — see D-metric below):**
+- **GREEN** — proceed to MVP + plugin: savings ≥ 30%, task-success delta
+  ≥ −5 pp, arm-B adoption ≥ 70%.
 - **YELLOW** — iterate on the arm-B prompt / answer format and re-run once:
   savings 10–30%, or adoption 40–70% with per-protocol savings ≥ 30%.
 - **RED** — stop and rethink the consumption model before building more:
   savings < 10% intent-to-treat, or success delta < −5 pp, or adoption < 40%
   with per-protocol savings also < 30%.
+
+**D-metric — cost is primary, processed-tokens secondary (verified by probe).**
+The naive "input+output tokens" metric misses the effect: reading a file lands
+in `cache_creation_input_tokens`, not `input_tokens`. So the headline is
+`total_cost_usd`; the secondary token metric is
+`input+output+cache_creation_input_tokens`; `cache_read` is recorded but excluded
+(fixed system-prompt overhead). See `bench/agent_ab/README.md`.
+
+**D-turns — no `--max-turns` in claude 2.1.193.** Run length is bounded by a
+per-run wall-clock timeout (kill + flag) plus the global `--budget-usd` guard.
 
 **D8 — Cost controls.** Default model `claude-sonnet-4-6` (configurable);
 `--max-turns 15`; task cap via `--tasks N`; reps via `--reps`; **mandatory
