@@ -1,0 +1,165 @@
+{
+  "token_counter": "tiktoken-cl100k_base",
+  "results": [
+    {
+      "repo": "gin",
+      "lang": "go",
+      "tier": "small",
+      "commit": "v1.10.0",
+      "n_symbols_total": 1213,
+      "n_sampled": 40,
+      "summary": {
+        "def": {
+          "n": 40,
+          "median_ratio_naive": 499.2,
+          "median_ratio_smart": 499.2,
+          "pct_meeting_10x_smart": 100.0,
+          "median_index_tokens": 17,
+          "p90_index_tokens": 24,
+          "median_index_json_tokens": 30,
+          "median_baseline_smart_tokens": 9927
+        },
+        "callers": {
+          "n": 40,
+          "median_ratio_naive": 243.1,
+          "median_ratio_smart": 214.8,
+          "pct_meeting_10x_smart": 100.0,
+          "median_index_tokens": 34,
+          "p90_index_tokens": 206,
+          "median_index_json_tokens": 61,
+          "median_baseline_smart_tokens": 10680
+        },
+        "outline": {
+          "n": 40,
+          "median_ratio_naive": 6.4,
+          "median_ratio_smart": 6.4,
+          "pct_meeting_10x_smart": 40.0,
+          "median_index_tokens": 1904,
+          "p90_index_tokens": 2078,
+          "median_index_json_tokens": 2990,
+          "median_baseline_smart_tokens": 9927
+        }
+      }
+    },
+    {
+      "repo": "prometheus",
+      "lang": "go",
+      "tier": "medium",
+      "commit": "v3.1.0",
+      "n_symbols_total": 4000,
+      "n_sampled": 40,
+      "summary": {
+        "def": {
+          "n": 40,
+          "median_ratio_naive": 313.3,
+          "median_ratio_smart": 313.3,
+          "pct_meeting_10x_smart": 100.0,
+          "median_index_tokens": 21,
+          "p90_index_tokens": 42,
+          "median_index_json_tokens": 34,
+          "median_baseline_smart_tokens": 6458
+        },
+        "callers": {
+          "n": 40,
+          "median_ratio_naive": 180.6,
+          "median_ratio_smart": 136.9,
+          "pct_meeting_10x_smart": 97.5,
+          "median_index_tokens": 114,
+          "p90_index_tokens": 1012,
+          "median_index_json_tokens": 181,
+          "median_baseline_smart_tokens": 19478
+        },
+        "outline": {
+          "n": 40,
+          "median_ratio_naive": 13.3,
+          "median_ratio_smart": 13.3,
+          "pct_meeting_10x_smart": 62.5,
+          "median_index_tokens": 548,
+          "p90_index_tokens": 1746,
+          "median_index_json_tokens": 875,
+          "median_baseline_smart_tokens": 6458
+        }
+      }
+    },
+    {
+      "repo": "nest",
+      "lang": "ts",
+      "tier": "medium",
+      "commit": "v10.4.15",
+      "n_symbols_total": 1500,
+      "n_sampled": 40,
+      "summary": {
+        "def": {
+          "n": 40,
+          "median_ratio_naive": 8.8,
+          "median_ratio_smart": 8.8,
+          "pct_meeting_10x_smart": 47.5,
+          "median_index_tokens": 20,
+          "p90_index_tokens": 24,
+          "median_index_json_tokens": 33,
+          "median_baseline_smart_tokens": 170
+        },
+        "callers": {
+          "n": 40,
+          "median_ratio_naive": 11.9,
+          "median_ratio_smart": 8.5,
+          "pct_meeting_10x_smart": 47.5,
+          "median_index_tokens": 210,
+          "p90_index_tokens": 711,
+          "median_index_json_tokens": 346,
+          "median_baseline_smart_tokens": 2626
+        },
+        "outline": {
+          "n": 40,
+          "median_ratio_naive": 17.5,
+          "median_ratio_smart": 17.5,
+          "pct_meeting_10x_smart": 72.5,
+          "median_index_tokens": 8,
+          "p90_index_tokens": 20,
+          "median_index_json_tokens": 19,
+          "median_baseline_smart_tokens": 170
+        }
+      }
+    },
+    {
+      "repo": "kubernetes",
+      "lang": "go",
+      "tier": "large",
+      "commit": "v1.32.0",
+      "n_symbols_total": 4000,
+      "n_sampled": 25,
+      "summary": {
+        "def": {
+          "n": 25,
+          "median_ratio_naive": 214.7,
+          "median_ratio_smart": 214.7,
+          "pct_meeting_10x_smart": 100.0,
+          "median_index_tokens": 26,
+          "p90_index_tokens": 54,
+          "median_index_json_tokens": 39,
+          "median_baseline_smart_tokens": 5670
+        },
+        "callers": {
+          "n": 25,
+          "median_ratio_naive": 144.8,
+          "median_ratio_smart": 101.0,
+          "pct_meeting_10x_smart": 92.0,
+          "median_index_tokens": 144,
+          "p90_index_tokens": 1276,
+          "median_index_json_tokens": 202,
+          "median_baseline_smart_tokens": 13316
+        },
+        "outline": {
+          "n": 25,
+          "median_ratio_naive": 9.3,
+          "median_ratio_smart": 9.3,
+          "pct_meeting_10x_smart": 44.0,
+          "median_index_tokens": 746,
+          "p90_index_tokens": 3071,
+          "median_index_json_tokens": 1063,
+          "median_baseline_smart_tokens": 5670
+        }
+      }
+    }
+  ]
+}

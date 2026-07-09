@@ -1,0 +1,51 @@
+{
+  "token_counter": "tiktoken-cl100k_base",
+  "config": {
+    "sample": 30,
+    "seed": 7,
+    "limit": 50,
+    "smart_k": 5
+  },
+  "results": [
+    {
+      "repo": "gin",
+      "lang": "go",
+      "tier": "small",
+      "commit": "v1.10.0",
+      "n_symbols_total": 1213,
+      "n_sampled": 30,
+      "summary": {
+        "def": {
+          "n": 30,
+          "median_ratio_naive": 382.1,
+          "median_ratio_smart": 382.1,
+          "pct_meeting_10x_smart": 100.0,
+          "median_index_tokens": 18,
+          "p90_index_tokens": 26,
+          "median_index_json_tokens": 31,
+          "median_baseline_smart_tokens": 8191
+        },
+        "callers": {
+          "n": 30,
+          "median_ratio_naive": 200.3,
+          "median_ratio_smart": 194.9,
+          "pct_meeting_10x_smart": 100.0,
+          "median_index_tokens": 35,
+          "p90_index_tokens": 206,
+          "median_index_json_tokens": 19,
+          "median_baseline_smart_tokens": 10680
+        },
+        "outline": {
+          "n": 30,
+          "median_ratio_naive": 8.7,
+          "median_ratio_smart": 8.7,
+          "pct_meeting_10x_smart": 40.0,
+          "median_index_tokens": 487,
+          "p90_index_tokens": 2078,
+          "median_index_json_tokens": 828,
+          "median_baseline_smart_tokens": 8191
+        }
+      }
+    }
+  ]
+}

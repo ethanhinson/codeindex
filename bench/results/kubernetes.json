@@ -1,0 +1,51 @@
+{
+  "token_counter": "tiktoken-cl100k_base",
+  "config": {
+    "sample": 25,
+    "seed": 7,
+    "limit": 50,
+    "smart_k": 5
+  },
+  "results": [
+    {
+      "repo": "kubernetes",
+      "lang": "go",
+      "tier": "large",
+      "commit": "v1.32.0",
+      "n_symbols_total": 4000,
+      "n_sampled": 25,
+      "summary": {
+        "def": {
+          "n": 25,
+          "median_ratio_naive": 214.7,
+          "median_ratio_smart": 214.7,
+          "pct_meeting_10x_smart": 100.0,
+          "median_index_tokens": 26,
+          "p90_index_tokens": 54,
+          "median_index_json_tokens": 39,
+          "median_baseline_smart_tokens": 5670
+        },
+        "callers": {
+          "n": 25,
+          "median_ratio_naive": 144.8,
+          "median_ratio_smart": 101.0,
+          "pct_meeting_10x_smart": 92.0,
+          "median_index_tokens": 144,
+          "p90_index_tokens": 1276,
+          "median_index_json_tokens": 202,
+          "median_baseline_smart_tokens": 13316
+        },
+        "outline": {
+          "n": 25,
+          "median_ratio_naive": 9.3,
+          "median_ratio_smart": 9.3,
+          "pct_meeting_10x_smart": 44.0,
+          "median_index_tokens": 746,
+          "p90_index_tokens": 3071,
+          "median_index_json_tokens": 1063,
+          "median_baseline_smart_tokens": 5670
+        }
+      }
+    }
+  ]
+}

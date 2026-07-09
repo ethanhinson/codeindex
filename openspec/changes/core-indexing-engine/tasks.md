@@ -55,7 +55,8 @@
 
 ## 9. Performance & benchmarks (performance)
 
-- [ ] 9.1 Pin reference corpora at fixed commits for each tier (small ~50k, medium ~500k, large ~5M LOC; mix of Go + TS/JS) and a fetch script
+- [x] 9.0 Pre-implementation token-savings spike validating the core assumption against real OSS repos (`bench/`, `bench/FINDINGS.md`) — done: 100–500× for def/callers on large-file Go incl. kubernetes; file-size dependent; outline weaker; JSON ~1.5–1.7× text
+- [ ] 9.1 Pin reference corpora at fixed commits for each tier (small ~50k, medium ~500k, large ~5M LOC; mix of Go + TS/JS) and a fetch script — extend `bench/repos.json`, fold the spike's `rg`-proxy corpora into the real harness
 - [ ] 9.2 Implement the benchmark harness (`make bench` / `codeindex bench`) measuring cold build time, parallel efficiency, incremental latency, query p50/p95, index size, and peak build memory per tier
 - [ ] 9.3 Define the fixed navigation-question set and measure the token-savings ratio (codeindex answer tokens vs. grep+read source tokens); assert median ≥ 10×
 - [ ] 9.4 Add the size+mtime fast path and directory-mtime shortcutting so the lazy re-check meets the query-latency budget at the large tier

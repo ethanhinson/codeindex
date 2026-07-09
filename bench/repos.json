@@ -1,0 +1,45 @@
+{
+  "_comment": "Pinned OSS reference corpora for the token-savings validation spike. Commits are pinned for reproducibility. 'tier' is an approximate size class; 'quick' repos clone fast for a live run, larger ones validate the 'very large repo' claim.",
+  "repos": [
+    {
+      "name": "gin",
+      "url": "https://github.com/gin-gonic/gin.git",
+      "commit": "v1.10.0",
+      "lang": "go",
+      "tier": "small",
+      "quick": true
+    },
+    {
+      "name": "prometheus",
+      "url": "https://github.com/prometheus/prometheus.git",
+      "commit": "v3.1.0",
+      "lang": "go",
+      "tier": "medium",
+      "quick": true
+    },
+    {
+      "name": "nest",
+      "url": "https://github.com/nestjs/nest.git",
+      "commit": "v10.4.15",
+      "lang": "ts",
+      "tier": "medium",
+      "quick": true
+    },
+    {
+      "name": "kubernetes",
+      "url": "https://github.com/kubernetes/kubernetes.git",
+      "commit": "v1.32.0",
+      "lang": "go",
+      "tier": "large",
+      "quick": false
+    },
+    {
+      "name": "vscode",
+      "url": "https://github.com/microsoft/vscode.git",
+      "commit": "1.96.2",
+      "lang": "ts",
+      "tier": "large",
+      "quick": false
+    }
+  ]
+}

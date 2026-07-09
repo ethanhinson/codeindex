@@ -118,6 +118,18 @@ reproducible harness and a CI regression guard.
 no evidence the token story holds); micro-benchmarks only (miss end-to-end query
 latency and the token-savings ratio that actually matters).
 
+*Validation status:* a pre-implementation spike (`bench/`, `bench/FINDINGS.md`)
+already validated the token assumption against real OSS repos (gin, prometheus,
+nest, kubernetes) using `rg` grep-by-name as a faithful proxy for the name-based
+MVP edges. Findings that shaped this design: (1) definition and callers savings
+are 100–500× on large-file Go repos and hold at the kubernetes/large tier;
+(2) savings scale with source file size — the win is smallest (~9–12×) on
+well-factored small-file TS, so the token target is corpus-relative; (3) outline
+saves less (~6–17×), so its target is ≥5×, not ≥10×; (4) JSON output costs
+~1.5–1.7× the text form, so text is the default; (5) a full-repo grep on
+kubernetes takes ~0.65s, reinforcing D2 (indexed SQLite lookups over per-query
+scanning) for the interactive/IDE latency budget.
+
 ## Risks / Trade-offs
 
 - **Name collisions inflate edges** → `resolved_confidence` flags ambiguous

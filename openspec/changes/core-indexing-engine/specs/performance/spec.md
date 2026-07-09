@@ -105,16 +105,42 @@ overhead plus the indexed graph lookup.
 ### Requirement: Token savings versus grep-and-read
 
 The system SHALL answer navigation questions using substantially fewer tokens
-than a naive grep-and-read approach, measured over a fixed question set.
+than a naive grep-and-read approach, measured over a fixed question set. The
+≥10× median target applies to the definition, callers/callees, and
+dependencies/dependents query types. The outline query type has a lower target
+(≥ 5× median) because a file's full symbol list is inherently larger; savings
+also scale with source file size, so the target is validated on the reference
+corpora, not on atypically small-file repositories.
 
-#### Scenario: Token reduction on the navigation question set
+Basis: a pre-implementation validation spike (`bench/`, `bench/FINDINGS.md`)
+measured 100–500× median savings for definition and callers on large-file Go
+repositories (including kubernetes at the large tier) and ~9–12× on a
+small-file TypeScript repository, confirming the target and its file-size
+dependence.
 
-- **WHEN** the benchmark runs a fixed set of navigation questions (callers,
-  callees, definition, dependencies, search) against a reference repository
+#### Scenario: Token reduction for core query types
+
+- **WHEN** the benchmark runs the fixed navigation question set for the
+  definition, callers/callees, and dependencies/dependents query types against a
+  reference repository
 - **THEN** the median tokens in the `codeindex` answers are at least 10× fewer
   than the tokens of the source files a grep-and-read strategy would load to
   answer the same questions
-- **AND** a typical single-question answer is ≤ 500 tokens
+- **AND** a typical definition or callers answer is ≤ 500 tokens
+
+#### Scenario: Outline savings
+
+- **WHEN** the benchmark runs outline questions against a reference repository
+- **THEN** the median outline answer uses at least 5× fewer tokens than reading
+  the whole file
+- **AND** outline answers for very large files are bounded by `--limit`
+
+#### Scenario: Structured-output token premium is bounded
+
+- **WHEN** the same answer is produced in compact text and in `--json` form
+- **THEN** the JSON form uses no more than about twice the tokens of the text
+  form
+- **AND** compact text is the default output
 
 ### Requirement: Index size and build memory bounds
 
