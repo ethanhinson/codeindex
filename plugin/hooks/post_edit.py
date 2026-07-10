@@ -113,8 +113,10 @@ def main():
         loc = f" (e.g. {', '.join(files)})" if files else ""
         parts.append(f"'{name}' has {callers} caller(s), {external} outside this "
                      f"file{loc}")
+    first = next(iter(fresh))
     msg = ("codeindex: you edited " + "; ".join(parts) +
-           f". Consider /codeindex:impact before changing behavior or signatures.")[:MAX_CHARS]
+           f". To list every affected caller run: "
+           f"`codeindex callers {repo} {first}`")[:MAX_CHARS]
 
     log = os.environ.get("CODEINDEX_HOOK_LOG")
     if log:

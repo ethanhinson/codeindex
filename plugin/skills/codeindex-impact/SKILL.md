@@ -1,6 +1,6 @@
 ---
 name: codeindex-impact
-description: Use when you hold a KNOWN function/method/type and need to branch out from it — who calls it, what it calls, what breaks if it changes. Fires before modifying/renaming/deleting a symbol, when assessing a diff's impact, tracing callers while debugging, or checking for dead code. Do NOT use to find/locate things — use Grep for that.
+description: Use for ANY question shaped "who calls X", "which functions call/use X", "what does X call", "what is affected if X changes", refactor impact, affected callers, blast radius, or dead-code checks on a named Go function/method/type — run codeindex instead of grep-and-reading files (measured 73% cheaper). Do NOT use to find/locate things (where is X, which files mention Y) — use Grep for that.
 ---
 
 # codeindex — branch out from a known anchor

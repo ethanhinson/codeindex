@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+"""codeindex UserPromptSubmit hook: make the tool's existence ALWAYS VISIBLE.
+
+Why this exists (measured): with the tool documented in an always-visible
+system prompt, agent adoption on branch-out tasks was 100% and cost fell 73%
+(A/B v2). Packaged only as a lazy-loaded skill, adoption collapsed to ~10%
+(v3a) — agents never consult the skill for "easy-looking" tasks. This hook
+injects a ~90-token availability note on each prompt so the anchor rule is in
+context at decision time. The skill remains for depth; this is the trigger.
+
+Silent (no output) unless: the project is a Go repo AND the codeindex binary is
+available. Never blocks; any error exits 0 with no output.
+"""
+
+import json
+import os
+import shutil
+import sys
+
+NOTE = (
+    "Available in this Go repo: `codeindex` — a call-graph index. "
+    "When you need who-calls-X / what-X-calls / what's-affected-by-changing-X "
+    "(refactor impact, affected callers, dead-code checks), run "
+    "`codeindex callers <repo-root> <Symbol>` or `codeindex callees <repo-root> "
+    "<Symbol>` instead of grep-and-reading files — measured 73% cheaper. "
+    "Do NOT use it to locate/find things (where is X defined, which files "
+    "mention Y) — plain grep is cheaper there. Index is self-building and "
+    "always fresh."
+)
+
+
+def main():
+    try:
+        payload = json.load(sys.stdin)
+    except Exception:
+        return
+    cwd = payload.get("cwd") or os.getcwd()
+    # Go repo check: go.mod here or one level up (cheap, no walking)
+    is_go = (os.path.exists(os.path.join(cwd, "go.mod"))
+             or any(f.endswith(".go") for f in os.listdir(cwd)[:200]
+                    if os.path.isfile(os.path.join(cwd, f))))
+    if not is_go:
+        return
+    if not (os.environ.get("CODEINDEX_BIN") or shutil.which("codeindex")):
+        return
+    print(json.dumps({"hookSpecificOutput": {
+        "hookEventName": "UserPromptSubmit", "additionalContext": NOTE}}))
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception:
+        pass
+    sys.exit(0)

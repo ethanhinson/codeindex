@@ -34,6 +34,64 @@
   },
   "tasks": [
     {
+      "id": "callattr-gin-IsDebugging",
+      "type": "caller_attribution",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'IsDebugging'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "CustomRecoveryWithWriter\trecovery.go",
+          "LoadHTMLFiles\tgin.go",
+          "LoadHTMLGlob\tgin.go",
+          "TestIsDebugging\tdebug_test.go",
+          "debugPrint\tdebug.go",
+          "debugPrintError\tdebug.go",
+          "debugPrintLoadTemplate\tdebug.go",
+          "debugPrintRoute\tdebug.go"
+        ]
+      },
+      "meta": {
+        "symbol": "IsDebugging",
+        "n_callers": 8
+      }
+    },
+    {
+      "id": "editimp-gin-mappingByPtr",
+      "type": "edit_impact",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'mappingByPtr': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'mappingByPtr' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "Bind\tbinding/form.go",
+          "TestMappingArray\tbinding/form_mapping_test.go",
+          "TestMappingCustomPointerStructTypeWithFormTag\tbinding/form_mapping_test.go",
+          "TestMappingCustomPointerStructTypeWithURITag\tbinding/form_mapping_test.go",
+          "TestMappingCustomStructTypeWithFormTag\tbinding/form_mapping_test.go",
+          "TestMappingCustomStructTypeWithURITag\tbinding/form_mapping_test.go",
+          "TestMappingCustomUnmarshalParamHexWithFormTag\tbinding/form_mapping_test.go",
+          "TestMappingCustomUnmarshalParamHexWithURITag\tbinding/form_mapping_test.go",
+          "TestMappingDefault\tbinding/form_mapping_test.go",
+          "TestMappingIgnoreField\tbinding/form_mapping_test.go",
+          "TestMappingIgnoredCircularRef\tbinding/form_mapping_test.go",
+          "TestMappingMapField\tbinding/form_mapping_test.go",
+          "TestMappingPrivateField\tbinding/form_mapping_test.go",
+          "TestMappingPtrField\tbinding/form_mapping_test.go",
+          "TestMappingSkipField\tbinding/form_mapping_test.go",
+          "TestMappingSlice\tbinding/form_mapping_test.go",
+          "TestMappingStructField\tbinding/form_mapping_test.go",
+          "TestMappingTimeDuration\tbinding/form_mapping_test.go",
+          "TestMappingUnexportedField\tbinding/form_mapping_test.go",
+          "TestMappingUnknownFieldType\tbinding/form_mapping_test.go",
+          "mapFormByTag\tbinding/form_mapping.go",
+          "mapHeader\tbinding/header.go"
+        ]
+      },
+      "meta": {
+        "symbol": "mappingByPtr",
+        "n_callers": 22
+      }
+    },
+    {
       "id": "comp-gin-File",
       "type": "comprehension",
       "repo": "gin",
@@ -111,28 +169,6 @@
       }
     },
     {
-      "id": "callattr-gin-IsDebugging",
-      "type": "caller_attribution",
-      "repo": "gin",
-      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'IsDebugging'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
-      "ground_truth": {
-        "caller_pairs": [
-          "CustomRecoveryWithWriter\trecovery.go",
-          "LoadHTMLFiles\tgin.go",
-          "LoadHTMLGlob\tgin.go",
-          "TestIsDebugging\tdebug_test.go",
-          "debugPrint\tdebug.go",
-          "debugPrintError\tdebug.go",
-          "debugPrintLoadTemplate\tdebug.go",
-          "debugPrintRoute\tdebug.go"
-        ]
-      },
-      "meta": {
-        "symbol": "IsDebugging",
-        "n_callers": 8
-      }
-    },
-    {
       "id": "callattr-gin-Written",
       "type": "caller_attribution",
       "repo": "gin",
@@ -171,42 +207,6 @@
       "meta": {
         "symbol": "nameOfFunction",
         "n_callers": 5
-      }
-    },
-    {
-      "id": "editimp-gin-mappingByPtr",
-      "type": "edit_impact",
-      "repo": "gin",
-      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'mappingByPtr': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'mappingByPtr' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
-      "ground_truth": {
-        "caller_pairs": [
-          "Bind\tbinding/form.go",
-          "TestMappingArray\tbinding/form_mapping_test.go",
-          "TestMappingCustomPointerStructTypeWithFormTag\tbinding/form_mapping_test.go",
-          "TestMappingCustomPointerStructTypeWithURITag\tbinding/form_mapping_test.go",
-          "TestMappingCustomStructTypeWithFormTag\tbinding/form_mapping_test.go",
-          "TestMappingCustomStructTypeWithURITag\tbinding/form_mapping_test.go",
-          "TestMappingCustomUnmarshalParamHexWithFormTag\tbinding/form_mapping_test.go",
-          "TestMappingCustomUnmarshalParamHexWithURITag\tbinding/form_mapping_test.go",
-          "TestMappingDefault\tbinding/form_mapping_test.go",
-          "TestMappingIgnoreField\tbinding/form_mapping_test.go",
-          "TestMappingIgnoredCircularRef\tbinding/form_mapping_test.go",
-          "TestMappingMapField\tbinding/form_mapping_test.go",
-          "TestMappingPrivateField\tbinding/form_mapping_test.go",
-          "TestMappingPtrField\tbinding/form_mapping_test.go",
-          "TestMappingSkipField\tbinding/form_mapping_test.go",
-          "TestMappingSlice\tbinding/form_mapping_test.go",
-          "TestMappingStructField\tbinding/form_mapping_test.go",
-          "TestMappingTimeDuration\tbinding/form_mapping_test.go",
-          "TestMappingUnexportedField\tbinding/form_mapping_test.go",
-          "TestMappingUnknownFieldType\tbinding/form_mapping_test.go",
-          "mapFormByTag\tbinding/form_mapping.go",
-          "mapHeader\tbinding/header.go"
-        ]
-      },
-      "meta": {
-        "symbol": "mappingByPtr",
-        "n_callers": 22
       }
     },
     {

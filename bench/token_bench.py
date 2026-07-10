@@ -187,9 +187,9 @@ def count_tokens(text: str) -> int:
 # --------------------------------------------------------------------------- #
 
 
-def run(cmd, cwd=None, check=True, capture=True):
+def run(cmd, cwd=None, check=True, capture=True, timeout=180):
     return subprocess.run(
-        cmd, cwd=cwd, check=check,
+        cmd, cwd=cwd, check=check, timeout=timeout,
         stdout=subprocess.PIPE if capture else None,
         stderr=subprocess.PIPE if capture else None,
         text=True, errors="replace",  # tolerate non-UTF-8 bytes in scanned files
@@ -256,7 +256,11 @@ class Symbol:
 
 
 def rg_lines(args, cwd) -> list[str]:
-    r = run([RG, "--no-heading", "-n", *args], cwd=cwd, check=False)
+    # timeout guards against a hung rg stalling a whole pipeline (observed once)
+    try:
+        r = run([RG, "--no-heading", "-n", *args], cwd=cwd, check=False)
+    except Exception:
+        return []
     if r.returncode not in (0, 1):  # 1 == no matches
         return []
     return r.stdout.splitlines()
