@@ -132,6 +132,39 @@ func TestCalleesQuery(t *testing.T) {
 	}
 }
 
+func TestEnclosingSymbols(t *testing.T) {
+	dir := writeTree(t, map[string]string{"a.go": fileA, "b.go": fileB})
+	db := filepath.Join(dir, "g.db")
+	if _, err := Build(dir, db); err != nil {
+		t.Fatal(err)
+	}
+	st, err := graph.Open(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+	// fileA line 2 is inside Helper; Helper is called from a.go (A) and b.go (B)
+	// -> callers=2, external=1 (the b.go call).
+	encl, err := st.EnclosingSymbols("a.go", 2, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(encl) != 1 || encl[0].Name != "Helper" {
+		t.Fatalf("expected Helper enclosing a.go:2; got %+v", encl)
+	}
+	if encl[0].Callers != 2 || encl[0].ExternalCallers != 1 {
+		t.Errorf("Helper callers=%d external=%d; want 2/1", encl[0].Callers, encl[0].ExternalCallers)
+	}
+	// A range outside any symbol (line 1 = package clause) -> empty.
+	none, err := st.EnclosingSymbols("a.go", 1, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(none) != 0 {
+		t.Errorf("expected no enclosing symbols at a.go:1; got %+v", none)
+	}
+}
+
 func TestAmbiguousResolution(t *testing.T) {
 	// Two definitions of Helper -> calls resolve ambiguously, deterministically.
 	dir := writeTree(t, map[string]string{

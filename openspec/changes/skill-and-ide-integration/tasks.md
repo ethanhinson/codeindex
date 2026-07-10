@@ -1,16 +1,16 @@
 ## 1. Phase 0 — engine prerequisites
 
-- [ ] 1.1 Wire fresh-on-query: `query`/`callers`/`callees` run the incremental patch first and auto-build a missing index (satisfies core-indexing-engine 7.1/7.2)
-- [ ] 1.2 Implement `codeindex enclosing <repo> <file> <start>:<end>`: overlapping symbols with total and external caller counts; empty result exits 0
-- [ ] 1.3 Tests: query-after-edit reflects the edit; query with no index builds it; enclosing maps ranges correctly (inside symbol / outside any symbol)
+- [x] 1.1 Wire fresh-on-query: `query`/`callers`/`callees` run the incremental patch first and auto-build a missing index (satisfies core-indexing-engine 7.1/7.2)
+- [x] 1.2 Implement `codeindex enclosing <repo> <file> <start>:<end>`: overlapping symbols with total and external caller counts; empty result exits 0
+- [x] 1.3 Tests: query-after-edit reflects the edit; query with no index builds it; enclosing maps ranges correctly (inside symbol / outside any symbol)
 
 ## 2. Phase 1 — Claude Code plugin (`plugin/`)
 
-- [ ] 2.1 Plugin manifest (`.claude-plugin/plugin.json`) and README (install, settings, what it does/doesn't do)
-- [ ] 2.2 Skill (`skills/codeindex-impact/SKILL.md`): the anchor rule, positive + explicit negative triggers, the refactoring workflow (anchor → /impact → edit → hook confirms)
-- [ ] 2.3 Commands: `/impact` (composed counts-first summary, labels covered edge kinds), `/callers`, `/callees` — thin wrappers over the CLI
-- [ ] 2.4 PostToolUse hook (`hooks/hooks.json` + script): stdin JSON → .go file → git diff -U0 hunks → enclosing → inject ≤150-token note when external callers exist; per-symbol session dedup under `.codeindex/`; silent on any failure; disable setting
-- [ ] 2.5 Unit-test the hook script against fixture stdin payloads (symbol edit → injection; comment-only edit → silence; untracked file → silence; repeated edit → deduped)
+- [x] 2.1 Plugin manifest (`.claude-plugin/plugin.json`) and README (install, settings, what it does/doesn't do)
+- [x] 2.2 Skill (`skills/codeindex-impact/SKILL.md`): the anchor rule, positive + explicit negative triggers, the refactoring workflow (anchor → /impact → edit → hook confirms)
+- [x] 2.3 Commands: `/impact` (composed counts-first summary, labels covered edge kinds), `/callers`, `/callees` — thin wrappers over the CLI
+- [x] 2.4 PostToolUse hook (`hooks/hooks.json` + script): stdin JSON → .go file → git diff -U0 hunks → enclosing → inject ≤150-token note when external callers exist; per-symbol session dedup under `.codeindex/`; silent on any failure; disable setting
+- [x] 2.5 Unit-test the hook script against fixture stdin payloads (symbol edit → injection; comment-only edit → silence; untracked file → silence; repeated edit → deduped)
 
 ## 3. v3 gate (integration-validation)
 

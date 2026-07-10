@@ -41,8 +41,8 @@
 
 ## 7. Lazy re-check integration (code-indexing)
 
-- [ ] 7.1 Implement a pre-query hook (diff → re-parse+patch changed files in one transaction, before answering) and retrofit it into the query path — the skeleton's `query` does NOT do this today
-- [ ] 7.2 Build the index automatically if `.codeindex/graph.db` is missing when a query runs (the skeleton's `query` silently returns empty today)
+- [x] 7.1 Pre-query freshness implemented in `skill-and-ide-integration` Phase 0: every query runs ensureFresh (patch before answer)
+- [x] 7.2 Auto-build on missing index implemented in `skill-and-ide-integration` Phase 0 (ensureFresh)
 - [ ] 7.3 Wire the parallel fast-path walk (task 3.5) + vendored/generated-tree exclusion into the pre-query hook; report excluded trees
 - [ ] 7.4 Implement inbound-edge re-resolution: diff the changed file's set of defined symbol names; only when it changes, re-resolve edges referencing the affected names via indexed name lookups (cost ∝ reference count, not repo size)
 - [ ] 7.5 Test: query after an edit reflects new content; query with no changes makes zero graph writes; query before any build triggers a build; editing a function body (no name-set change) triggers no inbound re-resolution; renaming a hot symbol re-resolves its referencing edges correctly

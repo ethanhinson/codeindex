@@ -291,6 +291,52 @@ func (s *Store) Callees(name string) ([]Callee, error) {
 	return out, rows.Err()
 }
 
+// Enclosing is a symbol whose span overlaps a queried line range, with caller
+// counts (total, and callers whose source lies outside the symbol's own file).
+type Enclosing struct {
+	Symbol
+	Callers         int
+	ExternalCallers int
+}
+
+// EnclosingSymbols returns the symbols in file whose [start_line,end_line] span
+// overlaps [start,end], each with total and external caller counts (name-based:
+// callers are edges targeting the symbol's name).
+func (s *Store) EnclosingSymbols(file string, start, end int) ([]Enclosing, error) {
+	rows, err := s.db.Query(
+		`SELECT name, kind, signature, start_line, end_line FROM symbols
+		 WHERE file=? AND start_line<=? AND end_line>=? ORDER BY start_line`,
+		file, end, start)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Enclosing
+	for rows.Next() {
+		var e Enclosing
+		var kind string
+		if err := rows.Scan(&e.Name, &kind, &e.Signature, &e.StartLine, &e.EndLine); err != nil {
+			return nil, err
+		}
+		e.Kind = SymbolKind(kind)
+		e.File = file
+		out = append(out, e)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	for i := range out {
+		row := s.db.QueryRow(
+			`SELECT COUNT(*), COALESCE(SUM(CASE WHEN e.src_file != ? THEN 1 ELSE 0 END),0)
+			 FROM edges e WHERE e.dst_name = ? AND e.kind = ?`,
+			file, out[i].Name, string(KindCalls))
+		if err := row.Scan(&out[i].Callers, &out[i].ExternalCallers); err != nil {
+			return nil, err
+		}
+	}
+	return out, nil
+}
+
 // RefreshMerkle updates a file's change-detection state without touching its
 // graph (content unchanged, only mtime moved).
 func (s *Store) RefreshMerkle(tx *sql.Tx, m FileMeta) error {

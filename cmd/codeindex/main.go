@@ -56,6 +56,18 @@ func main() {
 		if err := runCallees(root, os.Args[3], limit); err != nil {
 			fatal(err)
 		}
+	case "enclosing":
+		// codeindex enclosing <repo-root> <file> <start>:<end>
+		if len(os.Args) < 5 {
+			fatal(fmt.Errorf("usage: codeindex enclosing <repo-root> <file> <start>:<end>"))
+		}
+		var start, end int
+		if _, err := fmt.Sscanf(os.Args[4], "%d:%d", &start, &end); err != nil {
+			fatal(fmt.Errorf("bad range %q (want start:end): %w", os.Args[4], err))
+		}
+		if err := runEnclosing(root, os.Args[3], start, end); err != nil {
+			fatal(err)
+		}
 	default:
 		fatal(fmt.Errorf("unknown command %q", cmd))
 	}
@@ -178,9 +190,28 @@ func runBench(root, out string) error {
 	return nil
 }
 
+// ensureFresh makes the index reflect the current working tree before a query:
+// builds it if missing, otherwise applies the incremental patch. This is what
+// makes queries safe during refactoring (querying while editing).
+func ensureFresh(root string) error {
+	if err := ensureDBDir(root); err != nil {
+		return err
+	}
+	db := dbPath(root)
+	if _, err := os.Stat(db); os.IsNotExist(err) {
+		_, err := engine.Build(root, db)
+		return err
+	}
+	_, err := engine.Patch(root, dbPath(root))
+	return err
+}
+
 // runQuery prints the compact index answer for a symbol: its definition(s) and
 // callers as `path:line  signature` references — the plugin's output contract.
 func runQuery(root, name string, limit int) error {
+	if err := ensureFresh(root); err != nil {
+		return err
+	}
 	db := dbPath(root)
 	st, err := graph.Open(db)
 	if err != nil {
@@ -221,6 +252,9 @@ func runQuery(root, name string, limit int) error {
 // runCallees prints what a symbol calls: each callee as a reference to its
 // definition (when resolved) plus the call-site line.
 func runCallees(root, name string, limit int) error {
+	if err := ensureFresh(root); err != nil {
+		return err
+	}
 	st, err := graph.Open(dbPath(root))
 	if err != nil {
 		return err
@@ -245,6 +279,28 @@ func runCallees(root, name string, limit int) error {
 			flag = "  [ambiguous]"
 		}
 		fmt.Printf("  %s  -> %s  @call:%d%s\n", c.Name, target, c.CallLine, flag)
+	}
+	return nil
+}
+
+// runEnclosing prints the symbols overlapping a line range with caller counts —
+// the edit-hook's data source. Empty result prints nothing and exits 0.
+func runEnclosing(root, file string, start, end int) error {
+	if err := ensureFresh(root); err != nil {
+		return err
+	}
+	st, err := graph.Open(dbPath(root))
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+	encl, err := st.EnclosingSymbols(file, start, end)
+	if err != nil {
+		return err
+	}
+	for _, e := range encl {
+		fmt.Printf("sym  %s  %s  %s:%d-%d  callers=%d external=%d\n",
+			e.Name, e.Kind, e.File, e.StartLine, e.EndLine, e.Callers, e.ExternalCallers)
 	}
 	return nil
 }
