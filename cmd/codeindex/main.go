@@ -34,15 +34,26 @@ func main() {
 		if err := runBench(root, out); err != nil {
 			fatal(err)
 		}
-	case "query":
+	case "query", "callers":
 		if len(os.Args) < 4 {
-			fatal(fmt.Errorf("usage: codeindex query <repo-root> <symbol> [--limit N]"))
+			fatal(fmt.Errorf("usage: codeindex %s <repo-root> <symbol> [--limit N]", cmd))
 		}
 		limit := 50
 		if len(os.Args) >= 6 && os.Args[4] == "--limit" {
 			fmt.Sscanf(os.Args[5], "%d", &limit)
 		}
 		if err := runQuery(root, os.Args[3], limit); err != nil {
+			fatal(err)
+		}
+	case "callees":
+		if len(os.Args) < 4 {
+			fatal(fmt.Errorf("usage: codeindex callees <repo-root> <symbol> [--limit N]"))
+		}
+		limit := 50
+		if len(os.Args) >= 6 && os.Args[4] == "--limit" {
+			fmt.Sscanf(os.Args[5], "%d", &limit)
+		}
+		if err := runCallees(root, os.Args[3], limit); err != nil {
 			fatal(err)
 		}
 	default:
@@ -203,6 +214,37 @@ func runQuery(root, name string, limit int) error {
 			flag = "  [ambiguous]"
 		}
 		fmt.Printf("  %s:%d  %s%s\n", c.File, c.Line, c.Name, flag)
+	}
+	return nil
+}
+
+// runCallees prints what a symbol calls: each callee as a reference to its
+// definition (when resolved) plus the call-site line.
+func runCallees(root, name string, limit int) error {
+	st, err := graph.Open(dbPath(root))
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+	callees, err := st.Callees(name)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("callees of %s (%d):\n", name, len(callees))
+	for i, c := range callees {
+		if i >= limit {
+			fmt.Printf("  ... (+%d more; use --limit)\n", len(callees)-limit)
+			break
+		}
+		target := "unresolved"
+		if c.DefFile != "" {
+			target = fmt.Sprintf("%s:%d", c.DefFile, c.DefLine)
+		}
+		flag := ""
+		if c.Conf == graph.ConfAmbiguous {
+			flag = "  [ambiguous]"
+		}
+		fmt.Printf("  %s  -> %s  @call:%d%s\n", c.Name, target, c.CallLine, flag)
 	}
 	return nil
 }

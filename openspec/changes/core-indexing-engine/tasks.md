@@ -49,7 +49,7 @@
 
 ## 8. Query engine + output (graph-queries)
 
-- [ ] 8.1 Implement callers/callees traversals over `calls` edges; flag ambiguous results; disambiguate when the requested name matches multiple definitions
+- [x] 8.1 callers (`query`/`callers`) and callees (`callees`) traversals over `calls` edges with ambiguity flags — the empirically-validated winners (agent A/B v2: −73% cost). callees resolves each target to its def location; store+CLI+test done. TODO: multi-definition disambiguation of the *requested* name (needs parent_id from task 2.1)
 - [ ] 8.2 Implement definition/signature lookup (with `--context N` bounded lines) and "not found" handling
 - [ ] 8.3 Implement dependencies/dependents over `imports`/`extends`/`implements`/`references` edges (blast radius)
 - [ ] 8.4 Implement fuzzy symbol search (ranked) and file/module outline

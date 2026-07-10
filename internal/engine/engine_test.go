@@ -102,6 +102,36 @@ func TestIncrementalEqualsFull_AddAndDeleteFile(t *testing.T) {
 	assertIncrementalEqualsFull(t, dir)
 }
 
+func TestCalleesQuery(t *testing.T) {
+	dir := writeTree(t, map[string]string{"a.go": fileA, "b.go": fileB})
+	db := filepath.Join(dir, "g.db")
+	if _, err := Build(dir, db); err != nil {
+		t.Fatal(err)
+	}
+	st, err := graph.Open(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+	// A() calls Helper(); Helper is defined in a.go -> resolved callee.
+	cs, err := st.Callees("A")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var found *graph.Callee
+	for i := range cs {
+		if cs[i].Name == "Helper" {
+			found = &cs[i]
+		}
+	}
+	if found == nil {
+		t.Fatalf("A should call Helper; got %+v", cs)
+	}
+	if found.DefFile != "a.go" || found.Conf != graph.ConfUnambiguous {
+		t.Errorf("Helper callee should resolve to a.go unambiguously; got %+v", *found)
+	}
+}
+
 func TestAmbiguousResolution(t *testing.T) {
 	// Two definitions of Helper -> calls resolve ambiguously, deterministically.
 	dir := writeTree(t, map[string]string{

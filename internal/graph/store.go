@@ -254,6 +254,43 @@ func (s *Store) Callers(name string) ([]Caller, error) {
 	return out, rows.Err()
 }
 
+// Callee is a symbol called by a queried symbol, with the call-site line and the
+// callee's definition location when resolved.
+type Callee struct {
+	Name     string
+	CallLine int
+	Conf     Confidence
+	DefFile  string // "" when unresolved
+	DefLine  int
+}
+
+// Callees returns what the symbol(s) named `name` call (outgoing `calls` edges),
+// each with the callee's definition location when the edge resolved.
+func (s *Store) Callees(name string) ([]Callee, error) {
+	rows, err := s.db.Query(`
+		SELECT e.dst_name, e.line, e.confidence,
+		       COALESCE(d.file,''), COALESCE(d.start_line,0)
+		FROM edges e
+		JOIN symbols sc ON sc.id = e.src_symbol_id
+		LEFT JOIN symbols d ON d.id = e.dst_symbol_id AND e.dst_symbol_id != 0
+		WHERE sc.name = ? AND e.kind = ? ORDER BY e.line`, name, string(KindCalls))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Callee
+	for rows.Next() {
+		var c Callee
+		var conf string
+		if err := rows.Scan(&c.Name, &c.CallLine, &conf, &c.DefFile, &c.DefLine); err != nil {
+			return nil, err
+		}
+		c.Conf = Confidence(conf)
+		out = append(out, c)
+	}
+	return out, rows.Err()
+}
+
 // RefreshMerkle updates a file's change-detection state without touching its
 // graph (content unchanged, only mtime moved).
 func (s *Store) RefreshMerkle(tx *sql.Tx, m FileMeta) error {
