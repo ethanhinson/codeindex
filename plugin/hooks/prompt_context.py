@@ -19,13 +19,13 @@ import sys
 
 NOTE = (
     "Available in this Go repo: `codeindex` — a call-graph index. "
-    "When you need who-calls-X / what-X-calls / what's-affected-by-changing-X "
-    "(refactor impact, affected callers, dead-code checks), run "
+    "For who-calls-X / what-X-calls / what's-affected-by-changing-X (refactor "
+    "impact, affected callers, dead code), run "
     "`codeindex callers <repo-root> <Symbol>` or `codeindex callees <repo-root> "
-    "<Symbol>` instead of grep-and-reading files — measured 73% cheaper. "
-    "Do NOT use it to locate/find things (where is X defined, which files "
-    "mention Y) — plain grep is cheaper there. Index is self-building and "
-    "always fresh."
+    "<Symbol>`. Its output is COMPLETE and always fresh: answer directly from "
+    "the returned path:line references — do NOT re-verify by reading files, "
+    "except entries flagged [ambiguous]. Do NOT use it to locate/find things "
+    "(where is X defined, which files mention Y) — plain grep is cheaper there."
 )
 
 

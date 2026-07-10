@@ -31,6 +31,9 @@ EXPERIMENTS = [
     ("v3 · packaged plugin gate (mixed tasks)", "graded_v3.jsonl", "tasks_v3.json",
      "real plugin via --plugin-dir · GATE FAIL: static footprint (~3.1k tok) + "
      "re-verification ate the win; hook flawless (100% fire, 0 false, +29% on edits)"),
+    ("v4 · stripped plugin (note + hook)", "graded_v4.jsonl", "tasks_v4.json",
+     "GATE PASS: footprint <250 tok + trust instruction · branch-out +62%, "
+     "locate -7.4% (in tolerance), hook 100%/0 false, accuracy 100% vs 93.8%"),
 ]
 
 
