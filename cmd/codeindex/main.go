@@ -1,9 +1,12 @@
-// Command codeindex is the walking-skeleton CLI: `build` indexes a Go repo into
-// SQLite, and `bench` measures parse/patch throughput and proves that an
-// incremental patch yields the same graph as a full rebuild.
+// Command codeindex is the call-graph index CLI: `build` indexes a Go repo into
+// SQLite; `callers`/`callees`/`impact`/`enclosing` answer branch-out questions
+// with always-fresh reference-based output; `mcp` serves the same queries to
+// IDE clients over stdio; `bench` measures throughput and proves incremental
+// patches equal a full rebuild.
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -12,12 +15,17 @@ import (
 
 	"codeindex/internal/engine"
 	"codeindex/internal/graph"
+	"codeindex/internal/mcpserver"
 	"codeindex/internal/merkle"
+	"codeindex/internal/query"
 )
+
+const version = "0.2.0"
 
 func main() {
 	if len(os.Args) < 3 {
-		fmt.Fprintln(os.Stderr, "usage: codeindex <build|bench> <repo-root> [out.json]")
+		fmt.Fprintln(os.Stderr,
+			"usage: codeindex <build|callers|callees|impact|enclosing|mcp|bench> <repo-root> ...")
 		os.Exit(2)
 	}
 	cmd, root := os.Args[1], os.Args[2]
@@ -43,6 +51,21 @@ func main() {
 			fmt.Sscanf(os.Args[5], "%d", &limit)
 		}
 		if err := runQuery(root, os.Args[3], limit); err != nil {
+			fatal(err)
+		}
+	case "impact":
+		if len(os.Args) < 4 {
+			fatal(fmt.Errorf("usage: codeindex impact <repo-root> <symbol> [--limit N]"))
+		}
+		limit := 50
+		if len(os.Args) >= 6 && os.Args[4] == "--limit" {
+			fmt.Sscanf(os.Args[5], "%d", &limit)
+		}
+		if err := runImpact(root, os.Args[3], limit); err != nil {
+			fatal(err)
+		}
+	case "mcp":
+		if err := mcpserver.Run(context.Background(), root, version); err != nil {
 			fatal(err)
 		}
 	case "callees":
@@ -190,103 +213,42 @@ func runBench(root, out string) error {
 	return nil
 }
 
-// ensureFresh makes the index reflect the current working tree before a query:
-// builds it if missing, otherwise applies the incremental patch. This is what
-// makes queries safe during refactoring (querying while editing).
-func ensureFresh(root string) error {
-	if err := ensureDBDir(root); err != nil {
-		return err
-	}
-	db := dbPath(root)
-	if _, err := os.Stat(db); os.IsNotExist(err) {
-		_, err := engine.Build(root, db)
-		return err
-	}
-	_, err := engine.Patch(root, dbPath(root))
-	return err
-}
-
 // runQuery prints the compact index answer for a symbol: its definition(s) and
 // callers as `path:line  signature` references — the plugin's output contract.
 func runQuery(root, name string, limit int) error {
-	if err := ensureFresh(root); err != nil {
-		return err
-	}
-	db := dbPath(root)
-	st, err := graph.Open(db)
+	out, err := query.CallersText(root, name, limit)
 	if err != nil {
 		return err
 	}
-	defer st.Close()
-
-	defs, err := st.Definitions(name)
-	if err != nil {
-		return err
-	}
-	for _, d := range defs {
-		fmt.Printf("def  %s:%d  %s\n", d.File, d.StartLine, d.Signature)
-	}
-	if len(defs) == 0 {
-		fmt.Printf("def  %s: (not found in index)\n", name)
-	}
-
-	callers, err := st.Callers(name)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("callers (%d):\n", len(callers))
-	for i, c := range callers {
-		if i >= limit {
-			fmt.Printf("  ... (+%d more; use --limit)\n", len(callers)-limit)
-			break
-		}
-		flag := ""
-		if c.Conf == graph.ConfAmbiguous {
-			flag = "  [ambiguous]"
-		}
-		fmt.Printf("  %s:%d  %s%s\n", c.File, c.Line, c.Name, flag)
-	}
+	fmt.Print(out)
 	return nil
 }
 
 // runCallees prints what a symbol calls: each callee as a reference to its
 // definition (when resolved) plus the call-site line.
 func runCallees(root, name string, limit int) error {
-	if err := ensureFresh(root); err != nil {
-		return err
-	}
-	st, err := graph.Open(dbPath(root))
+	out, err := query.CalleesText(root, name, limit)
 	if err != nil {
 		return err
 	}
-	defer st.Close()
-	callees, err := st.Callees(name)
+	fmt.Print(out)
+	return nil
+}
+
+// runImpact prints the composed counts-first blast-radius summary.
+func runImpact(root, name string, limit int) error {
+	out, err := query.ImpactText(root, name, limit)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("callees of %s (%d):\n", name, len(callees))
-	for i, c := range callees {
-		if i >= limit {
-			fmt.Printf("  ... (+%d more; use --limit)\n", len(callees)-limit)
-			break
-		}
-		target := "unresolved"
-		if c.DefFile != "" {
-			target = fmt.Sprintf("%s:%d", c.DefFile, c.DefLine)
-		}
-		flag := ""
-		if c.Conf == graph.ConfAmbiguous {
-			flag = "  [ambiguous]"
-		}
-		fmt.Printf("  %s  -> %s  @call:%d%s\n", c.Name, target, c.CallLine, flag)
-	}
+	fmt.Print(out)
 	return nil
 }
 
 // runEnclosing prints the symbols overlapping a line range with caller counts —
 // the edit-hook's data source. Empty result prints nothing and exits 0.
 func runEnclosing(root, file string, start, end int) error {
-	if err := ensureFresh(root); err != nil {
+	if err := query.Fresh(root); err != nil {
 		return err
 	}
 	st, err := graph.Open(dbPath(root))

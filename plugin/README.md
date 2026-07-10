@@ -45,7 +45,58 @@ claude --plugin-dir /path/to/code-indexer/plugin
 - Call edges only for now: `/impact` covers callers/callees, not
   import/type dependents (it says so in its output).
 
-## MCP (IDEs) — Phase 2
+## MCP server (IDEs)
 
-`codeindex mcp <repo>` will expose `impact`/`callers`/`callees` to Cursor,
-Claude Desktop, and VS Code. Config snippets will land here when it ships.
+`codeindex mcp <repo-root>` serves `impact`, `callers`, and `callees` over
+stdio to any MCP client. Tool descriptions carry the measured anchor rule and
+trust instruction, so IDE agents inherit the discipline automatically.
+Verified against a real client (Claude Code as MCP client).
+
+**Cursor** (`.cursor/mcp.json` in the repo, or global `~/.cursor/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "codeindex": {
+      "command": "codeindex",
+      "args": ["mcp", "/absolute/path/to/your/repo"]
+    }
+  }
+}
+```
+
+**Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "codeindex": {
+      "command": "/usr/local/bin/codeindex",
+      "args": ["mcp", "/absolute/path/to/your/repo"]
+    }
+  }
+}
+```
+
+**VS Code** (`.vscode/mcp.json`):
+
+```json
+{
+  "servers": {
+    "codeindex": {
+      "type": "stdio",
+      "command": "codeindex",
+      "args": ["mcp", "${workspaceFolder}"]
+    }
+  }
+}
+```
+
+**Claude Code** (per session):
+
+```
+claude --mcp-config '{"mcpServers":{"codeindex":{"command":"codeindex","args":["mcp","/path/to/repo"]}}}'
+```
+
+Concurrency-safe for a long-lived server: index updates are serialized
+in-process (verified by test: concurrent tool calls during a pending edit).

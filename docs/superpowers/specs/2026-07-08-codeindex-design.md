@@ -165,6 +165,9 @@ incremental latency, and incremental==full-rebuild are all measured/proven
    adapters; upgrade resolution *as the precision data demands* (measure
    name-based precision/recall against a compiler-grade oracle first;
    receiver-aware resolution may capture most of the win cheaply).
-4. **`mcp-and-plugin`:** MCP server wrapper + Claude plugin (slash commands +
-   skill). Must address concurrent-query serialization for the long-lived
-   server.
+4. **`skill-and-ide-integration`** (supersedes `mcp-and-plugin`) — DONE.
+   Claude Code plugin shipped in its v4 gate-passing shape (prompt note +
+   post-edit hook + /impact; skill/apparatus cut after v3 measured its cost),
+   plus `codeindex mcp` (official Go SDK, stdio) exposing impact/callers/
+   callees with anchor-rule + trust descriptions; concurrent re-check writes
+   serialized (tested); verified against a real MCP client.

@@ -23,12 +23,12 @@
 
 ## 4. Phase 2 — MCP server
 
-- [ ] 4.1 `codeindex mcp <repo-root>`: stdio server (pinned official Go MCP SDK) with `impact`/`callers`/`callees` tools, anchor-rule descriptions, fresh-on-query behavior
-- [ ] 4.2 In-process mutex serializing re-check writes; test concurrent tool calls during a pending edit
-- [ ] 4.3 Client config snippets (Cursor, Claude Desktop, VS Code) in plugin/README; verify against at least one real client manually
-- [ ] 4.4 Integration test: MCP handshake + tools/list + one callers call against a fixture repo
+- [x] 4.1 `codeindex mcp <repo-root>`: stdio server (official Go SDK v1.6.1, pinned in go.mod) with impact/callers/callees; descriptions carry anchor rule + trust instruction; fresh-on-query via shared internal/query package
+- [x] 4.2 query.Fresh serialized by package mutex; test: 6 concurrent tool calls during a pending edit — all succeed, all see the patched index
+- [x] 4.3 Config snippets (Cursor, Claude Desktop, VS Code, Claude Code) in plugin/README; verified against a REAL client: claude -p --mcp-config called mcp__codeindex__callers and answered correctly
+- [x] 4.4 Integration test (in-memory transports): handshake + tools/list (asserts trust/anchor language in descriptions) + callers call against a fixture repo
 
 ## 5. Verification
 
-- [ ] 5.1 `openspec validate skill-and-ide-integration`; mark core-indexing-engine 7.1/7.2 satisfied; update roadmap (rename mcp-and-plugin → this change)
-- [ ] 5.2 README + dashboard updated with v3 results; all Go tests + hook script tests pass
+- [x] 5.1 validate passes; core-indexing-engine 7.1/7.2 marked satisfied; roadmap updated
+- [x] 5.2 READMEs + dashboard updated (v1–v4); all Go tests pass (adapter, engine, mcpserver); hook scenarios verified against real repo
