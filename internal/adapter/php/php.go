@@ -1,0 +1,104 @@
+// Package php is the tree-sitter PHP adapter: functions, methods, and
+// class/interface/trait declarations as symbols; function, member, scoped, and
+// constructor call sites as raw name-based call edges.
+package php
+
+import (
+	"context"
+
+	sitter "github.com/smacker/go-tree-sitter"
+	tsphp "github.com/smacker/go-tree-sitter/php"
+
+	"codeindex/internal/adapter"
+	"codeindex/internal/adapter/common"
+	"codeindex/internal/graph"
+)
+
+// Adapter parses PHP source.
+type Adapter struct{}
+
+func (Adapter) Extensions() []string { return []string{".php"} }
+
+func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
+	parser := sitter.NewParser()
+	parser.SetLanguage(tsphp.GetLanguage())
+	tree, err := parser.ParseCtx(context.Background(), nil, src)
+	if err != nil {
+		return nil, err
+	}
+	defer tree.Close()
+
+	var spans []common.SymbolSpan
+	var calls []common.RawCall
+
+	addCall := func(n *sitter.Node, name string) {
+		if name != "" {
+			calls = append(calls, common.RawCall{
+				Callee: name, Line: int(n.StartPoint().Row) + 1, At: n.StartByte()})
+		}
+	}
+
+	var walk func(n *sitter.Node)
+	walk = func(n *sitter.Node) {
+		switch n.Type() {
+		case "function_definition":
+			if name := n.ChildByFieldName("name"); name != nil {
+				spans = append(spans, common.Span(n, src, path, name.Content(src), graph.KindFunc, "body"))
+			}
+		case "method_declaration":
+			if name := n.ChildByFieldName("name"); name != nil {
+				spans = append(spans, common.Span(n, src, path, name.Content(src), graph.KindMethod, "body"))
+			}
+		case "class_declaration", "interface_declaration", "trait_declaration":
+			if name := n.ChildByFieldName("name"); name != nil {
+				spans = append(spans, common.Span(n, src, path, name.Content(src), graph.KindType, "body"))
+			}
+		case "function_call_expression":
+			// helper(...) or Qualified\Name(...) -> final name segment
+			if fn := n.ChildByFieldName("function"); fn != nil {
+				addCall(n, finalName(fn, src))
+			}
+		case "member_call_expression", "scoped_call_expression",
+			"nullsafe_member_call_expression":
+			// $this->save() / Foo::bar() / $x?->m() -> the name field
+			if name := n.ChildByFieldName("name"); name != nil {
+				addCall(n, name.Content(src))
+			}
+		case "object_creation_expression":
+			// new Foo(...) -> Foo (first name-ish child)
+			for i := 0; i < int(n.ChildCount()); i++ {
+				c := n.Child(i)
+				if c.Type() == "name" || c.Type() == "qualified_name" {
+					addCall(n, finalName(c, src))
+					break
+				}
+			}
+		}
+		for i := 0; i < int(n.ChildCount()); i++ {
+			walk(n.Child(i))
+		}
+	}
+	walk(tree.RootNode())
+	return common.Assemble(path, spans, calls), nil
+}
+
+// finalName reduces a possibly-qualified name to its last segment:
+// `App\Support\helper` -> helper.
+func finalName(n *sitter.Node, src []byte) string {
+	switch n.Type() {
+	case "name":
+		return n.Content(src)
+	case "qualified_name":
+		// last `name` child
+		var last string
+		for i := 0; i < int(n.ChildCount()); i++ {
+			if c := n.Child(i); c.Type() == "name" {
+				last = c.Content(src)
+			}
+		}
+		return last
+	}
+	return ""
+}
+
+func init() { adapter.Register(Adapter{}) }

@@ -24,7 +24,7 @@
 
 - [ ] 4.1 Define the adapter interface (`Parse`, `ExtractEdges`, `ResolveImports`) and an extension→adapter registry
 - [ ] 4.2 Implement the Go adapter: extract funcs/methods/types/structs as symbols; extract call, import, and interface `implements`/embed edges
-- [ ] 4.3 Implement the TypeScript/JavaScript adapter (`.ts/.tsx/.js/.jsx`): extract functions/classes/methods/types; extract call, import, `extends`, `implements` edges
+- [x] 4.3 TS/JS adapter implemented in `language-adapters` (call edges + symbols; import/extends/implements edges remain future dependents work)
 - [ ] 4.4 Test each adapter against fixture files: assert the expected symbols (name/kind/signature/line span) and raw edges are produced
 
 ## 5. Name-based resolver (symbol-graph)

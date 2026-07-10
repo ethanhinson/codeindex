@@ -1,0 +1,11 @@
+{
+  "repo": "laravel-framework",
+  "files": 2453,
+  "symbols": 28700,
+  "lines": 435033,
+  "cold_build_ms": 3848.62,
+  "files_per_sec": 637.3711726021858,
+  "lines_per_sec": 113036.07555264846,
+  "incremental_patch_ms": 20.665,
+  "incremental_equals_full": true
+}

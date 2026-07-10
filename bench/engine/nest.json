@@ -1,0 +1,11 @@
+{
+  "repo": "nest",
+  "files": 1653,
+  "symbols": 4482,
+  "lines": 96884,
+  "cold_build_ms": 358.48,
+  "files_per_sec": 4611.133759040008,
+  "lines_per_sec": 270263.2081735222,
+  "incremental_patch_ms": 25.226,
+  "incremental_equals_full": true
+}

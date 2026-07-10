@@ -10,7 +10,10 @@ import (
 	"sync"
 
 	"codeindex/internal/adapter"
-	_ "codeindex/internal/adapter/golang" // register the Go adapter
+	_ "codeindex/internal/adapter/golang" // register language adapters
+	_ "codeindex/internal/adapter/php"
+	_ "codeindex/internal/adapter/python"
+	_ "codeindex/internal/adapter/tsjs"
 	"codeindex/internal/graph"
 	"codeindex/internal/merkle"
 )

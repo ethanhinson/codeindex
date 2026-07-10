@@ -26,6 +26,22 @@
       "quick": true
     },
     {
+      "name": "flask",
+      "url": "https://github.com/pallets/flask.git",
+      "commit": "3.1.0",
+      "lang": "py",
+      "tier": "small",
+      "quick": true
+    },
+    {
+      "name": "laravel-framework",
+      "url": "https://github.com/laravel/framework.git",
+      "commit": "v11.38.0",
+      "lang": "php",
+      "tier": "medium",
+      "quick": true
+    },
+    {
       "name": "kubernetes",
       "url": "https://github.com/kubernetes/kubernetes.git",
       "commit": "v1.32.0",

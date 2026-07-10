@@ -18,7 +18,8 @@ import shutil
 import sys
 
 NOTE = (
-    "Available in this Go repo: `codeindex` — a call-graph index. "
+    "Available in this repo: `codeindex` — a call-graph index (Go, TS/JS, "
+    "Python, PHP). "
     "For who-calls-X / what-X-calls / what's-affected-by-changing-X (refactor "
     "impact, affected callers, dead code), run "
     "`codeindex callers <repo-root> <Symbol>` or `codeindex callees <repo-root> "
@@ -35,11 +36,18 @@ def main():
     except Exception:
         return
     cwd = payload.get("cwd") or os.getcwd()
-    # Go repo check: go.mod here or one level up (cheap, no walking)
-    is_go = (os.path.exists(os.path.join(cwd, "go.mod"))
-             or any(f.endswith(".go") for f in os.listdir(cwd)[:200]
-                    if os.path.isfile(os.path.join(cwd, f))))
-    if not is_go:
+    # supported-language repo check: a manifest or source file at the root
+    manifests = ("go.mod", "package.json", "pyproject.toml", "setup.py",
+                 "composer.json")
+    exts = (".go", ".ts", ".tsx", ".js", ".jsx", ".py", ".php")
+    try:
+        entries = os.listdir(cwd)[:300]
+    except OSError:
+        return
+    supported = (any(m in entries for m in manifests)
+                 or any(f.endswith(exts) for f in entries
+                        if os.path.isfile(os.path.join(cwd, f))))
+    if not supported:
         return
     if not (os.environ.get("CODEINDEX_BIN") or shutil.which("codeindex")):
         return

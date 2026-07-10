@@ -26,7 +26,7 @@ const notFor = "NOT for locating/finding things (where is X defined, which " +
 	"files mention Y) — plain text search is cheaper for those."
 
 type symbolArgs struct {
-	Symbol string `json:"symbol" jsonschema:"the exact Go function, method, or type name (a known anchor, e.g. HasDuplicateLabelNames)"`
+	Symbol string `json:"symbol" jsonschema:"the exact function, method, or type name (a known anchor, e.g. HasDuplicateLabelNames)"`
 	Limit  int    `json:"limit,omitempty" jsonschema:"max references to return (default 50)"`
 }
 
@@ -47,7 +47,7 @@ func New(repo, version string) *mcp.Server {
 
 	mcp.AddTool(s, &mcp.Tool{
 		Name: "impact",
-		Description: "Blast-radius summary for a KNOWN Go symbol you are about " +
+		Description: "Blast-radius summary for a KNOWN symbol (Go, TS/JS, Python, PHP) you are about " +
 			"to modify, rename, or delete: its definitions, every caller (what " +
 			"breaks), and its callees, counts-first. Use BEFORE changing a " +
 			"function/method/type, when assessing refactor impact, or for " +
@@ -62,7 +62,7 @@ func New(repo, version string) *mcp.Server {
 
 	mcp.AddTool(s, &mcp.Tool{
 		Name: "callers",
-		Description: "Who calls a KNOWN Go symbol: its definition(s) plus every " +
+		Description: "Who calls a KNOWN symbol (Go, TS/JS, Python, PHP): its definition(s) plus every " +
 			"call site as path:line references with the calling function's name. " +
 			"Use for 'who calls X / which functions use X / is X dead code'. " +
 			trust + notFor,
@@ -76,7 +76,7 @@ func New(repo, version string) *mcp.Server {
 
 	mcp.AddTool(s, &mcp.Tool{
 		Name: "callees",
-		Description: "What a KNOWN Go symbol calls, each callee resolved to its " +
+		Description: "What a KNOWN symbol (Go, TS/JS, Python, PHP) calls, each callee resolved to its " +
 			"definition (path:line). Use for tracing downward from a function " +
 			"('what does X depend on / call into'). " + trust + notFor,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, in symbolArgs) (*mcp.CallToolResult, any, error) {

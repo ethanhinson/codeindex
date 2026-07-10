@@ -26,11 +26,12 @@ claude --plugin-dir /path/to/code-indexer/plugin
 
 | Piece | What it does |
 |---|---|
-| **Skill** `codeindex-impact` | Teaches the agent the anchor rule: branch out from known symbols with codeindex; find things with grep. |
+| **Prompt note** (UserPromptSubmit hook) | Injects a ~155-token availability note per prompt in supported repos: the anchor rule + trust instruction. This is what drives adoption (measured: always-visible beats lazy skill). |
+| **Post-edit hook** | After the agent edits a function (any supported language) that has callers elsewhere, injects a ≤150-token note: symbol, caller count, where — once per symbol per session. |
 | **`/codeindex:impact <symbol>`** | Counts-first blast-radius summary (callers + callees) — run before modifying a symbol. |
-| **`/codeindex:callers <symbol>`** | Definitions + call sites as `path:line` references. |
-| **`/codeindex:callees <symbol>`** | What the symbol calls, resolved to definitions. |
-| **Post-edit hook** | After the agent edits a Go function that has callers elsewhere, injects a ≤150-token note: symbol, caller count, where — once per symbol per session. |
+
+(The v3 A/B gate measured the earlier skill + primitive-command apparatus as
+net-negative — ~3.1k-token footprint — so v4 deliberately ships without them.)
 
 ## Hook controls
 
@@ -40,8 +41,11 @@ claude --plugin-dir /path/to/code-indexer/plugin
 
 ## Honest limits
 
-- Go only; name-based resolution — `[ambiguous]` flags mark name collisions;
-  verify those by file before trusting.
+- Languages: Go, TS/JS, Python, PHP (name-based resolution across all —
+  `[ambiguous]` flags mark name collisions; verify those by file before
+  trusting). Anonymous/lambda functions are not indexed as symbols.
+- Measured savings (−73%/−62%) are from Go-repo experiments; other languages
+  share the mechanics but are engine-validated only.
 - Call edges only for now: `/impact` covers callers/callees, not
   import/type dependents (it says so in its output).
 

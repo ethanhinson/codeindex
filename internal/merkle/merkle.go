@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"codeindex/internal/adapter"
 	"codeindex/internal/graph"
 )
 
@@ -22,8 +23,14 @@ func skipDir(name string) bool {
 	return false
 }
 
-// Walk returns repo-relative paths of Go source files under root.
+// Walk returns repo-relative paths of source files under root whose extension
+// has a registered language adapter (the registry is the single source of
+// truth — adding a language never touches the walk).
 func Walk(root string) ([]string, error) {
+	exts := make(map[string]bool)
+	for _, e := range adapter.Extensions() {
+		exts[e] = true
+	}
 	var out []string
 	err := filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -35,7 +42,7 @@ func Walk(root string) ([]string, error) {
 			}
 			return nil
 		}
-		if filepath.Ext(p) == ".go" {
+		if exts[filepath.Ext(p)] {
 			rel, err := filepath.Rel(root, p)
 			if err != nil {
 				return err

@@ -8,11 +8,21 @@ saving tokens and latency. See `docs/superpowers/specs/` for the design and
 
 ## Status
 
-Walking skeleton (OpenSpec change `engine-walking-skeleton`): a minimal but real
-Go engine slice that validates parse/patch throughput and proves that an
-incremental update equals a full rebuild. Not yet the full tool — no query
-commands, one language (Go), name-based call edges only. See
-`bench/engine/FINDINGS.md` for measured results.
+Working tool with validated consumption surfaces:
+
+- **Engine**: tree-sitter adapters for **Go, TypeScript/JavaScript, Python,
+  PHP**; name-based call edges with `[ambiguous]` confidence flags;
+  content-hash incremental updates proven equal to full rebuilds on real repos
+  (kubernetes, nest, flask, laravel). Queries are always fresh (auto-build +
+  patch-on-query).
+- **Claude Code plugin** (`plugin/`): prompt-note + post-edit blast-radius
+  hook + `/impact` — the shape that passed the pre-registered A/B gate
+  (branch-out +62%, locate within tolerance, hook 100%/0 false fires).
+- **MCP server**: `codeindex mcp <repo>` for Cursor/Claude Desktop/VS Code.
+
+Evidence: `bench/engine/FINDINGS*.md` (engine), `bench/agent_ab/FINDINGS*.md` +
+`results/dashboard.html` (agent A/B, v1–v4). Measured savings are from Go-repo
+experiments; other languages share the mechanics (engine-validated).
 
 ## Build
 

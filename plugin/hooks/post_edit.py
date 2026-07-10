@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""codeindex post-edit hook: after the agent edits a .go file, report the blast
-radius of the symbol(s) it touched — compactly, once per symbol per session.
+"""codeindex post-edit hook: after the agent edits a supported source file
+(Go, TS/JS, Python, PHP), report the blast radius of the symbol(s) it touched —
+compactly, once per symbol per session.
 
 Every failure path is silent (exit 0, no output): a hook must never block edits.
 Noise controls (spec: claude-plugin / "Post-edit blast-radius hook"):
@@ -30,7 +31,8 @@ def run(cmd, cwd=None, timeout=10):
 def main():
     payload = json.load(sys.stdin)
     file_path = (payload.get("tool_input") or {}).get("file_path") or ""
-    if not file_path.endswith(".go"):
+    SUPPORTED = (".go", ".ts", ".tsx", ".js", ".jsx", ".py", ".php")
+    if not file_path.endswith(SUPPORTED):
         return
 
     # repo root: walk up from the file looking for .git
@@ -103,7 +105,7 @@ def main():
             cout = run([binary, "callers", repo, name, "--limit", "40"], cwd=repo,
                        timeout=12).stdout or ""
             for line in cout.splitlines():
-                fm = re.match(r"\s+([\w./\-]+\.go):\d+", line)
+                fm = re.match(r"\s+([\w./\-]+\.(?:go|ts|tsx|js|jsx|py|php)):\d+", line)
                 if fm and fm.group(1) != rel and fm.group(1) not in files:
                     files.append(fm.group(1))
                 if len(files) >= 4:

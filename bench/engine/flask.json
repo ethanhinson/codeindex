@@ -1,0 +1,11 @@
+{
+  "repo": "flask",
+  "files": 83,
+  "symbols": 1577,
+  "lines": 17868,
+  "cold_build_ms": 96.357,
+  "files_per_sec": 861.3800761750574,
+  "lines_per_sec": 185435.4120613967,
+  "incremental_patch_ms": 3.647,
+  "incremental_equals_full": true
+}
