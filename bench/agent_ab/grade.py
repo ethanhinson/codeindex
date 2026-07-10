@@ -153,7 +153,7 @@ def main():
         gt = task["ground_truth"]
         if task["type"] == "comprehension":
             score, detail, unp = grade_comprehension(r.get("answer", ""), gt, prefix)
-        elif task["type"] == "caller_attribution":
+        elif task["type"] in ("caller_attribution", "edit_impact"):
             score, detail, unp = grade_caller_attribution(r.get("answer", ""), gt, prefix)
         else:
             score, detail, unp = grade_localization(r.get("answer", ""), gt, prefix)

@@ -116,6 +116,14 @@ def main():
     msg = ("codeindex: you edited " + "; ".join(parts) +
            f". Consider /codeindex:impact before changing behavior or signatures.")[:MAX_CHARS]
 
+    log = os.environ.get("CODEINDEX_HOOK_LOG")
+    if log:
+        try:
+            with open(log, "a") as f:
+                f.write("injected " + " ".join(sorted(fresh)) + "\n")
+        except OSError:
+            pass
+
     print(json.dumps({"hookSpecificOutput": {
         "hookEventName": "PostToolUse", "additionalContext": msg}}))
 

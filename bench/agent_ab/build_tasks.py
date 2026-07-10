@@ -194,6 +194,39 @@ def caller_attribution_tasks(name: str, rp: Path, n: int, rng: random.Random) ->
 
 
 # --------------------------------------------------------------------------- #
+# Edit-impact tasks (v3) — refactor-flavored: modify a function, then report
+# what's affected. Exercises the plugin's post-edit hook (arm B) and grades the
+# affected-callers answer exactly like caller_attribution.
+# --------------------------------------------------------------------------- #
+
+EDIT_PROMPT = (
+    "In the repository at {REPO_PATH}, add this comment line as the FIRST line "
+    "inside the body of function '{symbol}': '// audited for error handling'. "
+    "Make that one edit. Then determine which functions are affected by changes "
+    "to '{symbol}' (i.e. every function or method that CALLS it) so a reviewer "
+    "knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, "
+    "exact form '<functionName>  <file>' (repo-relative), nothing else. Base "
+    "every entry on evidence from the code."
+)
+
+
+def edit_impact_tasks(name: str, rp: Path, n: int, rng: random.Random) -> list[dict]:
+    base = caller_attribution_tasks(name, rp, n * 3, rng)  # reuse candidates
+    tasks = []
+    for t in base[:n]:
+        sym = t["meta"]["symbol"]
+        tasks.append({
+            "id": f"editimp-{name}-{sym}",
+            "type": "edit_impact",
+            "repo": name,
+            "prompt": EDIT_PROMPT.format(REPO_PATH="{REPO_PATH}", symbol=sym),
+            "ground_truth": t["ground_truth"],
+            "meta": t["meta"],
+        })
+    return tasks
+
+
+# --------------------------------------------------------------------------- #
 # Localization tasks (merged-PR ground truth)
 # --------------------------------------------------------------------------- #
 
@@ -308,6 +341,9 @@ def main():
     ap.add_argument("--comprehension-per-repo", type=int, default=8)
     ap.add_argument("--localization-per-repo", type=int, default=4)
     ap.add_argument("--caller-attribution-per-repo", type=int, default=8)
+    ap.add_argument("--edit-impact-per-repo", type=int, default=2)
+    ap.add_argument("--v3-gate", action="store_true",
+                    help="stamp the v3 gate thresholds into the header")
     ap.add_argument("--types", default="comprehension,localization",
                     help="comma list of: comprehension,localization,caller_attribution")
     ap.add_argument("--seed", type=int, default=1729)
@@ -341,18 +377,35 @@ def main():
         if "caller_attribution" in types:
             t = caller_attribution_tasks(name, rp, args.caller_attribution_per_repo, rng)
             all_tasks.extend(t); counts["caller_attribution"] = len(t)
+        if "edit_impact" in types:
+            t = edit_impact_tasks(name, rp, args.edit_impact_per_repo, rng)
+            all_tasks.extend(t); counts["edit_impact"] = len(t)
         if "localization" in types:
             t = localization_tasks(name, info["slug"], rp, args.localization_per_repo)
             all_tasks.extend(t); counts["localization"] = len(t)
         print(f"{name}: {counts}")
 
+    v3_gate = {
+        "locate_regression_max_pct": 10,
+        "branchout_savings_min_pct": 50,
+        "hook_fire_rate_min_pct": 80,
+        "hook_false_fires_max": 0,
+        "note": "Pre-registered v3 gate (skill-and-ide-integration): locate tasks "
+                "(comprehension type) must not regress >10% median paired cost; "
+                "branch-out (caller_attribution) must retain >=50% median savings; "
+                "hook must fire on >=80% of edit_impact arm-B runs and never on "
+                "non-symbol edits.",
+    } if args.v3_gate else None
+
     header = {
         "generated_seed": args.seed,
         "repo_pins": pins,
         "thresholds": THRESHOLDS,
+        "v3_gate": v3_gate,
         "n_tasks": len(all_tasks),
         "by_type": {t: sum(1 for x in all_tasks if x["type"] == t)
-                    for t in ("comprehension", "localization", "caller_attribution")},
+                    for t in ("comprehension", "localization",
+                              "caller_attribution", "edit_impact")},
         "note": "Prompts contain the literal {REPO_PATH}; the runner substitutes "
                 "the resolved absolute clone path. Ground truth is arm-neutral "
                 "(ripgrep / merged-PR files).",

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import time
@@ -74,8 +75,8 @@ def parse_stream(lines: list[str]) -> dict:
                 if b.get("type") == "tool_use":
                     name = b.get("name", "?")
                     tool_calls[name] = tool_calls.get(name, 0) + 1
-                    if name == "Bash":
-                        cmd = str(b.get("input", {}).get("command", "")).lower()
+                    if name in ("Bash", "SlashCommand", "Skill"):
+                        cmd = json.dumps(b.get("input", {})).lower()
                         if "codeindex" in cmd:
                             codeindex_calls += 1
         elif ev.get("type") == "result":
@@ -99,32 +100,52 @@ def parse_stream(lines: list[str]) -> dict:
     }
 
 
+PLUGIN_DIR = REPO_ROOT / "plugin"
+
+
 def run_one(task: dict, arm: str, rep: int, repo: Path, model: str,
-            timeout: int) -> dict:
+            timeout: int, plugin_arm: bool = False) -> dict:
     prompt = task["prompt"].replace("{REPO_PATH}", str(repo))
     # bypassPermissions ignores --allowedTools (everything is permitted), so we
     # must HARD-DENY confounders: sub-agents (Agent/Task) break token/turn
-    # accounting and can bury the answer in a non-final message; the rest keep
-    # both arms on the same simple navigation surface.
+    # accounting and can bury the answer in a non-final message. edit_impact
+    # tasks need Edit/Write (both arms — parity); everything else is read-only.
+    deny = "Agent Task NotebookEdit TodoWrite WebFetch WebSearch"
+    allow = "Bash Read Grep Glob"
+    if task["type"] == "edit_impact":
+        allow += " Edit Write"
+    else:
+        deny += " Edit Write"
     cmd = ["claude", "-p", prompt, "--model", model,
-           "--allowedTools", "Bash Read Grep Glob",
-           "--disallowedTools",
-           "Agent Task Edit Write NotebookEdit TodoWrite WebFetch WebSearch",
+           "--allowedTools", allow, "--disallowedTools", deny,
            "--permission-mode", "bypassPermissions",
            "--output-format", "stream-json", "--verbose"]
-    if arm == "B":
-        sysprompt = (ARM_B_PROMPT.read_text()
-                     .replace("{CODEINDEX_BIN}", str(BIN))
-                     .replace("{REPO_PATH}", str(repo)))
-        cmd += ["--append-system-prompt", sysprompt]
 
     key = f"{task['id']}_{arm}_r{rep}"
+    env = dict(os.environ)
+    hook_log = None
+    if arm == "B":
+        if plugin_arm:
+            # v3: the REAL packaged plugin — skill, commands, hook. Binary is
+            # discoverable via PATH + CODEINDEX_BIN; hook fires logged per run.
+            cmd += ["--plugin-dir", str(PLUGIN_DIR)]
+            env["PATH"] = f"{BIN.parent}:{env.get('PATH', '')}"
+            env["CODEINDEX_BIN"] = str(BIN)
+            hook_log = RESULTS / "hooklogs" / f"{key}.log"
+            hook_log.parent.mkdir(parents=True, exist_ok=True)
+            env["CODEINDEX_HOOK_LOG"] = str(hook_log)
+        else:
+            sysprompt = (ARM_B_PROMPT.read_text()
+                         .replace("{CODEINDEX_BIN}", str(BIN))
+                         .replace("{REPO_PATH}", str(repo)))
+            cmd += ["--append-system-prompt", sysprompt]
+
     started = datetime.now(timezone.utc).isoformat()
     t0 = time.time()
     timed_out = False
     try:
         proc = subprocess.run(cmd, cwd=str(repo), capture_output=True, text=True,
-                              timeout=timeout)
+                              timeout=timeout, env=env)
         lines = proc.stdout.splitlines()
         stderr_tail = proc.stderr[-500:]
     except subprocess.TimeoutExpired as e:
@@ -132,6 +153,9 @@ def run_one(task: dict, arm: str, rep: int, repo: Path, model: str,
         lines = (e.stdout or "").splitlines() if isinstance(e.stdout, str) else []
         stderr_tail = "TIMEOUT"
     dur = time.time() - t0
+    hook_fires = 0
+    if hook_log and hook_log.exists():
+        hook_fires = len(hook_log.read_text().splitlines())
 
     TRANSCRIPTS.mkdir(parents=True, exist_ok=True)
     tpath = TRANSCRIPTS / f"{key}.jsonl"
@@ -144,6 +168,7 @@ def run_one(task: dict, arm: str, rep: int, repo: Path, model: str,
         "started": started, "duration_s": round(dur, 1),
         "timed_out": timed_out, "stderr_tail": stderr_tail,
         "transcript": str(tpath.relative_to(REPO_ROOT)),
+        "hook_fires": hook_fires,
         **metrics,
     }
 
@@ -185,6 +210,8 @@ def main():
     ap.add_argument("--budget-usd", type=float, default=60.0)
     ap.add_argument("--seed", type=int, default=1729)
     ap.add_argument("--tag", default="", help="suffix for tasks/runs files (e.g. v2)")
+    ap.add_argument("--plugin-arm", action="store_true",
+                    help="arm B uses --plugin-dir with the real plugin (v3 gate)")
     args = ap.parse_args()
 
     if not (args.smoke or args.full):
@@ -244,7 +271,8 @@ def main():
         rp = repo_paths[task["repo"]]
         git_reset(rp)
         print(f"  [{ran+1}] {key} (spent ${spent:.2f}) ...", flush=True)
-        row = run_one(task, arm, rep, rp, args.model, args.timeout)
+        row = run_one(task, arm, rep, rp, args.model, args.timeout,
+                      plugin_arm=args.plugin_arm)
         row["claude_version"] = cli_ver
         row["task_sha"] = data["header"].get("generated_seed")
         git_reset(rp)

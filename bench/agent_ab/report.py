@@ -131,8 +131,50 @@ def main():
     else:
         verdict = "YELLOW"
 
+    # Per-type breakdown (and the v3 gate when the task header registers one).
+    types = sorted({r["type"] for r in rows})
+    per_type = {}
+    for ty in types:
+        ty_rows = [r for r in rows if r["type"] == ty]
+        ty_ids = sorted({r["task_id"] for r in ty_rows})
+        a = analyze(ty_rows, ty_ids)
+        b_ty = [r for r in ty_rows if r["arm"] == "B"]
+        a["adoption"] = round(100 * sum(1 for r in b_ty if r["codeindex_calls"] >= 1)
+                              / len(b_ty), 1) if b_ty else 0.0
+        a["hook_fire_rate"] = round(100 * sum(1 for r in b_ty if r.get("hook_fires", 0) >= 1)
+                                    / len(b_ty), 1) if b_ty else 0.0
+        per_type[ty] = a
+
+    gate = header.get("v3_gate")
+    gate_lines, gate_verdict = [], None
+    if gate:
+        loc = per_type.get("comprehension", {})
+        br = per_type.get("caller_attribution", {})
+        ed = per_type.get("edit_impact", {})
+        loc_red = loc.get("median_cost_reduction_pct") or 0
+        br_red = br.get("median_cost_reduction_pct") or 0
+        hook_rate = ed.get("hook_fire_rate", 0.0)
+        false_fires = sum(r.get("hook_fires", 0) for r in rows
+                          if r["arm"] == "B" and r["type"] != "edit_impact")
+        checks = [
+            (f"locate regression ≤{gate['locate_regression_max_pct']}%: "
+             f"measured {loc_red:+.1f}%", loc_red >= -gate["locate_regression_max_pct"]),
+            (f"branch-out savings ≥{gate['branchout_savings_min_pct']}%: "
+             f"measured {br_red:+.1f}%", br_red >= gate["branchout_savings_min_pct"]),
+            (f"hook fire-rate ≥{gate['hook_fire_rate_min_pct']}% on edit tasks: "
+             f"measured {hook_rate:.0f}%", hook_rate >= gate["hook_fire_rate_min_pct"]),
+            (f"hook false fires ≤{gate['hook_false_fires_max']}: "
+             f"measured {false_fires}", false_fires <= gate["hook_false_fires_max"]),
+        ]
+        gate_verdict = "PASS" if all(ok for _, ok in checks) else "FAIL"
+        gate_lines = [f"- {'✅' if ok else '❌'} {txt}" for txt, ok in checks]
+
     L = []
     L.append("# agent-ab-efficacy — report\n")
+    if gate_verdict:
+        L.append(f"**v3 GATE: {gate_verdict}**\n")
+        L.extend(gate_lines)
+        L.append("")
     L.append(f"**Verdict: {verdict}**  (pre-registered thresholds)\n")
     L.append(f"- primary metric: median paired reduction in `total_cost_usd`\n")
     L.append("## Headline (intent-to-treat)\n")
@@ -152,6 +194,16 @@ def main():
     gap = (pp_sav - sav)
     L.append(f"- ITT vs per-protocol gap: {round(gap,1)} pp "
              f"({'discoverability limited — tool helps when used' if gap > 15 else 'consistent'})\n")
+    if len(types) > 1:
+        L.append("## Per-type breakdown\n")
+        L.append("| type | n | median cost Δ | adoption | hook fire-rate |")
+        L.append("|------|---|---------------|----------|----------------|")
+        for ty in types:
+            a = per_type[ty]
+            L.append(f"| {ty} | {a['n_paired']} | "
+                     f"{(a['median_cost_reduction_pct'] or 0):+.1f}% | "
+                     f"{a['adoption']:.0f}% | {a['hook_fire_rate']:.0f}% |")
+        L.append("")
     L.append("## Thresholds\n")
     for k in ("green", "yellow", "red"):
         L.append(f"- **{k.upper()}**: {thresholds[k]}")

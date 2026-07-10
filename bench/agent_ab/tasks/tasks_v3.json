@@ -1,0 +1,421 @@
+{
+  "header": {
+    "generated_seed": 4242,
+    "repo_pins": {
+      "gin": {
+        "slug": "gin-gonic/gin",
+        "commit": "v1.10.0"
+      },
+      "prometheus": {
+        "slug": "prometheus/prometheus",
+        "commit": "v3.1.0"
+      }
+    },
+    "thresholds": {
+      "metric": "median paired reduction in total_cost_usd",
+      "green": "savings >= 30% AND success_delta >= -5pp AND adoption >= 70%",
+      "yellow": "savings 10-30%, OR adoption 40-70% with per-protocol savings >= 30%",
+      "red": "savings < 10% (ITT), OR success_delta < -5pp, OR adoption < 40% with per-protocol savings < 30%"
+    },
+    "v3_gate": {
+      "locate_regression_max_pct": 10,
+      "branchout_savings_min_pct": 50,
+      "hook_fire_rate_min_pct": 80,
+      "hook_false_fires_max": 0,
+      "note": "Pre-registered v3 gate (skill-and-ide-integration): locate tasks (comprehension type) must not regress >10% median paired cost; branch-out (caller_attribution) must retain >=50% median savings; hook must fire on >=80% of edit_impact arm-B runs and never on non-symbol edits."
+    },
+    "n_tasks": 16,
+    "by_type": {
+      "comprehension": 6,
+      "localization": 0,
+      "caller_attribution": 6
+    },
+    "note": "Prompts contain the literal {REPO_PATH}; the runner substitutes the resolved absolute clone path. Ground truth is arm-neutral (ripgrep / merged-PR files)."
+  },
+  "tasks": [
+    {
+      "id": "comp-gin-File",
+      "type": "comprehension",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, where is 'File' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'File'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "context.go:1074"
+        ],
+        "files": [
+          "CHANGELOG.md",
+          "binding/binding_test.go",
+          "binding/multipart_form_mapping.go",
+          "context.go",
+          "context_test.go",
+          "docs/doc.md",
+          "fs.go",
+          "gin_integration_test.go",
+          "logger.go",
+          "routergroup.go",
+          "testdata/protoexample/test.pb.go"
+        ]
+      },
+      "meta": {
+        "symbol": "File",
+        "n_defs": 1,
+        "n_files": 11,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-gin-Delims",
+      "type": "comprehension",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, where is 'Delims' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'Delims'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "gin.go:244",
+          "render/html.go:13"
+        ],
+        "files": [
+          "debug_test.go",
+          "docs/doc.md",
+          "gin.go",
+          "gin_test.go",
+          "render/html.go",
+          "render/render_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "Delims",
+        "n_defs": 2,
+        "n_files": 6,
+        "bucket": "hot"
+      }
+    },
+    {
+      "id": "comp-gin-IsType",
+      "type": "comprehension",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, where is 'IsType' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'IsType'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "errors.go:89"
+        ],
+        "files": [
+          "CHANGELOG.md",
+          "errors.go"
+        ]
+      },
+      "meta": {
+        "symbol": "IsType",
+        "n_defs": 1,
+        "n_files": 2,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "callattr-gin-IsDebugging",
+      "type": "caller_attribution",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'IsDebugging'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "CustomRecoveryWithWriter\trecovery.go",
+          "LoadHTMLFiles\tgin.go",
+          "LoadHTMLGlob\tgin.go",
+          "TestIsDebugging\tdebug_test.go",
+          "debugPrint\tdebug.go",
+          "debugPrintError\tdebug.go",
+          "debugPrintLoadTemplate\tdebug.go",
+          "debugPrintRoute\tdebug.go"
+        ]
+      },
+      "meta": {
+        "symbol": "IsDebugging",
+        "n_callers": 8
+      }
+    },
+    {
+      "id": "callattr-gin-Written",
+      "type": "caller_attribution",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'Written'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "TestResponseWriterHijack\tresponse_writer_test.go",
+          "TestResponseWriterReset\tresponse_writer_test.go",
+          "TestResponseWriterStatusCode\tresponse_writer_test.go",
+          "TestResponseWriterWriteHeader\tresponse_writer_test.go",
+          "TestResponseWriterWriteHeadersNow\tresponse_writer_test.go",
+          "WriteHeader\tresponse_writer.go",
+          "WriteHeaderNow\tresponse_writer.go",
+          "serveError\tgin.go"
+        ]
+      },
+      "meta": {
+        "symbol": "Written",
+        "n_callers": 8
+      }
+    },
+    {
+      "id": "callattr-gin-nameOfFunction",
+      "type": "caller_attribution",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'nameOfFunction'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "HandlerName\tcontext.go",
+          "HandlerNames\tcontext.go",
+          "TestFunctionName\tutils_test.go",
+          "debugPrintRoute\tdebug.go",
+          "iterate\tgin.go"
+        ]
+      },
+      "meta": {
+        "symbol": "nameOfFunction",
+        "n_callers": 5
+      }
+    },
+    {
+      "id": "editimp-gin-mappingByPtr",
+      "type": "edit_impact",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'mappingByPtr': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'mappingByPtr' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "Bind\tbinding/form.go",
+          "TestMappingArray\tbinding/form_mapping_test.go",
+          "TestMappingCustomPointerStructTypeWithFormTag\tbinding/form_mapping_test.go",
+          "TestMappingCustomPointerStructTypeWithURITag\tbinding/form_mapping_test.go",
+          "TestMappingCustomStructTypeWithFormTag\tbinding/form_mapping_test.go",
+          "TestMappingCustomStructTypeWithURITag\tbinding/form_mapping_test.go",
+          "TestMappingCustomUnmarshalParamHexWithFormTag\tbinding/form_mapping_test.go",
+          "TestMappingCustomUnmarshalParamHexWithURITag\tbinding/form_mapping_test.go",
+          "TestMappingDefault\tbinding/form_mapping_test.go",
+          "TestMappingIgnoreField\tbinding/form_mapping_test.go",
+          "TestMappingIgnoredCircularRef\tbinding/form_mapping_test.go",
+          "TestMappingMapField\tbinding/form_mapping_test.go",
+          "TestMappingPrivateField\tbinding/form_mapping_test.go",
+          "TestMappingPtrField\tbinding/form_mapping_test.go",
+          "TestMappingSkipField\tbinding/form_mapping_test.go",
+          "TestMappingSlice\tbinding/form_mapping_test.go",
+          "TestMappingStructField\tbinding/form_mapping_test.go",
+          "TestMappingTimeDuration\tbinding/form_mapping_test.go",
+          "TestMappingUnexportedField\tbinding/form_mapping_test.go",
+          "TestMappingUnknownFieldType\tbinding/form_mapping_test.go",
+          "mapFormByTag\tbinding/form_mapping.go",
+          "mapHeader\tbinding/header.go"
+        ]
+      },
+      "meta": {
+        "symbol": "mappingByPtr",
+        "n_callers": 22
+      }
+    },
+    {
+      "id": "editimp-gin-Written",
+      "type": "edit_impact",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'Written': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'Written' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "TestResponseWriterHijack\tresponse_writer_test.go",
+          "TestResponseWriterReset\tresponse_writer_test.go",
+          "TestResponseWriterStatusCode\tresponse_writer_test.go",
+          "TestResponseWriterWriteHeader\tresponse_writer_test.go",
+          "TestResponseWriterWriteHeadersNow\tresponse_writer_test.go",
+          "WriteHeader\tresponse_writer.go",
+          "WriteHeaderNow\tresponse_writer.go",
+          "serveError\tgin.go"
+        ]
+      },
+      "meta": {
+        "symbol": "Written",
+        "n_callers": 8
+      }
+    },
+    {
+      "id": "comp-prometheus-ContainsSameLabelset",
+      "type": "comprehension",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, where is 'ContainsSameLabelset' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'ContainsSameLabelset'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "promql/value.go:270",
+          "promql/value.go:323"
+        ],
+        "files": [
+          "promql/engine.go",
+          "promql/functions.go",
+          "promql/value.go",
+          "promql/value_test.go",
+          "rules/recording.go"
+        ]
+      },
+      "meta": {
+        "symbol": "ContainsSameLabelset",
+        "n_defs": 2,
+        "n_files": 5,
+        "bucket": "hot"
+      }
+    },
+    {
+      "id": "comp-prometheus-CountWarningsAndInfo",
+      "type": "comprehension",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, where is 'CountWarningsAndInfo' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'CountWarningsAndInfo'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "util/annotations/annotations.go:116"
+        ],
+        "files": [
+          "promql/promqltest/test.go",
+          "util/annotations/annotations.go"
+        ]
+      },
+      "meta": {
+        "symbol": "CountWarningsAndInfo",
+        "n_defs": 1,
+        "n_files": 2,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-prometheus-runTest",
+      "type": "comprehension",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, where is 'runTest' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'runTest'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "promql/promqltest/test.go:151"
+        ],
+        "files": [
+          "promql/functions_internal_test.go",
+          "promql/promqltest/test.go",
+          "scrape/scrape_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "runTest",
+        "n_defs": 1,
+        "n_files": 3,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "callattr-prometheus-Be64",
+      "type": "caller_attribution",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'Be64'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "Be64Float64\ttsdb/encoding/encoding.go",
+          "Be64int64\ttsdb/encoding/encoding.go",
+          "DecodeHistogram\ttsdb/record/record.go",
+          "ExemplarsFromBuffer\ttsdb/record/record.go",
+          "FloatHistogramSamples\ttsdb/record/record.go",
+          "HistogramSamples\ttsdb/record/record.go",
+          "MmapMarkers\ttsdb/record/record.go",
+          "NewTOCFromByteSlice\ttsdb/index/index.go",
+          "Samples\ttsdb/record/record.go",
+          "Series\ttsdb/record/record.go",
+          "Tombstones\ttsdb/record/record.go",
+          "decodeSeriesFromChunkSnapshot\ttsdb/head_wal.go"
+        ]
+      },
+      "meta": {
+        "symbol": "Be64",
+        "n_callers": 12
+      }
+    },
+    {
+      "id": "callattr-prometheus-FloatBucketsMatch",
+      "type": "caller_attribution",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'FloatBucketsMatch'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "Add\tmodel/histogram/float_histogram.go",
+          "DetectReset\tmodel/histogram/float_histogram.go",
+          "Equals\tmodel/histogram/float_histogram.go",
+          "Equals\tmodel/histogram/histogram.go",
+          "Sub\tmodel/histogram/float_histogram.go",
+          "appendable\ttsdb/chunkenc/float_histogram.go",
+          "appendable\ttsdb/chunkenc/histogram.go",
+          "appendableGauge\ttsdb/chunkenc/float_histogram.go",
+          "appendableGauge\ttsdb/chunkenc/histogram.go",
+          "compareNativeHistogram\tpromql/promqltest/test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "FloatBucketsMatch",
+        "n_callers": 10
+      }
+    },
+    {
+      "id": "callattr-prometheus-OpenDBReadOnly",
+      "type": "caller_attribution",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'OpenDBReadOnly'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "TestCancelCompactions\ttsdb/compact_test.go",
+          "TestDBReadOnly\ttsdb/db_test.go",
+          "TestDBReadOnlyClosing\ttsdb/db_test.go",
+          "TestDBReadOnly_FlushWAL\ttsdb/db_test.go",
+          "TestDBReadOnly_Querier_NoAlteration\ttsdb/db_test.go",
+          "createBlocks\tcmd/promtool/backfill.go",
+          "dumpSamples\tcmd/promtool/tsdb.go",
+          "listBlocks\tcmd/promtool/tsdb.go",
+          "openBlock\tcmd/promtool/tsdb.go"
+        ]
+      },
+      "meta": {
+        "symbol": "OpenDBReadOnly",
+        "n_callers": 9
+      }
+    },
+    {
+      "id": "editimp-prometheus-convertTimeStamp",
+      "type": "edit_impact",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'convertTimeStamp': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'convertTimeStamp' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "TestPrometheusConverter_AddHistogramDataPoints\tstorage/remote/otlptranslator/prometheusremotewrite/helper_test.go",
+          "TestPrometheusConverter_AddSummaryDataPoints\tstorage/remote/otlptranslator/prometheusremotewrite/helper_test.go",
+          "TestPrometheusConverter_addGaugeNumberDataPoints\tstorage/remote/otlptranslator/prometheusremotewrite/number_data_points_test.go",
+          "TestPrometheusConverter_addSumNumberDataPoints\tstorage/remote/otlptranslator/prometheusremotewrite/number_data_points_test.go",
+          "Test_convertTimeStamp\tstorage/remote/otlptranslator/prometheusremotewrite/helper_test.go",
+          "addGaugeNumberDataPoints\tstorage/remote/otlptranslator/prometheusremotewrite/number_data_points.go",
+          "addHistogramDataPoints\tstorage/remote/otlptranslator/prometheusremotewrite/helper.go",
+          "addResourceTargetInfo\tstorage/remote/otlptranslator/prometheusremotewrite/helper.go",
+          "addSumNumberDataPoints\tstorage/remote/otlptranslator/prometheusremotewrite/number_data_points.go",
+          "addSummaryDataPoints\tstorage/remote/otlptranslator/prometheusremotewrite/helper.go",
+          "addTimeSeriesIfNeeded\tstorage/remote/otlptranslator/prometheusremotewrite/helper.go",
+          "exponentialToNativeHistogram\tstorage/remote/otlptranslator/prometheusremotewrite/histograms.go"
+        ]
+      },
+      "meta": {
+        "symbol": "convertTimeStamp",
+        "n_callers": 12
+      }
+    },
+    {
+      "id": "editimp-prometheus-ProcessBuilder",
+      "type": "edit_impact",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'ProcessBuilder': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'ProcessBuilder' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "AlertmanagerFromGroup\tnotifier/notifier.go",
+          "PopulateLabels\tscrape/target.go",
+          "Process\tmodel/relabel/relabel.go",
+          "StoreSeries\tstorage/remote/queue_manager.go",
+          "relabelAlerts\tnotifier/notifier.go"
+        ]
+      },
+      "meta": {
+        "symbol": "ProcessBuilder",
+        "n_callers": 5
+      }
+    }
+  ]
+}
