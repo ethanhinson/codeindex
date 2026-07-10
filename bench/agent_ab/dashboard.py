@@ -28,6 +28,9 @@ EXPERIMENTS = [
      "grep-easy (≈ rg -l)"),
     ("v2 · which FUNCTIONS call X", "graded_v2.jsonl", "tasks_v2.json",
      "grep-hard (must read N files)"),
+    ("v3 · packaged plugin gate (mixed tasks)", "graded_v3.jsonl", "tasks_v3.json",
+     "real plugin via --plugin-dir · GATE FAIL: static footprint (~3.1k tok) + "
+     "re-verification ate the win; hook flawless (100% fire, 0 false, +29% on edits)"),
 ]
 
 

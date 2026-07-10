@@ -34,7 +34,7 @@ border-radius:6px;padding:8px;margin:0;font-size:12px;max-height:260px;overflow:
 <h1>codeindex — agent A/B evaluation</h1>
 <p class="sub">Real Claude Code agents, with vs without codeindex, on real repos.
 Primary metric: total task cost (USD). Click a task to see each arm's actual answer.</p>
-<div class="hl"><b>The boundary:</b> codeindex is overhead on questions grep answers cheaply (v1 -17%), and cuts cost decisively on structural call-graph questions grep answers badly (v2 +73%). Its value is real but bounded to callers/callees/impact.</div>
+
 
         <div class="exp">
           <h2>v1 · which FILES reference X <span class="badge RED">RED</span></h2>
@@ -1024,6 +1024,304 @@ NewEndpointSlice  discovery/kubernetes/endpointslice.go
 TestNodeName  discovery/kubernetes/kubernetes_test.go
 enqueue  discovery/kubernetes/node.go
 NewPod  discovery/kubernetes/pod.go</pre></div></div></td></tr></tbody></table>
+        </div>
+        <div class="exp">
+          <h2>v3 · packaged plugin gate (mixed tasks) <span class="badge RED">RED</span></h2>
+          <div class="tag">real plugin via --plugin-dir · GATE FAIL: static footprint (~3.1k tok) + re-verification ate the win; hook flawless (100% fire, 0 false, +29% on edits) · 16 tasks · 95% CI (-27.9, -3.6)</div>
+          <div class="cards"><div class="c"><div class="v neg">-11%</div><div class="l">median cost Δ (B vs A)</div></div><div class="c"><div class="v ">19%</div><div class="l">win rate (B cheaper)</div></div><div class="c"><div class="v ">94→100%</div><div class="l">success A→B</div></div><div class="c"><div class="v ">62%</div><div class="l">adoption</div></div><div class="c"><div class="v ">7→6</div><div class="l">median turns A→B</div></div><div class="c"><div class="v ">$5.58</div><div class="l">run cost</div></div></div>
+          <table><thead><tr><th>task</th><th>repo</th><th>cost A</th><th>cost B</th>
+          <th>Δ cost</th><th>succ A/B</th><th>turns A/B</th></tr></thead>
+          <tbody><tr class="task" onclick="toggle('v3·packagedplugingate(mixedtasks)-0')"><td>gin-IsDebugging</td><td>gin</td><td class="num">$0.070</td><td class="num">$0.071</td><td class="num neg">-2%</td><td class="num">1.0/1.0</td><td class="num">7/6</td></tr><tr id="v3·packagedplugingate(mixedtasks)-0" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0736 · turns 7 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 5}</div><pre>CALLERS:
+LoadHTMLGlob  gin.go
+LoadHTMLFiles  gin.go
+debugPrintRoute  debug.go
+debugPrintLoadTemplate  debug.go
+debugPrint  debug.go
+debugPrintError  debug.go
+TestIsDebugging  debug_test.go
+CustomRecoveryWithWriter  recovery.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0547 · turns 3 · codeindex 2 · f1 1.0 · tools {&#x27;Skill&#x27;: 1, &#x27;Bash&#x27;: 1}</div><pre>CALLERS:
+debugPrintRoute  debug.go
+debugPrintLoadTemplate  debug.go
+debugPrint  debug.go
+debugPrintError  debug.go
+TestIsDebugging  debug_test.go
+LoadHTMLGlob  gin.go
+LoadHTMLFiles  gin.go
+CustomRecoveryWithWriter  recovery.go</pre></div></div></td></tr><tr class="task" onclick="toggle('v3·packagedplugingate(mixedtasks)-1')"><td>gin-Written</td><td>gin</td><td class="num">$0.053</td><td class="num">$0.062</td><td class="num neg">-18%</td><td class="num">1.0/1.0</td><td class="num">6/5</td></tr><tr id="v3·packagedplugingate(mixedtasks)-1" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0455 · turns 5 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 3}</div><pre>Now I have all the evidence needed.
+
+CALLERS:
+serveError  gin.go
+WriteHeader  response_writer.go
+WriteHeaderNow  response_writer.go
+TestResponseWriterReset  response_writer_test.go
+TestResponseWriterWriteHeader  response_writer_test.go
+TestResponseWriterWriteHeadersNow  response_writer_test.go
+TestResponseWriterHijack  response_writer_test.go
+TestResponseWriterStatusCode  response_writer_test.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0543 · turns 3 · codeindex 2 · f1 1.0 · tools {&#x27;Skill&#x27;: 1, &#x27;Bash&#x27;: 1}</div><pre>CALLERS:
+serveError  gin.go
+WriteHeader  response_writer.go
+WriteHeaderNow  response_writer.go
+TestResponseWriterReset  response_writer_test.go
+TestResponseWriterWriteHeader  response_writer_test.go
+TestResponseWriterWriteHeadersNow  response_writer_test.go
+TestResponseWriterHijack  response_writer_test.go
+TestResponseWriterStatusCode  response_writer_test.go</pre></div></div></td></tr><tr class="task" onclick="toggle('v3·packagedplugingate(mixedtasks)-2')"><td>gin-nameOfFunction</td><td>gin</td><td class="num">$0.055</td><td class="num">$0.060</td><td class="num neg">-9%</td><td class="num">1.0/1.0</td><td class="num">4/6</td></tr><tr id="v3·packagedplugingate(mixedtasks)-2" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0680 · turns 6 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 4}</div><pre>CALLERS:
+iterate  gin.go
+HandlerName  context.go
+HandlerNames  context.go
+debugPrintRoute  debug.go
+TestFunctionName  utils_test.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0569 · turns 7 · codeindex 1 · f1 1.0 · tools {&#x27;Skill&#x27;: 1, &#x27;Bash&#x27;: 1, &#x27;Read&#x27;: 4}</div><pre>CALLERS:
+TestFunctionName  utils_test.go
+debugPrintRoute  debug.go
+HandlerName  context.go
+HandlerNames  context.go
+iterate  gin.go</pre></div></div></td></tr><tr class="task" onclick="toggle('v3·packagedplugingate(mixedtasks)-3')"><td>prometheus-Be64</td><td>prometheus</td><td class="num">$0.192</td><td class="num">$0.218</td><td class="num neg">-14%</td><td class="num">1.0/1.0</td><td class="num">8/12</td></tr><tr id="v3·packagedplugingate(mixedtasks)-3" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.1570 · turns 8 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 6}</div><pre>CALLERS:
+decodeSeriesFromChunkSnapshot  tsdb/head_wal.go
+Series  tsdb/record/record.go
+Samples  tsdb/record/record.go
+Tombstones  tsdb/record/record.go
+ExemplarsFromBuffer  tsdb/record/record.go
+MmapMarkers  tsdb/record/record.go
+HistogramSamples  tsdb/record/record.go
+DecodeHistogram  tsdb/record/record.go
+FloatHistogramSamples  tsdb/record/record.go
+NewTOCFromByteSlice  tsdb/index/index.go
+Be64int64  tsdb/encoding/encoding.go
+Be64Float64  tsdb/encoding/encoding.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.1781 · turns 13 · codeindex 1 · f1 1.0 · tools {&#x27;Skill&#x27;: 1, &#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 10}</div><pre>CALLERS:
+NewTOCFromByteSlice  tsdb/index/index.go
+decodeSeriesFromChunkSnapshot  tsdb/head_wal.go
+Series  tsdb/record/record.go
+Samples  tsdb/record/record.go
+Tombstones  tsdb/record/record.go
+ExemplarsFromBuffer  tsdb/record/record.go
+MmapMarkers  tsdb/record/record.go
+HistogramSamples  tsdb/record/record.go
+DecodeHistogram  tsdb/record/record.go
+FloatHistogramSamples  tsdb/record/record.go
+Be64int64  tsdb/encoding/encoding.go
+Be64Float64  tsdb/encoding/encoding.go</pre></div></div></td></tr><tr class="task" onclick="toggle('v3·packagedplugingate(mixedtasks)-4')"><td>prometheus-FloatBucketsMatch</td><td>prometheus</td><td class="num">$0.172</td><td class="num">$0.178</td><td class="num neg">-4%</td><td class="num">1.0/1.0</td><td class="num">16/16</td></tr><tr id="v3·packagedplugingate(mixedtasks)-4" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.1577 · turns 12 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 10}</div><pre>CALLERS:
+compareNativeHistogram  promql/promqltest/test.go
+Equals  model/histogram/histogram.go
+Add  model/histogram/float_histogram.go
+Sub  model/histogram/float_histogram.go
+Equals  model/histogram/float_histogram.go
+DetectReset  model/histogram/float_histogram.go
+appendable  tsdb/chunkenc/float_histogram.go
+appendableGauge  tsdb/chunkenc/float_histogram.go
+appendable  tsdb/chunkenc/histogram.go
+appendableGauge  tsdb/chunkenc/histogram.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.1868 · turns 15 · codeindex 1 · f1 1.0 · tools {&#x27;Skill&#x27;: 1, &#x27;Grep&#x27;: 3, &#x27;Read&#x27;: 10}</div><pre>CALLERS:
+compareNativeHistogram  promql/promqltest/test.go
+(*Histogram).Equals  model/histogram/histogram.go
+(*FloatHistogram).Add  model/histogram/float_histogram.go
+(*FloatHistogram).Sub  model/histogram/float_histogram.go
+(*FloatHistogram).Equals  model/histogram/float_histogram.go
+(*FloatHistogram).DetectReset  model/histogram/float_histogram.go
+(*HistogramAppender).appendable  tsdb/chunkenc/histogram.go
+(*HistogramAppender).appendableGauge  tsdb/chunkenc/histogram.go
+(*FloatHistogramAppender).appendable  tsdb/chunkenc/float_histogram.go
+(*FloatHistogramAppender).appendableGauge  tsdb/chunkenc/float_histogram.go</pre></div></div></td></tr><tr class="task" onclick="toggle('v3·packagedplugingate(mixedtasks)-5')"><td>prometheus-OpenDBReadOnly</td><td>prometheus</td><td class="num">$0.146</td><td class="num">$0.188</td><td class="num neg">-28%</td><td class="num">1.0/1.0</td><td class="num">12/16</td></tr><tr id="v3·packagedplugingate(mixedtasks)-5" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.1592 · turns 11 · codeindex 0 · f1 0.889 · tools {&#x27;Grep&#x27;: 3, &#x27;Read&#x27;: 7}</div><pre>All callers identified. For line 2651, the direct caller is the named closure `spinUpQuerierAndCheck` inside `TestDBReadOnly_Querier_NoAlteration`.
+
+CALLERS:
+listBlocks  cmd/promtool/tsdb.go
+openBlock  cmd/promtool/tsdb.go
+dumpSamples  cmd/promtool/tsdb.go
+createBlocks  cmd/promtool/backfill.go
+TestDBReadOnly  tsdb/db_test.go
+TestDBReadOnlyClosing  tsdb/db_test.go
+TestDBReadOnly_FlushWAL  tsdb/db_test.go
+spinUpQuerierAndCheck  tsdb/db_test.go
+TestCancelCompactions  tsdb/compact_test.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.1893 · turns 14 · codeindex 1 · f1 1.0 · tools {&#x27;Skill&#x27;: 1, &#x27;Grep&#x27;: 3, &#x27;Read&#x27;: 9}</div><pre>Line 1361 in compact_test.go falls between `TestCancelCompactions` (1305) and `TestDeleteCompactionBlockAfterFailedReload` (1374), so it is inside `TestCancelCompactions`.
+
+CALLERS:
+TestDBReadOnly  tsdb/db_test.go
+TestDBReadOnlyClosing  tsdb/db_test.go
+TestDBReadOnly_FlushWAL  tsdb/db_test.go
+TestDBReadOnly_Querier_NoAlteration  tsdb/db_test.go
+TestCancelCompactions  tsdb/compact_test.go
+listBlocks  cmd/promtool/tsdb.go
+openBlock  cmd/promtool/tsdb.go
+dumpSamples  cmd/promtool/tsdb.go
+createBlocks  cmd/promtool/backfill.go</pre></div></div></td></tr><tr class="task" onclick="toggle('v3·packagedplugingate(mixedtasks)-6')"><td>gin-Delims</td><td>gin</td><td class="num">$0.023</td><td class="num">$0.034</td><td class="num neg">-47%</td><td class="num">1.0/1.0</td><td class="num">2/2</td></tr><tr id="v3·packagedplugingate(mixedtasks)-6" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0230 · turns 2 · codeindex 0 · f1 0.955 · tools {&#x27;Grep&#x27;: 1}</div><pre>DEFINITIONS:
+render/html.go:13
+gin.go:244
+
+FILES:
+gin.go
+render/html.go
+render/render_test.go
+gin_test.go
+debug_test.go
+docs/doc.md</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0232 · turns 2 · codeindex 0 · f1 0.955 · tools {&#x27;Grep&#x27;: 1}</div><pre>DEFINITIONS:
+render/html.go:13
+gin.go:244
+
+FILES:
+gin.go
+debug_test.go
+gin_test.go
+render/html.go
+render/render_test.go
+docs/doc.md</pre></div></div></td></tr><tr class="task" onclick="toggle('v3·packagedplugingate(mixedtasks)-7')"><td>gin-File</td><td>gin</td><td class="num">$0.104</td><td class="num">$0.146</td><td class="num neg">-41%</td><td class="num">1.0/1.0</td><td class="num">10/10</td></tr><tr id="v3·packagedplugingate(mixedtasks)-7" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0905 · turns 8 · codeindex 0 · f1 0.783 · tools {&#x27;Grep&#x27;: 5, &#x27;Read&#x27;: 2}</div><pre>DEFINITIONS:
+context.go:1074
+fs.go:17
+
+FILES:
+binding/binding_test.go
+binding/multipart_form_mapping.go
+context.go
+context_test.go
+fs.go
+gin_integration_test.go
+logger.go
+routergroup.go
+testdata/protoexample/test.pb.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.2024 · turns 13 · codeindex 0 · f1 0.7 · tools {&#x27;Grep&#x27;: 9, &#x27;Read&#x27;: 3}</div><pre>DEFINITIONS:
+- `context.go:1074` — method `func (c *Context) File(filepath string)`
+- `fs.go:17` — embedded field `http.File` in struct `neuteredReaddirFile`
+- `binding/binding_test.go:47` — struct field `File *multipart.FileHeader` in `FooBarFileStruct`
+- `binding/binding_test.go:52` — struct field `File *multipart.FileHeader` in `FooBarFileFailStruct`
+
+FILES:
+- `binding/binding_test.go`
+- `binding/multipart_form_mapping.go`
+- `context.go`
+- `context_test.go`
+- `fs.go`
+- `gin_integration_test.go`
+- `logger.go`
+- `routergroup.go`
+- `testdata/protoexample/test.pb.go`</pre></div></div></td></tr><tr class="task" onclick="toggle('v3·packagedplugingate(mixedtasks)-8')"><td>gin-IsType</td><td>gin</td><td class="num">$0.032</td><td class="num">$0.038</td><td class="num neg">-17%</td><td class="num">1.0/1.0</td><td class="num">4/4</td></tr><tr id="v3·packagedplugingate(mixedtasks)-8" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0322 · turns 4 · codeindex 0 · f1 0.833 · tools {&#x27;Grep&#x27;: 3}</div><pre>DEFINITIONS:
+errors.go:89
+
+FILES:
+errors.go
+CHANGELOG.md</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0326 · turns 4 · codeindex 0 · f1 0.833 · tools {&#x27;Grep&#x27;: 3}</div><pre>DEFINITIONS:
+errors.go:89
+
+FILES:
+errors.go
+CHANGELOG.md</pre></div></div></td></tr><tr class="task" onclick="toggle('v3·packagedplugingate(mixedtasks)-9')"><td>prometheus-ContainsSameLabelset</td><td>prometheus</td><td class="num">$0.033</td><td class="num">$0.035</td><td class="num neg">-7%</td><td class="num">1.0/1.0</td><td class="num">3/2</td></tr><tr id="v3·packagedplugingate(mixedtasks)-9" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0232 · turns 3 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 2}</div><pre>DEFINITIONS:
+- promql/value.go:270
+- promql/value.go:323
+
+FILES:
+- promql/engine.go
+- promql/functions.go
+- promql/value.go
+- promql/value_test.go
+- rules/recording.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0444 · turns 2 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 1}</div><pre>DEFINITIONS:
+- `promql/value.go:270`
+- `promql/value.go:323`
+
+FILES:
+- `promql/value.go`
+- `promql/engine.go`
+- `promql/functions.go`
+- `promql/value_test.go`
+- `rules/recording.go`</pre></div></div></td></tr><tr class="task" onclick="toggle('v3·packagedplugingate(mixedtasks)-10')"><td>prometheus-CountWarningsAndInfo</td><td>prometheus</td><td class="num">$0.018</td><td class="num">$0.028</td><td class="num neg">-52%</td><td class="num">1.0/1.0</td><td class="num">2/2</td></tr><tr id="v3·packagedplugingate(mixedtasks)-10" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0192 · turns 2 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 1}</div><pre>DEFINITIONS:
+util/annotations/annotations.go:116
+
+FILES:
+util/annotations/annotations.go
+promql/promqltest/test.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0390 · turns 2 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 1}</div><pre>DEFINITIONS:
+util/annotations/annotations.go:116
+
+FILES:
+util/annotations/annotations.go
+promql/promqltest/test.go</pre></div></div></td></tr><tr class="task" onclick="toggle('v3·packagedplugingate(mixedtasks)-11')"><td>prometheus-runTest</td><td>prometheus</td><td class="num">$0.044</td><td class="num">$0.066</td><td class="num neg">-51%</td><td class="num">1.0/1.0</td><td class="num">4/5</td></tr><tr id="v3·packagedplugingate(mixedtasks)-11" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0434 · turns 4 · codeindex 0 · f1 0.75 · tools {&#x27;Grep&#x27;: 3}</div><pre>DEFINITIONS:
+promql/promqltest/test.go:151
+promql/functions_internal_test.go:62
+scrape/scrape_test.go:2685
+
+FILES:
+promql/promqltest/test.go
+promql/functions_internal_test.go
+scrape/scrape_test.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0516 · turns 5 · codeindex 0 · f1 0.75 · tools {&#x27;Grep&#x27;: 4}</div><pre>DEFINITIONS:
+- `promql/promqltest/test.go:151`
+- `promql/functions_internal_test.go:62`
+- `scrape/scrape_test.go:2685`
+
+FILES:
+- `promql/promqltest/test.go`
+- `promql/functions_internal_test.go`
+- `scrape/scrape_test.go`</pre></div></div></td></tr><tr class="task" onclick="toggle('v3·packagedplugingate(mixedtasks)-12')"><td>gin-Written</td><td>gin</td><td class="num">$0.076</td><td class="num">$0.080</td><td class="num neg">-5%</td><td class="num">1.0/1.0</td><td class="num">7/6</td></tr><tr id="v3·packagedplugingate(mixedtasks)-12" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0853 · turns 7 · codeindex 0 · f1 0.545 · tools {&#x27;Grep&#x27;: 2, &#x27;Read&#x27;: 3, &#x27;Edit&#x27;: 1}</div><pre>I have all the evidence needed.
+
+CALLERS:
+```
+serveError  gin.go
+WriteHeader  response_writer.go
+WriteHeaderNow  response_writer.go
+```</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0904 · turns 6 · codeindex 1 · f1 1.0 · tools {&#x27;Grep&#x27;: 2, &#x27;Read&#x27;: 1, &#x27;Edit&#x27;: 1, &#x27;Bash&#x27;: 1}</div><pre>CALLERS:
+serveError  gin.go
+WriteHeader  response_writer.go
+WriteHeaderNow  response_writer.go
+TestResponseWriterReset  response_writer_test.go
+TestResponseWriterWriteHeader  response_writer_test.go
+TestResponseWriterWriteHeadersNow  response_writer_test.go
+TestResponseWriterHijack  response_writer_test.go
+TestResponseWriterStatusCode  response_writer_test.go</pre></div></div></td></tr><tr class="task" onclick="toggle('v3·packagedplugingate(mixedtasks)-13')"><td>gin-mappingByPtr</td><td>gin</td><td class="num">$0.087</td><td class="num">$0.076</td><td class="num pos">+13%</td><td class="num">0.0/1.0</td><td class="num">9/6</td></tr><tr id="v3·packagedplugingate(mixedtasks)-13" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0880 · turns 9 · codeindex 0 · f1 0.24 · tools {&#x27;Grep&#x27;: 2, &#x27;Read&#x27;: 5, &#x27;Edit&#x27;: 1}</div><pre>The edit is done. Here are the callers:
+
+CALLERS:
+mapFormByTag  binding/form_mapping.go
+mapHeader  binding/header.go
+(formMultipartBinding).Bind  binding/form.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0846 · turns 6 · codeindex 2 · f1 1.0 · tools {&#x27;Grep&#x27;: 1, &#x27;Skill&#x27;: 1, &#x27;Read&#x27;: 1, &#x27;Bash&#x27;: 1, &#x27;Edit&#x27;: 1}</div><pre>CALLERS:
+Bind  binding/form.go
+mapFormByTag  binding/form_mapping.go
+mapHeader  binding/header.go
+TestMappingDefault  binding/form_mapping_test.go
+TestMappingSkipField  binding/form_mapping_test.go
+TestMappingIgnoreField  binding/form_mapping_test.go
+TestMappingUnexportedField  binding/form_mapping_test.go
+TestMappingPrivateField  binding/form_mapping_test.go
+TestMappingUnknownFieldType  binding/form_mapping_test.go
+TestMappingTimeDuration  binding/form_mapping_test.go
+TestMappingSlice  binding/form_mapping_test.go
+TestMappingArray  binding/form_mapping_test.go
+TestMappingStructField  binding/form_mapping_test.go
+TestMappingPtrField  binding/form_mapping_test.go
+TestMappingMapField  binding/form_mapping_test.go
+TestMappingIgnoredCircularRef  binding/form_mapping_test.go
+TestMappingCustomUnmarshalParamHexWithFormTag  binding/form_mapping_test.go
+TestMappingCustomUnmarshalParamHexWithURITag  binding/form_mapping_test.go
+TestMappingCustomStructTypeWithFormTag  binding/form_mapping_test.go
+TestMappingCustomStructTypeWithURITag  binding/form_mapping_test.go
+TestMappingCustomPointerStructTypeWithFormTag  binding/form_mapping_test.go
+TestMappingCustomPointerStructTypeWithURITag  binding/form_mapping_test.go</pre></div></div></td></tr><tr class="task" onclick="toggle('v3·packagedplugingate(mixedtasks)-14')"><td>prometheus-ProcessBuilder</td><td>prometheus</td><td class="num">$0.118</td><td class="num">$0.065</td><td class="num pos">+44%</td><td class="num">1.0/1.0</td><td class="num">14/6</td></tr><tr id="v3·packagedplugingate(mixedtasks)-14" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.1127 · turns 14 · codeindex 0 · f1 0.889 · tools {&#x27;Grep&#x27;: 5, &#x27;Read&#x27;: 7, &#x27;Edit&#x27;: 1}</div><pre>The comment has been added. Here are all callers based on the code evidence:
+
+CALLERS:
+StoreSeries  storage/remote/queue_manager.go
+PopulateLabels  scrape/target.go
+relabelAlerts  notifier/notifier.go
+AlertmanagerFromGroup  notifier/notifier.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0522 · turns 6 · codeindex 2 · f1 1.0 · tools {&#x27;Grep&#x27;: 1, &#x27;Skill&#x27;: 1, &#x27;Read&#x27;: 1, &#x27;Bash&#x27;: 1, &#x27;Edit&#x27;: 1}</div><pre>The comment has been added at `model/relabel/relabel.go:263`.
+
+CALLERS:
+```
+Process                model/relabel/relabel.go
+relabelAlerts          notifier/notifier.go
+AlertmanagerFromGroup  notifier/notifier.go
+PopulateLabels         scrape/target.go
+StoreSeries            storage/remote/queue_manager.go
+```</pre></div></div></td></tr><tr class="task" onclick="toggle('v3·packagedplugingate(mixedtasks)-15')"><td>prometheus-convertTimeStamp</td><td>prometheus</td><td class="num">$0.145</td><td class="num">$0.078</td><td class="num pos">+46%</td><td class="num">1.0/1.0</td><td class="num">12/5</td></tr><tr id="v3·packagedplugingate(mixedtasks)-15" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.1564 · turns 13 · codeindex 0 · f1 0.737 · tools {&#x27;Grep&#x27;: 3, &#x27;Read&#x27;: 8, &#x27;Edit&#x27;: 1}</div><pre>The comment has been added. Based on grepping all call sites in non-test production files:
+
+CALLERS:
+addHistogramDataPoints  storage/remote/otlptranslator/prometheusremotewrite/helper.go
+addSummaryDataPoints  storage/remote/otlptranslator/prometheusremotewrite/helper.go
+addTimeSeriesIfNeeded  storage/remote/otlptranslator/prometheusremotewrite/helper.go
+addResourceTargetInfo  storage/remote/otlptranslator/prometheusremotewrite/helper.go
+addGaugeNumberDataPoints  storage/remote/otlptranslator/prometheusremotewrite/number_data_points.go
+addSumNumberDataPoints  storage/remote/otlptranslator/prometheusremotewrite/number_data_points.go
+exponentialToNativeHistogram  storage/remote/otlptranslator/prometheusremotewrite/histograms.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0688 · turns 5 · codeindex 1 · f1 1.0 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 1, &#x27;Edit&#x27;: 1, &#x27;Bash&#x27;: 1}</div><pre>CALLERS:
+addHistogramDataPoints  storage/remote/otlptranslator/prometheusremotewrite/helper.go
+addSummaryDataPoints  storage/remote/otlptranslator/prometheusremotewrite/helper.go
+addTimeSeriesIfNeeded  storage/remote/otlptranslator/prometheusremotewrite/helper.go
+addResourceTargetInfo  storage/remote/otlptranslator/prometheusremotewrite/helper.go
+Test_convertTimeStamp  storage/remote/otlptranslator/prometheusremotewrite/helper_test.go
+TestPrometheusConverter_AddSummaryDataPoints  storage/remote/otlptranslator/prometheusremotewrite/helper_test.go
+TestPrometheusConverter_AddHistogramDataPoints  storage/remote/otlptranslator/prometheusremotewrite/helper_test.go
+exponentialToNativeHistogram  storage/remote/otlptranslator/prometheusremotewrite/histograms.go
+addGaugeNumberDataPoints  storage/remote/otlptranslator/prometheusremotewrite/number_data_points.go
+addSumNumberDataPoints  storage/remote/otlptranslator/prometheusremotewrite/number_data_points.go
+TestPrometheusConverter_addGaugeNumberDataPoints  storage/remote/otlptranslator/prometheusremotewrite/number_data_points_test.go
+TestPrometheusConverter_addSumNumberDataPoints  storage/remote/otlptranslator/prometheusremotewrite/number_data_points_test.go</pre></div></div></td></tr></tbody></table>
         </div>
 <div class="foot">Generated from graded run data by <code>dashboard.py</code>.
 Ground truth is arm-neutral (ripgrep / merged-PR files / index caller lists,

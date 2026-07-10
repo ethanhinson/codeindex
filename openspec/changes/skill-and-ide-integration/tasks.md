@@ -14,11 +14,11 @@
 
 ## 3. v3 gate (integration-validation)
 
-- [ ] 3.1 Extend `build_tasks.py` with the edit-flavored task type and a `--types` mix for v3; generate `tasks_v3.json` with pre-registered thresholds in the header
-- [ ] 3.2 Extend `run_ab.py`: arm B mode using `--plugin-dir` with the real plugin (no appended system prompt); record hook injections from transcripts
-- [ ] 3.3 Extend `report.py`/`dashboard.py`: per-type breakdown (locate vs branch-out vs edit), mis-trigger rate, hook fire-rate, gate evaluation
-- [ ] 3.4 Smoke (2–3 tasks), inspect transcripts, fix wording/parsing, then full v3 run within budget
-- [ ] 3.5 Evaluate the gate; if YELLOW, one registered iteration on skill/hook wording and re-run; record verdict + consequence in this change and the dashboard
+- [x] 3.1 edit_impact task type + tasks_v3.json with pre-registered gate thresholds
+- [x] 3.2 run_ab --plugin-arm (real plugin via --plugin-dir; hook fires logged per run)
+- [x] 3.3 report per-type breakdown + gate evaluation; dashboard v3 section
+- [x] 3.4 Smoke caught adoption collapse (lazy skill, v3a archived); registered iteration applied (UserPromptSubmit visibility note + exact-command hook tip + keyword description); post-iteration smoke showed full chain working; full run executed
+- [x] 3.5 GATE: **FAIL** ($5.58, 64 runs). Locate −43.9% (cause: ~3.1k-token static plugin footprint in cache_creation — NOT mis-triggering; discipline held at 0% locate adoption). Branch-out −11.3% despite 100% adoption (cause: trust deficit — agent re-read ~6 files after querying; plus Skill round-trip). Hook thresholds PASSED (100% fire, 0 false) and edit tasks +28.9%; accuracy B 100% vs A 93.8%. Iteration budget spent — v4 (strip to hook + trust-instructing note, <500-token footprint) requires approval. Full analysis: bench/agent_ab/FINDINGS_v3.md
 
 ## 4. Phase 2 — MCP server
 
