@@ -147,17 +147,18 @@ incremental latency, and incremental==full-rebuild are all measured/proven
 0. **`engine-walking-skeleton`** — DONE. Real Go slice: tree-sitter → name-based
    symbols+call edges → SQLite → content-hash change detection → build +
    incremental patch + bench. Proved throughput and incremental==full-rebuild.
-1. **`agent-ab-efficacy`** — DONE, **VERDICT: RED** (2026-07-09). Real Claude
-   agents on 24 tasks × 2 arms × 2 reps: codeindex *increased* cost ~17% (ITT) /
-   ~26% (when used), with identical success and 81% adoption — because a query is
-   an additive round-trip and native grep is already cheap for the tasks tested.
-   The static 363× "savings" were vs reading whole files, a baseline real Claude
-   does not use. **This gate is CLOSED:** downstream breadth is paused pending a
-   redesigned task set targeting expensive/insufficient-grep questions
-   (call-graph traversal, blast-radius, hot-name disambiguation) and/or a
-   non-round-trip integration. See `bench/agent_ab/FINDINGS.md`.
-2. **`core-indexing-engine` (MVP)** — ON HOLD pending the rethink above. When
-   unblocked: SQLite graph + adapters for **TS/JS + Go**
+1. **`agent-ab-efficacy`** — DONE. Two runs mapped a clear boundary. **v1 RED**:
+   on "which files reference X" (≈ `rg -l`), codeindex *increased* cost ~17% —
+   overhead on questions grep answers cheaply. **v2 GREEN**: on "which functions
+   call X" (grep must open many files to name callers), codeindex cut cost
+   **73%** (CI 62–82%), 94% win rate, success 100% vs 96.9%, 100% adoption,
+   median turns A 13 → B 2. **codeindex's value is real but bounded to
+   call-graph/impact questions.** See `bench/agent_ab/FINDINGS.md` +
+   `FINDINGS_v2.md`.
+2. **`core-indexing-engine` (MVP)** — UNBLOCKED, but re-scoped by the boundary:
+   prioritize the proven winners (callers/callees, dependents/blast-radius) over
+   "where is X"; treat fuzzy-search/outline as unproven. SQLite graph + adapters
+   for **TS/JS + Go**
    + name-based resolver + query surface + lazy re-check — breadth shaped by
    what agents actually queried in the A/B runs.
 3. **`language-coverage-and-resolution`:** add **Python, PHP, .NET/C#**
