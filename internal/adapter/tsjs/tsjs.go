@@ -46,20 +46,23 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 	var spans []common.SymbolSpan
 	var calls []common.RawCall
 
-	var walk func(n *sitter.Node)
-	walk = func(n *sitter.Node) {
+	// class threads the lexically enclosing class name: method parents, and
+	// `this.x()` qualification.
+	var walk func(n *sitter.Node, class string)
+	walk = func(n *sitter.Node, class string) {
 		switch n.Type() {
 		case "function_declaration", "generator_function_declaration":
 			if name := n.ChildByFieldName("name"); name != nil {
-				spans = append(spans, common.Span(n, src, path, name.Content(src), graph.KindFunc, "body"))
+				spans = append(spans, common.Span(n, src, path, name.Content(src), "", graph.KindFunc, "body"))
 			}
 		case "class_declaration":
 			if name := n.ChildByFieldName("name"); name != nil {
-				spans = append(spans, common.Span(n, src, path, name.Content(src), graph.KindType, "body"))
+				spans = append(spans, common.Span(n, src, path, name.Content(src), "", graph.KindType, "body"))
+				class = name.Content(src)
 			}
 		case "method_definition":
 			if name := n.ChildByFieldName("name"); name != nil {
-				spans = append(spans, common.Span(n, src, path, name.Content(src), graph.KindMethod, "body"))
+				spans = append(spans, common.Span(n, src, path, name.Content(src), class, graph.KindMethod, "body"))
 			}
 		case "variable_declarator":
 			// const f = () => {...} / const f = function(...) {...}
@@ -68,13 +71,14 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 			if name != nil && value != nil && name.Type() == "identifier" &&
 				(value.Type() == "arrow_function" || value.Type() == "function" ||
 					value.Type() == "function_expression") {
-				spans = append(spans, common.Span(value, src, path, name.Content(src), graph.KindFunc, "body"))
+				spans = append(spans, common.Span(value, src, path, name.Content(src), "", graph.KindFunc, "body"))
 			}
 		case "call_expression":
 			if fn := n.ChildByFieldName("function"); fn != nil {
 				if callee := calleeName(fn, src); callee != "" {
 					calls = append(calls, common.RawCall{
-						Callee: callee, Line: int(n.StartPoint().Row) + 1, At: n.StartByte()})
+						Callee: callee, Qualifier: qualifier(fn, src, class),
+						Line: int(n.StartPoint().Row) + 1, At: n.StartByte()})
 				}
 			}
 		case "new_expression":
@@ -84,10 +88,10 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 			}
 		}
 		for i := 0; i < int(n.ChildCount()); i++ {
-			walk(n.Child(i))
+			walk(n.Child(i), class)
 		}
 	}
-	walk(tree.RootNode())
+	walk(tree.RootNode(), "")
 	return common.Assemble(path, spans, calls), nil
 }
 
@@ -99,6 +103,29 @@ func calleeName(fn *sitter.Node, src []byte) string {
 	case "member_expression":
 		if prop := fn.ChildByFieldName("property"); prop != nil {
 			return prop.Content(src)
+		}
+	}
+	return ""
+}
+
+// qualifier extracts a lexical owner-type hint: `this.x()` -> the enclosing
+// class; `Foo.x()` with an uppercase bare identifier -> candidate `Foo`
+// (validated by the resolver, harmless when wrong).
+func qualifier(fn *sitter.Node, src []byte, class string) string {
+	if fn.Type() != "member_expression" {
+		return ""
+	}
+	obj := fn.ChildByFieldName("object")
+	if obj == nil {
+		return ""
+	}
+	switch obj.Type() {
+	case "this":
+		return class
+	case "identifier":
+		name := obj.Content(src)
+		if name != "" && name[0] >= 'A' && name[0] <= 'Z' {
+			return name
 		}
 	}
 	return ""

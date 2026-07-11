@@ -1,0 +1,32 @@
+{
+ "gin": {
+  "ambiguous": 1742,
+  "unambiguous": 2086,
+  "unresolved": 3366
+ },
+ "prometheus": {
+  "ambiguous": 25911,
+  "unambiguous": 17050,
+  "unresolved": 27908
+ },
+ "kubernetes": {
+  "ambiguous": 361490,
+  "unambiguous": 140260,
+  "unresolved": 122044
+ },
+ "nest": {
+  "ambiguous": 2793,
+  "unambiguous": 3051,
+  "unresolved": 2507
+ },
+ "flask": {
+  "ambiguous": 1086,
+  "unambiguous": 1205,
+  "unresolved": 1353
+ },
+ "laravel-framework": {
+  "ambiguous": 76235,
+  "unambiguous": 34030,
+  "unresolved": 41845
+ }
+}

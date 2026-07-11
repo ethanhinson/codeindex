@@ -31,54 +31,80 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 	var spans []common.SymbolSpan
 	var calls []common.RawCall
 
-	addCall := func(n *sitter.Node, name string) {
+	addCall := func(n *sitter.Node, name, qual string) {
 		if name != "" {
 			calls = append(calls, common.RawCall{
-				Callee: name, Line: int(n.StartPoint().Row) + 1, At: n.StartByte()})
+				Callee: name, Qualifier: qual,
+				Line: int(n.StartPoint().Row) + 1, At: n.StartByte()})
 		}
 	}
 
-	var walk func(n *sitter.Node)
-	walk = func(n *sitter.Node) {
+	// class threads the enclosing class/interface/trait name for method
+	// parents and $this-> / self:: / static:: qualification ($this in PHP
+	// closures inherits the enclosing class, so the context persists).
+	var walk func(n *sitter.Node, class string)
+	walk = func(n *sitter.Node, class string) {
 		switch n.Type() {
 		case "function_definition":
 			if name := n.ChildByFieldName("name"); name != nil {
-				spans = append(spans, common.Span(n, src, path, name.Content(src), graph.KindFunc, "body"))
+				spans = append(spans, common.Span(n, src, path, name.Content(src), "", graph.KindFunc, "body"))
 			}
 		case "method_declaration":
 			if name := n.ChildByFieldName("name"); name != nil {
-				spans = append(spans, common.Span(n, src, path, name.Content(src), graph.KindMethod, "body"))
+				spans = append(spans, common.Span(n, src, path, name.Content(src), class, graph.KindMethod, "body"))
 			}
 		case "class_declaration", "interface_declaration", "trait_declaration":
 			if name := n.ChildByFieldName("name"); name != nil {
-				spans = append(spans, common.Span(n, src, path, name.Content(src), graph.KindType, "body"))
+				spans = append(spans, common.Span(n, src, path, name.Content(src), "", graph.KindType, "body"))
+				class = name.Content(src)
 			}
 		case "function_call_expression":
 			// helper(...) or Qualified\Name(...) -> final name segment
 			if fn := n.ChildByFieldName("function"); fn != nil {
-				addCall(n, finalName(fn, src))
+				addCall(n, finalName(fn, src), "")
 			}
-		case "member_call_expression", "scoped_call_expression",
-			"nullsafe_member_call_expression":
-			// $this->save() / Foo::bar() / $x?->m() -> the name field
+		case "member_call_expression", "nullsafe_member_call_expression":
+			// $this->save() qualifies to the enclosing class; other receivers
+			// are dynamic (no lexical type) -> no qualifier.
 			if name := n.ChildByFieldName("name"); name != nil {
-				addCall(n, name.Content(src))
+				qual := ""
+				if obj := n.ChildByFieldName("object"); obj != nil &&
+					obj.Type() == "variable_name" && obj.Content(src) == "$this" {
+					qual = class
+				}
+				addCall(n, name.Content(src), qual)
+			}
+		case "scoped_call_expression":
+			// Foo::bar() -> Foo; self::/static:: -> enclosing class; parent:: -> none
+			if name := n.ChildByFieldName("name"); name != nil {
+				qual := ""
+				if scope := n.ChildByFieldName("scope"); scope != nil {
+					switch scope.Content(src) {
+					case "self", "static":
+						qual = class
+					case "parent":
+						qual = ""
+					default:
+						qual = finalName(scope, src)
+					}
+				}
+				addCall(n, name.Content(src), qual)
 			}
 		case "object_creation_expression":
 			// new Foo(...) -> Foo (first name-ish child)
 			for i := 0; i < int(n.ChildCount()); i++ {
 				c := n.Child(i)
 				if c.Type() == "name" || c.Type() == "qualified_name" {
-					addCall(n, finalName(c, src))
+					addCall(n, finalName(c, src), "")
 					break
 				}
 			}
 		}
 		for i := 0; i < int(n.ChildCount()); i++ {
-			walk(n.Child(i))
+			walk(n.Child(i), class)
 		}
 	}
-	walk(tree.RootNode())
+	walk(tree.RootNode(), "")
 	return common.Assemble(path, spans, calls), nil
 }
 

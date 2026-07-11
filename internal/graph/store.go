@@ -3,6 +3,7 @@ package graph
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
@@ -28,18 +29,25 @@ type FileMeta struct {
 	Mtime int64
 }
 
+// schemaVersion is bumped on any schema change. The index is a derived
+// artifact: a version mismatch triggers delete-and-rebuild, not migration.
+const schemaVersion = 2
+
 const schema = `
 CREATE TABLE IF NOT EXISTS files (
   id INTEGER PRIMARY KEY, path TEXT UNIQUE NOT NULL, hash TEXT NOT NULL,
   size INTEGER NOT NULL, mtime INTEGER NOT NULL, lang TEXT);
 CREATE TABLE IF NOT EXISTS symbols (
-  id INTEGER PRIMARY KEY, file TEXT NOT NULL, name TEXT NOT NULL, kind TEXT NOT NULL,
+  id INTEGER PRIMARY KEY, file TEXT NOT NULL, name TEXT NOT NULL,
+  parent TEXT NOT NULL DEFAULT '', kind TEXT NOT NULL,
   signature TEXT, start_line INTEGER NOT NULL, end_line INTEGER NOT NULL);
 CREATE INDEX IF NOT EXISTS idx_symbols_name ON symbols(name);
+CREATE INDEX IF NOT EXISTS idx_symbols_name_parent ON symbols(name, parent);
 CREATE INDEX IF NOT EXISTS idx_symbols_file ON symbols(file);
 CREATE TABLE IF NOT EXISTS edges (
   id INTEGER PRIMARY KEY, src_symbol_id INTEGER NOT NULL, dst_symbol_id INTEGER NOT NULL,
-  dst_name TEXT NOT NULL, kind TEXT NOT NULL, confidence TEXT NOT NULL,
+  dst_name TEXT NOT NULL, dst_qualifier TEXT NOT NULL DEFAULT '',
+  kind TEXT NOT NULL, confidence TEXT NOT NULL,
   line INTEGER NOT NULL, src_file TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS idx_edges_src ON edges(src_symbol_id);
 CREATE INDEX IF NOT EXISTS idx_edges_dst ON edges(dst_symbol_id);
@@ -49,19 +57,51 @@ CREATE TABLE IF NOT EXISTS merkle (
   path TEXT PRIMARY KEY, hash TEXT NOT NULL, size INTEGER NOT NULL, mtime INTEGER NOT NULL);
 `
 
-// Open opens (creating if needed) the graph database at path.
+// Open opens (creating if needed) the graph database at path. An existing
+// index with a different schema version is deleted and recreated empty; the
+// next fresh-on-query pass repopulates it (empty merkle state = full build).
 func Open(path string) (*Store, error) {
 	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		return nil, err
 	}
+	var version int
+	if err := db.QueryRow(`PRAGMA user_version`).Scan(&version); err != nil {
+		db.Close()
+		return nil, err
+	}
+	if version != schemaVersion {
+		// Only warn when discarding a populated index (a fresh file is v0 too).
+		var tables int
+		_ = db.QueryRow(`SELECT COUNT(*) FROM sqlite_master WHERE type='table'`).Scan(&tables)
+		db.Close()
+		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+			return nil, err
+		}
+		if tables > 0 {
+			fmt.Fprintf(os.Stderr, "codeindex: index schema v%d -> v%d, rebuilding\n",
+				version, schemaVersion)
+		}
+		if db, err = sql.Open("sqlite3", path); err != nil {
+			return nil, err
+		}
+	}
 	if _, err := db.Exec(schema); err != nil {
+		db.Close()
+		return nil, err
+	}
+	if _, err := db.Exec(fmt.Sprintf(`PRAGMA user_version = %d`, schemaVersion)); err != nil {
+		db.Close()
 		return nil, err
 	}
 	return &Store{db: db}, nil
 }
 
 func (s *Store) Close() error { return s.db.Close() }
+
+// OpenRaw opens the database without schema/version handling — test hook for
+// simulating old-version indexes.
+func OpenRaw(path string) (*sql.DB, error) { return sql.Open("sqlite3", path) }
 
 // Begin starts a transaction the engine drives across a build or patch.
 func (s *Store) Begin() (*sql.Tx, error) { return s.db.Begin() }
@@ -101,8 +141,8 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 	ids := make([]int64, len(pf.Symbols))
 	for i, sym := range pf.Symbols {
 		res, err := tx.Exec(
-			`INSERT INTO symbols(file,name,kind,signature,start_line,end_line) VALUES(?,?,?,?,?,?)`,
-			sym.File, sym.Name, string(sym.Kind), sym.Signature, sym.StartLine, sym.EndLine)
+			`INSERT INTO symbols(file,name,parent,kind,signature,start_line,end_line) VALUES(?,?,?,?,?,?,?)`,
+			sym.File, sym.Name, sym.Parent, string(sym.Kind), sym.Signature, sym.StartLine, sym.EndLine)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -114,14 +154,14 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 		if c.EnclosingIdx < 0 || c.EnclosingIdx >= len(ids) {
 			continue // top-level calls have no owning symbol in the skeleton
 		}
-		dstID, conf, err := resolveName(tx, c.Callee)
+		dstID, conf, err := resolve(tx, c.Callee, c.Qualifier)
 		if err != nil {
 			return nil, nil, err
 		}
 		if _, err := tx.Exec(
-			`INSERT INTO edges(src_symbol_id,dst_symbol_id,dst_name,kind,confidence,line,src_file)
-			 VALUES(?,?,?,?,?,?,?)`,
-			ids[c.EnclosingIdx], dstID, c.Callee, string(KindCalls), string(conf), c.Line, pf.Path); err != nil {
+			`INSERT INTO edges(src_symbol_id,dst_symbol_id,dst_name,dst_qualifier,kind,confidence,line,src_file)
+			 VALUES(?,?,?,?,?,?,?,?)`,
+			ids[c.EnclosingIdx], dstID, c.Callee, c.Qualifier, string(KindCalls), string(conf), c.Line, pf.Path); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -167,14 +207,32 @@ func (s *Store) DeleteFile(tx *sql.Tx, path string) ([]string, error) {
 // not to repository size — this is what keeps incremental updates cheap.
 func (s *Store) ReResolveNames(tx *sql.Tx, names map[string]struct{}) error {
 	for name := range names {
-		dstID, conf, err := resolveName(tx, name)
+		// Re-resolve per distinct qualifier so qualified edges reproduce the
+		// same result they got at insert time.
+		qrows, err := tx.Query(`SELECT DISTINCT dst_qualifier FROM edges WHERE dst_name=?`, name)
 		if err != nil {
 			return err
 		}
-		if _, err := tx.Exec(
-			`UPDATE edges SET dst_symbol_id=?, confidence=? WHERE dst_name=?`,
-			dstID, string(conf), name); err != nil {
-			return err
+		var quals []string
+		for qrows.Next() {
+			var q string
+			if err := qrows.Scan(&q); err != nil {
+				qrows.Close()
+				return err
+			}
+			quals = append(quals, q)
+		}
+		qrows.Close()
+		for _, q := range quals {
+			dstID, conf, err := resolve(tx, name, q)
+			if err != nil {
+				return err
+			}
+			if _, err := tx.Exec(
+				`UPDATE edges SET dst_symbol_id=?, confidence=? WHERE dst_name=? AND dst_qualifier=?`,
+				dstID, string(conf), name, q); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -200,11 +258,18 @@ func (s *Store) AllDstNames() (map[string]struct{}, error) {
 	return out, rows.Err()
 }
 
-// Definitions returns the symbols defined with the given name.
-func (s *Store) Definitions(name string) ([]Symbol, error) {
-	rows, err := s.db.Query(
-		`SELECT file, name, kind, signature, start_line, end_line
-		 FROM symbols WHERE name=? ORDER BY file, start_line`, name)
+// Definitions returns the symbols defined with the given name; a non-empty
+// parent filters to that owner type (qualified anchor).
+func (s *Store) Definitions(name, parent string) ([]Symbol, error) {
+	q := `SELECT file, name, parent, kind, signature, start_line, end_line
+	      FROM symbols WHERE name=? ORDER BY file, start_line`
+	args := []any{name}
+	if parent != "" {
+		q = `SELECT file, name, parent, kind, signature, start_line, end_line
+		     FROM symbols WHERE name=? AND parent=? ORDER BY file, start_line`
+		args = append(args, parent)
+	}
+	rows, err := s.db.Query(q, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +278,7 @@ func (s *Store) Definitions(name string) ([]Symbol, error) {
 	for rows.Next() {
 		var sy Symbol
 		var kind string
-		if err := rows.Scan(&sy.File, &sy.Name, &kind, &sy.Signature, &sy.StartLine, &sy.EndLine); err != nil {
+		if err := rows.Scan(&sy.File, &sy.Name, &sy.Parent, &kind, &sy.Signature, &sy.StartLine, &sy.EndLine); err != nil {
 			return nil, err
 		}
 		sy.Kind = SymbolKind(kind)
@@ -226,17 +291,38 @@ func (s *Store) Definitions(name string) ([]Symbol, error) {
 type Caller struct {
 	File      string
 	Name      string
+	Parent    string
 	Signature string
 	Line      int
 	Conf      Confidence
 }
 
-// Callers returns the symbols that call the given name (edges resolving to it).
-func (s *Store) Callers(name string) ([]Caller, error) {
-	rows, err := s.db.Query(`
-		SELECT sc.file, sc.name, sc.signature, e.line, e.confidence
-		FROM edges e JOIN symbols sc ON sc.id = e.src_symbol_id
-		WHERE e.dst_name = ? ORDER BY sc.file, e.line`, name)
+// QName is the caller's qualified display name.
+func (c Caller) QName() string {
+	if c.Parent != "" {
+		return c.Parent + "." + c.Name
+	}
+	return c.Name
+}
+
+// Callers returns the symbols that call the given name. A non-empty parent
+// restricts to edges that RESOLVED to a definition owned by that parent
+// (unresolved name-only edges cannot match a qualified anchor).
+func (s *Store) Callers(name, parent string) ([]Caller, error) {
+	q := `SELECT sc.file, sc.name, sc.parent, sc.signature, e.line, e.confidence
+	      FROM edges e JOIN symbols sc ON sc.id = e.src_symbol_id
+	      WHERE e.dst_name = ? ORDER BY sc.file, e.line`
+	args := []any{name}
+	if parent != "" {
+		q = `SELECT sc.file, sc.name, sc.parent, sc.signature, e.line, e.confidence
+		     FROM edges e
+		     JOIN symbols sc ON sc.id = e.src_symbol_id
+		     JOIN symbols d ON d.id = e.dst_symbol_id
+		     WHERE e.dst_name = ? AND d.name = ? AND d.parent = ?
+		     ORDER BY sc.file, e.line`
+		args = []any{name, name, parent}
+	}
+	rows, err := s.db.Query(q, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -245,7 +331,7 @@ func (s *Store) Callers(name string) ([]Caller, error) {
 	for rows.Next() {
 		var c Caller
 		var conf string
-		if err := rows.Scan(&c.File, &c.Name, &c.Signature, &c.Line, &conf); err != nil {
+		if err := rows.Scan(&c.File, &c.Name, &c.Parent, &c.Signature, &c.Line, &conf); err != nil {
 			return nil, err
 		}
 		c.Conf = Confidence(conf)
@@ -257,23 +343,43 @@ func (s *Store) Callers(name string) ([]Caller, error) {
 // Callee is a symbol called by a queried symbol, with the call-site line and the
 // callee's definition location when resolved.
 type Callee struct {
-	Name     string
-	CallLine int
-	Conf     Confidence
-	DefFile  string // "" when unresolved
-	DefLine  int
+	Name      string
+	DefParent string // resolved definition's parent ("" when unresolved/top-level)
+	CallLine  int
+	Conf      Confidence
+	DefFile   string // "" when unresolved
+	DefLine   int
+}
+
+// QName is the callee's qualified display name (when resolved to a method).
+func (c Callee) QName() string {
+	if c.DefParent != "" {
+		return c.DefParent + "." + c.Name
+	}
+	return c.Name
 }
 
 // Callees returns what the symbol(s) named `name` call (outgoing `calls` edges),
-// each with the callee's definition location when the edge resolved.
-func (s *Store) Callees(name string) ([]Callee, error) {
-	rows, err := s.db.Query(`
-		SELECT e.dst_name, e.line, e.confidence,
-		       COALESCE(d.file,''), COALESCE(d.start_line,0)
-		FROM edges e
-		JOIN symbols sc ON sc.id = e.src_symbol_id
-		LEFT JOIN symbols d ON d.id = e.dst_symbol_id AND e.dst_symbol_id != 0
-		WHERE sc.name = ? AND e.kind = ? ORDER BY e.line`, name, string(KindCalls))
+// each with the callee's definition location when the edge resolved. A
+// non-empty parent restricts to source symbols owned by that parent.
+func (s *Store) Callees(name, parent string) ([]Callee, error) {
+	q := `SELECT e.dst_name, COALESCE(d.parent,''), e.line, e.confidence,
+	             COALESCE(d.file,''), COALESCE(d.start_line,0)
+	      FROM edges e
+	      JOIN symbols sc ON sc.id = e.src_symbol_id
+	      LEFT JOIN symbols d ON d.id = e.dst_symbol_id AND e.dst_symbol_id != 0
+	      WHERE sc.name = ? AND e.kind = ? ORDER BY e.line`
+	args := []any{name, string(KindCalls)}
+	if parent != "" {
+		q = `SELECT e.dst_name, COALESCE(d.parent,''), e.line, e.confidence,
+		            COALESCE(d.file,''), COALESCE(d.start_line,0)
+		     FROM edges e
+		     JOIN symbols sc ON sc.id = e.src_symbol_id
+		     LEFT JOIN symbols d ON d.id = e.dst_symbol_id AND e.dst_symbol_id != 0
+		     WHERE sc.name = ? AND sc.parent = ? AND e.kind = ? ORDER BY e.line`
+		args = []any{name, parent, string(KindCalls)}
+	}
+	rows, err := s.db.Query(q, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +388,7 @@ func (s *Store) Callees(name string) ([]Callee, error) {
 	for rows.Next() {
 		var c Callee
 		var conf string
-		if err := rows.Scan(&c.Name, &c.CallLine, &conf, &c.DefFile, &c.DefLine); err != nil {
+		if err := rows.Scan(&c.Name, &c.DefParent, &c.CallLine, &conf, &c.DefFile, &c.DefLine); err != nil {
 			return nil, err
 		}
 		c.Conf = Confidence(conf)
@@ -373,6 +479,49 @@ func namesDefinedBy(q queryer, path string) ([]string, error) {
 	return out, rows.Err()
 }
 
+// resolve deterministically resolves a call target. Qualified-first: when a
+// lexical qualifier is present and symbols named `name` with parent=qualifier
+// exist, resolution happens within that set (1 -> unambiguous, >1 ->
+// deterministic first + ambiguous). Otherwise it falls back to plain
+// name-based behavior — a wrong hint can never make things worse.
+func resolve(q queryer, name, qualifier string) (int64, Confidence, error) {
+	if qualifier != "" {
+		ids, err := symbolIDs(q,
+			`SELECT id FROM symbols WHERE name=? AND parent=? ORDER BY file, start_line, id`,
+			name, qualifier)
+		if err != nil {
+			return 0, "", err
+		}
+		switch len(ids) {
+		case 1:
+			return ids[0], ConfUnambiguous, nil
+		default:
+			if len(ids) > 1 {
+				return ids[0], ConfAmbiguous, nil
+			}
+			// 0 qualified hits: fall through to plain name-based resolution.
+		}
+	}
+	return resolveName(q, name)
+}
+
+func symbolIDs(q queryer, query string, args ...any) ([]int64, error) {
+	rows, err := q.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var ids []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
+}
+
 // resolveName deterministically resolves a call target by name: 0 matches ->
 // unresolved; 1 -> unambiguous; >1 -> ambiguous, canonically the first by
 // (file, start_line). Deterministic ordering is what makes incremental == full.
@@ -417,19 +566,19 @@ func (s *Store) DumpNormalized() (Snapshot, error) {
 	var snap Snapshot
 
 	srows, err := s.db.Query(
-		`SELECT file,name,kind,signature,start_line,end_line FROM symbols`)
+		`SELECT file,name,parent,kind,signature,start_line,end_line FROM symbols`)
 	if err != nil {
 		return snap, err
 	}
 	defer srows.Close()
 	for srows.Next() {
-		var file, name, kind, sig string
+		var file, name, parent, kind, sig string
 		var sl, el int
-		if err := srows.Scan(&file, &name, &kind, &sig, &sl, &el); err != nil {
+		if err := srows.Scan(&file, &name, &parent, &kind, &sig, &sl, &el); err != nil {
 			return snap, err
 		}
 		snap.Symbols = append(snap.Symbols,
-			fmt.Sprintf("%s|%s|%s|%d|%d|%s", file, name, kind, sl, el, sig))
+			fmt.Sprintf("%s|%s|%s|%s|%d|%d|%s", file, parent, name, kind, sl, el, sig))
 	}
 	if err := srows.Err(); err != nil {
 		return snap, err
@@ -437,8 +586,9 @@ func (s *Store) DumpNormalized() (Snapshot, error) {
 
 	// Edge identity uses content keys for src and dst, not row ids.
 	erows, err := s.db.Query(`
-		SELECT sc.file, sc.name, sc.start_line, e.dst_name, e.kind, e.confidence, e.line,
-		       COALESCE(d.file,''), COALESCE(d.name,''), COALESCE(d.start_line,0)
+		SELECT sc.file, sc.name, sc.start_line, e.dst_name, e.dst_qualifier,
+		       e.kind, e.confidence, e.line,
+		       COALESCE(d.file,''), COALESCE(d.name,''), COALESCE(d.parent,''), COALESCE(d.start_line,0)
 		FROM edges e
 		JOIN symbols sc ON sc.id = e.src_symbol_id
 		LEFT JOIN symbols d ON d.id = e.dst_symbol_id AND e.dst_symbol_id != 0`)
@@ -447,14 +597,14 @@ func (s *Store) DumpNormalized() (Snapshot, error) {
 	}
 	defer erows.Close()
 	for erows.Next() {
-		var sf, sn, dn, kind, conf, df, dnm string
+		var sf, sn, dn, dq, kind, conf, df, dnm, dpar string
 		var ssl, line, dsl int
-		if err := erows.Scan(&sf, &sn, &ssl, &dn, &kind, &conf, &line, &df, &dnm, &dsl); err != nil {
+		if err := erows.Scan(&sf, &sn, &ssl, &dn, &dq, &kind, &conf, &line, &df, &dnm, &dpar, &dsl); err != nil {
 			return snap, err
 		}
 		snap.Edges = append(snap.Edges, fmt.Sprintf(
-			"%s:%s:%d -%s-> %s [%s] dst=%s:%s:%d @%d",
-			sf, sn, ssl, kind, dn, conf, df, dnm, dsl, line))
+			"%s:%s:%d -%s-> %s~%s [%s] dst=%s:%s.%s:%d @%d",
+			sf, sn, ssl, kind, dn, dq, conf, df, dpar, dnm, dsl, line))
 	}
 	if err := erows.Err(); err != nil {
 		return snap, err

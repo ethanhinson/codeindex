@@ -1,0 +1,11 @@
+{
+  "repo": "prometheus",
+  "files": 792,
+  "symbols": 8991,
+  "lines": 291114,
+  "cold_build_ms": 1634.208,
+  "files_per_sec": 484.63829453512716,
+  "lines_per_sec": 178137.61676174117,
+  "incremental_patch_ms": 8.983,
+  "incremental_equals_full": true
+}

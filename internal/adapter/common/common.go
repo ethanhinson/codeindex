@@ -20,11 +20,13 @@ type SymbolSpan struct {
 	Start, End uint32
 }
 
-// RawCall is a call site before enclosing attribution.
+// RawCall is a call site before enclosing attribution. Qualifier is the
+// lexical owner-type hint (validated by the resolver; "" = none).
 type RawCall struct {
-	Callee string
-	Line   int
-	At     uint32
+	Callee    string
+	Qualifier string
+	Line      int
+	At        uint32
 }
 
 // Enclosing returns the index of the innermost symbol whose byte range
@@ -51,6 +53,7 @@ func Assemble(path string, spans []SymbolSpan, calls []RawCall) *graph.ParsedFil
 		pf.Calls = append(pf.Calls, graph.RawCall{
 			EnclosingIdx: Enclosing(spans, c.At),
 			Callee:       c.Callee,
+			Qualifier:    c.Qualifier,
 			Line:         c.Line,
 		})
 	}
@@ -83,12 +86,14 @@ func Clip(s string) string {
 	return s
 }
 
-// Span makes a SymbolSpan for a definition node with the given name and kind.
-func Span(n *sitter.Node, src []byte, path, name string, kind graph.SymbolKind, bodyField string) SymbolSpan {
+// Span makes a SymbolSpan for a definition node with the given name, parent
+// (owner type, "" for top-level), and kind.
+func Span(n *sitter.Node, src []byte, path, name, parent string, kind graph.SymbolKind, bodyField string) SymbolSpan {
 	return SymbolSpan{
 		Sym: graph.Symbol{
 			File:      path,
 			Name:      name,
+			Parent:    parent,
 			Kind:      kind,
 			Signature: Signature(n, src, bodyField),
 			StartLine: int(n.StartPoint().Row) + 1,

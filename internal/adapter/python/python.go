@@ -31,39 +31,43 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 	var spans []common.SymbolSpan
 	var calls []common.RawCall
 
-	// inClass tracks lexical class nesting so function_definition becomes a
-	// method inside a class body and a func elsewhere.
-	var walk func(n *sitter.Node, inClass bool)
-	walk = func(n *sitter.Node, inClass bool) {
-		enterClass := inClass
+	// Two lexical contexts: defClass = the class whose BODY we are directly in
+	// (decides method kind/parent; cleared inside function bodies), and
+	// selfClass = the class `self`/`cls` refers to (set on entering a method,
+	// retained through nested closures — Python closures capture self).
+	var walk func(n *sitter.Node, defClass, selfClass string)
+	walk = func(n *sitter.Node, defClass, selfClass string) {
+		nextDef, nextSelf := defClass, selfClass
 		switch n.Type() {
 		case "class_definition":
 			if name := n.ChildByFieldName("name"); name != nil {
-				spans = append(spans, common.Span(n, src, path, name.Content(src), graph.KindType, "body"))
+				spans = append(spans, common.Span(n, src, path, name.Content(src), "", graph.KindType, "body"))
+				nextDef = name.Content(src)
 			}
-			enterClass = true
 		case "function_definition":
 			if name := n.ChildByFieldName("name"); name != nil {
 				kind := graph.KindFunc
-				if inClass {
+				if defClass != "" {
 					kind = graph.KindMethod
+					nextSelf = defClass // self inside this method = defClass
 				}
-				spans = append(spans, common.Span(n, src, path, name.Content(src), kind, "body"))
+				spans = append(spans, common.Span(n, src, path, name.Content(src), defClass, kind, "body"))
 			}
-			enterClass = false // nested defs inside a method are plain funcs
+			nextDef = "" // nested defs inside a function body are plain funcs
 		case "call":
 			if fn := n.ChildByFieldName("function"); fn != nil {
 				if callee := calleeName(fn, src); callee != "" {
 					calls = append(calls, common.RawCall{
-						Callee: callee, Line: int(n.StartPoint().Row) + 1, At: n.StartByte()})
+						Callee: callee, Qualifier: qualifier(fn, src, selfClass),
+						Line: int(n.StartPoint().Row) + 1, At: n.StartByte()})
 				}
 			}
 		}
 		for i := 0; i < int(n.ChildCount()); i++ {
-			walk(n.Child(i), enterClass)
+			walk(n.Child(i), nextDef, nextSelf)
 		}
 	}
-	walk(tree.RootNode(), false)
+	walk(tree.RootNode(), "", "")
 	return common.Assemble(path, spans, calls), nil
 }
 
@@ -75,6 +79,27 @@ func calleeName(fn *sitter.Node, src []byte) string {
 	case "attribute":
 		if attr := fn.ChildByFieldName("attribute"); attr != nil {
 			return attr.Content(src)
+		}
+	}
+	return ""
+}
+
+// qualifier extracts a lexical owner-type hint: `self.x()`/`cls.x()` -> the
+// enclosing class; `Foo.x()` with an uppercase identifier -> candidate `Foo`.
+func qualifier(fn *sitter.Node, src []byte, class string) string {
+	if fn.Type() != "attribute" {
+		return ""
+	}
+	obj := fn.ChildByFieldName("object")
+	if obj == nil || obj.Type() != "identifier" {
+		return ""
+	}
+	switch name := obj.Content(src); name {
+	case "self", "cls":
+		return class
+	default:
+		if name != "" && name[0] >= 'A' && name[0] <= 'Z' {
+			return name
 		}
 	}
 	return ""

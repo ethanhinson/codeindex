@@ -114,7 +114,7 @@ func TestCalleesQuery(t *testing.T) {
 	}
 	defer st.Close()
 	// A() calls Helper(); Helper is defined in a.go -> resolved callee.
-	cs, err := st.Callees("A")
+	cs, err := st.Callees("A", "")
 	if err != nil {
 		t.Fatal(err)
 	}

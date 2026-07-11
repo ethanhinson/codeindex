@@ -1,0 +1,11 @@
+{
+  "repo": "kubernetes",
+  "files": 11005,
+  "symbols": 116056,
+  "lines": 3055847,
+  "cold_build_ms": 34507.866,
+  "files_per_sec": 318.91279050821646,
+  "lines_per_sec": 88555.08351986931,
+  "incremental_patch_ms": 109.484,
+  "incremental_equals_full": true
+}

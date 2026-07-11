@@ -1,0 +1,80 @@
+{
+ "gin": {
+  "before": {
+   "ambiguous": 1742,
+   "unambiguous": 2086,
+   "unresolved": 3366
+  },
+  "after": {
+   "ambiguous": 1668,
+   "unambiguous": 2160,
+   "unresolved": 3366
+  },
+  "ambiguous_reduction_pct": 4.2
+ },
+ "prometheus": {
+  "before": {
+   "ambiguous": 25911,
+   "unambiguous": 17050,
+   "unresolved": 27908
+  },
+  "after": {
+   "ambiguous": 25647,
+   "unambiguous": 18441,
+   "unresolved": 29555
+  },
+  "ambiguous_reduction_pct": 1.0
+ },
+ "kubernetes": {
+  "before": {
+   "ambiguous": 361490,
+   "unambiguous": 140260,
+   "unresolved": 122044
+  },
+  "after": {
+   "ambiguous": 355442,
+   "unambiguous": 146399,
+   "unresolved": 122103
+  },
+  "ambiguous_reduction_pct": 1.7
+ },
+ "nest": {
+  "before": {
+   "ambiguous": 2793,
+   "unambiguous": 3051,
+   "unresolved": 2507
+  },
+  "after": {
+   "ambiguous": 2455,
+   "unambiguous": 3389,
+   "unresolved": 2507
+  },
+  "ambiguous_reduction_pct": 12.1
+ },
+ "flask": {
+  "before": {
+   "ambiguous": 1086,
+   "unambiguous": 1205,
+   "unresolved": 1353
+  },
+  "after": {
+   "ambiguous": 1065,
+   "unambiguous": 1226,
+   "unresolved": 1353
+  },
+  "ambiguous_reduction_pct": 1.9
+ },
+ "laravel-framework": {
+  "before": {
+   "ambiguous": 76235,
+   "unambiguous": 34030,
+   "unresolved": 41845
+  },
+  "after": {
+   "ambiguous": 64593,
+   "unambiguous": 45672,
+   "unresolved": 41845
+  },
+  "ambiguous_reduction_pct": 15.3
+ }
+}

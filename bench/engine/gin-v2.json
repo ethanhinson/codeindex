@@ -1,0 +1,11 @@
+{
+  "repo": "gin",
+  "files": 91,
+  "symbols": 1179,
+  "lines": 18851,
+  "cold_build_ms": 161.665,
+  "files_per_sec": 562.8905172809832,
+  "lines_per_sec": 116604.93561828368,
+  "incremental_patch_ms": 5.042,
+  "incremental_equals_full": true
+}

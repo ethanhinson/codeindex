@@ -42,24 +42,37 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 
 	var spans []symbolSpan
 	var rawCalls []struct {
-		callee string
-		line   int
-		at     uint32
+		callee    string
+		qualifier string
+		line      int
+		at        uint32
 	}
 
-	var walk func(n *sitter.Node)
-	walk = func(n *sitter.Node) {
+	// recvCtx carries the enclosing method's receiver (variable name -> type)
+	// so calls through the receiver variable qualify to the receiver type —
+	// Go's lexical equivalent of `this`.
+	type recvCtx struct{ varName, typeName string }
+
+	var walk func(n *sitter.Node, recv recvCtx)
+	walk = func(n *sitter.Node, recv recvCtx) {
 		switch n.Type() {
 		case "function_declaration", "method_declaration":
 			if name := n.ChildByFieldName("name"); name != nil {
 				kind := graph.KindFunc
+				parent := ""
 				if n.Type() == "method_declaration" {
 					kind = graph.KindMethod
+					var rv string
+					rv, parent = receiver(n, src)
+					recv = recvCtx{varName: rv, typeName: parent}
+				} else {
+					recv = recvCtx{}
 				}
 				spans = append(spans, symbolSpan{
 					sym: graph.Symbol{
 						File:      path,
 						Name:      name.Content(src),
+						Parent:    parent,
 						Kind:      kind,
 						Signature: signature(n, src),
 						StartLine: int(n.StartPoint().Row) + 1,
@@ -87,19 +100,29 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 		case "call_expression":
 			if fn := n.ChildByFieldName("function"); fn != nil {
 				if callee := calleeName(fn, src); callee != "" {
+					qual := ""
+					// w.scale() inside func (w Widget) ... -> qualifier Widget
+					if fn.Type() == "selector_expression" {
+						if op := fn.ChildByFieldName("operand"); op != nil &&
+							op.Type() == "identifier" && recv.varName != "" &&
+							op.Content(src) == recv.varName {
+							qual = recv.typeName
+						}
+					}
 					rawCalls = append(rawCalls, struct {
-						callee string
-						line   int
-						at     uint32
-					}{callee, int(n.StartPoint().Row) + 1, n.StartByte()})
+						callee    string
+						qualifier string
+						line      int
+						at        uint32
+					}{callee, qual, int(n.StartPoint().Row) + 1, n.StartByte()})
 				}
 			}
 		}
 		for i := 0; i < int(n.ChildCount()); i++ {
-			walk(n.Child(i))
+			walk(n.Child(i), recv)
 		}
 	}
-	walk(root)
+	walk(root, recvCtx{})
 
 	pf := &graph.ParsedFile{Path: path}
 	for _, s := range spans {
@@ -109,10 +132,39 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 		pf.Calls = append(pf.Calls, graph.RawCall{
 			EnclosingIdx: enclosing(spans, c.at),
 			Callee:       c.callee,
+			Qualifier:    c.qualifier,
 			Line:         c.line,
 		})
 	}
 	return pf, nil
+}
+
+// receiver extracts a method's receiver variable name and type name
+// (`func (w *Widget) ...` -> "w", "Widget"; pointer and generic brackets
+// stripped). Empty strings when absent (e.g. `func (*Widget) ...`).
+func receiver(n *sitter.Node, src []byte) (varName, typeName string) {
+	recv := n.ChildByFieldName("receiver")
+	if recv == nil || recv.NamedChildCount() == 0 {
+		return "", ""
+	}
+	decl := recv.NamedChild(0) // parameter_declaration
+	if nm := decl.ChildByFieldName("name"); nm != nil {
+		varName = nm.Content(src)
+	}
+	t := decl.ChildByFieldName("type")
+	for t != nil {
+		switch t.Type() {
+		case "pointer_type":
+			t = t.NamedChild(0)
+		case "generic_type":
+			t = t.ChildByFieldName("type")
+		case "type_identifier":
+			return varName, t.Content(src)
+		default:
+			return varName, ""
+		}
+	}
+	return varName, ""
 }
 
 // calleeName extracts the called name: the identifier for `Foo()`, or the field

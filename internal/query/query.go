@@ -21,6 +21,18 @@ var mu sync.Mutex
 
 func dbPath(root string) string { return filepath.Join(root, ".codeindex", "graph.db") }
 
+// SplitAnchor parses a possibly-qualified anchor: "Type.method" or
+// "Type::method" -> (method, Type); bare "name" -> (name, "").
+func SplitAnchor(anchor string) (name, parent string) {
+	if i := strings.Index(anchor, "::"); i > 0 {
+		return anchor[i+2:], anchor[:i]
+	}
+	if i := strings.LastIndex(anchor, "."); i > 0 {
+		return anchor[i+1:], anchor[:i]
+	}
+	return anchor, ""
+}
+
 // Fresh makes the index reflect the working tree: builds if missing, patches
 // otherwise. Safe for concurrent use.
 func Fresh(root string) error {
@@ -44,8 +56,10 @@ func open(root string) (*graph.Store, error) {
 	return graph.Open(dbPath(root))
 }
 
-// CallersText returns definitions + callers of name as reference lines.
-func CallersText(root, name string, limit int) (string, error) {
+// CallersText returns definitions + callers of an anchor ("name" or
+// "Type.method"/"Type::method") as reference lines with qualified names.
+func CallersText(root, anchor string, limit int) (string, error) {
+	name, parent := SplitAnchor(anchor)
 	st, err := open(root)
 	if err != nil {
 		return "", err
@@ -53,18 +67,18 @@ func CallersText(root, name string, limit int) (string, error) {
 	defer st.Close()
 	var b strings.Builder
 
-	defs, err := st.Definitions(name)
+	defs, err := st.Definitions(name, parent)
 	if err != nil {
 		return "", err
 	}
 	for _, d := range defs {
-		fmt.Fprintf(&b, "def  %s:%d  %s\n", d.File, d.StartLine, d.Signature)
+		fmt.Fprintf(&b, "def  %s  %s:%d  %s\n", d.QName(), d.File, d.StartLine, d.Signature)
 	}
 	if len(defs) == 0 {
-		fmt.Fprintf(&b, "def  %s: (not found in index)\n", name)
+		fmt.Fprintf(&b, "def  %s: (not found in index)\n", anchor)
 	}
 
-	callers, err := st.Callers(name)
+	callers, err := st.Callers(name, parent)
 	if err != nil {
 		return "", err
 	}
@@ -78,24 +92,25 @@ func CallersText(root, name string, limit int) (string, error) {
 		if c.Conf == graph.ConfAmbiguous {
 			flag = "  [ambiguous]"
 		}
-		fmt.Fprintf(&b, "  %s:%d  %s%s\n", c.File, c.Line, c.Name, flag)
+		fmt.Fprintf(&b, "  %s:%d  %s%s\n", c.File, c.Line, c.QName(), flag)
 	}
 	return b.String(), nil
 }
 
 // CalleesText returns what name calls, each resolved to its definition.
-func CalleesText(root, name string, limit int) (string, error) {
+func CalleesText(root, anchor string, limit int) (string, error) {
+	name, parent := SplitAnchor(anchor)
 	st, err := open(root)
 	if err != nil {
 		return "", err
 	}
 	defer st.Close()
-	callees, err := st.Callees(name)
+	callees, err := st.Callees(name, parent)
 	if err != nil {
 		return "", err
 	}
 	var b strings.Builder
-	fmt.Fprintf(&b, "callees of %s (%d):\n", name, len(callees))
+	fmt.Fprintf(&b, "callees of %s (%d):\n", anchor, len(callees))
 	for i, c := range callees {
 		if i >= limit {
 			fmt.Fprintf(&b, "  ... (+%d more; raise limit)\n", len(callees)-limit)
@@ -109,44 +124,45 @@ func CalleesText(root, name string, limit int) (string, error) {
 		if c.Conf == graph.ConfAmbiguous {
 			flag = "  [ambiguous]"
 		}
-		fmt.Fprintf(&b, "  %s  -> %s  @call:%d%s\n", c.Name, target, c.CallLine, flag)
+		fmt.Fprintf(&b, "  %s  -> %s  @call:%d%s\n", c.QName(), target, c.CallLine, flag)
 	}
 	return b.String(), nil
 }
 
 // ImpactText composes a counts-first blast-radius summary: definitions,
 // callers, callees. States coverage honestly (call edges only).
-func ImpactText(root, name string, limit int) (string, error) {
+func ImpactText(root, anchor string, limit int) (string, error) {
+	name, parent := SplitAnchor(anchor)
 	st, err := open(root)
 	if err != nil {
 		return "", err
 	}
 	defer st.Close()
 
-	defs, err := st.Definitions(name)
+	defs, err := st.Definitions(name, parent)
 	if err != nil {
 		return "", err
 	}
-	callers, err := st.Callers(name)
+	callers, err := st.Callers(name, parent)
 	if err != nil {
 		return "", err
 	}
-	callees, err := st.Callees(name)
+	callees, err := st.Callees(name, parent)
 	if err != nil {
 		return "", err
 	}
 
 	var b strings.Builder
 	fmt.Fprintf(&b, "impact of %s: %d definition(s), %d caller(s), %d callee(s)\n",
-		name, len(defs), len(callers), len(callees))
+		anchor, len(defs), len(callers), len(callees))
 	fmt.Fprintf(&b, "(coverage: call edges only — import/type dependents not included)\n\n")
 	for _, d := range defs {
-		fmt.Fprintf(&b, "def  %s:%d  %s\n", d.File, d.StartLine, d.Signature)
+		fmt.Fprintf(&b, "def  %s  %s:%d  %s\n", d.QName(), d.File, d.StartLine, d.Signature)
 	}
 	if len(defs) == 0 {
-		fmt.Fprintf(&b, "def  %s: (not found in index)\n", name)
+		fmt.Fprintf(&b, "def  %s: (not found in index)\n", anchor)
 	}
-	fmt.Fprintf(&b, "\ncallers — these break if %s's behavior/signature changes:\n", name)
+	fmt.Fprintf(&b, "\ncallers — these break if %s's behavior/signature changes:\n", anchor)
 	for i, c := range callers {
 		if i >= limit {
 			fmt.Fprintf(&b, "  ... (+%d more)\n", len(callers)-limit)
@@ -156,9 +172,9 @@ func ImpactText(root, name string, limit int) (string, error) {
 		if c.Conf == graph.ConfAmbiguous {
 			flag = "  [ambiguous]"
 		}
-		fmt.Fprintf(&b, "  %s:%d  %s%s\n", c.File, c.Line, c.Name, flag)
+		fmt.Fprintf(&b, "  %s:%d  %s%s\n", c.File, c.Line, c.QName(), flag)
 	}
-	fmt.Fprintf(&b, "\ncallees — what %s depends on:\n", name)
+	fmt.Fprintf(&b, "\ncallees — what %s depends on:\n", anchor)
 	for i, c := range callees {
 		if i >= limit {
 			fmt.Fprintf(&b, "  ... (+%d more)\n", len(callees)-limit)
@@ -167,7 +183,7 @@ func ImpactText(root, name string, limit int) (string, error) {
 		if c.DefFile == "" {
 			continue // unresolved (stdlib/external) — noise in an impact summary
 		}
-		fmt.Fprintf(&b, "  %s  %s:%d\n", c.Name, c.DefFile, c.DefLine)
+		fmt.Fprintf(&b, "  %s  %s:%d\n", c.QName(), c.DefFile, c.DefLine)
 	}
 	return b.String(), nil
 }

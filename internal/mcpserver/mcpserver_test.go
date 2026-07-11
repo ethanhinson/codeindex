@@ -79,7 +79,7 @@ func TestHandshakeListAndCall(t *testing.T) {
 		t.Fatal(err)
 	}
 	out := res.Content[0].(*mcp.TextContent).Text
-	if !strings.Contains(out, "def  a.go:2") || !strings.Contains(out, "callers (2)") {
+	if !strings.Contains(out, "def  Helper  a.go:2") || !strings.Contains(out, "callers (2)") {
 		t.Errorf("unexpected callers output:\n%s", out)
 	}
 }
