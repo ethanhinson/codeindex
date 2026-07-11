@@ -57,6 +57,15 @@ func TestViewFilterPrompt(t *testing.T) {
 	}
 }
 
+func TestViewFilterApplied(t *testing.T) {
+	m := newTestModel(t, nil)
+	m = press(t, m, "/", "f", "r", "enter")
+	out := m.View()
+	if !strings.Contains(out, "filtered: “fr”") {
+		t.Errorf("footer should show applied filter hint, got: %q", out)
+	}
+}
+
 func TestViewNeverPanicsWhileNavigating(t *testing.T) {
 	m := newTestModel(t, &fakeCounts{})
 	for _, k := range []string{"right", "down", "right", "down", "down",

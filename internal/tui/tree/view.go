@@ -46,7 +46,7 @@ func (m Model) renderFooter() string {
 	}
 	hint := "↑↓ move · ←→ collapse/expand · / filter · enter toggle · q quit"
 	if m.query != "" {
-		hint = string(rune(0x201c)) + "filtered: " + m.query + string(rune(0x201d)) + " · esc clear · " + hint
+		hint = "filtered: “" + m.query + "” · esc clear · " + hint
 	}
 	return footerStyle.Render(hint)
 }
@@ -87,7 +87,7 @@ func (m Model) renderRow(r Row, selected bool, w int) string {
 	}
 	avail := w
 	if badge != "" {
-		avail -= len(badge) + 2
+		avail -= lipgloss.Width(badge) + 2
 	}
 	text := truncate(strings.Repeat("  ", r.Depth)+aff+label, avail)
 
@@ -128,7 +128,7 @@ func (m Model) renderDetail(w int) string {
 		}
 		b.WriteString(titleStyle.Render(truncate(name, w)) + "\n")
 		fmt.Fprintf(&b, "%s · %s\n\n", n.SymKind,
-			truncate(fmt.Sprintf("%s:%d", n.File, n.Line), w-len(n.SymKind)-3))
+			truncate(fmt.Sprintf("%s:%d", n.File, n.Line), w-lipgloss.Width(n.SymKind)-3))
 		if n.Signature != "" {
 			b.WriteString(wrap(n.Signature, w) + "\n\n")
 		}
@@ -143,7 +143,7 @@ func (m Model) renderDetail(w int) string {
 	return b.String()
 }
 
-// truncate shortens s to w display cells with a trailing ellipsis.
+// truncate shortens s to w rune counts with a trailing ellipsis (adequate for ASCII symbol names).
 func truncate(s string, w int) string {
 	if w <= 0 {
 		return ""
