@@ -217,5 +217,3 @@ func (m *Model) fetchCounts() {
 		err: err1 != nil || err2 != nil}
 }
 
-// View is implemented in view.go (Task 7). Temporary stub.
-func (m Model) View() string { return "" }
