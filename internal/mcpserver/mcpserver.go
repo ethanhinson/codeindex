@@ -111,8 +111,8 @@ func New(repo, version string) *mcp.Server {
 
 	type findArgs struct {
 		Query string `json:"query" jsonschema:"partial or vague symbol name — tokens in any order/convention (e.g. 'config load' matches LoadConfig, load_config, ConfigLoader)"`
-		Kind  string `json:"kind,omitempty" jsonschema:"optional filter: func | method | type"`
-		Path  string `json:"path,omitempty" jsonschema:"optional file-path substring filter"`
+		Kind  string `json:"kind,omitempty" jsonschema:"optional; restrict results to one of: func | method | type"`
+		Path  string `json:"path,omitempty" jsonschema:"optional; only include results whose file path contains this substring"`
 		Limit int    `json:"limit,omitempty"`
 	}
 	mcp.AddTool(s, &mcp.Tool{
