@@ -1,0 +1,19 @@
+{
+  "repo": "kubernetes",
+  "files": 11005,
+  "symbols": 116056,
+  "lines": 3055849,
+  "workers": 14,
+  "cold_build_ms": 50642.299,
+  "files_per_sec": 217.30845879790894,
+  "lines_per_sec": 60341.8297600301,
+  "incremental_patch_ms": 128.628,
+  "query_p50_ms": 104.196,
+  "query_p95_ms": 112.485,
+  "query_symbol": "PodSpec",
+  "index_bytes": 223227904,
+  "source_bytes": 105861500,
+  "index_ratio": 2.1086788303585347,
+  "peak_rss_mb": 910.78656,
+  "incremental_equals_full": true
+}

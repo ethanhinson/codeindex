@@ -2,6 +2,8 @@
 // files, symbols, edges, and the parser output that produces them.
 package graph
 
+import "strings"
+
 // SymbolKind is the category of a defined symbol.
 type SymbolKind string
 
@@ -24,6 +26,33 @@ const (
 
 // DepKinds are the dependency edge kinds served by dependents/deps queries.
 var DepKinds = []EdgeKind{KindImports, KindExtends, KindImplements}
+
+// DeriveNamespace maps a repo-relative path to the language's enclosing scope:
+// Go = directory (package), Python = dotted module path, TS/JS = the file
+// itself (module-per-file), PHP = declared namespace with directory fallback.
+func DeriveNamespace(path, declared string) string {
+	if declared != "" {
+		return declared
+	}
+	slash := strings.LastIndexByte(path, '/')
+	dir := "."
+	if slash >= 0 {
+		dir = path[:slash]
+	}
+	dot := strings.LastIndexByte(path, '.')
+	ext := ""
+	if dot >= 0 {
+		ext = path[dot:]
+	}
+	switch ext {
+	case ".go", ".php":
+		return dir
+	case ".py":
+		return strings.ReplaceAll(strings.TrimSuffix(path, ".py"), "/", ".")
+	default: // .ts/.tsx/.js/.jsx and anything else: module per file
+		return path
+	}
+}
 
 // Confidence records how certain the name-based resolver is about an edge target.
 type Confidence string
@@ -84,12 +113,15 @@ type RawDep struct {
 	Line         int
 }
 
-// ParsedFile is an adapter's output for one source file.
+// ParsedFile is an adapter's output for one source file. Namespace is a
+// language-declared namespace when the file states one (PHP `namespace X;`);
+// empty means "derive from the path".
 type ParsedFile struct {
-	Path    string
-	Symbols []Symbol
-	Calls   []RawCall
-	Deps    []RawDep
+	Path      string
+	Namespace string
+	Symbols   []Symbol
+	Calls     []RawCall
+	Deps      []RawDep
 }
 
 // Edge is a resolved relationship between symbols. DstSymbolID is 0 when the

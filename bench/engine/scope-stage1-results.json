@@ -1,0 +1,38 @@
+{
+ "gin": {
+  "before": 1668,
+  "after": 1187,
+  "reduction_pct": 28.8,
+  "unambiguous": 2641
+ },
+ "prometheus": {
+  "before": 25647,
+  "after": 21089,
+  "reduction_pct": 17.8,
+  "unambiguous": 22999
+ },
+ "kubernetes": {
+  "before": 355442,
+  "after": 301060,
+  "reduction_pct": 15.3,
+  "unambiguous": 200781
+ },
+ "nest": {
+  "before": 2455,
+  "after": 2027,
+  "reduction_pct": 17.4,
+  "unambiguous": 3817
+ },
+ "flask": {
+  "before": 1065,
+  "after": 938,
+  "reduction_pct": 11.9,
+  "unambiguous": 1353
+ },
+ "laravel-framework": {
+  "before": 64593,
+  "after": 60688,
+  "reduction_pct": 6.0,
+  "unambiguous": 49577
+ }
+}

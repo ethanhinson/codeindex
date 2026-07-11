@@ -17,7 +17,8 @@ adapter parsing changes (except PHP's declaration capture).
 ### Requirement: Scope-preference resolution ladder
 
 Resolution SHALL prefer, in order: qualified matches, import-bound matches,
-same-file matches, same-namespace matches, then plain project and dep-tier
+same-scope matches (the language's local scope — file/module for Python and
+TS/JS, package/namespace for Go and PHP), then plain project and dep-tier
 matches — each step deterministic, with single-candidate steps resolving
 unambiguous and multi-candidate steps flagging ambiguous.
 

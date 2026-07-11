@@ -51,9 +51,14 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 	// class threads the enclosing class/interface/trait name for method
 	// parents and $this-> / self:: / static:: qualification ($this in PHP
 	// closures inherits the enclosing class, so the context persists).
+	var fileNS string
 	var walk func(n *sitter.Node, class string)
 	walk = func(n *sitter.Node, class string) {
 		switch n.Type() {
+		case "namespace_definition":
+			if nm := n.ChildByFieldName("name"); nm != nil && fileNS == "" {
+				fileNS = nm.Content(src)
+			}
 		case "function_definition":
 			if name := n.ChildByFieldName("name"); name != nil {
 				spans = append(spans, common.Span(n, src, path, name.Content(src), "", graph.KindFunc, "body"))
@@ -157,7 +162,9 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 		}
 	}
 	walk(tree.RootNode(), "")
-	return common.Assemble(path, spans, calls, deps), nil
+	pf := common.Assemble(path, spans, calls, deps)
+	pf.Namespace = fileNS
+	return pf, nil
 }
 
 // finalName reduces a possibly-qualified name to its last segment:

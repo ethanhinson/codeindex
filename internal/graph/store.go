@@ -31,7 +31,7 @@ type FileMeta struct {
 
 // schemaVersion is bumped on any schema change. The index is a derived
 // artifact: a version mismatch triggers delete-and-rebuild, not migration.
-const schemaVersion = 4
+const schemaVersion = 5
 
 const schema = `
 CREATE TABLE IF NOT EXISTS files (
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS depmeta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS edges (
   id INTEGER PRIMARY KEY, src_symbol_id INTEGER NOT NULL, dst_symbol_id INTEGER NOT NULL,
   dst_name TEXT NOT NULL, dst_qualifier TEXT NOT NULL DEFAULT '',
-  kind TEXT NOT NULL, confidence TEXT NOT NULL,
+  dst_ns TEXT NOT NULL DEFAULT '', kind TEXT NOT NULL, confidence TEXT NOT NULL,
   line INTEGER NOT NULL, src_file TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS idx_edges_src ON edges(src_symbol_id);
 CREATE INDEX IF NOT EXISTS idx_edges_dst ON edges(dst_symbol_id);
@@ -145,12 +145,21 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 		return nil, nil, err
 	}
 
+	// Project symbols carry a derived namespace: the language's enclosing
+	// scope (Go dir/package, Python dotted module, TS file, PHP declared
+	// namespace with dir fallback). Scope-preference resolution keys on it.
+	ns := DeriveNamespace(pf.Path, pf.Namespace)
+
 	// Insert symbols, remembering the id assigned to each (for this file's edges).
 	ids := make([]int64, len(pf.Symbols))
 	for i, sym := range pf.Symbols {
+		symNS := sym.Namespace
+		if sym.Tier == 0 && symNS == "" {
+			symNS = ns
+		}
 		res, err := tx.Exec(
 			`INSERT INTO symbols(file,name,parent,namespace,tier,kind,signature,start_line,end_line) VALUES(?,?,?,?,?,?,?,?,?)`,
-			sym.File, sym.Name, sym.Parent, sym.Namespace, sym.Tier, string(sym.Kind), sym.Signature, sym.StartLine, sym.EndLine)
+			sym.File, sym.Name, sym.Parent, symNS, sym.Tier, string(sym.Kind), sym.Signature, sym.StartLine, sym.EndLine)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -162,14 +171,14 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 		if c.EnclosingIdx < 0 || c.EnclosingIdx >= len(ids) {
 			continue // top-level calls have no owning symbol in the skeleton
 		}
-		dstID, conf, err := resolve(tx, c.Callee, c.Qualifier)
+		dstID, conf, err := resolve(tx, c.Callee, c.Qualifier, ns)
 		if err != nil {
 			return nil, nil, err
 		}
 		if _, err := tx.Exec(
-			`INSERT INTO edges(src_symbol_id,dst_symbol_id,dst_name,dst_qualifier,kind,confidence,line,src_file)
-			 VALUES(?,?,?,?,?,?,?,?)`,
-			ids[c.EnclosingIdx], dstID, c.Callee, c.Qualifier, string(KindCalls), string(conf), c.Line, pf.Path); err != nil {
+			`INSERT INTO edges(src_symbol_id,dst_symbol_id,dst_name,dst_qualifier,dst_ns,kind,confidence,line,src_file)
+			 VALUES(?,?,?,?,?,?,?,?,?)`,
+			ids[c.EnclosingIdx], dstID, c.Callee, c.Qualifier, "", string(KindCalls), string(conf), c.Line, pf.Path); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -186,15 +195,15 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 		conf := ConfUnresolved
 		if !strings.Contains(d.Target, "/") {
 			var err error
-			dstID, conf, err = resolve(tx, d.Target, "")
+			dstID, conf, err = resolve(tx, d.Target, "", ns)
 			if err != nil {
 				return nil, nil, err
 			}
 		}
 		if _, err := tx.Exec(
-			`INSERT INTO edges(src_symbol_id,dst_symbol_id,dst_name,dst_qualifier,kind,confidence,line,src_file)
-			 VALUES(?,?,?,?,?,?,?,?)`,
-			srcID, dstID, d.Target, "", string(d.Kind), string(conf), d.Line, pf.Path); err != nil {
+			`INSERT INTO edges(src_symbol_id,dst_symbol_id,dst_name,dst_qualifier,dst_ns,kind,confidence,line,src_file)
+			 VALUES(?,?,?,?,?,?,?,?,?)`,
+			srcID, dstID, d.Target, "", "", string(d.Kind), string(conf), d.Line, pf.Path); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -239,32 +248,69 @@ func (s *Store) DeleteFile(tx *sql.Tx, path string) ([]string, error) {
 // names. Cost is proportional to references to those names (the blast radius),
 // not to repository size — this is what keeps incremental updates cheap.
 func (s *Store) ReResolveNames(tx *sql.Tx, names map[string]struct{}) error {
+	if len(names) == 0 {
+		return nil
+	}
+	// File -> namespace map, loaded once: scope-aware re-resolution groups
+	// edges by (qualifier, caller namespace) in memory and batch-updates by
+	// id — O(edges-of-name), never O(groups × edges).
+	fileNS := map[string]string{}
+	frows, err := tx.Query(`SELECT file, namespace FROM symbols WHERE tier=0 GROUP BY file`)
+	if err != nil {
+		return err
+	}
+	for frows.Next() {
+		var f, n string
+		if err := frows.Scan(&f, &n); err != nil {
+			frows.Close()
+			return err
+		}
+		fileNS[f] = n
+	}
+	frows.Close()
+
 	for name := range names {
-		// Re-resolve per distinct qualifier so qualified edges reproduce the
-		// same result they got at insert time.
-		qrows, err := tx.Query(`SELECT DISTINCT dst_qualifier FROM edges WHERE dst_name=?`, name)
+		erows, err := tx.Query(
+			`SELECT id, dst_qualifier, src_file FROM edges WHERE dst_name=?`, name)
 		if err != nil {
 			return err
 		}
-		var quals []string
-		for qrows.Next() {
-			var q string
-			if err := qrows.Scan(&q); err != nil {
-				qrows.Close()
+		type grp struct{ q, ns string }
+		groups := map[grp][]int64{}
+		for erows.Next() {
+			var id int64
+			var q, f string
+			if err := erows.Scan(&id, &q, &f); err != nil {
+				erows.Close()
 				return err
 			}
-			quals = append(quals, q)
+			g := grp{q: q, ns: fileNS[f]}
+			groups[g] = append(groups[g], id)
 		}
-		qrows.Close()
-		for _, q := range quals {
-			dstID, conf, err := resolve(tx, name, q)
+		erows.Close()
+		for g, ids := range groups {
+			dstID, conf, err := resolve(tx, name, g.q, g.ns)
 			if err != nil {
 				return err
 			}
-			if _, err := tx.Exec(
-				`UPDATE edges SET dst_symbol_id=?, confidence=? WHERE dst_name=? AND dst_qualifier=?`,
-				dstID, string(conf), name, q); err != nil {
-				return err
+			// Batch by id in chunks to keep statements bounded.
+			for i := 0; i < len(ids); i += 500 {
+				end := i + 500
+				if end > len(ids) {
+					end = len(ids)
+				}
+				args := make([]any, 0, end-i+2)
+				args = append(args, dstID, string(conf))
+				ph := make([]string, 0, end-i)
+				for _, id := range ids[i:end] {
+					args = append(args, id)
+					ph = append(ph, "?")
+				}
+				if _, err := tx.Exec(
+					`UPDATE edges SET dst_symbol_id=?, confidence=? WHERE id IN (`+
+						strings.Join(ph, ",")+`)`, args...); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -680,7 +726,7 @@ func namesDefinedBy(q queryer, path string) ([]string, error) {
 // exist, resolution happens within that set (1 -> unambiguous, >1 ->
 // deterministic first + ambiguous). Otherwise it falls back to plain
 // name-based behavior — a wrong hint can never make things worse.
-func resolve(q queryer, name, qualifier string) (int64, Confidence, error) {
+func resolve(q queryer, name, qualifier, srcNS string) (int64, Confidence, error) {
 	// Tier ladder: qualified project > qualified dep > plain project > plain
 	// dep. Project symbols always beat attached-map symbols, so maps can never
 	// degrade project resolution.
@@ -693,6 +739,12 @@ func resolve(q queryer, name, qualifier string) (int64, Confidence, error) {
 		steps = append(steps,
 			step{`SELECT id FROM symbols WHERE name=? AND parent=? AND tier=0 ORDER BY file, start_line, id`, []any{name, qualifier}},
 			step{`SELECT id FROM symbols WHERE name=? AND parent=? AND tier=1 ORDER BY namespace, file, start_line, id`, []any{name, qualifier}})
+	}
+	if srcNS != "" {
+		// Same-scope preference: the language's local scope (file/module for
+		// Python and TS, package/namespace for Go and PHP) beats global names.
+		steps = append(steps,
+			step{`SELECT id FROM symbols WHERE name=? AND namespace=? AND tier=0 ORDER BY file, start_line, id`, []any{name, srcNS}})
 	}
 	steps = append(steps,
 		step{`SELECT id FROM symbols WHERE name=? AND tier=0 ORDER BY file, start_line, id`, []any{name}},
