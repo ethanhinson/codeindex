@@ -1,0 +1,62 @@
+{
+  "name": "codeindex",
+  "displayName": "codeindex",
+  "description": "Keeps the codeindex symbol graph warm so AI agents query in milliseconds instead of cold-building mid-conversation.",
+  "version": "0.1.0",
+  "publisher": "codeindex",
+  "repository": { "type": "git", "url": "https://github.com/ethanhinson/codeindex" },
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other"],
+  "activationEvents": [
+    "workspaceContains:**/*.go",
+    "workspaceContains:**/*.ts",
+    "workspaceContains:**/*.tsx",
+    "workspaceContains:**/*.js",
+    "workspaceContains:**/*.py",
+    "workspaceContains:**/*.php"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      { "command": "codeindex.indexNow", "title": "codeindex: Index This Workspace" },
+      { "command": "codeindex.showStatus", "title": "codeindex: Show Index Status" }
+    ],
+    "configuration": {
+      "title": "codeindex",
+      "properties": {
+        "codeindex.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable codeindex workspace indexing."
+        },
+        "codeindex.binaryPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the codeindex binary. Empty means look on PATH."
+        },
+        "codeindex.autoIndex": {
+          "type": "string",
+          "enum": ["prompt", "always", "never"],
+          "default": "prompt",
+          "description": "Index unindexed workspaces on open: ask first, always, or never (manual command only)."
+        },
+        "codeindex.keepFresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "Incrementally refresh the index when supported files are saved."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "node --test out/core.test.js",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0"
+  }
+}

@@ -28,13 +28,17 @@ const version = "0.2.0"
 func main() {
 	if len(os.Args) < 3 {
 		fmt.Fprintln(os.Stderr,
-			"usage: codeindex <build|status|callers|callees|impact|dependents|deps|find|grep|depmap|attach|export|import|enclosing|mcp|bench> <repo-root> ...")
+			"usage: codeindex <build|refresh|status|callers|callees|impact|dependents|deps|find|grep|depmap|attach|export|import|enclosing|mcp|bench> <repo-root> ...")
 		os.Exit(2)
 	}
 	cmd, root := os.Args[1], os.Args[2]
 	switch cmd {
 	case "build":
 		if err := runBuild(root, hasFlag("--progress")); err != nil {
+			fatal(err)
+		}
+	case "refresh":
+		if err := runRefresh(root, hasFlag("--progress")); err != nil {
 			fatal(err)
 		}
 	case "status":
@@ -277,6 +281,30 @@ func runBuild(root string, jsonl bool) error {
 		return err
 	}
 	done(fmt.Sprintf("indexed %d files (%d symbols)", st.FilesParsed, st.Symbols))
+	return nil
+}
+
+// runRefresh builds if the index is missing, incrementally patches
+// otherwise — the cheap keep-warm verb (build is a from-scratch rebuild).
+func runRefresh(root string, jsonl bool) error {
+	if err := ensureDBDir(root); err != nil {
+		return err
+	}
+	db := dbPath(root)
+	rep, done := reporter("refresh "+filepath.Base(mustAbs(root)), jsonl)
+	if _, err := os.Stat(db); os.IsNotExist(err) {
+		st, err := engine.BuildWithProgress(root, db, rep)
+		if err != nil {
+			return err
+		}
+		done(fmt.Sprintf("indexed %d files (%d symbols)", st.FilesParsed, st.Symbols))
+		return nil
+	}
+	st, err := engine.PatchWithProgress(root, db, rep)
+	if err != nil {
+		return err
+	}
+	done(fmt.Sprintf("refreshed: %d files re-parsed, %d deleted", st.FilesParsed, st.Deleted))
 	return nil
 }
 
