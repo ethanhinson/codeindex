@@ -41,3 +41,38 @@ caller-count ranking recovers most. Deterministic, seeded, reproducible
 
 Agent A/B v6 gate (distinctive ≤10% regression / vague ≥30% / occurrences
 ≥30%) — phase 2 of this change.
+
+## Agent A/B v6 — gate verdict (2026-07-10)
+
+**v6 GATE: FAIL on the distinctive class; PASS on both new classes.**
+($5.4 + $0.9 iteration, 92 runs total, 0 timeouts.)
+
+| Class | Threshold | Measured | |
+| --- | --- | --- | --- |
+| vague_find | savings ≥30% | **+35.2%** | ✅ |
+| occurrences | savings ≥30% | **+70.5%** | ✅ |
+| distinctive (comprehension) | regression ≤10% | **−28.5%**, −25.5% after the registered wording iteration | ❌❌ |
+
+Supporting: overall mixed-set median +32.4%, success **B 95% vs A 85%**
+(+10 pp — the accuracy edge extends to locate tasks), adoption 100% on the new
+classes, 0 unparseable.
+
+### Interpretation and shipped configuration
+
+The tools win their domains decisively. The failure is the **ambient
+trigger**: sanctioning `find` in the always-visible note over-applies it to
+distinctive names plain grep answers in one call (v1's lesson, re-confirmed
+twice — adoption on distinctive tasks fell only to 58% after the sharpened
+wording). The iteration budget is spent, so per pre-registration:
+
+- **SHIPPED**: `codeindex find` + `codeindex grep` (CLI + MCP tools, whose
+  descriptions carry the exact-name caveat), the recall-benchmarked matcher,
+  README documentation.
+- **WITHHELD**: locate routing in the always-visible prompt note — reverted to
+  the v4-gated text ("locate → plain grep"). Agents reach find/grep via MCP
+  descriptions or when instructed, not ambiently.
+- Any future note change proposing locate routing requires its own gate.
+
+The meta-lesson now measured three times (v1, v3, v6): the always-visible
+note is a powerful and blunt instrument — whatever it sanctions WILL be
+over-applied. Tool quality and trigger discipline are separate products.

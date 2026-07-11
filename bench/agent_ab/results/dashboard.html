@@ -1759,6 +1759,278 @@ testWhereIntegerNotInRaw  tests/Database/DatabaseQueryBuilderTest.php
 testEmptyWhereIntegerNotInRaw  tests/Database/DatabaseQueryBuilderTest.php
 testWhereIntegerInRaw  tests/Integration/Database/EloquentWhereTest.php</pre></div></div></td></tr></tbody></table>
         </div>
+        <div class="exp">
+          <h2>v6 · locate (find + enriched grep) <span class="badge GREEN">GREEN</span></h2>
+          <div class="tag">SPLIT: vague-find +35%, occurrences +70% (tools SHIPPED) · distinctive -25% after iteration (ambient routing WITHHELD, note reverted to v4 text) · success 95% vs 85% · 20 tasks · 95% CI (16.6, 62.3)</div>
+          <div class="cards"><div class="c"><div class="v pos">+38%</div><div class="l">median cost Δ (B vs A)</div></div><div class="c"><div class="v ">75%</div><div class="l">win rate (B cheaper)</div></div><div class="c"><div class="v ">85→95%</div><div class="l">success A→B</div></div><div class="c"><div class="v ">88%</div><div class="l">adoption</div></div><div class="c"><div class="v ">4→2</div><div class="l">median turns A→B</div></div><div class="c"><div class="v ">$5.27</div><div class="l">run cost</div></div></div>
+          <table><thead><tr><th>task</th><th>repo</th><th>cost A</th><th>cost B</th>
+          <th>Δ cost</th><th>succ A/B</th><th>turns A/B</th></tr></thead>
+          <tbody><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-0')"><td>gin-Delims</td><td>gin</td><td class="num">$0.033</td><td class="num">$0.039</td><td class="num neg">-18%</td><td class="num">1.0/1.0</td><td class="num">2/3</td></tr><tr id="v6·locate(find+enrichedgrep)-0" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0230 · turns 2 · codeindex 0 · f1 0.955 · tools {&#x27;Grep&#x27;: 1}</div><pre>DEFINITIONS:
+render/html.go:13
+gin.go:244
+
+FILES:
+gin.go
+render/html.go
+render/render_test.go
+gin_test.go
+debug_test.go
+docs/doc.md</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0292 · turns 3 · codeindex 1 · f1 0.955 · tools {&#x27;Bash&#x27;: 1, &#x27;Grep&#x27;: 1}</div><pre>DEFINITIONS:
+- render/html.go:13
+- gin.go:244
+
+FILES:
+- gin.go
+- render/html.go
+- render/render_test.go
+- gin_test.go
+- debug_test.go
+- docs/doc.md</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-1')"><td>gin-File</td><td>gin</td><td class="num">$0.094</td><td class="num">$0.053</td><td class="num pos">+43%</td><td class="num">1.0/1.0</td><td class="num">7/5</td></tr><tr id="v6·locate(find+enrichedgrep)-1" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0346 · turns 4 · codeindex 0 · f1 0.95 · tools {&#x27;Grep&#x27;: 3}</div><pre>DEFINITIONS:
+context.go:1074
+
+FILES:
+binding/binding_test.go
+binding/multipart_form_mapping.go
+CHANGELOG.md
+context.go
+context_test.go
+docs/doc.md
+fs.go
+gin_integration_test.go
+logger.go
+routergroup.go
+testdata/protoexample/test.pb.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0719 · turns 6 · codeindex 1 · f1 0.783 · tools {&#x27;Bash&#x27;: 5}</div><pre>DEFINITIONS:
+context.go:1074
+fs.go:33
+
+FILES:
+binding/binding_test.go
+binding/multipart_form_mapping.go
+context.go
+context_test.go
+fs.go
+gin_integration_test.go
+logger.go
+routergroup.go
+testdata/protoexample/test.pb.go</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-2')"><td>gin-IsType</td><td>gin</td><td class="num">$0.037</td><td class="num">$0.046</td><td class="num neg">-26%</td><td class="num">1.0/1.0</td><td class="num">4/4</td></tr><tr id="v6·locate(find+enrichedgrep)-2" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0414 · turns 3 · codeindex 0 · f1 0.833 · tools {&#x27;Grep&#x27;: 2}</div><pre>DEFINITIONS:
+errors.go:89
+
+FILES:
+errors.go
+CHANGELOG.md</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0545 · turns 4 · codeindex 1 · f1 0.833 · tools {&#x27;Bash&#x27;: 1, &#x27;Grep&#x27;: 2}</div><pre>DEFINITIONS:
+errors.go:89
+
+FILES:
+CHANGELOG.md
+errors.go</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-3')"><td>prometheus-ContainsSameLabelset</td><td>prometheus</td><td class="num">$0.033</td><td class="num">$0.047</td><td class="num neg">-42%</td><td class="num">1.0/1.0</td><td class="num">3/4</td></tr><tr id="v6·locate(find+enrichedgrep)-3" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0431 · turns 3 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 2}</div><pre>DEFINITIONS:
+promql/value.go:270
+promql/value.go:323
+
+FILES:
+promql/engine.go
+promql/functions.go
+promql/value.go
+promql/value_test.go
+rules/recording.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0584 · turns 3 · codeindex 0 · f1 1.0 · tools {&#x27;Bash&#x27;: 2}</div><pre>DEFINITIONS:
+- `promql/value.go:270`
+- `promql/value.go:323`
+
+FILES:
+- `promql/value.go`
+- `promql/value_test.go`
+- `promql/engine.go`
+- `promql/functions.go`
+- `rules/recording.go`</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-4')"><td>prometheus-CountWarningsAndInfo</td><td>prometheus</td><td class="num">$0.029</td><td class="num">$0.036</td><td class="num neg">-25%</td><td class="num">1.0/1.0</td><td class="num">2/3</td></tr><tr id="v6·locate(find+enrichedgrep)-4" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0377 · turns 2 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 1}</div><pre>DEFINITIONS:
+util/annotations/annotations.go:116
+
+FILES:
+util/annotations/annotations.go
+promql/promqltest/test.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0254 · turns 3 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1, &#x27;Grep&#x27;: 1}</div><pre>DEFINITIONS:
+util/annotations/annotations.go:116
+
+FILES:
+util/annotations/annotations.go
+promql/promqltest/test.go</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-5')"><td>prometheus-runTest</td><td>prometheus</td><td class="num">$0.039</td><td class="num">$0.058</td><td class="num neg">-48%</td><td class="num">1.0/1.0</td><td class="num">4/4</td></tr><tr id="v6·locate(find+enrichedgrep)-5" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0425 · turns 3 · codeindex 0 · f1 0.929 · tools {&#x27;Grep&#x27;: 2}</div><pre>DEFINITIONS:
+promql/promqltest/test.go:151
+
+FILES:
+scrape/scrape_test.go
+promql/promqltest/test.go
+promql/functions_internal_test.go
+cmd/prometheus/reload_test.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0576 · turns 5 · codeindex 0 · f1 0.75 · tools {&#x27;Bash&#x27;: 4}</div><pre>DEFINITIONS:
+- `promql/promqltest/test.go:151`
+- `scrape/scrape_test.go:2685` (local closure: `runTest := func(...)`)
+- `promql/functions_internal_test.go:62` (local closure: `runTest := func(...)`)
+
+FILES:
+- `promql/promqltest/test.go`
+- `scrape/scrape_test.go`
+- `promql/functions_internal_test.go`</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-6')"><td>gin-Abort</td><td>gin</td><td class="num">$0.108</td><td class="num">$0.029</td><td class="num pos">+73%</td><td class="num">1.0/1.0</td><td class="num">10/2</td></tr><tr id="v6·locate(find+enrichedgrep)-6" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.1048 · turns 9 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 7}</div><pre>CALLERS:
+```
+AbortWithStatus  context.go
+AbortWithStatusJSON  context.go
+Render  context.go
+TestContextIsAborted  context_test.go
+CustomRecoveryWithWriter  recovery.go
+```</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0405 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>CALLERS:
+Context.AbortWithStatus  context.go
+Context.AbortWithStatusJSON  context.go
+Context.Render  context.go
+TestContextIsAborted  context_test.go
+CustomRecoveryWithWriter  recovery.go</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-7')"><td>gin-Open</td><td>gin</td><td class="num">$0.115</td><td class="num">$0.074</td><td class="num pos">+35%</td><td class="num">1.0/1.0</td><td class="num">8/4</td></tr><tr id="v6·locate(find+enrichedgrep)-7" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.1087 · turns 7 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 5}</div><pre>CALLERS:
+```
+SaveUploadedFile  context.go
+Open  fs.go
+createStaticHandler  routergroup.go
+assertMultipartFileHeader  binding/multipart_form_mapping_test.go
+createFormFilesMultipartRequest  binding/binding_test.go
+createFormFilesMultipartRequestFail  binding/binding_test.go
+TestBindingFormFilesMultipart  binding/binding_test.go
+```</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.1060 · turns 7 · codeindex 5 · f1 1.0 · tools {&#x27;Bash&#x27;: 5, &#x27;Read&#x27;: 1}</div><pre>`onlyFilesFS.Open` calls `Open` on its inner `fs.fs` field at line 34, so it is both the definition and a caller.
+
+CALLERS:
+```
+createFormFilesMultipartRequest  binding/binding_test.go
+createFormFilesMultipartRequestFail  binding/binding_test.go
+TestBindingFormFilesMultipart  binding/binding_test.go
+assertMultipartFileHeader  binding/multipart_form_mapping_test.go
+Context.SaveUploadedFile  context.go
+onlyFilesFS.Open  fs.go
+RouterGroup.createStaticHandler  routergroup.go
+```</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-8')"><td>gin-mappingByPtr</td><td>gin</td><td class="num">$0.105</td><td class="num">$0.038</td><td class="num pos">+64%</td><td class="num">1.0/1.0</td><td class="num">7/2</td></tr><tr id="v6·locate(find+enrichedgrep)-8" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0961 · turns 8 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 6}</div><pre>CALLERS:
+mapHeader  binding/header.go
+mapFormByTag  binding/form_mapping.go
+Bind  binding/form.go
+TestMappingDefault  binding/form_mapping_test.go
+TestMappingSkipField  binding/form_mapping_test.go
+TestMappingIgnoreField  binding/form_mapping_test.go
+TestMappingUnexportedField  binding/form_mapping_test.go
+TestMappingPrivateField  binding/form_mapping_test.go
+TestMappingUnknownFieldType  binding/form_mapping_test.go
+TestMappingTimeDuration  binding/form_mapping_test.go
+TestMappingSlice  binding/form_mapping_test.go
+TestMappingArray  binding/form_mapping_test.go
+TestMappingStructField  binding/form_mapping_test.go
+TestMappingPtrField  binding/form_mapping_test.go
+TestMappingMapField  binding/form_mapping_test.go
+TestMappingIgnoredCircularRef  binding/form_mapping_test.go
+TestMappingCustomUnmarshalParamHexWithFormTag  binding/form_mapping_test.go
+TestMappingCustomUnmarshalParamHexWithURITag  binding/form_mapping_test.go
+TestMappingCustomStructTypeWithFormTag  binding/form_mapping_test.go
+TestMappingCustomStructTypeWithURITag  binding/form_mapping_test.go
+TestMappingCustomPointerStructTypeWithFormTag  binding/form_mapping_test.go
+TestMappingCustomPointerStructTypeWithURITag  binding/form_mapping_test.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0277 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>CALLERS:
+formMultipartBinding.Bind  binding/form.go
+mapFormByTag  binding/form_mapping.go
+TestMappingDefault  binding/form_mapping_test.go
+TestMappingSkipField  binding/form_mapping_test.go
+TestMappingIgnoreField  binding/form_mapping_test.go
+TestMappingUnexportedField  binding/form_mapping_test.go
+TestMappingPrivateField  binding/form_mapping_test.go
+TestMappingUnknownFieldType  binding/form_mapping_test.go
+TestMappingTimeDuration  binding/form_mapping_test.go
+TestMappingSlice  binding/form_mapping_test.go
+TestMappingArray  binding/form_mapping_test.go
+TestMappingStructField  binding/form_mapping_test.go
+TestMappingPtrField  binding/form_mapping_test.go
+TestMappingMapField  binding/form_mapping_test.go
+TestMappingIgnoredCircularRef  binding/form_mapping_test.go
+TestMappingCustomUnmarshalParamHexWithFormTag  binding/form_mapping_test.go
+TestMappingCustomUnmarshalParamHexWithURITag  binding/form_mapping_test.go
+TestMappingCustomStructTypeWithFormTag  binding/form_mapping_test.go
+TestMappingCustomStructTypeWithURITag  binding/form_mapping_test.go
+TestMappingCustomPointerStructTypeWithFormTag  binding/form_mapping_test.go
+TestMappingCustomPointerStructTypeWithURITag  binding/form_mapping_test.go
+mapHeader  binding/header.go</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-9')"><td>prometheus-ActiveAlerts</td><td>prometheus</td><td class="num">$0.198</td><td class="num">$0.031</td><td class="num pos">+85%</td><td class="num">1.0/1.0</td><td class="num">16/2</td></tr><tr id="v6·locate(find+enrichedgrep)-9" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.1658 · turns 12 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 4, &#x27;Read&#x27;: 7}</div><pre>I have all the information needed. The callers of `ActiveAlerts` (excluding `ActiveAlertsCount` and the definition itself) and their enclosing functions are:
+
+- `rules/manager_test.go:190` → inside `TestAlertingRule` (starts line 55)
+- `rules/manager_test.go:343` → inside `TestForStateAddSamples` (starts line 196)
+- `rules/manager_test.go:429, 490` → inside `TestForStateRestore` (starts line 358)
+- `cmd/promtool/unittest.go:343` → inside `(tg *testGroup) test` (starts line 201)
+- `web/api/v1/api.go:1279` → inside `(api *API) alerts` (starts line 1272)
+- `web/api/v1/api.go:1528` → inside `(api *API) rules` (starts line 1431)
+
+CALLERS:
+TestAlertingRule  rules/manager_test.go
+TestForStateAddSamples  rules/manager_test.go
+TestForStateRestore  rules/manager_test.go
+test  cmd/promtool/unittest.go
+alerts  web/api/v1/api.go
+rules  web/api/v1/api.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0415 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>CALLERS:
+testGroup.test  cmd/promtool/unittest.go
+TestAlertingRule  rules/manager_test.go
+TestForStateAddSamples  rules/manager_test.go
+TestForStateRestore  rules/manager_test.go
+TestForStateRestore  rules/manager_test.go
+API.alerts  web/api/v1/api.go
+API.rules  web/api/v1/api.go</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-10')"><td>prometheus-Decode</td><td>prometheus</td><td class="num">$0.311</td><td class="num">$0.035</td><td class="num pos">+89%</td><td class="num">1.0/1.0</td><td class="num">25/2</td></tr><tr id="v6·locate(find+enrichedgrep)-10" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.3484 · turns 30 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 28}</div><pre>I have all the data needed. Here is the complete answer:
+
+CALLERS:
+ServeHTTP  storage/remote/write_handler.go
+DecodeReadRequest  storage/remote/codec.go
+DecodeWriteRequest  storage/remote/codec.go
+DecodeWriteV2Request  storage/remote/codec.go
+Store  storage/remote/queue_manager_test.go
+Parse  model/rulefmt/rulefmt.go
+handleSampledResponse  storage/remote/client.go
+serve  documentation/examples/remote_storage/remote_storage_adapter/main.go
+next  tsdb/wlog/reader.go
+buildRecord  tsdb/wlog/live_reader.go
+decodeTombstonesSnapshotRecord  tsdb/head_wal.go
+BenchmarkParse  model/textparse/benchmark_test.go
+TestSampledReadEndpoint  storage/remote/read_handler_test.go
+ReadTombstones  tsdb/tombstones/tombstones.go
+UnmarshalJSON  discovery/targetgroup/targetgroup.go
+fetchApps  discovery/eureka/client.go
+mockServer  discovery/puppetdb/puppetdb_test.go</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0461 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>CALLERS:
+fetchApps  discovery/eureka/client.go
+mockServer  discovery/puppetdb/puppetdb_test.go
+Group.UnmarshalJSON  discovery/targetgroup/targetgroup.go
+serve  documentation/examples/remote_storage/remote_storage_adapter/main.go
+Parse  model/rulefmt/rulefmt.go
+BenchmarkParse  model/textparse/benchmark_test.go
+Client.handleSampledResponse  storage/remote/client.go
+DecodeReadRequest  storage/remote/codec.go
+DecodeWriteRequest  storage/remote/codec.go
+DecodeWriteV2Request  storage/remote/codec.go
+TestWriteClient.Store  storage/remote/queue_manager_test.go
+TestSampledReadEndpoint  storage/remote/read_handler_test.go
+writeHandler.ServeHTTP  storage/remote/write_handler.go
+decodeTombstonesSnapshotRecord  tsdb/head_wal.go
+ReadTombstones  tsdb/tombstones/tombstones.go
+LiveReader.buildRecord  tsdb/wlog/live_reader.go
+Reader.next  tsdb/wlog/reader.go</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-11')"><td>prometheus-DetectReset</td><td>prometheus</td><td class="num">$0.098</td><td class="num">$0.031</td><td class="num pos">+68%</td><td class="num">1.0/1.0</td><td class="num">9/2</td></tr><tr id="v6·locate(find+enrichedgrep)-11" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0955 · turns 8 · codeindex 0 · f1 0.8 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 6}</div><pre>CALLERS:
+```
+getFloatResetHint  promql/histogram_stats_iterator.go
+getResetHint  promql/histogram_stats_iterator.go
+histogramRate  promql/functions.go
+funcResets  promql/functions.go
+```</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0205 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>CALLERS:
+TestFloatHistogramDetectReset  model/histogram/float_histogram_test.go
+BenchmarkFloatHistogramDetectReset  model/histogram/float_histogram_test.go
+histogramRate  promql/functions.go
+funcResets  promql/functions.go
+histogramStatsIterator.getFloatResetHint  promql/histogram_stats_iterator.go
+histogramStatsIterator.getResetHint  promql/histogram_stats_iterator.go</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-12')"><td>gin-DisableConsoleColor</td><td>gin</td><td class="num">$0.039</td><td class="num">$0.029</td><td class="num pos">+27%</td><td class="num">0.5/1.0</td><td class="num">4/2</td></tr><tr id="v6·locate(find+enrichedgrep)-12" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0543 · turns 4 · codeindex 0 · f1 0.0 · tools {&#x27;Grep&#x27;: 3}</div><pre>NAME: `disableColor`
+DEFINITION: logger.go:21</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0392 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>NAME: DisableConsoleColor
+DEFINITION: logger.go:164</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-13')"><td>gin-SetHTMLTemplate</td><td>gin</td><td class="num">$0.307</td><td class="num">$0.029</td><td class="num pos">+91%</td><td class="num">0.5/1.0</td><td class="num">12/2</td></tr><tr id="v6·locate(find+enrichedgrep)-13" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.1854 · turns 10 · codeindex 0 · f1 0.0 · tools {&#x27;Grep&#x27;: 7, &#x27;Read&#x27;: 1, &#x27;Glob&#x27;: 1}</div><pre>NAME: HTMLProduction
+DEFINITION: render/html.go:27</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0396 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>NAME: `SetHTMLTemplate`
+DEFINITION: `gin.go:284`</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-14')"><td>gin-isTrustedProxy</td><td>gin</td><td class="num">$0.038</td><td class="num">$0.029</td><td class="num pos">+25%</td><td class="num">1.0/1.0</td><td class="num">2/2</td></tr><tr id="v6·locate(find+enrichedgrep)-14" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0581 · turns 3 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 2}</div><pre>NAME: `isTrustedProxy`
+DEFINITION: `gin.go:458`</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0396 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>NAME: isTrustedProxy
+DEFINITION: gin.go:458</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-15')"><td>gin-setWithProperType</td><td>gin</td><td class="num">$0.031</td><td class="num">$0.029</td><td class="num pos">+8%</td><td class="num">1.0/1.0</td><td class="num">2/2</td></tr><tr id="v6·locate(find+enrichedgrep)-15" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0426 · turns 3 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 2}</div><pre>NAME: setWithProperType
+DEFINITION: binding/form_mapping.go:221</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0392 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>NAME: setWithProperType
+DEFINITION: binding/form_mapping.go:221</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-16')"><td>prometheus-CustomInfiniteScroll</td><td>prometheus</td><td class="num">$0.077</td><td class="num">$0.030</td><td class="num pos">+61%</td><td class="num">0.5/1.0</td><td class="num">4/2</td></tr><tr id="v6·locate(find+enrichedgrep)-16" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0694 · turns 4 · codeindex 0 · f1 0.0 · tools {&#x27;Grep&#x27;: 2, &#x27;Read&#x27;: 1}</div><pre>NAME: ErrHistogramCustomBucketsInfinite
+DEFINITION: model/histogram/generic.go:37</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0201 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>NAME: `CustomInfiniteScroll`
+DEFINITION: `web/ui/mantine-ui/src/components/CustomInfiniteScroll.tsx:15`</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-17')"><td>prometheus-PostingsCardinalityStats</td><td>prometheus</td><td class="num">$0.058</td><td class="num">$0.041</td><td class="num pos">+30%</td><td class="num">0.5/1.0</td><td class="num">4/2</td></tr><tr id="v6·locate(find+enrichedgrep)-17" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0626 · turns 5 · codeindex 0 · f1 0.0 · tools {&#x27;Grep&#x27;: 2, &#x27;Read&#x27;: 2}</div><pre>NAME: PostingsStats
+DEFINITION: tsdb/index/postings.go:184</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0186 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>NAME: PostingsCardinalityStats
+DEFINITION: tsdb/head.go:1033</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-18')"><td>prometheus-closeAndDrain</td><td>prometheus</td><td class="num">$0.049</td><td class="num">$0.029</td><td class="num pos">+41%</td><td class="num">1.0/1.0</td><td class="num">4/2</td></tr><tr id="v6·locate(find+enrichedgrep)-18" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0663 · turns 4 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 2, &#x27;Read&#x27;: 1}</div><pre>NAME: closeAndDrain
+DEFINITION: tsdb/head_wal.go:528</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0398 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>NAME: `closeAndDrain`
+DEFINITION: `tsdb/head_wal.go:528`</pre></div></div></td></tr><tr class="task" onclick="toggle('v6·locate(find+enrichedgrep)-19')"><td>prometheus-setScrapeFailureLogger</td><td>prometheus</td><td class="num">$0.073</td><td class="num">$0.029</td><td class="num pos">+60%</td><td class="num">0.0/0.0</td><td class="num">5/2</td></tr><tr id="v6·locate(find+enrichedgrep)-19" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0757 · turns 6 · codeindex 0 · f1 0.0 · tools {&#x27;Grep&#x27;: 2, &#x27;Read&#x27;: 3}</div><pre>The field `scrapeFailureLoggers` (line 110) is a map (set) of failure loggers. But the question asks for a symbol whose name means &quot;failure logger set&quot; — this could also be interpreted as a setter function (`SetScrapeFailureLogger`). The field name `scrapeFailureLoggers` literally means &quot;scrape failure loggers [collection/set]&quot;, which matches &quot;failure logger set&quot; most directly.
+
+NAME: scrapeFailureLoggers
+DEFINITION: scrape/manager.go:110</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0183 · turns 2 · codeindex 1 · f1 0.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>NAME: `SetScrapeFailureLogger`
+DEFINITION: `scrape/scrape.go:226`</pre></div></div></td></tr></tbody></table>
+        </div>
 <div class="foot">Generated from graded run data by <code>dashboard.py</code>.
 Ground truth is arm-neutral (ripgrep / merged-PR files / index caller lists,
 hand-verified). Thresholds pre-registered before the runs. See FINDINGS.md /

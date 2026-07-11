@@ -37,6 +37,10 @@ EXPERIMENTS = [
     ("v5 · laravel (PHP) + lexical resolution", "graded_v5.jsonl", "tasks_v5.json",
      "GREEN: boundary holds off-Go — +64% median (CI 57-83), 100% win rate, "
      "success 100% vs 93.8%, qualified anchors live (Type::method)"),
+    ("v6 · locate (find + enriched grep)", "graded_v6b.jsonl", "tasks_v6b.json",
+     "SPLIT: vague-find +35%, occurrences +70% (tools SHIPPED) · distinctive "
+     "-25% after iteration (ambient routing WITHHELD, note reverted to v4 text) · "
+     "success 95% vs 85%"),
 ]
 
 
