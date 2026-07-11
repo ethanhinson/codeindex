@@ -24,8 +24,8 @@ import sys
 sys.path.insert(0, str(HERE.parent))
 from build_tasks import repo_path  # noqa: E402
 
-GO_FILELINE = re.compile(r"([\w./\-]+\.go):(\d+)")
-GO_FILE = re.compile(r"([\w./\-]+\.go)\b")
+GO_FILELINE = re.compile(r"([\w./\-]+\.(?:go|ts|tsx|js|jsx|py|php)):(\d+)")
+GO_FILE = re.compile(r"([\w./\-]+\.(?:go|ts|tsx|js|jsx|py|php))\b")
 
 
 def norm_path(p: str, repo_prefix: str) -> str:

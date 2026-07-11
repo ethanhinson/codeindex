@@ -7,7 +7,7 @@
 
 ## 2. Storage layer (symbol-graph)
 
-- [ ] 2.1 Evolve the proven skeleton schema: normalize file paths to `file_id` + interned strings (the main index-size lever), add `parent_id` for qualified names, keep the proven `dst_name`/`line`/source-file linkage on edges
+- [ ] 2.1 Evolve the proven skeleton schema: normalize file paths to `file_id` + interned strings (the main index-size lever) — parent/qualified-names portion DONE in `precise-resolution` (as parent TEXT, content-key rationale; deviation from parent_id recorded there)
 - [x] 2.2 Schema creation on first open of `.codeindex/graph.db` (done in skeleton; add migration when 2.1 changes the schema)
 - [x] 2.3 Graph store CRUD in a transaction (done in skeleton)
 - [x] 2.4 Test: per-file replace removes stale rows and leaves other files untouched (covered by skeleton engine tests)

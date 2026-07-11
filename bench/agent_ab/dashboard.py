@@ -34,6 +34,9 @@ EXPERIMENTS = [
     ("v4 · stripped plugin (note + hook)", "graded_v4.jsonl", "tasks_v4.json",
      "GATE PASS: footprint <250 tok + trust instruction · branch-out +62%, "
      "locate -7.4% (in tolerance), hook 100%/0 false, accuracy 100% vs 93.8%"),
+    ("v5 · laravel (PHP) + lexical resolution", "graded_v5.jsonl", "tasks_v5.json",
+     "GREEN: boundary holds off-Go — +64% median (CI 57-83), 100% win rate, "
+     "success 100% vs 93.8%, qualified anchors live (Type::method)"),
 ]
 
 

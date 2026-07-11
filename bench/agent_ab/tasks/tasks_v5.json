@@ -1,0 +1,214 @@
+{
+  "header": {
+    "generated_seed": 5150,
+    "repo_pins": {
+      "laravel-framework": {
+        "slug": "laravel/framework",
+        "commit": "v11.38.0"
+      }
+    },
+    "thresholds": {
+      "metric": "median paired reduction in total_cost_usd",
+      "green": "savings >= 30% AND success_delta >= -5pp AND adoption >= 70%",
+      "yellow": "savings 10-30%, OR adoption 40-70% with per-protocol savings >= 30%",
+      "red": "savings < 10% (ITT), OR success_delta < -5pp, OR adoption < 40% with per-protocol savings < 30%"
+    },
+    "v3_gate": null,
+    "n_tasks": 8,
+    "by_type": {
+      "comprehension": 0,
+      "localization": 0,
+      "caller_attribution": 8,
+      "edit_impact": 0
+    },
+    "note": "Prompts contain the literal {REPO_PATH}; the runner substitutes the resolved absolute clone path. Ground truth is arm-neutral (ripgrep / merged-PR files).",
+    "v5_expectation": {
+      "branchout_savings_min_pct": 30,
+      "success_delta_min_pp": -5,
+      "note": "Pre-registered (precise-resolution): boundary must hold off-Go \u2014 median paired cost reduction >=30% on laravel caller-attribution with success delta >= -5pp, plugin arm."
+    }
+  },
+  "tasks": [
+    {
+      "id": "callattr-laravel-framework-insertGetId",
+      "type": "caller_attribution",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'insertGetId'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "insertAndSetId\tsrc/Illuminate/Database/Eloquent/Model.php",
+          "log\tsrc/Illuminate/Queue/Failed/DatabaseFailedJobProvider.php",
+          "pushToDatabase\tsrc/Illuminate/Queue/DatabaseQueue.php",
+          "testAlteringTableWithForeignKeyConstraintsEnabled\ttests/Integration/Database/SchemaBuilderTest.php",
+          "testInsertGetIdMethod\ttests/Database/DatabaseQueryBuilderTest.php",
+          "testInsertGetIdMethodRemovesExpressions\ttests/Database/DatabaseQueryBuilderTest.php",
+          "testInsertGetIdWithEmptyValues\ttests/Database/DatabaseQueryBuilderTest.php",
+          "testLastInsertIdIsPreserved\ttests/Integration/Database/MySql/DatabaseMySqlConnectionTest.php",
+          "testPostgresInsertGetId\ttests/Database/DatabaseQueryBuilderTest.php",
+          "testPreservedAreAppliedByInsertGetId\ttests/Database/DatabaseQueryBuilderTest.php",
+          "testQueryPassThru\ttests/Database/DatabaseEloquentBuilderTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "insertGetId",
+        "n_callers": 11
+      }
+    },
+    {
+      "id": "callattr-laravel-framework-flashInput",
+      "type": "caller_attribution",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'flashInput'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "flash\tsrc/Illuminate/Http/Concerns/InteractsWithFlashData.php",
+          "flashExcept\tsrc/Illuminate/Http/Concerns/InteractsWithFlashData.php",
+          "flashOnly\tsrc/Illuminate/Http/Concerns/InteractsWithFlashData.php",
+          "flush\tsrc/Illuminate/Http/Concerns/InteractsWithFlashData.php",
+          "testHasOldInputWithoutKey\ttests/Session/SessionStoreTest.php",
+          "testOldInputFlashing\ttests/Session/SessionStoreTest.php",
+          "withInput\tsrc/Illuminate/Http/RedirectResponse.php"
+        ]
+      },
+      "meta": {
+        "symbol": "flashInput",
+        "n_callers": 7
+      }
+    },
+    {
+      "id": "callattr-laravel-framework-fileExists",
+      "type": "caller_attribution",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'fileExists'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "append\tsrc/Illuminate/Filesystem/FilesystemAdapter.php",
+          "fileExists\tsrc/Illuminate/Filesystem/FilesystemAdapter.php",
+          "fileMissing\tsrc/Illuminate/Filesystem/FilesystemAdapter.php",
+          "moveManagedFiles\tsrc/Illuminate/Foundation/Console/VendorPublishCommand.php",
+          "prepend\tsrc/Illuminate/Filesystem/FilesystemAdapter.php",
+          "testExists\ttests/Filesystem/FilesystemAdapterTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "fileExists",
+        "n_callers": 6
+      }
+    },
+    {
+      "id": "callattr-laravel-framework-formatCommandString",
+      "type": "caller_attribution",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'formatCommandString'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "buildBackgroundCommand\tsrc/Illuminate/Console/Scheduling/CommandBuilder.php",
+          "command\tsrc/Illuminate/Console/Scheduling/Schedule.php",
+          "defer\tsrc/Illuminate/Concurrency/ProcessDriver.php",
+          "handle\tsrc/Illuminate/Console/Scheduling/ScheduleWorkCommand.php",
+          "run\tsrc/Illuminate/Concurrency/ProcessDriver.php",
+          "testRunUsingChoices\ttests/Integration/Console/Scheduling/ScheduleTestCommandTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "formatCommandString",
+        "n_callers": 6
+      }
+    },
+    {
+      "id": "callattr-laravel-framework-mediumInteger",
+      "type": "caller_attribution",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'mediumInteger'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "testAddingMediumInteger\ttests/Database/DatabaseMariaDbSchemaGrammarTest.php",
+          "testAddingMediumInteger\ttests/Database/DatabaseMySqlSchemaGrammarTest.php",
+          "testAddingMediumInteger\ttests/Database/DatabasePostgresSchemaGrammarTest.php",
+          "testAddingMediumInteger\ttests/Database/DatabaseSQLiteSchemaGrammarTest.php",
+          "testAddingMediumInteger\ttests/Database/DatabaseSqlServerSchemaGrammarTest.php",
+          "unsignedMediumInteger\tsrc/Illuminate/Database/Schema/Blueprint.php"
+        ]
+      },
+      "meta": {
+        "symbol": "mediumInteger",
+        "n_callers": 6
+      }
+    },
+    {
+      "id": "callattr-laravel-framework-morphMap",
+      "type": "caller_attribution",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'morphMap'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "enforceMorphMap\tsrc/Illuminate/Database/Eloquent/Relations/Relation.php",
+          "getActualClassNameForMorph\tsrc/Illuminate/Database/Eloquent/Concerns/HasRelationships.php",
+          "getMorphClass\tsrc/Illuminate/Database/Eloquent/Concerns/HasRelationships.php",
+          "getNamespacedRelation\ttests/Database/DatabaseEloquentMorphTest.php",
+          "tearDown\ttests/Database/DatabaseEloquentIntegrationTest.php",
+          "tearDown\ttests/Database/DatabaseEloquentIntegrationWithTablePrefixTest.php",
+          "tearDown\ttests/Database/DatabaseEloquentMorphTest.php",
+          "tearDown\ttests/Database/DatabaseEloquentPolymorphicRelationsIntegrationTest.php",
+          "tearDown\ttests/Database/DatabaseEloquentStrictMorphsTest.php",
+          "testCorrectMorphClassIsReturned\ttests/Database/DatabaseEloquentModelTest.php",
+          "testGetMorphAlias\ttests/Database/DatabaseEloquentRelationTest.php",
+          "testMorphMapIsMergedByDefault\ttests/Database/DatabaseEloquentIntegrationTest.php",
+          "testMorphMapIsUsedForCreatingAndFetchingThroughRelation\ttests/Database/DatabaseEloquentIntegrationTest.php",
+          "testMorphMapIsUsedWhenFetchingParent\ttests/Database/DatabaseEloquentIntegrationTest.php",
+          "testMorphMapOverwritesCurrentMap\ttests/Database/DatabaseEloquentIntegrationTest.php",
+          "testSettingMorphMapWithNumericArrayUsesTheTableNames\ttests/Database/DatabaseEloquentRelationTest.php",
+          "testSettingMorphMapWithNumericKeys\ttests/Database/DatabaseEloquentRelationTest.php",
+          "testStrictModeDoesNotThrowExceptionWhenMorphMap\ttests/Database/DatabaseEloquentStrictMorphsTest.php",
+          "testWhereHasMorphWithMorphMap\ttests/Integration/Database/EloquentWhereHasMorphTest.php",
+          "testWhereHasMorphWithWildcardAndMorphMap\ttests/Integration/Database/EloquentWhereHasMorphTest.php",
+          "testWhereMorphedToAlias\ttests/Database/DatabaseEloquentBuilderTest.php",
+          "whereMorphedTo\tsrc/Illuminate/Database/Eloquent/Concerns/QueriesRelationships.php",
+          "whereNotMorphedTo\tsrc/Illuminate/Database/Eloquent/Concerns/QueriesRelationships.php"
+        ]
+      },
+      "meta": {
+        "symbol": "morphMap",
+        "n_callers": 23
+      }
+    },
+    {
+      "id": "callattr-laravel-framework-whereIntegerNotInRaw",
+      "type": "caller_attribution",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'whereIntegerNotInRaw'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "orWhereIntegerNotInRaw\tsrc/Illuminate/Database/Query/Builder.php",
+          "testEmptyWhereIntegerNotInRaw\ttests/Database/DatabaseQueryBuilderTest.php",
+          "testWhereIntegerInRaw\ttests/Integration/Database/EloquentWhereTest.php",
+          "testWhereIntegerNotInRaw\ttests/Database/DatabaseQueryBuilderTest.php",
+          "whereKeyNot\tsrc/Illuminate/Database/Eloquent/Builder.php"
+        ]
+      },
+      "meta": {
+        "symbol": "whereIntegerNotInRaw",
+        "n_callers": 5
+      }
+    },
+    {
+      "id": "callattr-laravel-framework-getContents",
+      "type": "caller_attribution",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'getContents'. For each calling function, give its name and the file it is in. Answer as a 'CALLERS:' section with one entry per line in the exact form '<functionName>  <file>' (repo-relative path), nothing else. Base every entry on evidence from the code, not memory.",
+      "ground_truth": {
+        "caller_pairs": [
+          "renderContents\tsrc/Illuminate/View/View.php",
+          "sinkStubHandler\tsrc/Illuminate/Http/Client/PendingRequest.php",
+          "testMiddlewareRunsInPool\ttests/Http/HttpClientTest.php",
+          "testMiddlewareRunsWhenFaked\ttests/Http/HttpClientTest.php",
+          "testViewCacheCommandHandlesConfiguredBladeExtensions\ttests/Integration/View/BladeTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "getContents",
+        "n_callers": 5
+      }
+    }
+  ]
+}

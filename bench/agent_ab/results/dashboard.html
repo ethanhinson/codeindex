@@ -1613,6 +1613,152 @@ exponentialToNativeHistogram  storage/remote/otlptranslator/prometheusremotewrit
 addGaugeNumberDataPoints  storage/remote/otlptranslator/prometheusremotewrite/number_data_points.go
 addSumNumberDataPoints  storage/remote/otlptranslator/prometheusremotewrite/number_data_points.go</pre></div></div></td></tr></tbody></table>
         </div>
+        <div class="exp">
+          <h2>v5 · laravel (PHP) + lexical resolution <span class="badge GREEN">GREEN</span></h2>
+          <div class="tag">GREEN: boundary holds off-Go — +64% median (CI 57-83), 100% win rate, success 100% vs 93.8%, qualified anchors live (Type::method) · 8 tasks · 95% CI (56.8, 82.8)</div>
+          <div class="cards"><div class="c"><div class="v pos">+64%</div><div class="l">median cost Δ (B vs A)</div></div><div class="c"><div class="v ">100%</div><div class="l">win rate (B cheaper)</div></div><div class="c"><div class="v ">94→100%</div><div class="l">success A→B</div></div><div class="c"><div class="v ">100%</div><div class="l">adoption</div></div><div class="c"><div class="v ">8→2</div><div class="l">median turns A→B</div></div><div class="c"><div class="v ">$2.38</div><div class="l">run cost</div></div></div>
+          <table><thead><tr><th>task</th><th>repo</th><th>cost A</th><th>cost B</th>
+          <th>Δ cost</th><th>succ A/B</th><th>turns A/B</th></tr></thead>
+          <tbody><tr class="task" onclick="toggle('v5·laravel(PHP)+lexicalresolution-0')"><td>laravel-framework-fileExists</td><td>laravel-framework</td><td class="num">$0.075</td><td class="num">$0.030</td><td class="num pos">+59%</td><td class="num">1.0/1.0</td><td class="num">6/2</td></tr><tr id="v5·laravel(PHP)+lexicalresolution-0" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0819 · turns 6 · codeindex 0 · f1 0.909 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 4}</div><pre>CALLERS:
+fileMissing  src/Illuminate/Filesystem/FilesystemAdapter.php
+prepend  src/Illuminate/Filesystem/FilesystemAdapter.php
+append  src/Illuminate/Filesystem/FilesystemAdapter.php
+moveManagedFiles  src/Illuminate/Foundation/Console/VendorPublishCommand.php
+testExists  tests/Filesystem/FilesystemAdapterTest.php</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0421 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>CALLERS:
+fileExists  src/Illuminate/Filesystem/FilesystemAdapter.php
+fileMissing  src/Illuminate/Filesystem/FilesystemAdapter.php
+prepend  src/Illuminate/Filesystem/FilesystemAdapter.php
+append  src/Illuminate/Filesystem/FilesystemAdapter.php
+moveManagedFiles  src/Illuminate/Foundation/Console/VendorPublishCommand.php
+testExists  tests/Filesystem/FilesystemAdapterTest.php</pre></div></div></td></tr><tr class="task" onclick="toggle('v5·laravel(PHP)+lexicalresolution-1')"><td>laravel-framework-flashInput</td><td>laravel-framework</td><td class="num">$0.059</td><td class="num">$0.032</td><td class="num pos">+45%</td><td class="num">1.0/1.0</td><td class="num">4/2</td></tr><tr id="v5·laravel(PHP)+lexicalresolution-1" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0673 · turns 4 · codeindex 0 · f1 0.833 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 2}</div><pre>CALLERS:
+flash  src/Illuminate/Http/Concerns/InteractsWithFlashData.php
+flashOnly  src/Illuminate/Http/Concerns/InteractsWithFlashData.php
+flashExcept  src/Illuminate/Http/Concerns/InteractsWithFlashData.php
+flush  src/Illuminate/Http/Concerns/InteractsWithFlashData.php
+withInput  src/Illuminate/Http/RedirectResponse.php</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0211 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>CALLERS:
+flash  src/Illuminate/Http/Concerns/InteractsWithFlashData.php
+flashOnly  src/Illuminate/Http/Concerns/InteractsWithFlashData.php
+flashExcept  src/Illuminate/Http/Concerns/InteractsWithFlashData.php
+flush  src/Illuminate/Http/Concerns/InteractsWithFlashData.php
+withInput  src/Illuminate/Http/RedirectResponse.php
+testOldInputFlashing  tests/Session/SessionStoreTest.php
+testHasOldInputWithoutKey  tests/Session/SessionStoreTest.php</pre></div></div></td></tr><tr class="task" onclick="toggle('v5·laravel(PHP)+lexicalresolution-2')"><td>laravel-framework-formatCommandString</td><td>laravel-framework</td><td class="num">$0.081</td><td class="num">$0.032</td><td class="num pos">+61%</td><td class="num">1.0/1.0</td><td class="num">8/2</td></tr><tr id="v5·laravel(PHP)+lexicalresolution-2" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0928 · turns 7 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 5}</div><pre>CALLERS:
+handle  src/Illuminate/Console/Scheduling/ScheduleWorkCommand.php
+command  src/Illuminate/Console/Scheduling/Schedule.php
+buildBackgroundCommand  src/Illuminate/Console/Scheduling/CommandBuilder.php
+run  src/Illuminate/Concurrency/ProcessDriver.php
+defer  src/Illuminate/Concurrency/ProcessDriver.php
+testRunUsingChoices  tests/Integration/Console/Scheduling/ScheduleTestCommandTest.php</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0212 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>CALLERS:
+ProcessDriver.run  src/Illuminate/Concurrency/ProcessDriver.php
+ProcessDriver.defer  src/Illuminate/Concurrency/ProcessDriver.php
+CommandBuilder.buildBackgroundCommand  src/Illuminate/Console/Scheduling/CommandBuilder.php
+Schedule.command  src/Illuminate/Console/Scheduling/Schedule.php
+ScheduleWorkCommand.handle  src/Illuminate/Console/Scheduling/ScheduleWorkCommand.php
+ScheduleTestCommandTest.testRunUsingChoices  tests/Integration/Console/Scheduling/ScheduleTestCommandTest.php</pre></div></div></td></tr><tr class="task" onclick="toggle('v5·laravel(PHP)+lexicalresolution-3')"><td>laravel-framework-getContents</td><td>laravel-framework</td><td class="num">$0.096</td><td class="num">$0.031</td><td class="num pos">+68%</td><td class="num">1.0/1.0</td><td class="num">9/2</td></tr><tr id="v5·laravel(PHP)+lexicalresolution-3" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.1061 · turns 9 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 7}</div><pre>Now I have all the information needed.
+
+CALLERS:
+```
+sinkStubHandler  src/Illuminate/Http/Client/PendingRequest.php
+renderContents  src/Illuminate/View/View.php
+testViewCacheCommandHandlesConfiguredBladeExtensions  tests/Integration/View/BladeTest.php
+testMiddlewareRunsInPool  tests/Http/HttpClientTest.php
+testMiddlewareRunsWhenFaked  tests/Http/HttpClientTest.php
+```</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0209 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>CALLERS:
+sinkStubHandler  src/Illuminate/Http/Client/PendingRequest.php
+renderContents  src/Illuminate/View/View.php
+testMiddlewareRunsInPool  tests/Http/HttpClientTest.php
+testMiddlewareRunsWhenFaked  tests/Http/HttpClientTest.php
+testViewCacheCommandHandlesConfiguredBladeExtensions  tests/Integration/View/BladeTest.php</pre></div></div></td></tr><tr class="task" onclick="toggle('v5·laravel(PHP)+lexicalresolution-4')"><td>laravel-framework-insertGetId</td><td>laravel-framework</td><td class="num">$0.148</td><td class="num">$0.025</td><td class="num pos">+83%</td><td class="num">0.5/1.0</td><td class="num">12/2</td></tr><tr id="v5·laravel(PHP)+lexicalresolution-4" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0535 · turns 5 · codeindex 0 · f1 0.429 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 3}</div><pre>CALLERS:
+pushToDatabase  src/Illuminate/Queue/DatabaseQueue.php
+log  src/Illuminate/Queue/Failed/DatabaseFailedJobProvider.php
+insertAndSetId  src/Illuminate/Database/Eloquent/Model.php</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0256 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>CALLERS:
+insertAndSetId  src/Illuminate/Database/Eloquent/Model.php
+pushToDatabase  src/Illuminate/Queue/DatabaseQueue.php
+log  src/Illuminate/Queue/Failed/DatabaseFailedJobProvider.php
+testQueryPassThru  tests/Database/DatabaseEloquentBuilderTest.php
+testInsertGetIdMethod  tests/Database/DatabaseQueryBuilderTest.php
+testInsertGetIdMethodRemovesExpressions  tests/Database/DatabaseQueryBuilderTest.php
+testInsertGetIdWithEmptyValues  tests/Database/DatabaseQueryBuilderTest.php
+testInsertGetIdWithEmptyValues  tests/Database/DatabaseQueryBuilderTest.php
+testInsertGetIdWithEmptyValues  tests/Database/DatabaseQueryBuilderTest.php
+testInsertGetIdWithEmptyValues  tests/Database/DatabaseQueryBuilderTest.php
+testPreservedAreAppliedByInsertGetId  tests/Database/DatabaseQueryBuilderTest.php
+testPostgresInsertGetId  tests/Database/DatabaseQueryBuilderTest.php
+testLastInsertIdIsPreserved  tests/Integration/Database/MySql/DatabaseMySqlConnectionTest.php
+testAlteringTableWithForeignKeyConstraintsEnabled  tests/Integration/Database/SchemaBuilderTest.php</pre></div></div></td></tr><tr class="task" onclick="toggle('v5·laravel(PHP)+lexicalresolution-5')"><td>laravel-framework-mediumInteger</td><td>laravel-framework</td><td class="num">$0.077</td><td class="num">$0.033</td><td class="num pos">+57%</td><td class="num">1.0/1.0</td><td class="num">8/2</td></tr><tr id="v5·laravel(PHP)+lexicalresolution-5" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0731 · turns 8 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 6}</div><pre>CALLERS:
+unsignedMediumInteger  src/Illuminate/Database/Schema/Blueprint.php
+testAddingMediumInteger  tests/Database/DatabaseSQLiteSchemaGrammarTest.php
+testAddingMediumInteger  tests/Database/DatabaseMySqlSchemaGrammarTest.php
+testAddingMediumInteger  tests/Database/DatabasePostgresSchemaGrammarTest.php
+testAddingMediumInteger  tests/Database/DatabaseSqlServerSchemaGrammarTest.php
+testAddingMediumInteger  tests/Database/DatabaseMariaDbSchemaGrammarTest.php</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0434 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>CALLERS:
+unsignedMediumInteger  src/Illuminate/Database/Schema/Blueprint.php
+testAddingMediumInteger  tests/Database/DatabaseMariaDbSchemaGrammarTest.php
+testAddingMediumInteger  tests/Database/DatabaseMySqlSchemaGrammarTest.php
+testAddingMediumInteger  tests/Database/DatabasePostgresSchemaGrammarTest.php
+testAddingMediumInteger  tests/Database/DatabaseSQLiteSchemaGrammarTest.php
+testAddingMediumInteger  tests/Database/DatabaseSqlServerSchemaGrammarTest.php</pre></div></div></td></tr><tr class="task" onclick="toggle('v5·laravel(PHP)+lexicalresolution-6')"><td>laravel-framework-morphMap</td><td>laravel-framework</td><td class="num">$0.291</td><td class="num">$0.046</td><td class="num pos">+84%</td><td class="num">1.0/1.0</td><td class="num">22/2</td></tr><tr id="v5·laravel(PHP)+lexicalresolution-6" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.2542 · turns 21 · codeindex 0 · f1 1.0 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 19}</div><pre>CALLERS:
+getActualClassNameForMorph  src/Illuminate/Database/Eloquent/Concerns/HasRelationships.php
+getMorphClass  src/Illuminate/Database/Eloquent/Concerns/HasRelationships.php
+whereMorphedTo  src/Illuminate/Database/Eloquent/Concerns/QueriesRelationships.php
+whereNotMorphedTo  src/Illuminate/Database/Eloquent/Concerns/QueriesRelationships.php
+enforceMorphMap  src/Illuminate/Database/Eloquent/Relations/Relation.php
+testCorrectMorphClassIsReturned  tests/Database/DatabaseEloquentModelTest.php
+testSettingMorphMapWithNumericArrayUsesTheTableNames  tests/Database/DatabaseEloquentRelationTest.php
+testSettingMorphMapWithNumericKeys  tests/Database/DatabaseEloquentRelationTest.php
+testGetMorphAlias  tests/Database/DatabaseEloquentRelationTest.php
+testStrictModeDoesNotThrowExceptionWhenMorphMap  tests/Database/DatabaseEloquentStrictMorphsTest.php
+tearDown  tests/Database/DatabaseEloquentStrictMorphsTest.php
+tearDown  tests/Database/DatabaseEloquentPolymorphicRelationsIntegrationTest.php
+testWhereMorphedToAlias  tests/Database/DatabaseEloquentBuilderTest.php
+tearDown  tests/Database/DatabaseEloquentMorphTest.php
+getNamespacedRelation  tests/Database/DatabaseEloquentMorphTest.php
+tearDown  tests/Database/DatabaseEloquentIntegrationTest.php
+testMorphMapIsUsedForCreatingAndFetchingThroughRelation  tests/Database/DatabaseEloquentIntegrationTest.php
+testMorphMapIsUsedWhenFetchingParent  tests/Database/DatabaseEloquentIntegrationTest.php
+testMorphMapIsMergedByDefault  tests/Database/DatabaseEloquentIntegrationTest.php
+testMorphMapOverwritesCurrentMap  tests/Database/DatabaseEloquentIntegrationTest.php
+tearDown  tests/Database/DatabaseEloquentIntegrationWithTablePrefixTest.php
+testWhereHasMorphWithMorphMap  tests/Integration/Database/EloquentWhereHasMorphTest.php
+testWhereHasMorphWithWildcardAndMorphMap  tests/Integration/Database/EloquentWhereHasMorphTest.php</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0568 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>CALLERS:
+getActualClassNameForMorph  src/Illuminate/Database/Eloquent/Concerns/HasRelationships.php
+getMorphClass  src/Illuminate/Database/Eloquent/Concerns/HasRelationships.php
+whereMorphedTo  src/Illuminate/Database/Eloquent/Concerns/QueriesRelationships.php
+whereNotMorphedTo  src/Illuminate/Database/Eloquent/Concerns/QueriesRelationships.php
+enforceMorphMap  src/Illuminate/Database/Eloquent/Relations/Relation.php
+testWhereMorphedToAlias  tests/Database/DatabaseEloquentBuilderTest.php
+tearDown  tests/Database/DatabaseEloquentIntegrationTest.php
+testMorphMapIsUsedForCreatingAndFetchingThroughRelation  tests/Database/DatabaseEloquentIntegrationTest.php
+testMorphMapIsUsedWhenFetchingParent  tests/Database/DatabaseEloquentIntegrationTest.php
+testMorphMapIsMergedByDefault  tests/Database/DatabaseEloquentIntegrationTest.php
+testMorphMapOverwritesCurrentMap  tests/Database/DatabaseEloquentIntegrationTest.php
+tearDown  tests/Database/DatabaseEloquentIntegrationWithTablePrefixTest.php
+testCorrectMorphClassIsReturned  tests/Database/DatabaseEloquentModelTest.php
+tearDown  tests/Database/DatabaseEloquentMorphTest.php
+getNamespacedRelation  tests/Database/DatabaseEloquentMorphTest.php
+tearDown  tests/Database/DatabaseEloquentPolymorphicRelationsIntegrationTest.php
+testSettingMorphMapWithNumericArrayUsesTheTableNames  tests/Database/DatabaseEloquentRelationTest.php
+testSettingMorphMapWithNumericKeys  tests/Database/DatabaseEloquentRelationTest.php
+testGetMorphAlias  tests/Database/DatabaseEloquentRelationTest.php
+testStrictModeDoesNotThrowExceptionWhenMorphMap  tests/Database/DatabaseEloquentStrictMorphsTest.php
+tearDown  tests/Database/DatabaseEloquentStrictMorphsTest.php
+testWhereHasMorphWithMorphMap  tests/Integration/Database/EloquentWhereHasMorphTest.php
+testWhereHasMorphWithWildcardAndMorphMap  tests/Integration/Database/EloquentWhereHasMorphTest.php</pre></div></div></td></tr><tr class="task" onclick="toggle('v5·laravel(PHP)+lexicalresolution-7')"><td>laravel-framework-whereIntegerNotInRaw</td><td>laravel-framework</td><td class="num">$0.104</td><td class="num">$0.031</td><td class="num pos">+70%</td><td class="num">1.0/1.0</td><td class="num">8/2</td></tr><tr id="v5·laravel(PHP)+lexicalresolution-7" class="drill" style="display:none"><td colspan="7"><div class="dd"><div class="arm armA"><h4>Arm A (grep+read)</h4><div class="meta">cost $0.0801 · turns 8 · codeindex 0 · f1 0.833 · tools {&#x27;Grep&#x27;: 1, &#x27;Read&#x27;: 6}</div><pre>I have all the evidence needed.
+
+CALLERS:
+testWhereKeyNotMethodWithArray  tests/Database/DatabaseEloquentBuilderTest.php
+testWhereKeyNotMethodWithCollection  tests/Database/DatabaseEloquentBuilderTest.php
+testWhereIntegerNotInRaw  tests/Database/DatabaseQueryBuilderTest.php
+testEmptyWhereIntegerNotInRaw  tests/Database/DatabaseQueryBuilderTest.php
+testWhereIntegerInRaw  tests/Integration/Database/EloquentWhereTest.php
+whereKeyNot  src/Illuminate/Database/Eloquent/Builder.php
+orWhereIntegerNotInRaw  src/Illuminate/Database/Query/Builder.php</pre></div><div class="arm armB"><h4>Arm B (codeindex)</h4><div class="meta">cost $0.0416 · turns 2 · codeindex 1 · f1 1.0 · tools {&#x27;Bash&#x27;: 1}</div><pre>CALLERS:
+whereKeyNot  src/Illuminate/Database/Eloquent/Builder.php
+orWhereIntegerNotInRaw  src/Illuminate/Database/Query/Builder.php
+testWhereIntegerNotInRaw  tests/Database/DatabaseQueryBuilderTest.php
+testEmptyWhereIntegerNotInRaw  tests/Database/DatabaseQueryBuilderTest.php
+testWhereIntegerInRaw  tests/Integration/Database/EloquentWhereTest.php</pre></div></div></td></tr></tbody></table>
+        </div>
 <div class="foot">Generated from graded run data by <code>dashboard.py</code>.
 Ground truth is arm-neutral (ripgrep / merged-PR files / index caller lists,
 hand-verified). Thresholds pre-registered before the runs. See FINDINGS.md /
