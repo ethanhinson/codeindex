@@ -25,8 +25,12 @@ NOTE = (
     "`codeindex callers <repo-root> <Symbol>` or `codeindex callees <repo-root> "
     "<Symbol>`. Its output is COMPLETE and always fresh: answer directly from "
     "the returned path:line references — do NOT re-verify by reading files, "
-    "except entries flagged [ambiguous]. Do NOT use it to locate/find things "
-    "(where is X defined, which files mention Y) — plain grep is cheaper there."
+    "except entries flagged [ambiguous]. "
+    "Locating: exact distinctive name -> plain grep (cheapest). Partial/vague/"
+    "common name -> `codeindex find <repo-root> '<tokens>'` (any order or "
+    "naming convention, ranked by usage). Understanding occurrences (which "
+    "functions contain a pattern) -> `codeindex grep <repo-root> '<pattern>'` "
+    "(hits attributed to enclosing symbols, deduped)."
 )
 
 

@@ -270,6 +270,71 @@ func (s *Store) DepSymbolCount() (int, error) {
 	return n, err
 }
 
+// AllSymbolsWithCallers returns every symbol plus a callers-per-symbol map —
+// the search scorer's working set (single scan + one GROUP BY).
+func (s *Store) AllSymbolsWithCallers() ([]Symbol, map[int64]int, error) {
+	rows, err := s.db.Query(
+		`SELECT id, file, name, parent, namespace, tier, kind, signature, start_line, end_line FROM symbols`)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer rows.Close()
+	var syms []Symbol
+	for rows.Next() {
+		var sy Symbol
+		var kind string
+		if err := rows.Scan(&sy.ID, &sy.File, &sy.Name, &sy.Parent, &sy.Namespace,
+			&sy.Tier, &kind, &sy.Signature, &sy.StartLine, &sy.EndLine); err != nil {
+			return nil, nil, err
+		}
+		sy.Kind = SymbolKind(kind)
+		syms = append(syms, sy)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, nil, err
+	}
+	crows, err := s.db.Query(
+		`SELECT dst_symbol_id, COUNT(*) FROM edges WHERE dst_symbol_id != 0 GROUP BY dst_symbol_id`)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer crows.Close()
+	callers := map[int64]int{}
+	for crows.Next() {
+		var id int64
+		var n int
+		if err := crows.Scan(&id, &n); err != nil {
+			return nil, nil, err
+		}
+		callers[id] = n
+	}
+	return syms, callers, crows.Err()
+}
+
+// FileSymbolSpans returns a file's symbols ordered by start line — the
+// enriched-grep attribution working set.
+func (s *Store) FileSymbolSpans(file string) ([]Symbol, error) {
+	rows, err := s.db.Query(
+		`SELECT id, file, name, parent, namespace, tier, kind, signature, start_line, end_line
+		 FROM symbols WHERE file=? ORDER BY start_line`, file)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Symbol
+	for rows.Next() {
+		var sy Symbol
+		var kind string
+		if err := rows.Scan(&sy.ID, &sy.File, &sy.Name, &sy.Parent, &sy.Namespace,
+			&sy.Tier, &kind, &sy.Signature, &sy.StartLine, &sy.EndLine); err != nil {
+			return nil, err
+		}
+		sy.Kind = SymbolKind(kind)
+		out = append(out, sy)
+	}
+	return out, rows.Err()
+}
+
 // DepProvenance returns (namespace, version, modified) for a dep symbol's file.
 func (s *Store) DepProvenance(file string) (string, string, bool, error) {
 	var ns, ver string

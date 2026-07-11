@@ -14,6 +14,7 @@ import (
 	"codeindex/internal/depmap"
 	"codeindex/internal/engine"
 	"codeindex/internal/graph"
+	"codeindex/internal/search"
 )
 
 // mu serializes ensureFresh (the only index-mutating step) across concurrent
@@ -145,6 +146,67 @@ func CalleesText(root, anchor string, limit int) (string, error) {
 			flag = "  [ambiguous]"
 		}
 		fmt.Fprintf(&b, "  %s  -> %s  @call:%d%s%s\n", c.QName(), target, c.CallLine, flag, depMarker(st, c.DefFile))
+	}
+	return b.String(), nil
+}
+
+// FindText is ranked symbol search under partial knowledge (locate mode for
+// vague/common names — distinctive full names stay with plain grep).
+func FindText(root, q string, kind, path string, limit int) (string, error) {
+	st, err := open(root)
+	if err != nil {
+		return "", err
+	}
+	defer st.Close()
+	results, err := search.Find(st, q, search.Opts{Kind: kind, Path: path, Limit: limit})
+	if err != nil {
+		return "", err
+	}
+	var b strings.Builder
+	fmt.Fprintf(&b, "find %q (%d):\n", q, len(results))
+	for _, r := range results {
+		callers := ""
+		if r.Callers > 0 {
+			callers = fmt.Sprintf("  callers=%d", r.Callers)
+		}
+		dep := ""
+		if r.Sym.Tier == 1 {
+			dep = depMarker(st, r.Sym.File)
+		}
+		fmt.Fprintf(&b, "  %s  %s  %s:%d%s%s  [%s]\n",
+			r.Sym.QName(), r.Sym.Kind, r.Sym.File, r.Sym.StartLine,
+			callers, dep, r.Match)
+	}
+	if len(results) == 0 {
+		fmt.Fprintf(&b, "  (no symbol matches — try plain grep for content search)\n")
+	}
+	return b.String(), nil
+}
+
+// GrepText is enriched grep: content hits attributed to enclosing symbols,
+// deduped with counts, defs-first.
+func GrepText(root, pattern string, limit int) (string, error) {
+	st, err := open(root)
+	if err != nil {
+		return "", err
+	}
+	defer st.Close()
+	groups, raw, backend, err := search.Grep(st, root, pattern, limit)
+	if err != nil {
+		return "", err
+	}
+	var b strings.Builder
+	fmt.Fprintf(&b, "grep %q: %d raw hits -> %d symbols/sites (%s)\n", pattern, raw, len(groups), backend)
+	for _, g := range groups {
+		name := "<outside any symbol>"
+		if g.Sym != nil {
+			name = g.Sym.QName()
+		}
+		def := ""
+		if g.IsDef {
+			def = "  [definition]"
+		}
+		fmt.Fprintf(&b, "  %s  %s:%d  hits=%d%s\n", name, g.File, g.First.Line, g.Hits, def)
 	}
 	return b.String(), nil
 }

@@ -101,6 +101,54 @@ func New(repo, version string) *mcp.Server {
 		return text(out), nil, nil
 	})
 
+	type findArgs struct {
+		Query string `json:"query" jsonschema:"partial or vague symbol name — tokens in any order/convention (e.g. 'config load' matches LoadConfig, load_config, ConfigLoader)"`
+		Kind  string `json:"kind,omitempty" jsonschema:"optional filter: func | method | type"`
+		Path  string `json:"path,omitempty" jsonschema:"optional file-path substring filter"`
+		Limit int    `json:"limit,omitempty"`
+	}
+	mcp.AddTool(s, &mcp.Tool{
+		Name: "find",
+		Description: "Ranked symbol search when you only PARTIALLY know the " +
+			"name (vague, differently-cased, synonym, or common name) — one call " +
+			"replaces iterative grep probing; results ranked by usage (caller " +
+			"count). If you know the exact distinctive name, plain text search " +
+			"is still cheaper. " + trust,
+	}, func(ctx context.Context, req *mcp.CallToolRequest, in findArgs) (*mcp.CallToolResult, any, error) {
+		limit := in.Limit
+		if limit <= 0 {
+			limit = 20
+		}
+		out, err := query.FindText(repo, in.Query, in.Kind, in.Path, limit)
+		if err != nil {
+			return nil, nil, fmt.Errorf("find %q: %w", in.Query, err)
+		}
+		return text(out), nil, nil
+	})
+
+	type grepArgs struct {
+		Pattern string `json:"pattern" jsonschema:"regex/text pattern to search file contents for"`
+		Limit   int    `json:"limit,omitempty"`
+	}
+	mcp.AddTool(s, &mcp.Tool{
+		Name: "grep",
+		Description: "Content search with symbol attribution: every hit comes " +
+			"back attributed to its enclosing function/method, deduped with " +
+			"counts, definitions first — so you learn WHERE and IN WHAT the " +
+			"pattern occurs without reading files to attribute lines. Use when " +
+			"you need to understand occurrences, not just locate one. " + trust,
+	}, func(ctx context.Context, req *mcp.CallToolRequest, in grepArgs) (*mcp.CallToolResult, any, error) {
+		limit := in.Limit
+		if limit <= 0 {
+			limit = 30
+		}
+		out, err := query.GrepText(repo, in.Pattern, limit)
+		if err != nil {
+			return nil, nil, fmt.Errorf("grep %q: %w", in.Pattern, err)
+		}
+		return text(out), nil, nil
+	})
+
 	return s
 }
 

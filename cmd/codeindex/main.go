@@ -27,7 +27,7 @@ const version = "0.2.0"
 func main() {
 	if len(os.Args) < 3 {
 		fmt.Fprintln(os.Stderr,
-			"usage: codeindex <build|callers|callees|impact|dependents|deps|depmap|attach|enclosing|mcp|bench> <repo-root> ...")
+			"usage: codeindex <build|callers|callees|impact|dependents|deps|find|grep|depmap|attach|enclosing|mcp|bench> <repo-root> ...")
 		os.Exit(2)
 	}
 	cmd, root := os.Args[1], os.Args[2]
@@ -133,6 +133,40 @@ func main() {
 			}
 			fmt.Printf("attached %s@%s\n", ns, ver)
 		}
+	case "find":
+		if len(os.Args) < 4 {
+			fatal(fmt.Errorf("usage: codeindex find <repo-root> <query> [--kind k] [--path p] [--limit N]"))
+		}
+		kind, path := "", ""
+		limit := 20
+		for i := 4; i < len(os.Args)-1; i++ {
+			switch os.Args[i] {
+			case "--kind":
+				kind = os.Args[i+1]
+			case "--path":
+				path = os.Args[i+1]
+			case "--limit":
+				fmt.Sscanf(os.Args[i+1], "%d", &limit)
+			}
+		}
+		out, err := query.FindText(root, os.Args[3], kind, path, limit)
+		if err != nil {
+			fatal(err)
+		}
+		fmt.Print(out)
+	case "grep":
+		if len(os.Args) < 4 {
+			fatal(fmt.Errorf("usage: codeindex grep <repo-root> <pattern> [--limit N]"))
+		}
+		limit := 30
+		if len(os.Args) >= 6 && os.Args[4] == "--limit" {
+			fmt.Sscanf(os.Args[5], "%d", &limit)
+		}
+		out, err := query.GrepText(root, os.Args[3], limit)
+		if err != nil {
+			fatal(err)
+		}
+		fmt.Print(out)
 	case "mcp":
 		if err := mcpserver.Run(context.Background(), root, version); err != nil {
 			fatal(err)

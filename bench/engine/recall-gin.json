@@ -1,0 +1,33 @@
+{
+ "stats": {
+  "casefold": [
+   30,
+   30,
+   30
+  ],
+  "token-join": [
+   30,
+   30,
+   30
+  ],
+  "token-drop": [
+   30,
+   27,
+   19
+  ],
+  "reorder": [
+   30,
+   30,
+   30
+  ],
+  "synonym": [
+   11,
+   10,
+   8
+  ]
+ },
+ "vague_hit5_pct": 94.4,
+ "verdict": "PASS",
+ "seed": 99,
+ "sample": 30
+}

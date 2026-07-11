@@ -59,14 +59,19 @@ func TestHandshakeListAndCall(t *testing.T) {
 		t.Fatal(err)
 	}
 	names := map[string]bool{}
+	branchOut := map[string]bool{"impact": true, "callers": true, "callees": true, "dependents": true}
 	for _, tl := range tools.Tools {
 		names[tl.Name] = true
-		if !strings.Contains(tl.Description, "COMPLETE") ||
-			!strings.Contains(tl.Description, "NOT for locating") {
-			t.Errorf("tool %s description missing trust/anchor language", tl.Name)
+		if !strings.Contains(tl.Description, "COMPLETE") {
+			t.Errorf("tool %s description missing trust language", tl.Name)
+		}
+		// Branch-out tools carry the anchor rule; locate tools (find/grep)
+		// carry routing instead — they ARE the sanctioned locate path.
+		if branchOut[tl.Name] && !strings.Contains(tl.Description, "NOT for locating") {
+			t.Errorf("tool %s description missing anchor language", tl.Name)
 		}
 	}
-	for _, want := range []string{"impact", "callers", "callees"} {
+	for _, want := range []string{"impact", "callers", "callees", "dependents", "find", "grep"} {
 		if !names[want] {
 			t.Errorf("missing tool %q; got %v", want, names)
 		}
