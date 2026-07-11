@@ -39,7 +39,12 @@ go test ./...
 ```
 codeindex build <repo-root>          # index a Go repo -> <repo>/.codeindex/graph.db
 codeindex bench <repo-root> [out.json]  # measure throughput + prove incremental==full
+codeindex export <repo-root> <out.db>   # compact shareable index artifact (CI)
+codeindex import <repo-root> <art.db>   # install artifact + patch local drift
 ```
+
+Teams: build the index once in CI and let everyone import it — see
+[docs/ci.md](docs/ci.md) (kubernetes: 82.5s cold build vs 1.5s import).
 
 ## Layout
 

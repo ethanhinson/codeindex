@@ -27,7 +27,7 @@ const version = "0.2.0"
 func main() {
 	if len(os.Args) < 3 {
 		fmt.Fprintln(os.Stderr,
-			"usage: codeindex <build|callers|callees|impact|dependents|deps|find|grep|depmap|attach|enclosing|mcp|bench> <repo-root> ...")
+			"usage: codeindex <build|callers|callees|impact|dependents|deps|find|grep|depmap|attach|export|import|enclosing|mcp|bench> <repo-root> ...")
 		os.Exit(2)
 	}
 	cmd, root := os.Args[1], os.Args[2]
@@ -36,6 +36,26 @@ func main() {
 		if err := runBuild(root); err != nil {
 			fatal(err)
 		}
+	case "export":
+		if len(os.Args) < 4 {
+			fatal(fmt.Errorf("usage: codeindex export <repo-root> <out.db>"))
+		}
+		st, err := engine.Export(root, os.Args[3])
+		if err != nil {
+			fatal(err)
+		}
+		fmt.Printf("exported %s (freshened: %d files parsed, %d symbols)\n",
+			os.Args[3], st.FilesParsed, st.Symbols)
+	case "import":
+		if len(os.Args) < 4 {
+			fatal(fmt.Errorf("usage: codeindex import <repo-root> <artifact.db>"))
+		}
+		st, err := engine.Import(root, os.Args[3])
+		if err != nil {
+			fatal(err)
+		}
+		fmt.Printf("imported %s; drift patched: %d files re-parsed, %d deleted, %d symbols\n",
+			os.Args[3], st.FilesParsed, st.Deleted, st.Symbols)
 	case "bench":
 		out := ""
 		if len(os.Args) > 3 {

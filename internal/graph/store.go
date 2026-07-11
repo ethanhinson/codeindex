@@ -158,6 +158,37 @@ func (s *Store) Close() error { return s.db.Close() }
 // simulating old-version indexes.
 func OpenRaw(path string) (*sql.DB, error) { return sql.Open("sqlite3", path) }
 
+// SchemaVersion is the version this binary writes and requires.
+func SchemaVersion() int { return schemaVersion }
+
+// FileSchemaVersion reads the embedded schema version of a database file
+// without opening it through the version-enforcing path.
+func FileSchemaVersion(path string) (int, error) {
+	if _, err := os.Stat(path); err != nil {
+		return 0, err
+	}
+	db, err := sql.Open("sqlite3", path)
+	if err != nil {
+		return 0, err
+	}
+	defer db.Close()
+	var v int
+	err = db.QueryRow(`PRAGMA user_version`).Scan(&v)
+	return v, err
+}
+
+// VacuumInto writes a compact, consistent snapshot of the database at src to
+// dst (the export artifact) — no WAL loose ends, free pages dropped.
+func VacuumInto(src, dst string) error {
+	db, err := sql.Open("sqlite3", src)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	_, err = db.Exec(`VACUUM INTO ?`, dst)
+	return err
+}
+
 // Begin starts a transaction the engine drives across a build or patch.
 func (s *Store) Begin() (*sql.Tx, error) { return s.db.Begin() }
 
