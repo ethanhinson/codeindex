@@ -14,7 +14,10 @@ import (
 // Store is the SQLite-backed symbol graph. Name resolution is deterministic
 // (ordered by file, then line) so an incremental update yields a graph identical
 // to a full rebuild — the property the walking skeleton exists to prove.
-type Store struct{ db *sql.DB }
+type Store struct {
+	db       *sql.DB
+	strCache map[string]int64
+}
 
 // queryer is satisfied by both *sql.DB and *sql.Tx for shared read helpers.
 type queryer interface {
@@ -32,39 +35,82 @@ type FileMeta struct {
 
 // schemaVersion is bumped on any schema change. The index is a derived
 // artifact: a version mismatch triggers delete-and-rebuild, not migration.
-const schemaVersion = 6 // v6: import-bound resolution persists hints in edges.dst_ns
+const schemaVersion = 7 // v7: interned strings (strs + symbols_t/edges_t behind views)
 
+// v7 interns repeated strings: symbols_t/edges_t hold integer references into
+// strs, while the `symbols` and `edges` VIEWs reconstruct the original TEXT
+// columns — the whole read surface (resolution ladder, traversal, depmaps,
+// search) queries the views verbatim; only write paths touch the base tables.
 const schema = `
 CREATE TABLE IF NOT EXISTS files (
   id INTEGER PRIMARY KEY, path TEXT UNIQUE NOT NULL, hash TEXT NOT NULL,
   size INTEGER NOT NULL, mtime INTEGER NOT NULL, lang TEXT);
-CREATE TABLE IF NOT EXISTS symbols (
-  id INTEGER PRIMARY KEY, file TEXT NOT NULL, name TEXT NOT NULL,
-  parent TEXT NOT NULL DEFAULT '', namespace TEXT NOT NULL DEFAULT '',
-  tier INTEGER NOT NULL DEFAULT 0, kind TEXT NOT NULL,
+CREATE TABLE IF NOT EXISTS strs (id INTEGER PRIMARY KEY, s TEXT UNIQUE NOT NULL);
+CREATE TABLE IF NOT EXISTS symbols_t (
+  id INTEGER PRIMARY KEY, file_id INTEGER NOT NULL, name_id INTEGER NOT NULL,
+  parent_id INTEGER NOT NULL, namespace_id INTEGER NOT NULL,
+  tier INTEGER NOT NULL DEFAULT 0, kind_id INTEGER NOT NULL,
   signature TEXT, start_line INTEGER NOT NULL, end_line INTEGER NOT NULL);
-CREATE INDEX IF NOT EXISTS idx_symbols_name ON symbols(name);
-CREATE INDEX IF NOT EXISTS idx_symbols_name_parent ON symbols(name, parent);
-CREATE INDEX IF NOT EXISTS idx_symbols_file ON symbols(file);
-CREATE INDEX IF NOT EXISTS idx_symbols_ns ON symbols(namespace);
+CREATE INDEX IF NOT EXISTS idx_symbols_name ON symbols_t(name_id);
+CREATE INDEX IF NOT EXISTS idx_symbols_name_parent ON symbols_t(name_id, parent_id);
+CREATE INDEX IF NOT EXISTS idx_symbols_name_ns ON symbols_t(name_id, namespace_id);
+CREATE INDEX IF NOT EXISTS idx_symbols_file ON symbols_t(file_id);
+CREATE INDEX IF NOT EXISTS idx_symbols_ns ON symbols_t(namespace_id);
+CREATE VIEW IF NOT EXISTS symbols AS
+  SELECT t.id AS id, f.s AS file, n.s AS name, p.s AS parent, ns.s AS namespace,
+         t.tier AS tier, k.s AS kind, t.signature AS signature,
+         t.start_line AS start_line, t.end_line AS end_line
+  FROM symbols_t t
+  JOIN strs f ON f.id=t.file_id JOIN strs n ON n.id=t.name_id
+  JOIN strs p ON p.id=t.parent_id JOIN strs ns ON ns.id=t.namespace_id
+  JOIN strs k ON k.id=t.kind_id;
 CREATE TABLE IF NOT EXISTS depfiles (
   path TEXT PRIMARY KEY, namespace TEXT NOT NULL, version TEXT NOT NULL,
   maphash TEXT NOT NULL, curhash TEXT NOT NULL,
   size INTEGER NOT NULL DEFAULT 0, mtime INTEGER NOT NULL DEFAULT 0,
   modified INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE IF NOT EXISTS depmeta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
-CREATE TABLE IF NOT EXISTS edges (
+CREATE TABLE IF NOT EXISTS edges_t (
   id INTEGER PRIMARY KEY, src_symbol_id INTEGER NOT NULL, dst_symbol_id INTEGER NOT NULL,
-  dst_name TEXT NOT NULL, dst_qualifier TEXT NOT NULL DEFAULT '',
-  dst_ns TEXT NOT NULL DEFAULT '', kind TEXT NOT NULL, confidence TEXT NOT NULL,
-  line INTEGER NOT NULL, src_file TEXT NOT NULL);
-CREATE INDEX IF NOT EXISTS idx_edges_src ON edges(src_symbol_id);
-CREATE INDEX IF NOT EXISTS idx_edges_dst ON edges(dst_symbol_id);
-CREATE INDEX IF NOT EXISTS idx_edges_dstname ON edges(dst_name);
-CREATE INDEX IF NOT EXISTS idx_edges_srcfile ON edges(src_file);
+  dst_name_id INTEGER NOT NULL, dst_qualifier_id INTEGER NOT NULL,
+  dst_ns_id INTEGER NOT NULL, kind_id INTEGER NOT NULL, confidence_id INTEGER NOT NULL,
+  line INTEGER NOT NULL, src_file_id INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_edges_src ON edges_t(src_symbol_id);
+CREATE INDEX IF NOT EXISTS idx_edges_dst ON edges_t(dst_symbol_id);
+CREATE INDEX IF NOT EXISTS idx_edges_dstname ON edges_t(dst_name_id);
+CREATE INDEX IF NOT EXISTS idx_edges_srcfile ON edges_t(src_file_id);
+CREATE VIEW IF NOT EXISTS edges AS
+  SELECT t.id AS id, t.src_symbol_id AS src_symbol_id, t.dst_symbol_id AS dst_symbol_id,
+         dn.s AS dst_name, dq.s AS dst_qualifier, dns.s AS dst_ns,
+         k.s AS kind, c.s AS confidence, t.line AS line, sf.s AS src_file
+  FROM edges_t t
+  JOIN strs dn ON dn.id=t.dst_name_id JOIN strs dq ON dq.id=t.dst_qualifier_id
+  JOIN strs dns ON dns.id=t.dst_ns_id JOIN strs k ON k.id=t.kind_id
+  JOIN strs c ON c.id=t.confidence_id JOIN strs sf ON sf.id=t.src_file_id;
 CREATE TABLE IF NOT EXISTS merkle (
   path TEXT PRIMARY KEY, hash TEXT NOT NULL, size INTEGER NOT NULL, mtime INTEGER NOT NULL);
 `
+
+// intern returns the id of s in strs, inserting on first sight. strs is
+// append-only for the life of a schema generation, so the cache never
+// invalidates; it resets with the Store (rebuilds recreate the Store).
+func (s *Store) intern(tx *sql.Tx, str string) (int64, error) {
+	if id, ok := s.strCache[str]; ok {
+		return id, nil
+	}
+	if _, err := tx.Exec(`INSERT OR IGNORE INTO strs(s) VALUES(?)`, str); err != nil {
+		return 0, err
+	}
+	var id int64
+	if err := tx.QueryRow(`SELECT id FROM strs WHERE s=?`, str).Scan(&id); err != nil {
+		return 0, err
+	}
+	if s.strCache == nil {
+		s.strCache = map[string]int64{}
+	}
+	s.strCache[str] = id
+	return id, nil
+}
 
 // Open opens (creating if needed) the graph database at path. An existing
 // index with a different schema version is deleted and recreated empty; the
@@ -158,13 +204,11 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 		if sym.Tier == 0 && symNS == "" {
 			symNS = ns
 		}
-		res, err := tx.Exec(
-			`INSERT INTO symbols(file,name,parent,namespace,tier,kind,signature,start_line,end_line) VALUES(?,?,?,?,?,?,?,?,?)`,
-			sym.File, sym.Name, sym.Parent, symNS, sym.Tier, string(sym.Kind), sym.Signature, sym.StartLine, sym.EndLine)
+		sid, err := s.insertSymbol(tx, sym.File, sym.Name, sym.Parent, symNS, sym.Tier, string(sym.Kind), sym.Signature, sym.StartLine, sym.EndLine)
 		if err != nil {
 			return nil, nil, err
 		}
-		ids[i], _ = res.LastInsertId()
+		ids[i] = sid
 	}
 
 	// Import bindings: name -> normalized namespace hint, from this file's
@@ -191,10 +235,7 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 		if err != nil {
 			return nil, nil, err
 		}
-		if _, err := tx.Exec(
-			`INSERT INTO edges(src_symbol_id,dst_symbol_id,dst_name,dst_qualifier,dst_ns,kind,confidence,line,src_file)
-			 VALUES(?,?,?,?,?,?,?,?,?)`,
-			ids[c.EnclosingIdx], dstID, c.Callee, c.Qualifier, hint, string(KindCalls), string(conf), c.Line, pf.Path); err != nil {
+		if err := s.insertEdge(tx, ids[c.EnclosingIdx], dstID, c.Callee, c.Qualifier, hint, string(KindCalls), string(conf), c.Line, pf.Path); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -217,10 +258,7 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 				return nil, nil, err
 			}
 		}
-		if _, err := tx.Exec(
-			`INSERT INTO edges(src_symbol_id,dst_symbol_id,dst_name,dst_qualifier,dst_ns,kind,confidence,line,src_file)
-			 VALUES(?,?,?,?,?,?,?,?,?)`,
-			srcID, dstID, d.Target, "", hint, string(d.Kind), string(conf), d.Line, pf.Path); err != nil {
+		if err := s.insertEdge(tx, srcID, dstID, d.Target, "", hint, string(d.Kind), string(conf), d.Line, pf.Path); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -240,6 +278,72 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 
 	after, err = namesDefinedBy(tx, pf.Path)
 	return before, after, err
+}
+
+// insertSymbol interns a symbol's strings and writes the base-table row,
+// returning the assigned id.
+func (s *Store) insertSymbol(tx *sql.Tx, file, name, parent, namespace string, tier int, kind, signature string, startLine, endLine int) (int64, error) {
+	fid, err := s.intern(tx, file)
+	if err != nil {
+		return 0, err
+	}
+	nid, err := s.intern(tx, name)
+	if err != nil {
+		return 0, err
+	}
+	pid, err := s.intern(tx, parent)
+	if err != nil {
+		return 0, err
+	}
+	nsid, err := s.intern(tx, namespace)
+	if err != nil {
+		return 0, err
+	}
+	kid, err := s.intern(tx, kind)
+	if err != nil {
+		return 0, err
+	}
+	res, err := tx.Exec(
+		`INSERT INTO symbols_t(file_id,name_id,parent_id,namespace_id,tier,kind_id,signature,start_line,end_line)
+		 VALUES(?,?,?,?,?,?,?,?,?)`,
+		fid, nid, pid, nsid, tier, kid, signature, startLine, endLine)
+	if err != nil {
+		return 0, err
+	}
+	return res.LastInsertId()
+}
+
+// insertEdge interns an edge's strings and writes the base-table row.
+func (s *Store) insertEdge(tx *sql.Tx, srcID, dstID int64, dstName, dstQualifier, dstNS, kind, confidence string, line int, srcFile string) error {
+	dnid, err := s.intern(tx, dstName)
+	if err != nil {
+		return err
+	}
+	dqid, err := s.intern(tx, dstQualifier)
+	if err != nil {
+		return err
+	}
+	dnsid, err := s.intern(tx, dstNS)
+	if err != nil {
+		return err
+	}
+	kid, err := s.intern(tx, kind)
+	if err != nil {
+		return err
+	}
+	cid, err := s.intern(tx, confidence)
+	if err != nil {
+		return err
+	}
+	sfid, err := s.intern(tx, srcFile)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(
+		`INSERT INTO edges_t(src_symbol_id,dst_symbol_id,dst_name_id,dst_qualifier_id,dst_ns_id,kind_id,confidence_id,line,src_file_id)
+		 VALUES(?,?,?,?,?,?,?,?,?)`,
+		srcID, dstID, dnid, dqid, dnsid, kid, cid, line, sfid)
+	return err
 }
 
 // DeleteFile removes a deleted file's graph and change-detection state, returning
@@ -310,6 +414,10 @@ func (s *Store) ReResolveNames(tx *sql.Tx, names map[string]struct{}) error {
 			if err != nil {
 				return err
 			}
+			cid, err := s.intern(tx, string(conf))
+			if err != nil {
+				return err
+			}
 			// Batch by id in chunks to keep statements bounded.
 			for i := 0; i < len(ids); i += 500 {
 				end := i + 500
@@ -317,14 +425,14 @@ func (s *Store) ReResolveNames(tx *sql.Tx, names map[string]struct{}) error {
 					end = len(ids)
 				}
 				args := make([]any, 0, end-i+2)
-				args = append(args, dstID, string(conf))
+				args = append(args, dstID, cid)
 				ph := make([]string, 0, end-i)
 				for _, id := range ids[i:end] {
 					args = append(args, id)
 					ph = append(ph, "?")
 				}
 				if _, err := tx.Exec(
-					`UPDATE edges SET dst_symbol_id=?, confidence=? WHERE id IN (`+
+					`UPDATE edges_t SET dst_symbol_id=?, confidence_id=? WHERE id IN (`+
 						strings.Join(ph, ",")+`)`, args...); err != nil {
 					return err
 				}
@@ -714,10 +822,12 @@ func (s *Store) RefreshMerkle(tx *sql.Tx, m FileMeta) error {
 }
 
 func deleteFileGraph(tx *sql.Tx, path string) error {
-	if _, err := tx.Exec(`DELETE FROM edges WHERE src_file=?`, path); err != nil {
+	if _, err := tx.Exec(
+		`DELETE FROM edges_t WHERE src_file_id=(SELECT id FROM strs WHERE s=?)`, path); err != nil {
 		return err
 	}
-	_, err := tx.Exec(`DELETE FROM symbols WHERE file=?`, path)
+	_, err := tx.Exec(
+		`DELETE FROM symbols_t WHERE file_id=(SELECT id FROM strs WHERE s=?)`, path)
 	return err
 }
 

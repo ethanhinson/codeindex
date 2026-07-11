@@ -1,0 +1,32 @@
+{
+ "gin": {
+  "source_bytes": 546658,
+  "index_bytes": 1470464,
+  "ratio": 2.69
+ },
+ "prometheus": {
+  "source_bytes": 7770737,
+  "index_bytes": 17039360,
+  "ratio": 2.19
+ },
+ "kubernetes": {
+  "source_bytes": 154622436,
+  "index_bytes": 227880960,
+  "ratio": 1.47
+ },
+ "flask": {
+  "source_bytes": 572874,
+  "index_bytes": 1134592,
+  "ratio": 1.98
+ },
+ "nest": {
+  "source_bytes": 2824041,
+  "index_bytes": 6389760,
+  "ratio": 2.26
+ },
+ "laravel-framework": {
+  "source_bytes": 13499269,
+  "index_bytes": 47202304,
+  "ratio": 3.5
+ }
+}

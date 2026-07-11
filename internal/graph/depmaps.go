@@ -58,11 +58,8 @@ func (s *Store) PutDepSymbols(namespace, version, relPath, hash string, size, mt
 	}
 	defer tx.Rollback()
 	for _, sym := range syms {
-		if _, err := tx.Exec(
-			`INSERT INTO symbols(file,name,parent,namespace,tier,kind,signature,start_line,end_line)
-			 VALUES(?,?,?,?,1,?,?,?,?)`,
-			relPath, sym.Name, sym.Parent, namespace, string(sym.Kind), sym.Signature,
-			sym.StartLine, sym.EndLine); err != nil {
+		if _, err := s.insertSymbol(tx, relPath, sym.Name, sym.Parent, namespace, 1,
+			string(sym.Kind), sym.Signature, sym.StartLine, sym.EndLine); err != nil {
 			return err
 		}
 	}
@@ -107,7 +104,9 @@ func (s *Store) AttachMap(mapPath, prefix string) (namespace, version string, na
 	}
 	defer tx.Rollback()
 
-	if _, err := tx.Exec(`DELETE FROM symbols WHERE tier=1 AND namespace=?`, namespace); err != nil {
+	if _, err := tx.Exec(
+		`DELETE FROM symbols_t WHERE tier=1 AND namespace_id=(SELECT id FROM strs WHERE s=?)`,
+		namespace); err != nil {
 		return "", "", nil, err
 	}
 	if _, err := tx.Exec(`DELETE FROM depfiles WHERE namespace=?`, namespace); err != nil {
@@ -120,10 +119,27 @@ func (s *Store) AttachMap(mapPath, prefix string) (namespace, version string, na
 	// Nested Go modules can cover overlapping trees (a parent module's map
 	// walked a child module's dir). First-attached wins per file: skip paths
 	// another map already covers.
+	for _, ins := range []string{
+		fmt.Sprintf(`INSERT OR IGNORE INTO strs(s) SELECT DISTINCT %q || file FROM depmap.symbols WHERE tier=1`, join),
+		`INSERT OR IGNORE INTO strs(s) SELECT DISTINCT name FROM depmap.symbols WHERE tier=1`,
+		`INSERT OR IGNORE INTO strs(s) SELECT DISTINCT parent FROM depmap.symbols WHERE tier=1`,
+		`INSERT OR IGNORE INTO strs(s) SELECT DISTINCT namespace FROM depmap.symbols WHERE tier=1`,
+		`INSERT OR IGNORE INTO strs(s) SELECT DISTINCT kind FROM depmap.symbols WHERE tier=1`,
+	} {
+		if _, err := tx.Exec(ins); err != nil {
+			return "", "", nil, err
+		}
+	}
 	if _, err := tx.Exec(fmt.Sprintf(
-		`INSERT INTO symbols(file,name,parent,namespace,tier,kind,signature,start_line,end_line)
-		 SELECT %q || file, name, parent, namespace, 1, kind, signature, start_line, end_line
-		 FROM depmap.symbols m WHERE m.tier=1
+		`INSERT INTO symbols_t(file_id,name_id,parent_id,namespace_id,tier,kind_id,signature,start_line,end_line)
+		 SELECT fs.id, ns.id, ps.id, nss.id, 1, ks.id, m.signature, m.start_line, m.end_line
+		 FROM depmap.symbols m
+		 JOIN strs fs ON fs.s = %q || m.file
+		 JOIN strs ns ON ns.s = m.name
+		 JOIN strs ps ON ps.s = m.parent
+		 JOIN strs nss ON nss.s = m.namespace
+		 JOIN strs ks ON ks.s = m.kind
+		 WHERE m.tier=1
 		 AND NOT EXISTS (SELECT 1 FROM depfiles df WHERE df.path = %q || m.file)`,
 		join, join)); err != nil {
 		return "", "", nil, err
@@ -210,15 +226,14 @@ func (s *Store) OverlayDepFile(st DepFileState, newHash string, size, mtime int6
 	}
 	rows.Close()
 
-	if _, err := tx.Exec(`DELETE FROM symbols WHERE tier=1 AND file=?`, st.Path); err != nil {
+	if _, err := tx.Exec(
+		`DELETE FROM symbols_t WHERE tier=1 AND file_id=(SELECT id FROM strs WHERE s=?)`,
+		st.Path); err != nil {
 		return nil, err
 	}
 	for _, sym := range syms {
-		if _, err := tx.Exec(
-			`INSERT INTO symbols(file,name,parent,namespace,tier,kind,signature,start_line,end_line)
-			 VALUES(?,?,?,?,1,?,?,?,?)`,
-			st.Path, sym.Name, sym.Parent, st.Namespace, string(sym.Kind), sym.Signature,
-			sym.StartLine, sym.EndLine); err != nil {
+		if _, err := s.insertSymbol(tx, st.Path, sym.Name, sym.Parent, st.Namespace, 1,
+			string(sym.Kind), sym.Signature, sym.StartLine, sym.EndLine); err != nil {
 			return nil, err
 		}
 		nameSet[sym.Name] = struct{}{}
