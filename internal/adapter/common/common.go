@@ -49,6 +49,7 @@ func Enclosing(spans []SymbolSpan, pos uint32) int {
 type DepSite struct {
 	Kind   graph.EdgeKind
 	Target string
+	Source string // import origin (specifier/module/use-path); "" otherwise
 	Line   int
 	At     uint32
 }
@@ -72,6 +73,7 @@ func Assemble(path string, spans []SymbolSpan, calls []RawCall, deps []DepSite) 
 			EnclosingIdx: Enclosing(spans, d.At),
 			Kind:         d.Kind,
 			Target:       d.Target,
+			Source:       d.Source,
 			Line:         d.Line,
 		})
 	}

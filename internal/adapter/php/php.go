@@ -96,7 +96,9 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 					for i := 0; i < int(m.NamedChildCount()); i++ {
 						c := m.NamedChild(i)
 						if c.Type() == "name" || c.Type() == "qualified_name" {
-							addDep(n, graph.KindImports, finalName(c, src))
+							deps = append(deps, common.DepSite{Kind: graph.KindImports,
+								Target: finalName(c, src), Source: c.Content(src),
+								Line: int(n.StartPoint().Row) + 1, At: n.StartByte()})
 							break
 						}
 					}

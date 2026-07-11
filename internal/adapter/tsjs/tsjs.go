@@ -7,6 +7,7 @@ package tsjs
 import (
 	"context"
 	"path/filepath"
+	"strings"
 
 	sitter "github.com/smacker/go-tree-sitter"
 	"github.com/smacker/go-tree-sitter/javascript"
@@ -85,17 +86,26 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 				}
 			}
 		case "import_statement":
-			// import X, {a, b as c} from '...' — named + default specifiers
+			// import X, {a, b as c} from '...' — named + default specifiers,
+			// each carrying the module specifier for import-bound resolution.
+			spec := ""
+			if srcNode := n.ChildByFieldName("source"); srcNode != nil {
+				spec = strings.Trim(srcNode.Content(src), "\"'`")
+			}
 			var collect func(m *sitter.Node)
 			collect = func(m *sitter.Node) {
 				switch m.Type() {
 				case "import_specifier":
 					if nm := m.ChildByFieldName("name"); nm != nil {
-						addDep(n, graph.KindImports, nm.Content(src))
+						deps = append(deps, common.DepSite{Kind: graph.KindImports,
+							Target: nm.Content(src), Source: spec,
+							Line: int(n.StartPoint().Row) + 1, At: n.StartByte()})
 					}
 					return
 				case "identifier": // default import binding
-					addDep(n, graph.KindImports, m.Content(src))
+					deps = append(deps, common.DepSite{Kind: graph.KindImports,
+						Target: m.Content(src), Source: spec,
+						Line: int(n.StartPoint().Row) + 1, At: n.StartByte()})
 					return
 				case "namespace_import": // import * as ns — alias, not a repo symbol
 					return

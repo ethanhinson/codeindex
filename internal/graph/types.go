@@ -99,6 +99,7 @@ type RawCall struct {
 	EnclosingIdx int
 	Callee       string
 	Qualifier    string
+	NsHint       string // Go package-alias hint: util.Foo() -> the import path
 	Line         int
 }
 
@@ -110,6 +111,7 @@ type RawDep struct {
 	EnclosingIdx int
 	Kind         EdgeKind
 	Target       string
+	Source       string // import origin: TS specifier, Py module, PHP use-path
 	Line         int
 }
 

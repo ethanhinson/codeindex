@@ -75,19 +75,25 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 				}
 			}
 		case "import_from_statement":
-			// from m import a, b — the imported names (resolvable in-repo)
+			// from m import a, b — imported names carry module m as Source
+			module := ""
 			seenModule := false
 			for i := 0; i < int(n.NamedChildCount()); i++ {
 				c := n.NamedChild(i)
 				if c.Type() == "dotted_name" || c.Type() == "relative_import" {
 					if !seenModule {
-						seenModule = true // first dotted_name is the module
+						seenModule = true
+						module = c.Content(src)
 						continue
 					}
-					addDep(n, graph.KindImports, c.Content(src))
+					deps = append(deps, common.DepSite{Kind: graph.KindImports,
+						Target: c.Content(src), Source: module,
+						Line: int(n.StartPoint().Row) + 1, At: n.StartByte()})
 				} else if c.Type() == "aliased_import" {
 					if nm := c.ChildByFieldName("name"); nm != nil {
-						addDep(n, graph.KindImports, nm.Content(src))
+						deps = append(deps, common.DepSite{Kind: graph.KindImports,
+							Target: nm.Content(src), Source: module,
+							Line: int(n.StartPoint().Row) + 1, At: n.StartByte()})
 					}
 				}
 			}

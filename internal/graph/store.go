@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"path"
 	"sort"
 	"strings"
 
@@ -31,7 +32,7 @@ type FileMeta struct {
 
 // schemaVersion is bumped on any schema change. The index is a derived
 // artifact: a version mismatch triggers delete-and-rebuild, not migration.
-const schemaVersion = 5
+const schemaVersion = 6 // v6: import-bound resolution persists hints in edges.dst_ns
 
 const schema = `
 CREATE TABLE IF NOT EXISTS files (
@@ -166,19 +167,34 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 		ids[i], _ = res.LastInsertId()
 	}
 
+	// Import bindings: name -> normalized namespace hint, from this file's
+	// import deps. Calls and dep targets bound by an import resolve within
+	// the import's mapped namespace (Stage 2); the hint is persisted on the
+	// edge (dst_ns) so re-resolution reproduces insert-time results exactly.
+	bind := map[string]string{}
+	for _, d := range pf.Deps {
+		if d.Kind == KindImports && d.Source != "" && d.Target != "" {
+			bind[d.Target] = normalizeHint(d.Source, d.Target, pf.Path)
+		}
+	}
+
 	// Insert this file's outgoing call edges, resolved against the current graph.
 	for _, c := range pf.Calls {
 		if c.EnclosingIdx < 0 || c.EnclosingIdx >= len(ids) {
 			continue // top-level calls have no owning symbol in the skeleton
 		}
-		dstID, conf, err := resolve(tx, c.Callee, c.Qualifier, ns)
+		hint := c.NsHint // Go alias hint wins; else the file's import binding
+		if hint == "" {
+			hint = bind[c.Callee]
+		}
+		dstID, conf, err := resolve(tx, c.Callee, c.Qualifier, ns, hint)
 		if err != nil {
 			return nil, nil, err
 		}
 		if _, err := tx.Exec(
 			`INSERT INTO edges(src_symbol_id,dst_symbol_id,dst_name,dst_qualifier,dst_ns,kind,confidence,line,src_file)
 			 VALUES(?,?,?,?,?,?,?,?,?)`,
-			ids[c.EnclosingIdx], dstID, c.Callee, c.Qualifier, "", string(KindCalls), string(conf), c.Line, pf.Path); err != nil {
+			ids[c.EnclosingIdx], dstID, c.Callee, c.Qualifier, hint, string(KindCalls), string(conf), c.Line, pf.Path); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -191,11 +207,12 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 		if d.EnclosingIdx >= 0 && d.EnclosingIdx < len(ids) {
 			srcID = ids[d.EnclosingIdx]
 		}
+		hint := bind[d.Target] // extends/implements/import targets bind too
 		var dstID int64
 		conf := ConfUnresolved
 		if !strings.Contains(d.Target, "/") {
 			var err error
-			dstID, conf, err = resolve(tx, d.Target, "", ns)
+			dstID, conf, err = resolve(tx, d.Target, "", ns, hint)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -203,7 +220,7 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 		if _, err := tx.Exec(
 			`INSERT INTO edges(src_symbol_id,dst_symbol_id,dst_name,dst_qualifier,dst_ns,kind,confidence,line,src_file)
 			 VALUES(?,?,?,?,?,?,?,?,?)`,
-			srcID, dstID, d.Target, "", "", string(d.Kind), string(conf), d.Line, pf.Path); err != nil {
+			srcID, dstID, d.Target, "", hint, string(d.Kind), string(conf), d.Line, pf.Path); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -271,25 +288,25 @@ func (s *Store) ReResolveNames(tx *sql.Tx, names map[string]struct{}) error {
 
 	for name := range names {
 		erows, err := tx.Query(
-			`SELECT id, dst_qualifier, src_file FROM edges WHERE dst_name=?`, name)
+			`SELECT id, dst_qualifier, dst_ns, src_file FROM edges WHERE dst_name=?`, name)
 		if err != nil {
 			return err
 		}
-		type grp struct{ q, ns string }
+		type grp struct{ q, ns, hint string }
 		groups := map[grp][]int64{}
 		for erows.Next() {
 			var id int64
-			var q, f string
-			if err := erows.Scan(&id, &q, &f); err != nil {
+			var q, h, f string
+			if err := erows.Scan(&id, &q, &h, &f); err != nil {
 				erows.Close()
 				return err
 			}
-			g := grp{q: q, ns: fileNS[f]}
+			g := grp{q: q, ns: fileNS[f], hint: h}
 			groups[g] = append(groups[g], id)
 		}
 		erows.Close()
 		for g, ids := range groups {
-			dstID, conf, err := resolve(tx, name, g.q, g.ns)
+			dstID, conf, err := resolve(tx, name, g.q, g.ns, g.hint)
 			if err != nil {
 				return err
 			}
@@ -726,31 +743,40 @@ func namesDefinedBy(q queryer, path string) ([]string, error) {
 // exist, resolution happens within that set (1 -> unambiguous, >1 ->
 // deterministic first + ambiguous). Otherwise it falls back to plain
 // name-based behavior — a wrong hint can never make things worse.
-func resolve(q queryer, name, qualifier, srcNS string) (int64, Confidence, error) {
-	// Tier ladder: qualified project > qualified dep > plain project > plain
-	// dep. Project symbols always beat attached-map symbols, so maps can never
-	// degrade project resolution.
-	type step struct {
-		query string
-		args  []any
+func resolve(q queryer, name, qualifier, srcNS, nsHint string) (int64, Confidence, error) {
+	// Tier ladder: qualified project > qualified dep > import-bound (project
+	// then dep) > same-scope > plain project > plain dep. Project symbols
+	// always beat attached-map symbols, so maps can never degrade project
+	// resolution; hints and bindings fall through totally — they can narrow
+	// but never lose a match the plain ladder would have found.
+	type step func() ([]int64, error)
+	sqlStep := func(query string, args ...any) step {
+		return func() ([]int64, error) { return symbolIDs(q, query, args...) }
 	}
 	var steps []step
 	if qualifier != "" {
 		steps = append(steps,
-			step{`SELECT id FROM symbols WHERE name=? AND parent=? AND tier=0 ORDER BY file, start_line, id`, []any{name, qualifier}},
-			step{`SELECT id FROM symbols WHERE name=? AND parent=? AND tier=1 ORDER BY namespace, file, start_line, id`, []any{name, qualifier}})
+			sqlStep(`SELECT id FROM symbols WHERE name=? AND parent=? AND tier=0 ORDER BY file, start_line, id`, name, qualifier),
+			sqlStep(`SELECT id FROM symbols WHERE name=? AND parent=? AND tier=1 ORDER BY namespace, file, start_line, id`, name, qualifier))
+	}
+	if nsHint != "" {
+		// Import binding: the calling file imports this name (or, for Go,
+		// calls through an import alias) — constrain to the mapped namespace.
+		steps = append(steps,
+			func() ([]int64, error) { return boundIDs(q, name, 0, nsHint) },
+			func() ([]int64, error) { return boundIDs(q, name, 1, nsHint) })
 	}
 	if srcNS != "" {
 		// Same-scope preference: the language's local scope (file/module for
 		// Python and TS, package/namespace for Go and PHP) beats global names.
 		steps = append(steps,
-			step{`SELECT id FROM symbols WHERE name=? AND namespace=? AND tier=0 ORDER BY file, start_line, id`, []any{name, srcNS}})
+			sqlStep(`SELECT id FROM symbols WHERE name=? AND namespace=? AND tier=0 ORDER BY file, start_line, id`, name, srcNS))
 	}
 	steps = append(steps,
-		step{`SELECT id FROM symbols WHERE name=? AND tier=0 ORDER BY file, start_line, id`, []any{name}},
-		step{`SELECT id FROM symbols WHERE name=? AND tier=1 ORDER BY namespace, file, start_line, id`, []any{name}})
+		sqlStep(`SELECT id FROM symbols WHERE name=? AND tier=0 ORDER BY file, start_line, id`, name),
+		sqlStep(`SELECT id FROM symbols WHERE name=? AND tier=1 ORDER BY namespace, file, start_line, id`, name))
 	for _, st := range steps {
-		ids, err := symbolIDs(q, st.query, st.args...)
+		ids, err := st()
 		if err != nil {
 			return 0, "", err
 		}
@@ -762,6 +788,77 @@ func resolve(q queryer, name, qualifier, srcNS string) (int64, Confidence, error
 		}
 	}
 	return 0, ConfUnresolved, nil
+}
+
+// boundIDs returns the ids of symbols named `name` in the given tier whose
+// namespace matches the import hint, in deterministic order.
+func boundIDs(q queryer, name string, tier int, hint string) ([]int64, error) {
+	rows, err := q.Query(
+		`SELECT id, namespace FROM symbols WHERE name=? AND tier=? ORDER BY namespace, file, start_line, id`,
+		name, tier)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var ids []int64
+	for rows.Next() {
+		var id int64
+		var ns string
+		if err := rows.Scan(&id, &ns); err != nil {
+			return nil, err
+		}
+		if nsMatch(ns, hint) {
+			ids = append(ids, id)
+		}
+	}
+	return ids, rows.Err()
+}
+
+// nsMatch reports whether a candidate namespace corresponds to an import
+// hint. Lexical, language-shaped suffix alignment — no toolchain resolution:
+// Go import paths align with directory namespaces by path suffix (either
+// direction, covering vendored/staging layouts); Python dotted modules align
+// by dot suffix; PHP use-paths (pre-stripped to their namespace part) align
+// by backslash suffix; TS extensionless specifier paths match file-path
+// namespaces via known extensions and index files.
+func nsMatch(candNS, hint string) bool {
+	if candNS == "" || hint == "" {
+		return false
+	}
+	if candNS == hint {
+		return true
+	}
+	for _, sep := range []string{"/", ".", `\`} {
+		if strings.HasSuffix(hint, sep+candNS) || strings.HasSuffix(candNS, sep+hint) {
+			return true
+		}
+	}
+	if rest, ok := strings.CutPrefix(candNS, hint); ok {
+		switch rest {
+		case ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs",
+			"/index.ts", "/index.tsx", "/index.js", "/index.jsx":
+			return true
+		}
+	}
+	return false
+}
+
+// normalizeHint turns a raw import source into the namespace hint persisted
+// on edges (dst_ns) and matched by nsMatch: relative TS specifiers resolve
+// against the importing file's directory; PHP use-paths drop the bound final
+// segment; everything else (Go paths, Python modules, bare specifiers) stays
+// verbatim.
+func normalizeHint(source, target, fromFile string) string {
+	if source == "" {
+		return ""
+	}
+	if strings.HasPrefix(source, "./") || strings.HasPrefix(source, "../") {
+		return path.Join(path.Dir(fromFile), source)
+	}
+	if i := strings.LastIndexByte(source, '\\'); i >= 0 && source[i+1:] == target {
+		return source[:i]
+	}
+	return source
 }
 
 func symbolIDs(q queryer, query string, args ...any) ([]int64, error) {

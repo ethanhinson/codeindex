@@ -44,6 +44,7 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 	var rawCalls []struct {
 		callee    string
 		qualifier string
+		nsHint    string
 		line      int
 		at        uint32
 	}
@@ -68,6 +69,10 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 	// so calls through the receiver variable qualify to the receiver type —
 	// Go's lexical equivalent of `this`.
 	type recvCtx struct{ varName, typeName string }
+
+	// aliases maps import alias (explicit or last path segment) -> import path,
+	// so util.Foo() carries the aliased path as a namespace hint.
+	aliases := map[string]string{}
 
 	var walk func(n *sitter.Node, recv recvCtx)
 	walk = func(n *sitter.Node, recv recvCtx) {
@@ -101,7 +106,19 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 		case "import_spec":
 			// import "path/to/pkg" — verbatim path, file-level, unresolved
 			if pth := n.ChildByFieldName("path"); pth != nil {
-				addDep(n, graph.KindImports, strings.Trim(pth.Content(src), "\"`"))
+				ipath := strings.Trim(pth.Content(src), "\"`")
+				addDep(n, graph.KindImports, ipath)
+				alias := ""
+				if nm := n.ChildByFieldName("name"); nm != nil {
+					alias = nm.Content(src) // explicit alias (incl. _ and .)
+				} else if i := strings.LastIndexByte(ipath, '/'); i >= 0 {
+					alias = ipath[i+1:]
+				} else {
+					alias = ipath
+				}
+				if alias != "" && alias != "_" && alias != "." {
+					aliases[alias] = ipath
+				}
 			}
 		case "field_declaration":
 			// struct embedding: a field with a type but no name is an
@@ -129,21 +146,27 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 		case "call_expression":
 			if fn := n.ChildByFieldName("function"); fn != nil {
 				if callee := calleeName(fn, src); callee != "" {
-					qual := ""
-					// w.scale() inside func (w Widget) ... -> qualifier Widget
+					qual, nsHint := "", ""
+					// w.scale() inside func (w Widget) ... -> qualifier Widget;
+					// util.Foo() through an import alias -> namespace hint.
 					if fn.Type() == "selector_expression" {
 						if op := fn.ChildByFieldName("operand"); op != nil &&
-							op.Type() == "identifier" && recv.varName != "" &&
-							op.Content(src) == recv.varName {
-							qual = recv.typeName
+							op.Type() == "identifier" {
+							name := op.Content(src)
+							if recv.varName != "" && name == recv.varName {
+								qual = recv.typeName
+							} else if p, ok := aliases[name]; ok {
+								nsHint = p
+							}
 						}
 					}
 					rawCalls = append(rawCalls, struct {
 						callee    string
 						qualifier string
+						nsHint    string
 						line      int
 						at        uint32
-					}{callee, qual, int(n.StartPoint().Row) + 1, n.StartByte()})
+					}{callee, qual, nsHint, int(n.StartPoint().Row) + 1, n.StartByte()})
 				}
 			}
 		}
@@ -162,6 +185,7 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 			EnclosingIdx: enclosing(spans, c.at),
 			Callee:       c.callee,
 			Qualifier:    c.qualifier,
+			NsHint:       c.nsHint,
 			Line:         c.line,
 		})
 	}

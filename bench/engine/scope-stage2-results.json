@@ -1,0 +1,56 @@
+{
+ "gin": {
+  "baseline": 1668,
+  "stage1": 1187,
+  "stage2": 1189,
+  "total_reduction_pct": 28.7,
+  "stage2_vs_stage1_pct": -0.2,
+  "unambiguous": 2639,
+  "unresolved": 3366
+ },
+ "prometheus": {
+  "baseline": 25647,
+  "stage1": 21089,
+  "stage2": 20621,
+  "total_reduction_pct": 19.6,
+  "stage2_vs_stage1_pct": 2.2,
+  "unambiguous": 23467,
+  "unresolved": 29555
+ },
+ "kubernetes": {
+  "baseline": 355442,
+  "stage1": 301060,
+  "stage2": 271757,
+  "total_reduction_pct": 23.5,
+  "stage2_vs_stage1_pct": 9.7,
+  "unambiguous": 230084,
+  "unresolved": 122103
+ },
+ "nest": {
+  "baseline": 2455,
+  "stage1": 2027,
+  "stage2": 1991,
+  "total_reduction_pct": 18.9,
+  "stage2_vs_stage1_pct": 1.8,
+  "unambiguous": 3853,
+  "unresolved": 2507
+ },
+ "flask": {
+  "baseline": 1065,
+  "stage1": 938,
+  "stage2": 938,
+  "total_reduction_pct": 11.9,
+  "stage2_vs_stage1_pct": 0.0,
+  "unambiguous": 1353,
+  "unresolved": 1353
+ },
+ "laravel-framework": {
+  "baseline": 64593,
+  "stage1": 60688,
+  "stage2": 56539,
+  "total_reduction_pct": 12.5,
+  "stage2_vs_stage1_pct": 6.8,
+  "unambiguous": 53726,
+  "unresolved": 41845
+ }
+}
