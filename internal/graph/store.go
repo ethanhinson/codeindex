@@ -574,6 +574,36 @@ func (s *Store) depQuery(q string, args ...any) ([]Dep, error) {
 	return out, rows.Err()
 }
 
+// MedianCalledSymbol returns the symbol name with the median caller count
+// among names having at least minCallers call edges — a representative,
+// non-pathological query anchor for benchmarking.
+func (s *Store) MedianCalledSymbol(minCallers int) (string, error) {
+	rows, err := s.db.Query(`
+		SELECT dst_name, COUNT(*) AS n FROM edges
+		WHERE kind='calls' AND dst_name NOT LIKE '%/%'
+		GROUP BY dst_name HAVING n >= ? ORDER BY n`, minCallers)
+	if err != nil {
+		return "", err
+	}
+	defer rows.Close()
+	var names []string
+	for rows.Next() {
+		var name string
+		var n int
+		if err := rows.Scan(&name, &n); err != nil {
+			return "", err
+		}
+		names = append(names, name)
+	}
+	if err := rows.Err(); err != nil {
+		return "", err
+	}
+	if len(names) == 0 {
+		return "", nil
+	}
+	return names[len(names)/2], nil
+}
+
 // HasFile reports whether path is an indexed file (deps' file-mode detection).
 func (s *Store) HasFile(path string) (bool, error) {
 	var n int

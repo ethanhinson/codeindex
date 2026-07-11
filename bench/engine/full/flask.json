@@ -1,0 +1,19 @@
+{
+  "repo": "flask",
+  "files": 83,
+  "symbols": 1577,
+  "lines": 17868,
+  "workers": 14,
+  "cold_build_ms": 119.974,
+  "files_per_sec": 691.8134348868779,
+  "lines_per_sec": 148931.59583805705,
+  "incremental_patch_ms": 4.038,
+  "query_p50_ms": 1.875,
+  "query_p95_ms": 2.237,
+  "query_symbol": "run",
+  "index_bytes": 1019904,
+  "source_bytes": 572874,
+  "index_ratio": 1.7803286586579248,
+  "peak_rss_mb": 43.433984,
+  "incremental_equals_full": true
+}

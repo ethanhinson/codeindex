@@ -1,0 +1,19 @@
+{
+  "repo": "laravel-framework",
+  "files": 2453,
+  "symbols": 28700,
+  "lines": 435033,
+  "workers": 14,
+  "cold_build_ms": 6811.34,
+  "files_per_sec": 360.1346856391464,
+  "lines_per_sec": 63868.92486655311,
+  "incremental_patch_ms": 18.524,
+  "query_p50_ms": 17.498,
+  "query_p95_ms": 18.394,
+  "query_symbol": "assertInvalid",
+  "index_bytes": 44396544,
+  "source_bytes": 13608473,
+  "index_ratio": 3.2624192295491197,
+  "peak_rss_mb": 247.545856,
+  "incremental_equals_full": true
+}

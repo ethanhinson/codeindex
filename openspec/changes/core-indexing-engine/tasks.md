@@ -61,12 +61,12 @@
 - [x] 9.0 Pre-implementation token-savings spike validating the core assumption against real OSS repos (`bench/`, `bench/FINDINGS.md`) — done: 100–500× for def/callers on large-file Go incl. kubernetes; file-size dependent; outline weaker; JSON ~1.5–1.7× text
 - [x] 9.0b Pre-implementation re-index spike (`bench/reindex_bench.py`) — done: change-detection walk cost (stat ~185ms vs hash ~980ms on kubernetes) and edge blast-radius (median 2–7 inbound, 10–13% hot up to ~4000; churn median 1 file/commit). Established fast-path/dir-shortcutting/vendored-exclusion as required; parse+patch throughput + incremental-correctness remain engine-only
 - [ ] 9.1 Pin reference corpora at fixed commits for each tier (small ~50k, medium ~500k, large ~5M LOC; mix of Go + TS/JS) and a fetch script — extend `bench/repos.json`, fold the spike's `rg`-proxy corpora into the real harness
-- [ ] 9.2 Extend `codeindex bench` (cold build + incremental done in `engine-walking-skeleton`, all targets met — `bench/engine/FINDINGS.md`) with query p50/p95 incl. lazy re-check, index size, peak build memory, and worker-count reporting
+- [x] 9.2 `codeindex bench` measures the full spec surface: cold build, incremental, query p50/p95 incl. lazy re-check, index size+ratio, peak RSS (darwin bytes decode verified vs /usr/bin/time), worker count — consolidated run in `bench/engine/FINDINGS-bench-full.md`
 - [ ] 9.3 Define the fixed navigation-question set and measure the token-savings ratio (codeindex answer tokens vs. grep+read source tokens); assert median ≥ 10× (static ratio — end-to-end agent savings are the `agent-ab-efficacy` change)
-- [ ] 9.4 Measure index size per tier against the ≤2× source bound (medium/large); implement string interning / `file_id` normalization if over (skeleton measured 1.7–2.2×)
+- [ ] 9.4 String interning / `file_id` normalization — REQUIRED: laravel measured 3.26× (> 2× bound, recorded deviation in FINDINGS-bench-full); others ≤2× ✓
 - [ ] 9.5 Confirm typical `def`/`callers` answers stay ≤ ~500 tokens under default `--limit` (skeleton already has `--limit`; efficacy study measured median 449)
 - [ ] 9.6 Record baseline results and add a CI job that fails on >20% regression, naming the metric and tier
-- [ ] 9.7 Verify each per-tier target in the `performance` spec is met (or record a documented, justified deviation)
+- [x] 9.7 All per-tier targets verified on six repos (FINDINGS-bench-full.md): cold/incremental/query-p95/memory ✅; index-size deviation on laravel recorded + justified (interning is the fix)
 - [ ] 9.8 Benchmark the branch-switch case (thousands of files changed at once); add a full-rebuild fallback above a changed-file threshold if patching loses to rebuilding
 
 ## 10. Verification

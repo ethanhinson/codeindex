@@ -1,0 +1,19 @@
+{
+  "repo": "prometheus",
+  "files": 792,
+  "symbols": 8991,
+  "lines": 291114,
+  "workers": 14,
+  "cold_build_ms": 1787.6,
+  "files_per_sec": 443.0521059624562,
+  "lines_per_sec": 162851.85703933646,
+  "incremental_patch_ms": 9.913,
+  "query_p50_ms": 6.62,
+  "query_p95_ms": 8.448,
+  "query_symbol": "reduce",
+  "index_bytes": 15659008,
+  "source_bytes": 8920153,
+  "index_ratio": 1.7554640598653408,
+  "peak_rss_mb": 181.092352,
+  "incremental_equals_full": true
+}

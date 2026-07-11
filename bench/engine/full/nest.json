@@ -1,0 +1,19 @@
+{
+  "repo": "nest",
+  "files": 1653,
+  "symbols": 4482,
+  "lines": 96884,
+  "workers": 14,
+  "cold_build_ms": 516.363,
+  "files_per_sec": 3201.231950251624,
+  "lines_per_sec": 187627.4387587286,
+  "incremental_patch_ms": 24.238,
+  "query_p50_ms": 15.972,
+  "query_p95_ms": 16.827,
+  "query_symbol": "debug",
+  "index_bytes": 5472256,
+  "source_bytes": 2824041,
+  "index_ratio": 1.9377395724778783,
+  "peak_rss_mb": 75.93984,
+  "incremental_equals_full": true
+}

@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"codeindex/internal/engine"
@@ -137,16 +138,26 @@ func runBuild(root string) error {
 	return nil
 }
 
-// BenchResult is the machine-readable output of `bench`.
+// BenchResult is the machine-readable output of `bench` — the full
+// performance-spec surface: build throughput, incremental latency, query
+// latency incl. the lazy re-check, index size vs source, and peak memory.
 type BenchResult struct {
 	Repo             string  `json:"repo"`
 	Files            int     `json:"files"`
 	Symbols          int     `json:"symbols"`
 	Lines            int     `json:"lines"`
+	Workers          int     `json:"workers"`
 	ColdBuildMs      float64 `json:"cold_build_ms"`
 	FilesPerSec      float64 `json:"files_per_sec"`
 	LinesPerSec      float64 `json:"lines_per_sec"`
 	IncrementalMs    float64 `json:"incremental_patch_ms"`
+	QueryP50Ms       float64 `json:"query_p50_ms"`
+	QueryP95Ms       float64 `json:"query_p95_ms"`
+	QuerySymbol      string  `json:"query_symbol"`
+	IndexBytes       int64   `json:"index_bytes"`
+	SourceBytes      int64   `json:"source_bytes"`
+	IndexRatio       float64 `json:"index_ratio"`
+	PeakRSSMB        float64 `json:"peak_rss_mb"`
 	IncrementalEqual bool    `json:"incremental_equals_full"`
 	Diff             string  `json:"diff,omitempty"`
 }
@@ -220,6 +231,43 @@ func runBench(root, out string) error {
 		os.Remove(full)
 		_ = os.WriteFile(target, orig, 0o644) // restore clean
 	}
+
+	// 4) Query latency incl. lazy re-check (unchanged repo): pick a real
+	// symbol with a healthy caller count, run repeated queries, report p50/p95.
+	if sym, err := pickQuerySymbol(db); err == nil && sym != "" {
+		res.QuerySymbol = sym
+		times := make([]float64, 0, 21)
+		for i := 0; i < 21; i++ {
+			qs := time.Now()
+			if _, err := query.CallersText(root, sym, 50); err != nil {
+				break
+			}
+			times = append(times, ms(time.Since(qs)))
+		}
+		if len(times) > 1 {
+			times = times[1:] // drop warm-up
+			sortFloats(times)
+			res.QueryP50Ms = times[len(times)/2]
+			res.QueryP95Ms = times[(len(times)*95)/100]
+		}
+	}
+
+	// 5) Index size vs walked-source bytes; peak RSS of this process.
+	if fi, err := os.Stat(db); err == nil {
+		res.IndexBytes = fi.Size()
+	}
+	if paths, err := merkle.Walk(root); err == nil {
+		for _, rel := range paths {
+			if fi, err := os.Stat(filepath.Join(root, rel)); err == nil {
+				res.SourceBytes += fi.Size()
+			}
+		}
+	}
+	if res.SourceBytes > 0 {
+		res.IndexRatio = float64(res.IndexBytes) / float64(res.SourceBytes)
+	}
+	res.PeakRSSMB = peakRSSMB()
+	res.Workers = runtime.NumCPU()
 
 	printBench(res)
 	if out != "" {
@@ -297,13 +345,37 @@ func openSnap(db string) (graph.Snapshot, error) {
 
 func printBench(r BenchResult) {
 	fmt.Printf("\n=== %s ===\n", r.Repo)
-	fmt.Printf("  files=%d symbols=%d lines=%d\n", r.Files, r.Symbols, r.Lines)
+	fmt.Printf("  files=%d symbols=%d lines=%d workers=%d\n", r.Files, r.Symbols, r.Lines, r.Workers)
 	fmt.Printf("  cold build:   %.0f ms  (%.0f files/s, %.0f lines/s)\n",
 		r.ColdBuildMs, r.FilesPerSec, r.LinesPerSec)
 	fmt.Printf("  incremental:  %.1f ms (single-file patch)\n", r.IncrementalMs)
+	fmt.Printf("  query (incl. re-check, %q): p50=%.1f ms  p95=%.1f ms\n",
+		r.QuerySymbol, r.QueryP50Ms, r.QueryP95Ms)
+	fmt.Printf("  index: %.1f MB = %.2fx source (%.1f MB); peak RSS %.0f MB\n",
+		float64(r.IndexBytes)/1e6, r.IndexRatio, float64(r.SourceBytes)/1e6, r.PeakRSSMB)
 	fmt.Printf("  incremental == full rebuild: %v\n", r.IncrementalEqual)
 	if !r.IncrementalEqual {
 		fmt.Printf("  DIFF:\n%s\n", r.Diff)
+	}
+}
+
+// pickQuerySymbol chooses a representative query target: the symbol whose
+// caller count is the median among symbols with >=5 callers (avoids both
+// trivial and pathological anchors).
+func pickQuerySymbol(db string) (string, error) {
+	st, err := graph.Open(db)
+	if err != nil {
+		return "", err
+	}
+	defer st.Close()
+	return st.MedianCalledSymbol(5)
+}
+
+func sortFloats(xs []float64) {
+	for i := 1; i < len(xs); i++ {
+		for j := i; j > 0 && xs[j] < xs[j-1]; j-- {
+			xs[j], xs[j-1] = xs[j-1], xs[j]
+		}
 	}
 }
 

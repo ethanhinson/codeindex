@@ -1,0 +1,19 @@
+{
+  "repo": "gin",
+  "files": 91,
+  "symbols": 1179,
+  "lines": 18851,
+  "workers": 14,
+  "cold_build_ms": 175.252,
+  "files_per_sec": 519.2504249223086,
+  "lines_per_sec": 107564.72263967516,
+  "incremental_patch_ms": 5.226,
+  "query_p50_ms": 1.143,
+  "query_p95_ms": 1.414,
+  "query_symbol": "testRouteOK",
+  "index_bytes": 1343488,
+  "source_bytes": 538284,
+  "index_ratio": 2.495872067533124,
+  "peak_rss_mb": 51.134464,
+  "incremental_equals_full": true
+}
