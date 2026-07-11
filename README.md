@@ -69,6 +69,7 @@ codeindex deps <repo> <anchor>            what this file or package depends on
 codeindex find <repo> <query>             symbol search (--kind, --path, --limit)
 codeindex grep <repo> <pattern>           pattern search over indexed symbols
 codeindex enclosing <repo> <file> <a>:<b> which symbol encloses these lines
+codeindex tree <repo>                     interactive tree explorer (static print when piped)
 
 codeindex export <repo> <out.db>          compact index artifact for sharing
 codeindex import <repo> <artifact.db>     install an artifact, then patch local drift
