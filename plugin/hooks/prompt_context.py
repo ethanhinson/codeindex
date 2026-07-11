@@ -26,8 +26,11 @@ NOTE = (
     "<Symbol>`. Its output is COMPLETE and always fresh: answer directly from "
     "the returned path:line references — do NOT re-verify by reading files, "
     "except entries flagged [ambiguous]. "
-    "Do NOT use it to locate/find things (where is X defined, which files "
-    "mention Y) — plain grep is cheaper there."
+    "To locate things (where is X defined, which files mention Y), use plain "
+    "grep FIRST — it is cheaper. ONLY IF a grep attempt did not find what you "
+    "needed, escalate: `codeindex find <repo-root> '<tokens>'` (fuzzy symbol "
+    "search, any token order/convention) or `codeindex grep <repo-root> "
+    "'<pattern>'` (occurrences attributed to enclosing functions)."
 )
 
 

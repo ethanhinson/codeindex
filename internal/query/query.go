@@ -100,6 +100,22 @@ func CallersText(root, anchor string, limit int) (string, error) {
 		}
 		fmt.Fprintf(&b, "  %s:%d  %s%s\n", c.File, c.Line, c.QName(), flag)
 	}
+
+	// One-call completeness: the def+callers answer usually pairs with
+	// "which files reference X" — include it so no follow-up probe is needed.
+	files, err := st.ReferencingFiles(name)
+	if err != nil {
+		return "", err
+	}
+	fmt.Fprintf(&b, "referenced in %d file(s):", len(files))
+	for i, f := range files {
+		if i >= limit {
+			fmt.Fprintf(&b, " ... (+%d more)", len(files)-limit)
+			break
+		}
+		fmt.Fprintf(&b, " %s", f)
+	}
+	fmt.Fprintf(&b, "\n")
 	return b.String(), nil
 }
 

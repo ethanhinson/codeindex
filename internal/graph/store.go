@@ -619,6 +619,26 @@ func (s *Store) HasFile(path string) (bool, error) {
 	return n > 0, err
 }
 
+// ReferencingFiles returns the distinct files containing edges (any kind)
+// that target the given name — the "which files reference X" answer.
+func (s *Store) ReferencingFiles(name string) ([]string, error) {
+	rows, err := s.db.Query(
+		`SELECT DISTINCT src_file FROM edges WHERE dst_name=? ORDER BY src_file`, name)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []string
+	for rows.Next() {
+		var f string
+		if err := rows.Scan(&f); err != nil {
+			return nil, err
+		}
+		out = append(out, f)
+	}
+	return out, rows.Err()
+}
+
 // RefreshMerkle updates a file's change-detection state without touching its
 // graph (content unchanged, only mtime moved).
 func (s *Store) RefreshMerkle(tx *sql.Tx, m FileMeta) error {
