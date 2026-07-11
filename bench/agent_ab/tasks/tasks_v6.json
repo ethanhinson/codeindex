@@ -1,0 +1,439 @@
+{
+  "header": {
+    "generated_seed": 6006,
+    "repo_pins": {
+      "gin": {
+        "slug": "gin-gonic/gin",
+        "commit": "v1.10.0"
+      },
+      "prometheus": {
+        "slug": "prometheus/prometheus",
+        "commit": "v3.1.0"
+      }
+    },
+    "thresholds": {
+      "metric": "median paired reduction in total_cost_usd",
+      "green": "savings >= 30% AND success_delta >= -5pp AND adoption >= 70%",
+      "yellow": "savings 10-30%, OR adoption 40-70% with per-protocol savings >= 30%",
+      "red": "savings < 10% (ITT), OR success_delta < -5pp, OR adoption < 40% with per-protocol savings < 30%"
+    },
+    "v6_gate": {
+      "distinctive_regression_max_pct": 10,
+      "vague_savings_min_pct": 30,
+      "occurrences_savings_min_pct": 30,
+      "note": "Pre-registered v6 gate (locate-and-enriched-grep)."
+    },
+    "by_type": {
+      "comprehension": 6,
+      "vague_find": 8,
+      "occurrences": 6
+    },
+    "note": "comprehension reused from frozen tasks_v3; vague hints collision-checked."
+  },
+  "tasks": [
+    {
+      "id": "vague-gin-SetHTMLTemplate",
+      "type": "vague_find",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"template set\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "SetHTMLTemplate",
+        "definition": "gin.go:284"
+      },
+      "meta": {
+        "symbol": "SetHTMLTemplate",
+        "hint": "template set"
+      }
+    },
+    {
+      "id": "occur-gin-Abort",
+      "type": "occurrences",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'Abort' (exact name; not similarly-named functions, not the definition itself). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "AbortWithStatus\tcontext.go",
+          "AbortWithStatusJSON\tcontext.go",
+          "CustomRecoveryWithWriter\trecovery.go",
+          "Render\tcontext.go",
+          "TestContextIsAborted\tcontext_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "Abort",
+        "n_callers": 5
+      }
+    },
+    {
+      "id": "comp-gin-File",
+      "type": "comprehension",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, where is 'File' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'File'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "context.go:1074"
+        ],
+        "files": [
+          "CHANGELOG.md",
+          "binding/binding_test.go",
+          "binding/multipart_form_mapping.go",
+          "context.go",
+          "context_test.go",
+          "docs/doc.md",
+          "fs.go",
+          "gin_integration_test.go",
+          "logger.go",
+          "routergroup.go",
+          "testdata/protoexample/test.pb.go"
+        ]
+      },
+      "meta": {
+        "symbol": "File",
+        "n_defs": 1,
+        "n_files": 11,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-gin-Delims",
+      "type": "comprehension",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, where is 'Delims' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'Delims'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "gin.go:244",
+          "render/html.go:13"
+        ],
+        "files": [
+          "debug_test.go",
+          "docs/doc.md",
+          "gin.go",
+          "gin_test.go",
+          "render/html.go",
+          "render/render_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "Delims",
+        "n_defs": 2,
+        "n_files": 6,
+        "bucket": "hot"
+      }
+    },
+    {
+      "id": "comp-gin-IsType",
+      "type": "comprehension",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, where is 'IsType' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'IsType'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "errors.go:89"
+        ],
+        "files": [
+          "CHANGELOG.md",
+          "errors.go"
+        ]
+      },
+      "meta": {
+        "symbol": "IsType",
+        "n_defs": 1,
+        "n_files": 2,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-prometheus-ContainsSameLabelset",
+      "type": "comprehension",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, where is 'ContainsSameLabelset' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'ContainsSameLabelset'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "promql/value.go:270",
+          "promql/value.go:323"
+        ],
+        "files": [
+          "promql/engine.go",
+          "promql/functions.go",
+          "promql/value.go",
+          "promql/value_test.go",
+          "rules/recording.go"
+        ]
+      },
+      "meta": {
+        "symbol": "ContainsSameLabelset",
+        "n_defs": 2,
+        "n_files": 5,
+        "bucket": "hot"
+      }
+    },
+    {
+      "id": "comp-prometheus-CountWarningsAndInfo",
+      "type": "comprehension",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, where is 'CountWarningsAndInfo' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'CountWarningsAndInfo'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "util/annotations/annotations.go:116"
+        ],
+        "files": [
+          "promql/promqltest/test.go",
+          "util/annotations/annotations.go"
+        ]
+      },
+      "meta": {
+        "symbol": "CountWarningsAndInfo",
+        "n_defs": 1,
+        "n_files": 2,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-prometheus-runTest",
+      "type": "comprehension",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, where is 'runTest' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'runTest'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "promql/promqltest/test.go:151"
+        ],
+        "files": [
+          "promql/functions_internal_test.go",
+          "promql/promqltest/test.go",
+          "scrape/scrape_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "runTest",
+        "n_defs": 1,
+        "n_files": 3,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "vague-gin-DisableConsoleColor",
+      "type": "vague_find",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"console disable\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "DisableConsoleColor",
+        "definition": "logger.go:164"
+      },
+      "meta": {
+        "symbol": "DisableConsoleColor",
+        "hint": "console disable"
+      }
+    },
+    {
+      "id": "vague-gin-setWithProperType",
+      "type": "vague_find",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"set proper type\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "setWithProperType",
+        "definition": "binding/form_mapping.go:221"
+      },
+      "meta": {
+        "symbol": "setWithProperType",
+        "hint": "set proper type"
+      }
+    },
+    {
+      "id": "vague-gin-isTrustedProxy",
+      "type": "vague_find",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"is proxy\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "isTrustedProxy",
+        "definition": "gin.go:458"
+      },
+      "meta": {
+        "symbol": "isTrustedProxy",
+        "hint": "is proxy"
+      }
+    },
+    {
+      "id": "occur-gin-Open",
+      "type": "occurrences",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'Open' (exact name; not similarly-named functions, not the definition itself). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "Open\tfs.go",
+          "SaveUploadedFile\tcontext.go",
+          "TestBindingFormFilesMultipart\tbinding/binding_test.go",
+          "assertMultipartFileHeader\tbinding/multipart_form_mapping_test.go",
+          "createFormFilesMultipartRequest\tbinding/binding_test.go",
+          "createFormFilesMultipartRequestFail\tbinding/binding_test.go",
+          "createStaticHandler\troutergroup.go"
+        ]
+      },
+      "meta": {
+        "symbol": "Open",
+        "n_callers": 7
+      }
+    },
+    {
+      "id": "occur-gin-mappingByPtr",
+      "type": "occurrences",
+      "repo": "gin",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'mappingByPtr' (exact name; not similarly-named functions, not the definition itself). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "Bind\tbinding/form.go",
+          "TestMappingArray\tbinding/form_mapping_test.go",
+          "TestMappingCustomPointerStructTypeWithFormTag\tbinding/form_mapping_test.go",
+          "TestMappingCustomPointerStructTypeWithURITag\tbinding/form_mapping_test.go",
+          "TestMappingCustomStructTypeWithFormTag\tbinding/form_mapping_test.go",
+          "TestMappingCustomStructTypeWithURITag\tbinding/form_mapping_test.go",
+          "TestMappingCustomUnmarshalParamHexWithFormTag\tbinding/form_mapping_test.go",
+          "TestMappingCustomUnmarshalParamHexWithURITag\tbinding/form_mapping_test.go",
+          "TestMappingDefault\tbinding/form_mapping_test.go",
+          "TestMappingIgnoreField\tbinding/form_mapping_test.go",
+          "TestMappingIgnoredCircularRef\tbinding/form_mapping_test.go",
+          "TestMappingMapField\tbinding/form_mapping_test.go",
+          "TestMappingPrivateField\tbinding/form_mapping_test.go",
+          "TestMappingPtrField\tbinding/form_mapping_test.go",
+          "TestMappingSkipField\tbinding/form_mapping_test.go",
+          "TestMappingSlice\tbinding/form_mapping_test.go",
+          "TestMappingStructField\tbinding/form_mapping_test.go",
+          "TestMappingTimeDuration\tbinding/form_mapping_test.go",
+          "TestMappingUnexportedField\tbinding/form_mapping_test.go",
+          "TestMappingUnknownFieldType\tbinding/form_mapping_test.go",
+          "mapFormByTag\tbinding/form_mapping.go",
+          "mapHeader\tbinding/header.go"
+        ]
+      },
+      "meta": {
+        "symbol": "mappingByPtr",
+        "n_callers": 22
+      }
+    },
+    {
+      "id": "vague-prometheus-PostingsCardinalityStats",
+      "type": "vague_find",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"cardinality stats\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "PostingsCardinalityStats",
+        "definition": "tsdb/head.go:1033"
+      },
+      "meta": {
+        "symbol": "PostingsCardinalityStats",
+        "hint": "cardinality stats"
+      }
+    },
+    {
+      "id": "vague-prometheus-CustomInfiniteScroll",
+      "type": "vague_find",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"infinite custom\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "CustomInfiniteScroll",
+        "definition": "web/ui/mantine-ui/src/components/CustomInfiniteScroll.tsx:15"
+      },
+      "meta": {
+        "symbol": "CustomInfiniteScroll",
+        "hint": "infinite custom"
+      }
+    },
+    {
+      "id": "vague-prometheus-closeAndDrain",
+      "type": "vague_find",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"drain close\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "closeAndDrain",
+        "definition": "tsdb/head_wal.go:528"
+      },
+      "meta": {
+        "symbol": "closeAndDrain",
+        "hint": "drain close"
+      }
+    },
+    {
+      "id": "vague-prometheus-setScrapeFailureLogger",
+      "type": "vague_find",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"failure logger set\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "setScrapeFailureLogger",
+        "definition": "scrape/scrape.go:1275"
+      },
+      "meta": {
+        "symbol": "setScrapeFailureLogger",
+        "hint": "failure logger set"
+      }
+    },
+    {
+      "id": "occur-prometheus-Decode",
+      "type": "occurrences",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'Decode' (exact name; not similarly-named functions, not the definition itself). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "BenchmarkParse\tmodel/textparse/benchmark_test.go",
+          "DecodeReadRequest\tstorage/remote/codec.go",
+          "DecodeWriteRequest\tstorage/remote/codec.go",
+          "DecodeWriteV2Request\tstorage/remote/codec.go",
+          "Parse\tmodel/rulefmt/rulefmt.go",
+          "ReadTombstones\ttsdb/tombstones/tombstones.go",
+          "ServeHTTP\tstorage/remote/write_handler.go",
+          "Store\tstorage/remote/queue_manager_test.go",
+          "TestSampledReadEndpoint\tstorage/remote/read_handler_test.go",
+          "UnmarshalJSON\tdiscovery/targetgroup/targetgroup.go",
+          "buildRecord\ttsdb/wlog/live_reader.go",
+          "decodeTombstonesSnapshotRecord\ttsdb/head_wal.go",
+          "fetchApps\tdiscovery/eureka/client.go",
+          "handleSampledResponse\tstorage/remote/client.go",
+          "mockServer\tdiscovery/puppetdb/puppetdb_test.go",
+          "next\ttsdb/wlog/reader.go",
+          "serve\tdocumentation/examples/remote_storage/remote_storage_adapter/main.go"
+        ]
+      },
+      "meta": {
+        "symbol": "Decode",
+        "n_callers": 17
+      }
+    },
+    {
+      "id": "occur-prometheus-DetectReset",
+      "type": "occurrences",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'DetectReset' (exact name; not similarly-named functions, not the definition itself). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "BenchmarkFloatHistogramDetectReset\tmodel/histogram/float_histogram_test.go",
+          "TestFloatHistogramDetectReset\tmodel/histogram/float_histogram_test.go",
+          "funcResets\tpromql/functions.go",
+          "getFloatResetHint\tpromql/histogram_stats_iterator.go",
+          "getResetHint\tpromql/histogram_stats_iterator.go",
+          "histogramRate\tpromql/functions.go"
+        ]
+      },
+      "meta": {
+        "symbol": "DetectReset",
+        "n_callers": 6
+      }
+    },
+    {
+      "id": "occur-prometheus-ActiveAlerts",
+      "type": "occurrences",
+      "repo": "prometheus",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'ActiveAlerts' (exact name; not similarly-named functions, not the definition itself). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "TestAlertingRule\trules/manager_test.go",
+          "TestForStateAddSamples\trules/manager_test.go",
+          "TestForStateRestore\trules/manager_test.go",
+          "alerts\tweb/api/v1/api.go",
+          "rules\tweb/api/v1/api.go",
+          "test\tcmd/promtool/unittest.go"
+        ]
+      },
+      "meta": {
+        "symbol": "ActiveAlerts",
+        "n_callers": 6
+      }
+    }
+  ]
+}

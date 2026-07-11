@@ -145,6 +145,26 @@ def main():
                                     / len(b_ty), 1) if b_ty else 0.0
         per_type[ty] = a
 
+    v6 = header.get("v6_gate")
+    v6_lines, v6_verdict = [], None
+    if v6:
+        dist = per_type.get("comprehension", {})
+        vag = per_type.get("vague_find", {})
+        occ = per_type.get("occurrences", {})
+        d = dist.get("median_cost_reduction_pct") or 0
+        v = vag.get("median_cost_reduction_pct") or 0
+        o = occ.get("median_cost_reduction_pct") or 0
+        checks = [
+            (f"distinctive regression ≤{v6['distinctive_regression_max_pct']}%: measured {d:+.1f}%",
+             d >= -v6["distinctive_regression_max_pct"]),
+            (f"vague-find savings ≥{v6['vague_savings_min_pct']}%: measured {v:+.1f}%",
+             v >= v6["vague_savings_min_pct"]),
+            (f"occurrences savings ≥{v6['occurrences_savings_min_pct']}%: measured {o:+.1f}%",
+             o >= v6["occurrences_savings_min_pct"]),
+        ]
+        v6_verdict = "PASS" if all(ok for _, ok in checks) else "FAIL"
+        v6_lines = [f"- {'✅' if ok else '❌'} {txt}" for txt, ok in checks]
+
     gate = header.get("v3_gate")
     gate_lines, gate_verdict = [], None
     if gate:
@@ -171,6 +191,10 @@ def main():
 
     L = []
     L.append("# agent-ab-efficacy — report\n")
+    if v6_verdict:
+        L.append(f"**v6 GATE: {v6_verdict}**\n")
+        L.extend(v6_lines)
+        L.append("")
     if gate_verdict:
         L.append(f"**v3 GATE: {gate_verdict}**\n")
         L.extend(gate_lines)

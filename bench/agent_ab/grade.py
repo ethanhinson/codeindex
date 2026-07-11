@@ -127,6 +127,19 @@ def grade_caller_attribution(answer, gt, repo_prefix):
                    "n_truth_files": len(truth_files)}, unparseable
 
 
+def grade_vague_find(answer, gt, repo_prefix):
+    a = answer or ""
+    name_ok = bool(re.search(r"\b" + re.escape(gt["name"]) + r"\b", a))
+    fl = GO_FILELINE.search(a)
+    def_ok = False
+    if fl:
+        p, ln = norm_path(fl.group(1), repo_prefix), int(fl.group(2))
+        tp, tl = gt["definition"].rsplit(":", 1)
+        def_ok = p == tp and abs(ln - int(tl)) <= 2
+    score = (0.5 if name_ok else 0.0) + (0.5 if def_ok else 0.0)
+    return score, {"name_ok": name_ok, "def_ok": def_ok}, not (name_ok or fl)
+
+
 def main():
     import argparse
     ap = argparse.ArgumentParser()
@@ -153,7 +166,9 @@ def main():
         gt = task["ground_truth"]
         if task["type"] == "comprehension":
             score, detail, unp = grade_comprehension(r.get("answer", ""), gt, prefix)
-        elif task["type"] in ("caller_attribution", "edit_impact"):
+        elif task["type"] == "vague_find":
+            score, detail, unp = grade_vague_find(r.get("answer", ""), gt, prefix)
+        elif task["type"] in ("caller_attribution", "edit_impact", "occurrences"):
             score, detail, unp = grade_caller_attribution(r.get("answer", ""), gt, prefix)
         else:
             score, detail, unp = grade_localization(r.get("answer", ""), gt, prefix)

@@ -227,6 +227,101 @@ def edit_impact_tasks(name: str, rp: Path, n: int, rng: random.Random) -> list[d
 
 
 # --------------------------------------------------------------------------- #
+# v6 locate tasks
+# --------------------------------------------------------------------------- #
+
+import re as _re
+
+
+def _tok(name):
+    parts = _re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", name)
+    parts = _re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1 \2", parts)
+    parts = _re.sub(r"[_\-.$]", " ", parts)
+    return [t.lower() for t in parts.split() if t]
+
+
+VAGUE_PROMPT = (
+    "In the repository at {REPO_PATH} there is a symbol whose name means "
+    "roughly: \"{hint}\" (tokens may be reordered, incomplete, or use a "
+    "synonym; naming convention unknown). Identify the exact symbol. Answer "
+    "with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two "
+    "lines, nothing else. Base it on the repository."
+)
+
+
+def vague_find_tasks(name: str, rp: Path, n: int, rng: random.Random) -> list[dict]:
+    ensure_index(rp)
+    con = sqlite3.connect(str(rp / ".codeindex" / "graph.db"))
+    rows = con.execute("""
+        SELECT s.name, s.file, s.start_line, COUNT(e.id) AS c FROM symbols s
+        LEFT JOIN edges e ON e.dst_symbol_id = s.id
+        WHERE s.tier=0 AND length(s.name) >= 8 AND s.file NOT LIKE '%_test%'
+        GROUP BY s.id HAVING c >= 3""").fetchall()
+    con.close()
+    cands = [(nm, f, l) for nm, f, l, _c in rows if len(_tok(nm)) >= 3]
+    # unique names only (unambiguous grading)
+    seen = {}
+    for nm, f, l in cands:
+        seen.setdefault(nm, []).append((f, l))
+    cands = [(nm, v[0][0], v[0][1]) for nm, v in seen.items() if len(v) == 1]
+    # token-sets of ALL symbols (any tier), to reject ill-posed hints: a
+    # dropped-token hint that exactly equals another real symbol's token set
+    # makes that other symbol a legitimate answer.
+    con = sqlite3.connect(str(rp / ".codeindex" / "graph.db"))
+    all_sets = {}
+    for (anm,) in con.execute("SELECT DISTINCT name FROM symbols"):
+        all_sets.setdefault(frozenset(_tok(anm)), set()).add(anm)
+    con.close()
+    rng.shuffle(cands)
+    tasks = []
+    for nm, f, l in cands:
+        if len(tasks) >= n:
+            break
+        toks = _tok(nm)
+        drop = list(toks)
+        drop.pop(rng.randrange(len(drop)))
+        rng.shuffle(drop)
+        hint = " ".join(drop)
+        owners = all_sets.get(frozenset(drop), set())
+        if owners - {nm}:
+            continue  # ill-posed: hint exactly matches a different symbol
+        tasks.append({
+            "id": f"vague-{name}-{nm}",
+            "type": "vague_find",
+            "repo": name,
+            "prompt": VAGUE_PROMPT.format(REPO_PATH="{REPO_PATH}", hint=hint),
+            "ground_truth": {"name": nm, "definition": f"{f}:{l}"},
+            "meta": {"symbol": nm, "hint": hint},
+        })
+    return tasks
+
+
+OCCUR_PROMPT = (
+    "In the repository at {REPO_PATH}, find every function or method that "
+    "CALLS '{symbol}' (exact name; not similarly-named functions, not the "
+    "definition itself). Answer as a 'CALLERS:' section, one entry per line, "
+    "exact form '<functionName>  <file>' (repo-relative), nothing else. Base "
+    "every entry on the code."
+)
+
+
+def occurrences_tasks(name: str, rp: Path, n: int, rng: random.Random) -> list[dict]:
+    base = caller_attribution_tasks(name, rp, n * 2, rng)
+    out = []
+    for t in base[:n]:
+        sym = t["meta"]["symbol"]
+        out.append({
+            "id": f"occur-{name}-{sym}",
+            "type": "occurrences",
+            "repo": name,
+            "prompt": OCCUR_PROMPT.format(REPO_PATH="{REPO_PATH}", symbol=sym),
+            "ground_truth": t["ground_truth"],
+            "meta": t["meta"],
+        })
+    return out
+
+
+# --------------------------------------------------------------------------- #
 # Localization tasks (merged-PR ground truth)
 # --------------------------------------------------------------------------- #
 
@@ -342,6 +437,9 @@ def main():
     ap.add_argument("--localization-per-repo", type=int, default=4)
     ap.add_argument("--caller-attribution-per-repo", type=int, default=8)
     ap.add_argument("--edit-impact-per-repo", type=int, default=2)
+    ap.add_argument("--vague-find-per-repo", type=int, default=4)
+    ap.add_argument("--occurrences-per-repo", type=int, default=3)
+    ap.add_argument("--v6-gate", action="store_true")
     ap.add_argument("--v3-gate", action="store_true",
                     help="stamp the v3 gate thresholds into the header")
     ap.add_argument("--types", default="comprehension,localization",
@@ -377,6 +475,12 @@ def main():
         if "caller_attribution" in types:
             t = caller_attribution_tasks(name, rp, args.caller_attribution_per_repo, rng)
             all_tasks.extend(t); counts["caller_attribution"] = len(t)
+        if "vague_find" in types:
+            t = vague_find_tasks(name, rp, args.vague_find_per_repo, rng)
+            all_tasks.extend(t); counts["vague_find"] = len(t)
+        if "occurrences" in types:
+            t = occurrences_tasks(name, rp, args.occurrences_per_repo, rng)
+            all_tasks.extend(t); counts["occurrences"] = len(t)
         if "edit_impact" in types:
             t = edit_impact_tasks(name, rp, args.edit_impact_per_repo, rng)
             all_tasks.extend(t); counts["edit_impact"] = len(t)
@@ -397,15 +501,26 @@ def main():
                 "non-symbol edits.",
     } if args.v3_gate else None
 
+    v6_gate = {
+        "distinctive_regression_max_pct": 10,
+        "vague_savings_min_pct": 30,
+        "occurrences_savings_min_pct": 30,
+        "note": "Pre-registered v6 gate (locate-and-enriched-grep): "
+                "comprehension (distinctive) class must not regress >10%; "
+                "vague_find and occurrences classes must save >=30% median "
+                "paired cost; success delta >= -5pp.",
+    } if args.v6_gate else None
+
     header = {
         "generated_seed": args.seed,
         "repo_pins": pins,
         "thresholds": THRESHOLDS,
         "v3_gate": v3_gate,
+        "v6_gate": v6_gate,
         "n_tasks": len(all_tasks),
         "by_type": {t: sum(1 for x in all_tasks if x["type"] == t)
-                    for t in ("comprehension", "localization",
-                              "caller_attribution", "edit_impact")},
+                    for t in ("comprehension", "localization", "caller_attribution",
+                              "edit_impact", "vague_find", "occurrences")},
         "note": "Prompts contain the literal {REPO_PATH}; the runner substitutes "
                 "the resolved absolute clone path. Ground truth is arm-neutral "
                 "(ripgrep / merged-PR files).",
