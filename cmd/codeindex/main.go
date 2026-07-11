@@ -14,6 +14,7 @@ import (
 	"runtime"
 	"time"
 
+	"codeindex/internal/depmap"
 	"codeindex/internal/engine"
 	"codeindex/internal/graph"
 	"codeindex/internal/mcpserver"
@@ -26,7 +27,7 @@ const version = "0.2.0"
 func main() {
 	if len(os.Args) < 3 {
 		fmt.Fprintln(os.Stderr,
-			"usage: codeindex <build|callers|callees|impact|dependents|deps|enclosing|mcp|bench> <repo-root> ...")
+			"usage: codeindex <build|callers|callees|impact|dependents|deps|depmap|attach|enclosing|mcp|bench> <repo-root> ...")
 		os.Exit(2)
 	}
 	cmd, root := os.Args[1], os.Args[2]
@@ -84,6 +85,54 @@ func main() {
 			fatal(err)
 		}
 		fmt.Print(out)
+	case "depmap":
+		// codeindex depmap <dir> --namespace <ns> --version <v> -o <out.db>
+		var ns, ver, out string
+		for i := 3; i < len(os.Args)-1; i++ {
+			switch os.Args[i] {
+			case "--namespace":
+				ns = os.Args[i+1]
+			case "--version":
+				ver = os.Args[i+1]
+			case "-o":
+				out = os.Args[i+1]
+			}
+		}
+		if ns == "" || ver == "" || out == "" {
+			fatal(fmt.Errorf("usage: codeindex depmap <dir> --namespace <ns> --version <v> -o <out.db>"))
+		}
+		nf, nsym, err := depmap.Generate(root, ns, ver, out)
+		if err != nil {
+			fatal(err)
+		}
+		fmt.Printf("depmap %s@%s: %d files, %d symbols -> %s\n", ns, ver, nf, nsym, out)
+	case "attach":
+		// codeindex attach <repo> <map.db> --prefix <dir> | codeindex attach <repo> --auto
+		if err := query.Fresh(root); err != nil {
+			fatal(err)
+		}
+		if len(os.Args) > 3 && os.Args[3] == "--auto" {
+			n, syms, err := depmap.AutoAttach(root, dbPath(root))
+			if err != nil {
+				fatal(err)
+			}
+			fmt.Printf("attached %d dependency maps (%d dep symbols total)\n", n, syms)
+		} else {
+			if len(os.Args) < 4 {
+				fatal(fmt.Errorf("usage: codeindex attach <repo> <map.db> [--prefix <dir>] | --auto"))
+			}
+			prefix := ""
+			for i := 4; i < len(os.Args)-1; i++ {
+				if os.Args[i] == "--prefix" {
+					prefix = os.Args[i+1]
+				}
+			}
+			ns, ver, err := depmap.Attach(dbPath(root), os.Args[3], prefix)
+			if err != nil {
+				fatal(err)
+			}
+			fmt.Printf("attached %s@%s\n", ns, ver)
+		}
 	case "mcp":
 		if err := mcpserver.Run(context.Background(), root, version); err != nil {
 			fatal(err)

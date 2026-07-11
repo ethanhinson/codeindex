@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 
+	"codeindex/internal/depmap"
 	"codeindex/internal/engine"
 	"codeindex/internal/graph"
 )
@@ -45,8 +46,12 @@ func Fresh(root string) error {
 		_, err := engine.Build(root, dbPath(root))
 		return err
 	}
-	_, err := engine.Patch(root, dbPath(root))
-	return err
+	if _, err := engine.Patch(root, dbPath(root)); err != nil {
+		return err
+	}
+	// Hacked-dep overlay: verify covered vendor files (size+mtime fast path)
+	// and shadow locally modified ones. No-op when no maps are attached.
+	return depmap.VerifyOverlay(root, dbPath(root))
 }
 
 func open(root string) (*graph.Store, error) {
@@ -97,6 +102,21 @@ func CallersText(root, anchor string, limit int) (string, error) {
 	return b.String(), nil
 }
 
+// depMarker renders provenance for a dep-resolved definition file.
+func depMarker(st *graph.Store, defFile string) string {
+	if defFile == "" {
+		return ""
+	}
+	ns, ver, modified, err := st.DepProvenance(defFile)
+	if err != nil || ns == "" {
+		return ""
+	}
+	if modified {
+		return fmt.Sprintf("  [dep %s@%s modified]", ns, ver)
+	}
+	return fmt.Sprintf("  [dep %s@%s]", ns, ver)
+}
+
 // CalleesText returns what name calls, each resolved to its definition.
 func CalleesText(root, anchor string, limit int) (string, error) {
 	name, parent := SplitAnchor(anchor)
@@ -124,7 +144,7 @@ func CalleesText(root, anchor string, limit int) (string, error) {
 		if c.Conf == graph.ConfAmbiguous {
 			flag = "  [ambiguous]"
 		}
-		fmt.Fprintf(&b, "  %s  -> %s  @call:%d%s\n", c.QName(), target, c.CallLine, flag)
+		fmt.Fprintf(&b, "  %s  -> %s  @call:%d%s%s\n", c.QName(), target, c.CallLine, flag, depMarker(st, c.DefFile))
 	}
 	return b.String(), nil
 }
@@ -277,7 +297,7 @@ func ImpactText(root, anchor string, limit int) (string, error) {
 		if c.DefFile == "" {
 			continue // unresolved (stdlib/external) — noise in an impact summary
 		}
-		fmt.Fprintf(&b, "  %s  %s:%d\n", c.QName(), c.DefFile, c.DefLine)
+		fmt.Fprintf(&b, "  %s  %s:%d%s\n", c.QName(), c.DefFile, c.DefLine, depMarker(st, c.DefFile))
 	}
 	return b.String(), nil
 }

@@ -44,6 +44,8 @@ type Symbol struct {
 	File      string
 	Name      string
 	Parent    string
+	Namespace string // language-native namespace (dep tier); "" for project (v1)
+	Tier      int    // 0 = project, 1 = attached dependency map
 	Kind      SymbolKind
 	Signature string
 	StartLine int

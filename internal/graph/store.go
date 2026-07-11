@@ -31,7 +31,7 @@ type FileMeta struct {
 
 // schemaVersion is bumped on any schema change. The index is a derived
 // artifact: a version mismatch triggers delete-and-rebuild, not migration.
-const schemaVersion = 3
+const schemaVersion = 4
 
 const schema = `
 CREATE TABLE IF NOT EXISTS files (
@@ -39,11 +39,19 @@ CREATE TABLE IF NOT EXISTS files (
   size INTEGER NOT NULL, mtime INTEGER NOT NULL, lang TEXT);
 CREATE TABLE IF NOT EXISTS symbols (
   id INTEGER PRIMARY KEY, file TEXT NOT NULL, name TEXT NOT NULL,
-  parent TEXT NOT NULL DEFAULT '', kind TEXT NOT NULL,
+  parent TEXT NOT NULL DEFAULT '', namespace TEXT NOT NULL DEFAULT '',
+  tier INTEGER NOT NULL DEFAULT 0, kind TEXT NOT NULL,
   signature TEXT, start_line INTEGER NOT NULL, end_line INTEGER NOT NULL);
 CREATE INDEX IF NOT EXISTS idx_symbols_name ON symbols(name);
 CREATE INDEX IF NOT EXISTS idx_symbols_name_parent ON symbols(name, parent);
 CREATE INDEX IF NOT EXISTS idx_symbols_file ON symbols(file);
+CREATE INDEX IF NOT EXISTS idx_symbols_ns ON symbols(namespace);
+CREATE TABLE IF NOT EXISTS depfiles (
+  path TEXT PRIMARY KEY, namespace TEXT NOT NULL, version TEXT NOT NULL,
+  maphash TEXT NOT NULL, curhash TEXT NOT NULL,
+  size INTEGER NOT NULL DEFAULT 0, mtime INTEGER NOT NULL DEFAULT 0,
+  modified INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE IF NOT EXISTS depmeta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS edges (
   id INTEGER PRIMARY KEY, src_symbol_id INTEGER NOT NULL, dst_symbol_id INTEGER NOT NULL,
   dst_name TEXT NOT NULL, dst_qualifier TEXT NOT NULL DEFAULT '',
@@ -141,8 +149,8 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 	ids := make([]int64, len(pf.Symbols))
 	for i, sym := range pf.Symbols {
 		res, err := tx.Exec(
-			`INSERT INTO symbols(file,name,parent,kind,signature,start_line,end_line) VALUES(?,?,?,?,?,?,?)`,
-			sym.File, sym.Name, sym.Parent, string(sym.Kind), sym.Signature, sym.StartLine, sym.EndLine)
+			`INSERT INTO symbols(file,name,parent,namespace,tier,kind,signature,start_line,end_line) VALUES(?,?,?,?,?,?,?,?,?)`,
+			sym.File, sym.Name, sym.Parent, sym.Namespace, sym.Tier, string(sym.Kind), sym.Signature, sym.StartLine, sym.EndLine)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -653,24 +661,35 @@ func namesDefinedBy(q queryer, path string) ([]string, error) {
 // deterministic first + ambiguous). Otherwise it falls back to plain
 // name-based behavior — a wrong hint can never make things worse.
 func resolve(q queryer, name, qualifier string) (int64, Confidence, error) {
+	// Tier ladder: qualified project > qualified dep > plain project > plain
+	// dep. Project symbols always beat attached-map symbols, so maps can never
+	// degrade project resolution.
+	type step struct {
+		query string
+		args  []any
+	}
+	var steps []step
 	if qualifier != "" {
-		ids, err := symbolIDs(q,
-			`SELECT id FROM symbols WHERE name=? AND parent=? ORDER BY file, start_line, id`,
-			name, qualifier)
+		steps = append(steps,
+			step{`SELECT id FROM symbols WHERE name=? AND parent=? AND tier=0 ORDER BY file, start_line, id`, []any{name, qualifier}},
+			step{`SELECT id FROM symbols WHERE name=? AND parent=? AND tier=1 ORDER BY namespace, file, start_line, id`, []any{name, qualifier}})
+	}
+	steps = append(steps,
+		step{`SELECT id FROM symbols WHERE name=? AND tier=0 ORDER BY file, start_line, id`, []any{name}},
+		step{`SELECT id FROM symbols WHERE name=? AND tier=1 ORDER BY namespace, file, start_line, id`, []any{name}})
+	for _, st := range steps {
+		ids, err := symbolIDs(q, st.query, st.args...)
 		if err != nil {
 			return 0, "", err
 		}
-		switch len(ids) {
-		case 1:
+		if len(ids) == 1 {
 			return ids[0], ConfUnambiguous, nil
-		default:
-			if len(ids) > 1 {
-				return ids[0], ConfAmbiguous, nil
-			}
-			// 0 qualified hits: fall through to plain name-based resolution.
+		}
+		if len(ids) > 1 {
+			return ids[0], ConfAmbiguous, nil
 		}
 	}
-	return resolveName(q, name)
+	return 0, ConfUnresolved, nil
 }
 
 func symbolIDs(q queryer, query string, args ...any) ([]int64, error) {
@@ -690,37 +709,6 @@ func symbolIDs(q queryer, query string, args ...any) ([]int64, error) {
 	return ids, rows.Err()
 }
 
-// resolveName deterministically resolves a call target by name: 0 matches ->
-// unresolved; 1 -> unambiguous; >1 -> ambiguous, canonically the first by
-// (file, start_line). Deterministic ordering is what makes incremental == full.
-func resolveName(q queryer, name string) (int64, Confidence, error) {
-	rows, err := q.Query(
-		`SELECT id FROM symbols WHERE name=? ORDER BY file, start_line, id`, name)
-	if err != nil {
-		return 0, "", err
-	}
-	defer rows.Close()
-	var ids []int64
-	for rows.Next() {
-		var id int64
-		if err := rows.Scan(&id); err != nil {
-			return 0, "", err
-		}
-		ids = append(ids, id)
-	}
-	if err := rows.Err(); err != nil {
-		return 0, "", err
-	}
-	switch len(ids) {
-	case 0:
-		return 0, ConfUnresolved, nil
-	case 1:
-		return ids[0], ConfUnambiguous, nil
-	default:
-		return ids[0], ConfAmbiguous, nil
-	}
-}
-
 // Snapshot is a content-addressed, id-independent view of the graph used to
 // prove incremental == full rebuild (symbol/edge identities are content keys,
 // never autoincrement ids, which differ between the two build paths).
@@ -734,7 +722,7 @@ func (s *Store) DumpNormalized() (Snapshot, error) {
 	var snap Snapshot
 
 	srows, err := s.db.Query(
-		`SELECT file,name,parent,kind,signature,start_line,end_line FROM symbols`)
+		`SELECT file,name,parent,kind,signature,start_line,end_line FROM symbols WHERE tier=0`)
 	if err != nil {
 		return snap, err
 	}

@@ -46,8 +46,11 @@ net-negative — ~3.1k-token footprint — so v4 deliberately ships without them
   trusting). Anonymous/lambda functions are not indexed as symbols.
 - Measured savings (−73%/−62%) are from Go-repo experiments; other languages
   share the mechanics but are engine-validated only.
-- Call edges only for now: `/impact` covers callers/callees, not
-  import/type dependents (it says so in its output).
+- `/impact` covers call + import/extends/implements edges (type-usage
+  references still excluded, disclosed in output).
+- Vendored dependencies: run `codeindex attach <repo> --auto` (Go vendor /
+  composer) to resolve calls into deps with `[dep ns@ver]` provenance; locally
+  modified dep files overlay automatically and show `modified`.
 
 ## MCP server (IDEs)
 
