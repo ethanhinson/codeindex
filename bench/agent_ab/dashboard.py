@@ -38,9 +38,12 @@ EXPERIMENTS = [
      "GREEN: boundary holds off-Go — +64% median (CI 57-83), 100% win rate, "
      "success 100% vs 93.8%, qualified anchors live (Type::method)"),
     ("v6 · locate (find + enriched grep)", "graded_v6b.jsonl", "tasks_v6b.json",
-     "SPLIT: vague-find +35%, occurrences +70% (tools SHIPPED) · distinctive "
-     "-25% after iteration (ambient routing WITHHELD, note reverted to v4 text) · "
-     "success 95% vs 85%"),
+     "SPLIT: vague-find +35%, occurrences +70% · distinctive -25% (wording "
+     "iteration failed) — superseded by v7"),
+    ("v7 · locate, mechanical iteration", "graded_v7.jsonl", "tasks_v7.json",
+     "GATE PASS: one-call callers output + escalation-only routing · "
+     "distinctive -9.4% (in bound; adoption 100->17%), vague +38.8%, "
+     "occurrences +69.2% — escalation-routed note SHIPPED"),
 ]
 
 

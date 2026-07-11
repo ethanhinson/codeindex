@@ -76,3 +76,35 @@ wording). The iteration budget is spent, so per pre-registration:
 The meta-lesson now measured three times (v1, v3, v6): the always-visible
 note is a powerful and blunt instrument — whatever it sanctions WILL be
 over-applied. Tool quality and trigger discipline are separate products.
+
+## v7 — mechanical iteration: GATE PASS (2026-07-10)
+
+Diagnosis (v6b transcripts): the regression wasn't only find over-use — the
+ambient note primed Bash-CLI workflows over the native Grep tool, and the
+def+files task shape forced multiple probes (no single call answered both
+halves). Two mechanical fixes:
+
+1. **One-call completeness**: `callers` output ends with
+   `referenced in N file(s): …` — over-application became cheap, not costly.
+2. **Escalation-only routing**: "grep FIRST; ONLY IF grep didn't find it,
+   codeindex find/grep" — a checkable pre-condition, not a judgment call.
+
+Result ($2.6, 40 fresh arm-B runs, v6 arm-A shared controls):
+
+| Class | Threshold | v6 | v6b (wording) | **v7 (mechanical)** |
+| --- | --- | --- | --- | --- |
+| distinctive | regression ≤10% | −28.5% ❌ | −25.5% ❌ | **−9.4% ✅** |
+| vague_find | savings ≥30% | +35.2% | +35.2% | **+38.8% ✅** |
+| occurrences | savings ≥30% | +70.5% | +70.5% | **+69.2% ✅** |
+
+Distinctive-class codeindex adoption across note versions: 100% → 58% →
+**17%** — the procedural condition finally disciplined the trigger, and the
+one-call output made the residual usage nearly free.
+
+**Shipped configuration**: find/grep tools + escalation-only note routing
+(now gate-passed). The withheld-routing note from v6 is superseded.
+
+Meta-lesson refined: wording iterations move ambient-trigger behavior weakly
+(100→58%); PROCEDURAL conditions + making misuse cheap move it decisively
+(→17% and inside the bound). Design the tool so misuse doesn't cost, then
+gate the trigger on observable conditions.
