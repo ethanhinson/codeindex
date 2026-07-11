@@ -216,4 +216,3 @@ func (m *Model) fetchCounts() {
 	m.counts[key] = symCounts{callers: len(callers), callees: len(callees),
 		err: err1 != nil || err2 != nil}
 }
-

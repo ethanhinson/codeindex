@@ -45,6 +45,10 @@ func runTree(root string) error {
 		return err
 	}
 	m := tuitree.NewModel(filepath.Base(abs), node, len(syms), st)
-	_, err = tea.NewProgram(m, tea.WithAltScreen()).Run()
-	return err
+	if _, err := tea.NewProgram(m, tea.WithAltScreen()).Run(); err != nil {
+		// IsTTY's char-device heuristic false-positives on /dev/null and
+		// similar sinks; if the TUI can't start, degrade to static output.
+		fmt.Print(tuitree.Static(node))
+	}
+	return nil
 }
