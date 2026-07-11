@@ -86,6 +86,36 @@ func TestTypeScriptSymbolsAndCalls(t *testing.T) {
 	}
 }
 
+func TestTSDeps(t *testing.T) {
+	src := `import Default, {helper, other as alias} from './utils';
+import * as ns from './ns';
+
+interface Base {}
+export class Widget extends BaseWidget implements Base, Sizeable {
+  grow(): number { return 1; }
+}
+`
+	pf := parse(t, "d.ts", src)
+	kinds := map[graph.EdgeKind][]string{}
+	for _, d := range pf.Deps {
+		kinds[d.Kind] = append(kinds[d.Kind], d.Target)
+	}
+	for _, want := range []string{"Default", "helper", "other"} {
+		if !has(kinds[graph.KindImports], want) {
+			t.Errorf("import %s missing: %v", want, kinds[graph.KindImports])
+		}
+	}
+	if has(kinds[graph.KindImports], "ns") {
+		t.Errorf("namespace import should be skipped: %v", kinds[graph.KindImports])
+	}
+	if !has(kinds[graph.KindExtends], "BaseWidget") {
+		t.Errorf("extends BaseWidget missing: %v", kinds[graph.KindExtends])
+	}
+	if !has(kinds[graph.KindImplements], "Base") || !has(kinds[graph.KindImplements], "Sizeable") {
+		t.Errorf("implements missing: %v", kinds[graph.KindImplements])
+	}
+}
+
 func TestJavaScriptAndTSX(t *testing.T) {
 	pf := parse(t, "a.js", "function go() { run(); }\n")
 	if kinds(pf)["go"] != graph.KindFunc || !has(callsFrom(pf)["go"], "run") {

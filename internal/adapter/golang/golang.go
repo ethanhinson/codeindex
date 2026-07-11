@@ -47,6 +47,22 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 		line      int
 		at        uint32
 	}
+	var rawDeps []struct {
+		kind   graph.EdgeKind
+		target string
+		line   int
+		at     uint32
+	}
+	addDep := func(n *sitter.Node, kind graph.EdgeKind, target string) {
+		if target != "" {
+			rawDeps = append(rawDeps, struct {
+				kind   graph.EdgeKind
+				target string
+				line   int
+				at     uint32
+			}{kind, target, int(n.StartPoint().Row) + 1, n.StartByte()})
+		}
+	}
 
 	// recvCtx carries the enclosing method's receiver (variable name -> type)
 	// so calls through the receiver variable qualify to the receiver type —
@@ -81,6 +97,19 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 					start: n.StartByte(),
 					end:   n.EndByte(),
 				})
+			}
+		case "import_spec":
+			// import "path/to/pkg" — verbatim path, file-level, unresolved
+			if pth := n.ChildByFieldName("path"); pth != nil {
+				addDep(n, graph.KindImports, strings.Trim(pth.Content(src), "\"`"))
+			}
+		case "field_declaration":
+			// struct embedding: a field with a type but no name is an
+			// extends-like edge from the enclosing struct type.
+			if n.ChildByFieldName("name") == nil {
+				if t := n.ChildByFieldName("type"); t != nil {
+					addDep(n, graph.KindExtends, embeddedTypeName(t, src))
+				}
 			}
 		case "type_spec":
 			if name := n.ChildByFieldName("name"); name != nil {
@@ -136,7 +165,35 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 			Line:         c.line,
 		})
 	}
+	for _, d := range rawDeps {
+		pf.Deps = append(pf.Deps, graph.RawDep{
+			EnclosingIdx: enclosing(spans, d.at),
+			Kind:         d.kind,
+			Target:       d.target,
+			Line:         d.line,
+		})
+	}
 	return pf, nil
+}
+
+// embeddedTypeName reduces an embedded field's type to its type name:
+// `B` -> B, `*B` -> B, `pkg.B` -> B, generics stripped.
+func embeddedTypeName(t *sitter.Node, src []byte) string {
+	for t != nil {
+		switch t.Type() {
+		case "pointer_type":
+			t = t.NamedChild(0)
+		case "generic_type":
+			t = t.ChildByFieldName("type")
+		case "qualified_type":
+			t = t.ChildByFieldName("name")
+		case "type_identifier":
+			return t.Content(src)
+		default:
+			return ""
+		}
+	}
+	return ""
 }
 
 // receiver extracts a method's receiver variable name and type name

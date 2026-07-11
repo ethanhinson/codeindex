@@ -16,8 +16,14 @@ const (
 type EdgeKind string
 
 const (
-	KindCalls EdgeKind = "calls"
+	KindCalls      EdgeKind = "calls"
+	KindImports    EdgeKind = "imports"
+	KindExtends    EdgeKind = "extends"
+	KindImplements EdgeKind = "implements"
 )
+
+// DepKinds are the dependency edge kinds served by dependents/deps queries.
+var DepKinds = []EdgeKind{KindImports, KindExtends, KindImplements}
 
 // Confidence records how certain the name-based resolver is about an edge target.
 type Confidence string
@@ -65,11 +71,23 @@ type RawCall struct {
 	Line         int
 }
 
+// RawDep is a dependency fact discovered by an adapter: an import (file-level,
+// EnclosingIdx = -1) or an extends/implements relationship originating from
+// the symbol at EnclosingIdx. Target is a symbol name — or, for Go imports, a
+// verbatim package path (contains '/', stays unresolved by design).
+type RawDep struct {
+	EnclosingIdx int
+	Kind         EdgeKind
+	Target       string
+	Line         int
+}
+
 // ParsedFile is an adapter's output for one source file.
 type ParsedFile struct {
 	Path    string
 	Symbols []Symbol
 	Calls   []RawCall
+	Deps    []RawDep
 }
 
 // Edge is a resolved relationship between symbols. DstSymbolID is 0 when the

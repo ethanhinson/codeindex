@@ -30,6 +30,15 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 
 	var spans []common.SymbolSpan
 	var calls []common.RawCall
+	var deps []common.DepSite
+
+	addDep := func(n *sitter.Node, kind graph.EdgeKind, target string) {
+		if target != "" {
+			deps = append(deps, common.DepSite{
+				Kind: kind, Target: target,
+				Line: int(n.StartPoint().Row) + 1, At: n.StartByte()})
+		}
+	}
 
 	// Two lexical contexts: defClass = the class whose BODY we are directly in
 	// (decides method kind/parent; cleared inside function bodies), and
@@ -43,6 +52,44 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 			if name := n.ChildByFieldName("name"); name != nil {
 				spans = append(spans, common.Span(n, src, path, name.Content(src), "", graph.KindType, "body"))
 				nextDef = name.Content(src)
+			}
+			// class A(B, C): bases are extends edges (attributed to A's span)
+			if sup := n.ChildByFieldName("superclasses"); sup != nil {
+				for i := 0; i < int(sup.NamedChildCount()); i++ {
+					c := sup.NamedChild(i)
+					if c.Type() == "identifier" {
+						addDep(sup, graph.KindExtends, c.Content(src))
+					}
+				}
+			}
+		case "import_statement":
+			// import a.b, c — full dotted names, unresolved by nature
+			for i := 0; i < int(n.NamedChildCount()); i++ {
+				c := n.NamedChild(i)
+				if c.Type() == "dotted_name" {
+					addDep(n, graph.KindImports, c.Content(src))
+				} else if c.Type() == "aliased_import" {
+					if nm := c.ChildByFieldName("name"); nm != nil {
+						addDep(n, graph.KindImports, nm.Content(src))
+					}
+				}
+			}
+		case "import_from_statement":
+			// from m import a, b — the imported names (resolvable in-repo)
+			seenModule := false
+			for i := 0; i < int(n.NamedChildCount()); i++ {
+				c := n.NamedChild(i)
+				if c.Type() == "dotted_name" || c.Type() == "relative_import" {
+					if !seenModule {
+						seenModule = true // first dotted_name is the module
+						continue
+					}
+					addDep(n, graph.KindImports, c.Content(src))
+				} else if c.Type() == "aliased_import" {
+					if nm := c.ChildByFieldName("name"); nm != nil {
+						addDep(n, graph.KindImports, nm.Content(src))
+					}
+				}
 			}
 		case "function_definition":
 			if name := n.ChildByFieldName("name"); name != nil {
@@ -68,7 +115,7 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 		}
 	}
 	walk(tree.RootNode(), "", "")
-	return common.Assemble(path, spans, calls), nil
+	return common.Assemble(path, spans, calls, deps), nil
 }
 
 // calleeName takes the final name: `helper()` -> helper; `self.save()` -> save.

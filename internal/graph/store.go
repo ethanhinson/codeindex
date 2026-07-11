@@ -31,7 +31,7 @@ type FileMeta struct {
 
 // schemaVersion is bumped on any schema change. The index is a derived
 // artifact: a version mismatch triggers delete-and-rebuild, not migration.
-const schemaVersion = 2
+const schemaVersion = 3
 
 const schema = `
 CREATE TABLE IF NOT EXISTS files (
@@ -162,6 +162,31 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 			`INSERT INTO edges(src_symbol_id,dst_symbol_id,dst_name,dst_qualifier,kind,confidence,line,src_file)
 			 VALUES(?,?,?,?,?,?,?,?)`,
 			ids[c.EnclosingIdx], dstID, c.Callee, c.Qualifier, string(KindCalls), string(conf), c.Line, pf.Path); err != nil {
+			return nil, nil, err
+		}
+	}
+
+	// Dependency edges: imports (file-level, src_symbol_id=0) and
+	// extends/implements (from the owning symbol). Go import paths (contain
+	// '/') stay unresolved verbatim — packages are not symbols.
+	for _, d := range pf.Deps {
+		var srcID int64
+		if d.EnclosingIdx >= 0 && d.EnclosingIdx < len(ids) {
+			srcID = ids[d.EnclosingIdx]
+		}
+		var dstID int64
+		conf := ConfUnresolved
+		if !strings.Contains(d.Target, "/") {
+			var err error
+			dstID, conf, err = resolve(tx, d.Target, "")
+			if err != nil {
+				return nil, nil, err
+			}
+		}
+		if _, err := tx.Exec(
+			`INSERT INTO edges(src_symbol_id,dst_symbol_id,dst_name,dst_qualifier,kind,confidence,line,src_file)
+			 VALUES(?,?,?,?,?,?,?,?)`,
+			srcID, dstID, d.Target, "", string(d.Kind), string(conf), d.Line, pf.Path); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -443,6 +468,119 @@ func (s *Store) EnclosingSymbols(file string, start, end int) ([]Enclosing, erro
 	return out, nil
 }
 
+// Dependent is a source that imports/extends/implements a queried target:
+// either a symbol (Name/Parent set) or a file (Name empty, File set).
+type Dependent struct {
+	File   string
+	Name   string // "" for file-level (import) sources
+	Parent string
+	Kind   EdgeKind
+	Line   int
+}
+
+// QName is the dependent's display name: qualified symbol or the file itself.
+func (d Dependent) QName() string {
+	if d.Name == "" {
+		return d.File
+	}
+	if d.Parent != "" {
+		return d.Parent + "." + d.Name
+	}
+	return d.Name
+}
+
+// Dependents returns who imports/extends/implements the anchor. Matching:
+// exact dst_name; or, for Go package paths, last-path-segment (so both
+// `dependents graph` and `dependents codeindex/internal/graph` work).
+func (s *Store) Dependents(name string) ([]Dependent, error) {
+	rows, err := s.db.Query(`
+		SELECT e.src_file, COALESCE(sc.name,''), COALESCE(sc.parent,''), e.kind, e.line
+		FROM edges e
+		LEFT JOIN symbols sc ON sc.id = e.src_symbol_id AND e.src_symbol_id != 0
+		WHERE e.kind IN ('imports','extends','implements')
+		  AND (e.dst_name = ? OR e.dst_name LIKE '%/' || ?)
+		ORDER BY e.kind, e.src_file, e.line`, name, name)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Dependent
+	for rows.Next() {
+		var d Dependent
+		var kind string
+		if err := rows.Scan(&d.File, &d.Name, &d.Parent, &kind, &d.Line); err != nil {
+			return nil, err
+		}
+		d.Kind = EdgeKind(kind)
+		out = append(out, d)
+	}
+	return out, rows.Err()
+}
+
+// Dep is an outgoing dependency of a file or symbol.
+type Dep struct {
+	Kind    EdgeKind
+	Target  string
+	DefFile string // resolved definition ("" when unresolved/external)
+	DefLine int
+	Line    int
+}
+
+// FileImports returns a file's import edges.
+func (s *Store) FileImports(path string) ([]Dep, error) {
+	return s.depQuery(`
+		SELECT e.kind, e.dst_name, COALESCE(d.file,''), COALESCE(d.start_line,0), e.line
+		FROM edges e
+		LEFT JOIN symbols d ON d.id = e.dst_symbol_id AND e.dst_symbol_id != 0
+		WHERE e.src_file = ? AND e.kind = 'imports' ORDER BY e.line`, path)
+}
+
+// SymbolDeps returns a symbol's outgoing extends/implements edges.
+func (s *Store) SymbolDeps(name, parent string) ([]Dep, error) {
+	q := `SELECT e.kind, e.dst_name, COALESCE(d.file,''), COALESCE(d.start_line,0), e.line
+	      FROM edges e
+	      JOIN symbols sc ON sc.id = e.src_symbol_id
+	      LEFT JOIN symbols d ON d.id = e.dst_symbol_id AND e.dst_symbol_id != 0
+	      WHERE sc.name = ? AND e.kind IN ('extends','implements') ORDER BY e.line`
+	args := []any{name}
+	if parent != "" {
+		q = `SELECT e.kind, e.dst_name, COALESCE(d.file,''), COALESCE(d.start_line,0), e.line
+		     FROM edges e
+		     JOIN symbols sc ON sc.id = e.src_symbol_id
+		     LEFT JOIN symbols d ON d.id = e.dst_symbol_id AND e.dst_symbol_id != 0
+		     WHERE sc.name = ? AND sc.parent = ? AND e.kind IN ('extends','implements')
+		     ORDER BY e.line`
+		args = append(args, parent)
+	}
+	return s.depQuery(q, args...)
+}
+
+func (s *Store) depQuery(q string, args ...any) ([]Dep, error) {
+	rows, err := s.db.Query(q, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Dep
+	for rows.Next() {
+		var d Dep
+		var kind string
+		if err := rows.Scan(&kind, &d.Target, &d.DefFile, &d.DefLine, &d.Line); err != nil {
+			return nil, err
+		}
+		d.Kind = EdgeKind(kind)
+		out = append(out, d)
+	}
+	return out, rows.Err()
+}
+
+// HasFile reports whether path is an indexed file (deps' file-mode detection).
+func (s *Store) HasFile(path string) (bool, error) {
+	var n int
+	err := s.db.QueryRow(`SELECT COUNT(*) FROM files WHERE path=?`, path).Scan(&n)
+	return n > 0, err
+}
+
 // RefreshMerkle updates a file's change-detection state without touching its
 // graph (content unchanged, only mtime moved).
 func (s *Store) RefreshMerkle(tx *sql.Tx, m FileMeta) error {
@@ -586,11 +724,12 @@ func (s *Store) DumpNormalized() (Snapshot, error) {
 
 	// Edge identity uses content keys for src and dst, not row ids.
 	erows, err := s.db.Query(`
-		SELECT sc.file, sc.name, sc.start_line, e.dst_name, e.dst_qualifier,
+		SELECT e.src_file, COALESCE(sc.name,'<file>'), COALESCE(sc.start_line,0),
+		       e.dst_name, e.dst_qualifier,
 		       e.kind, e.confidence, e.line,
 		       COALESCE(d.file,''), COALESCE(d.name,''), COALESCE(d.parent,''), COALESCE(d.start_line,0)
 		FROM edges e
-		JOIN symbols sc ON sc.id = e.src_symbol_id
+		LEFT JOIN symbols sc ON sc.id = e.src_symbol_id AND e.src_symbol_id != 0
 		LEFT JOIN symbols d ON d.id = e.dst_symbol_id AND e.dst_symbol_id != 0`)
 	if err != nil {
 		return snap, err

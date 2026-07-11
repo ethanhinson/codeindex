@@ -43,8 +43,18 @@ func Enclosing(spans []SymbolSpan, pos uint32) int {
 	return best
 }
 
-// Assemble builds a ParsedFile from collected spans and calls.
-func Assemble(path string, spans []SymbolSpan, calls []RawCall) *graph.ParsedFile {
+// DepSite is a dependency fact before enclosing attribution: imports sit at
+// top level (attribute to -1 = file); extends/implements sit inside their
+// class span (attribute to the class).
+type DepSite struct {
+	Kind   graph.EdgeKind
+	Target string
+	Line   int
+	At     uint32
+}
+
+// Assemble builds a ParsedFile from collected spans, calls, and dep sites.
+func Assemble(path string, spans []SymbolSpan, calls []RawCall, deps []DepSite) *graph.ParsedFile {
 	pf := &graph.ParsedFile{Path: path}
 	for _, s := range spans {
 		pf.Symbols = append(pf.Symbols, s.Sym)
@@ -55,6 +65,14 @@ func Assemble(path string, spans []SymbolSpan, calls []RawCall) *graph.ParsedFil
 			Callee:       c.Callee,
 			Qualifier:    c.Qualifier,
 			Line:         c.Line,
+		})
+	}
+	for _, d := range deps {
+		pf.Deps = append(pf.Deps, graph.RawDep{
+			EnclosingIdx: Enclosing(spans, d.At),
+			Kind:         d.Kind,
+			Target:       d.Target,
+			Line:         d.Line,
 		})
 	}
 	return pf

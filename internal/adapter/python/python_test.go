@@ -21,6 +21,43 @@ def top():
     return w.grow(2)
 `
 
+func TestPythonDeps(t *testing.T) {
+	src := `import os.path
+from utils import helper, other as alias
+
+class Widget(Base, mixins.Sizeable):
+    pass
+`
+	pf, err := (Adapter{}).Parse("d.py", []byte(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	kinds := map[graph.EdgeKind][]string{}
+	for _, d := range pf.Deps {
+		kinds[d.Kind] = append(kinds[d.Kind], d.Target)
+	}
+	for _, want := range []string{"os.path", "helper", "other"} {
+		found := false
+		for _, got := range kinds[graph.KindImports] {
+			if got == want {
+				found = true
+			}
+		}
+		if !found {
+			t.Errorf("import %s missing: %v", want, kinds[graph.KindImports])
+		}
+	}
+	found := false
+	for _, got := range kinds[graph.KindExtends] {
+		if got == "Base" {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("extends Base missing: %v", kinds[graph.KindExtends])
+	}
+}
+
 func TestPythonSymbolsAndCalls(t *testing.T) {
 	pf, err := (Adapter{}).Parse("w.py", []byte(sample))
 	if err != nil {

@@ -1,6 +1,10 @@
 package golang
 
-import "testing"
+import (
+	"testing"
+
+	"codeindex/internal/graph"
+)
 
 const sample = `package p
 
@@ -57,6 +61,45 @@ func TestCallsAttributedToEnclosing(t *testing.T) {
 	}
 	if !contains(callsFrom["Grow"], "Helper") {
 		t.Errorf("Grow should call Helper; got %v", callsFrom["Grow"])
+	}
+}
+
+func TestDepsExtraction(t *testing.T) {
+	src := `package p
+
+import (
+	"fmt"
+	"codeindex/internal/graph"
+)
+
+type Base struct{ n int }
+
+type Widget struct {
+	*Base
+	name string
+}
+`
+	pf, err := (Adapter{}).Parse("p.go", []byte(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var imports, extends []string
+	for _, d := range pf.Deps {
+		switch d.Kind {
+		case graph.KindImports:
+			imports = append(imports, d.Target)
+		case graph.KindExtends:
+			extends = append(extends, d.Target)
+			if d.EnclosingIdx < 0 || pf.Symbols[d.EnclosingIdx].Name != "Widget" {
+				t.Errorf("embedding should originate from Widget; got idx %d", d.EnclosingIdx)
+			}
+		}
+	}
+	if !contains(imports, "fmt") || !contains(imports, "codeindex/internal/graph") {
+		t.Errorf("imports missing: %v", imports)
+	}
+	if !contains(extends, "Base") {
+		t.Errorf("embedding Base missing: %v", extends)
 	}
 }
 

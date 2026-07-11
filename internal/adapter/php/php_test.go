@@ -28,6 +28,38 @@ function top() {
 }
 `
 
+func TestPHPDeps(t *testing.T) {
+	src := `<?php
+use App\Support\Helper;
+use App\Contracts\Sizeable;
+
+class Widget extends BaseWidget implements Sizeable {
+    use Trackable;
+}
+`
+	pf, err := (Adapter{}).Parse("d.php", []byte(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	kinds := map[graph.EdgeKind][]string{}
+	for _, d := range pf.Deps {
+		kinds[d.Kind] = append(kinds[d.Kind], d.Target)
+	}
+	want := func(kind graph.EdgeKind, name string) {
+		for _, got := range kinds[kind] {
+			if got == name {
+				return
+			}
+		}
+		t.Errorf("%s %s missing: %v", kind, name, kinds[kind])
+	}
+	want(graph.KindImports, "Helper")
+	want(graph.KindImports, "Sizeable")
+	want(graph.KindExtends, "BaseWidget")
+	want(graph.KindImplements, "Sizeable")
+	want(graph.KindImplements, "Trackable")
+}
+
 func TestPHPSymbolsAndCalls(t *testing.T) {
 	pf, err := (Adapter{}).Parse("w.php", []byte(sample))
 	if err != nil {

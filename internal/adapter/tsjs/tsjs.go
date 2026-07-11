@@ -45,6 +45,15 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 
 	var spans []common.SymbolSpan
 	var calls []common.RawCall
+	var deps []common.DepSite
+
+	addDep := func(n *sitter.Node, kind graph.EdgeKind, target string) {
+		if target != "" {
+			deps = append(deps, common.DepSite{
+				Kind: kind, Target: target,
+				Line: int(n.StartPoint().Row) + 1, At: n.StartByte()})
+		}
+	}
 
 	// class threads the lexically enclosing class name: method parents, and
 	// `this.x()` qualification.
@@ -59,6 +68,44 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 			if name := n.ChildByFieldName("name"); name != nil {
 				spans = append(spans, common.Span(n, src, path, name.Content(src), "", graph.KindType, "body"))
 				class = name.Content(src)
+			}
+		case "extends_clause", "extends_type_clause":
+			// class A extends B / interface A extends B — identifier-ish children
+			for i := 0; i < int(n.NamedChildCount()); i++ {
+				c := n.NamedChild(i)
+				if c.Type() == "identifier" || c.Type() == "type_identifier" {
+					addDep(n, graph.KindExtends, c.Content(src))
+				}
+			}
+		case "implements_clause":
+			for i := 0; i < int(n.NamedChildCount()); i++ {
+				c := n.NamedChild(i)
+				if c.Type() == "type_identifier" || c.Type() == "identifier" {
+					addDep(n, graph.KindImplements, c.Content(src))
+				}
+			}
+		case "import_statement":
+			// import X, {a, b as c} from '...' — named + default specifiers
+			var collect func(m *sitter.Node)
+			collect = func(m *sitter.Node) {
+				switch m.Type() {
+				case "import_specifier":
+					if nm := m.ChildByFieldName("name"); nm != nil {
+						addDep(n, graph.KindImports, nm.Content(src))
+					}
+					return
+				case "identifier": // default import binding
+					addDep(n, graph.KindImports, m.Content(src))
+					return
+				case "namespace_import": // import * as ns — alias, not a repo symbol
+					return
+				}
+				for i := 0; i < int(m.NamedChildCount()); i++ {
+					collect(m.NamedChild(i))
+				}
+			}
+			if clause := n.NamedChild(0); clause != nil && clause.Type() == "import_clause" {
+				collect(clause)
 			}
 		case "method_definition":
 			if name := n.ChildByFieldName("name"); name != nil {
@@ -92,7 +139,7 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 		}
 	}
 	walk(tree.RootNode(), "")
-	return common.Assemble(path, spans, calls), nil
+	return common.Assemble(path, spans, calls, deps), nil
 }
 
 // calleeName takes the final name: `foo()` -> foo; `a.b.c()` -> c.

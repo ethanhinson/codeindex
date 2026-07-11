@@ -129,8 +129,89 @@ func CalleesText(root, anchor string, limit int) (string, error) {
 	return b.String(), nil
 }
 
+// DependentsText returns who imports/extends/implements the anchor.
+func DependentsText(root, anchor string, limit int) (string, error) {
+	name, _ := SplitAnchor(anchor)
+	st, err := open(root)
+	if err != nil {
+		return "", err
+	}
+	defer st.Close()
+	deps, err := st.Dependents(name)
+	if err != nil {
+		return "", err
+	}
+	var b strings.Builder
+	fmt.Fprintf(&b, "dependents of %s (%d):\n", anchor, len(deps))
+	for i, d := range deps {
+		if i >= limit {
+			fmt.Fprintf(&b, "  ... (+%d more; raise limit)\n", len(deps)-limit)
+			break
+		}
+		fmt.Fprintf(&b, "  %-10s %s:%d  %s\n", d.Kind, d.File, d.Line, d.QName())
+	}
+	return b.String(), nil
+}
+
+// DepsText returns what the anchor depends on. File anchors list the file's
+// imports; symbol anchors list extends/implements (+ the file's imports, labeled).
+func DepsText(root, anchor string, limit int) (string, error) {
+	st, err := open(root)
+	if err != nil {
+		return "", err
+	}
+	defer st.Close()
+
+	var b strings.Builder
+	emit := func(label string, ds []graph.Dep) {
+		fmt.Fprintf(&b, "%s (%d):\n", label, len(ds))
+		for i, d := range ds {
+			if i >= limit {
+				fmt.Fprintf(&b, "  ... (+%d more; raise limit)\n", len(ds)-limit)
+				break
+			}
+			target := d.Target
+			if d.DefFile != "" {
+				target = fmt.Sprintf("%s (%s:%d)", d.Target, d.DefFile, d.DefLine)
+			}
+			fmt.Fprintf(&b, "  %-10s %s  @%d\n", d.Kind, target, d.Line)
+		}
+	}
+
+	if ok, err := st.HasFile(anchor); err != nil {
+		return "", err
+	} else if ok {
+		imports, err := st.FileImports(anchor)
+		if err != nil {
+			return "", err
+		}
+		emit("imports of "+anchor, imports)
+		return b.String(), nil
+	}
+
+	name, parent := SplitAnchor(anchor)
+	sd, err := st.SymbolDeps(name, parent)
+	if err != nil {
+		return "", err
+	}
+	emit("deps of "+anchor, sd)
+	// context: the defining file's imports
+	defs, err := st.Definitions(name, parent)
+	if err != nil {
+		return "", err
+	}
+	if len(defs) > 0 {
+		imports, err := st.FileImports(defs[0].File)
+		if err != nil {
+			return "", err
+		}
+		emit("file imports ("+defs[0].File+")", imports)
+	}
+	return b.String(), nil
+}
+
 // ImpactText composes a counts-first blast-radius summary: definitions,
-// callers, callees. States coverage honestly (call edges only).
+// callers, callees, dependents. States coverage honestly.
 func ImpactText(root, anchor string, limit int) (string, error) {
 	name, parent := SplitAnchor(anchor)
 	st, err := open(root)
@@ -152,10 +233,15 @@ func ImpactText(root, anchor string, limit int) (string, error) {
 		return "", err
 	}
 
+	dependents, err := st.Dependents(name)
+	if err != nil {
+		return "", err
+	}
+
 	var b strings.Builder
-	fmt.Fprintf(&b, "impact of %s: %d definition(s), %d caller(s), %d callee(s)\n",
-		anchor, len(defs), len(callers), len(callees))
-	fmt.Fprintf(&b, "(coverage: call edges only — import/type dependents not included)\n\n")
+	fmt.Fprintf(&b, "impact of %s: %d definition(s), %d caller(s), %d callee(s), %d dependent(s)\n",
+		anchor, len(defs), len(callers), len(callees), len(dependents))
+	fmt.Fprintf(&b, "(coverage: call + import/extends/implements edges; type-usage references not included)\n\n")
 	for _, d := range defs {
 		fmt.Fprintf(&b, "def  %s  %s:%d  %s\n", d.QName(), d.File, d.StartLine, d.Signature)
 	}
@@ -173,6 +259,14 @@ func ImpactText(root, anchor string, limit int) (string, error) {
 			flag = "  [ambiguous]"
 		}
 		fmt.Fprintf(&b, "  %s:%d  %s%s\n", c.File, c.Line, c.QName(), flag)
+	}
+	fmt.Fprintf(&b, "\ndependents — who imports/extends/implements %s:\n", anchor)
+	for i, d := range dependents {
+		if i >= limit {
+			fmt.Fprintf(&b, "  ... (+%d more)\n", len(dependents)-limit)
+			break
+		}
+		fmt.Fprintf(&b, "  %-10s %s:%d  %s\n", d.Kind, d.File, d.Line, d.QName())
 	}
 	fmt.Fprintf(&b, "\ncallees — what %s depends on:\n", anchor)
 	for i, c := range callees {

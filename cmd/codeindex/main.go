@@ -25,7 +25,7 @@ const version = "0.2.0"
 func main() {
 	if len(os.Args) < 3 {
 		fmt.Fprintln(os.Stderr,
-			"usage: codeindex <build|callers|callees|impact|enclosing|mcp|bench> <repo-root> ...")
+			"usage: codeindex <build|callers|callees|impact|dependents|deps|enclosing|mcp|bench> <repo-root> ...")
 		os.Exit(2)
 	}
 	cmd, root := os.Args[1], os.Args[2]
@@ -64,6 +64,25 @@ func main() {
 		if err := runImpact(root, os.Args[3], limit); err != nil {
 			fatal(err)
 		}
+	case "dependents", "deps":
+		if len(os.Args) < 4 {
+			fatal(fmt.Errorf("usage: codeindex %s <repo-root> <anchor> [--limit N]", cmd))
+		}
+		limit := 50
+		if len(os.Args) >= 6 && os.Args[4] == "--limit" {
+			fmt.Sscanf(os.Args[5], "%d", &limit)
+		}
+		var out string
+		var err error
+		if cmd == "dependents" {
+			out, err = query.DependentsText(root, os.Args[3], limit)
+		} else {
+			out, err = query.DepsText(root, os.Args[3], limit)
+		}
+		if err != nil {
+			fatal(err)
+		}
+		fmt.Print(out)
 	case "mcp":
 		if err := mcpserver.Run(context.Background(), root, version); err != nil {
 			fatal(err)

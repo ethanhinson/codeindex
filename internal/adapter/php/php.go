@@ -30,6 +30,15 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 
 	var spans []common.SymbolSpan
 	var calls []common.RawCall
+	var deps []common.DepSite
+
+	addDep := func(n *sitter.Node, kind graph.EdgeKind, target string) {
+		if target != "" {
+			deps = append(deps, common.DepSite{
+				Kind: kind, Target: target,
+				Line: int(n.StartPoint().Row) + 1, At: n.StartByte()})
+		}
+	}
 
 	addCall := func(n *sitter.Node, name, qual string) {
 		if name != "" {
@@ -57,6 +66,49 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 			if name := n.ChildByFieldName("name"); name != nil {
 				spans = append(spans, common.Span(n, src, path, name.Content(src), "", graph.KindType, "body"))
 				class = name.Content(src)
+			}
+		case "base_clause":
+			// extends B (class or interface)
+			for i := 0; i < int(n.NamedChildCount()); i++ {
+				c := n.NamedChild(i)
+				if c.Type() == "name" || c.Type() == "qualified_name" {
+					addDep(n, graph.KindExtends, finalName(c, src))
+				}
+			}
+		case "class_interface_clause":
+			// implements I, J
+			for i := 0; i < int(n.NamedChildCount()); i++ {
+				c := n.NamedChild(i)
+				if c.Type() == "name" || c.Type() == "qualified_name" {
+					addDep(n, graph.KindImplements, finalName(c, src))
+				}
+			}
+		case "namespace_use_declaration":
+			// use A\B\C; — top-level imports, final segment
+			var collect func(m *sitter.Node)
+			collect = func(m *sitter.Node) {
+				if m.Type() == "namespace_use_clause" {
+					for i := 0; i < int(m.NamedChildCount()); i++ {
+						c := m.NamedChild(i)
+						if c.Type() == "name" || c.Type() == "qualified_name" {
+							addDep(n, graph.KindImports, finalName(c, src))
+							break
+						}
+					}
+					return
+				}
+				for i := 0; i < int(m.NamedChildCount()); i++ {
+					collect(m.NamedChild(i))
+				}
+			}
+			collect(n)
+		case "use_declaration":
+			// trait use inside a class body -> implements-like
+			for i := 0; i < int(n.NamedChildCount()); i++ {
+				c := n.NamedChild(i)
+				if c.Type() == "name" || c.Type() == "qualified_name" {
+					addDep(n, graph.KindImplements, finalName(c, src))
+				}
 			}
 		case "function_call_expression":
 			// helper(...) or Qualified\Name(...) -> final name segment
@@ -105,7 +157,7 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 		}
 	}
 	walk(tree.RootNode(), "")
-	return common.Assemble(path, spans, calls), nil
+	return common.Assemble(path, spans, calls, deps), nil
 }
 
 // finalName reduces a possibly-qualified name to its last segment:

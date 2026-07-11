@@ -87,6 +87,20 @@ func New(repo, version string) *mcp.Server {
 		return text(out), nil, nil
 	})
 
+	mcp.AddTool(s, &mcp.Tool{
+		Name: "dependents",
+		Description: "Who imports, extends, or implements a KNOWN symbol/module " +
+			"(Go, TS/JS, Python, PHP) — the type-level half of blast radius " +
+			"(subclasses, implementers, importers). Go packages match by full " +
+			"path or last segment. " + trust + notFor,
+	}, func(ctx context.Context, req *mcp.CallToolRequest, in symbolArgs) (*mcp.CallToolResult, any, error) {
+		out, err := query.DependentsText(repo, in.Symbol, limitOr(in.Limit))
+		if err != nil {
+			return nil, nil, fmt.Errorf("dependents %q: %w", in.Symbol, err)
+		}
+		return text(out), nil, nil
+	})
+
 	return s
 }
 
