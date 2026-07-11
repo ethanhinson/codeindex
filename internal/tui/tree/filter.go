@@ -19,6 +19,7 @@ func filterNode(n *Node, needle string) *Node {
 		if matchesLower(c, needle) {
 			cp := *c
 			cp.Expanded = false
+			cp.Children = append([]*Node(nil), c.Children...)
 			kids = append(kids, &cp)
 			continue
 		}

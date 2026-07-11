@@ -57,6 +57,30 @@ func TestFilterTreeDoesNotMutateOriginal(t *testing.T) {
 	if child(t, root, "internal").Expanded {
 		t.Fatal("filter mutated the original tree")
 	}
+
+	// Verify slice isolation: filter a tree, mutate the filtered copy's
+	// children, and verify the original is untouched.
+	root2 := BuildTree(fixtureSymbols())
+	filtered := FilterTree(root2, "store.go")
+	if filtered == nil {
+		t.Fatal("expected filter to match store.go")
+	}
+
+	// Navigate to store.go in the filtered tree
+	storeGoFiltered := child(t, child(t, child(t, filtered, "internal"), "graph"), "store.go")
+	origChildCount := len(storeGoFiltered.Children)
+	if origChildCount == 0 {
+		t.Fatal("store.go should have children in filtered tree")
+	}
+
+	// Append a dummy node to the filtered copy's children
+	storeGoFiltered.Children = append(storeGoFiltered.Children, &Node{Label: "DummyNode"})
+
+	// Verify the original tree's store.go still has the original child count
+	storeGoOriginal := child(t, child(t, child(t, root2, "internal"), "graph"), "store.go")
+	if len(storeGoOriginal.Children) != origChildCount {
+		t.Fatalf("original tree was mutated: %d children, want %d", len(storeGoOriginal.Children), origChildCount)
+	}
 }
 
 func TestFilterTreeEmptyQueryReturnsRoot(t *testing.T) {
