@@ -12,6 +12,7 @@ package mcpserver
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
@@ -31,6 +32,13 @@ type symbolArgs struct {
 }
 
 func text(s string) *mcp.CallToolResult {
+	// Disclose an implicit cold build once: the first tool result explains
+	// where the latency went (and that it's gone for good).
+	if info, ok := query.ConsumeColdBuild(); ok {
+		s = fmt.Sprintf(
+			"[codeindex: indexed %d files (%d symbols) in %s — first query on this repo; subsequent queries are fast]\n\n%s",
+			info.FilesParsed, info.Symbols, info.Duration.Round(time.Millisecond), s)
+	}
 	return &mcp.CallToolResult{Content: []mcp.Content{&mcp.TextContent{Text: s}}}
 }
 

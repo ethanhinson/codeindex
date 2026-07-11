@@ -93,7 +93,7 @@ func TestHandshakeListAndCall(t *testing.T) {
 // exactly one patches, both answer from the patched index, no SQLite error.
 func TestConcurrentCallsDuringEdit(t *testing.T) {
 	repo := fixtureRepo(t)
-	if err := query.Fresh(repo); err != nil { // initial index
+	if _, err := query.Fresh(repo); err != nil { // initial index
 		t.Fatal(err)
 	}
 	// pending edit: new caller of Helper in a new file

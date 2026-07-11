@@ -19,6 +19,7 @@ import (
 	"codeindex/internal/graph"
 	"codeindex/internal/mcpserver"
 	"codeindex/internal/merkle"
+	"codeindex/internal/progress"
 	"codeindex/internal/query"
 )
 
@@ -27,35 +28,41 @@ const version = "0.2.0"
 func main() {
 	if len(os.Args) < 3 {
 		fmt.Fprintln(os.Stderr,
-			"usage: codeindex <build|callers|callees|impact|dependents|deps|find|grep|depmap|attach|export|import|enclosing|mcp|bench> <repo-root> ...")
+			"usage: codeindex <build|status|callers|callees|impact|dependents|deps|find|grep|depmap|attach|export|import|enclosing|mcp|bench> <repo-root> ...")
 		os.Exit(2)
 	}
 	cmd, root := os.Args[1], os.Args[2]
 	switch cmd {
 	case "build":
-		if err := runBuild(root); err != nil {
+		if err := runBuild(root, hasFlag("--progress")); err != nil {
+			fatal(err)
+		}
+	case "status":
+		if err := runStatus(root, hasFlag("--json")); err != nil {
 			fatal(err)
 		}
 	case "export":
 		if len(os.Args) < 4 {
 			fatal(fmt.Errorf("usage: codeindex export <repo-root> <out.db>"))
 		}
-		st, err := engine.Export(root, os.Args[3])
+		rep, done := reporter("export "+filepath.Base(root), hasFlag("--progress"))
+		st, err := engine.Export(root, os.Args[3], rep)
 		if err != nil {
 			fatal(err)
 		}
-		fmt.Printf("exported %s (freshened: %d files parsed, %d symbols)\n",
-			os.Args[3], st.FilesParsed, st.Symbols)
+		done(fmt.Sprintf("exported %s (freshened: %d files, %d symbols)",
+			os.Args[3], st.FilesParsed, st.Symbols))
 	case "import":
 		if len(os.Args) < 4 {
 			fatal(fmt.Errorf("usage: codeindex import <repo-root> <artifact.db>"))
 		}
-		st, err := engine.Import(root, os.Args[3])
+		rep, done := reporter("import "+filepath.Base(root), hasFlag("--progress"))
+		st, err := engine.Import(root, os.Args[3], rep)
 		if err != nil {
 			fatal(err)
 		}
-		fmt.Printf("imported %s; drift patched: %d files re-parsed, %d deleted, %d symbols\n",
-			os.Args[3], st.FilesParsed, st.Deleted, st.Symbols)
+		done(fmt.Sprintf("imported %s; drift: %d files re-parsed, %d deleted, %d symbols",
+			os.Args[3], st.FilesParsed, st.Deleted, st.Symbols))
 	case "bench":
 		out := ""
 		if len(os.Args) > 3 {
@@ -128,7 +135,7 @@ func main() {
 		fmt.Printf("depmap %s@%s: %d files, %d symbols -> %s\n", ns, ver, nf, nsym, out)
 	case "attach":
 		// codeindex attach <repo> <map.db> --prefix <dir> | codeindex attach <repo> --auto
-		if err := query.Fresh(root); err != nil {
+		if _, err := query.Fresh(root); err != nil {
 			fatal(err)
 		}
 		if len(os.Args) > 3 && os.Args[3] == "--auto" {
@@ -217,6 +224,39 @@ func main() {
 	default:
 		fatal(fmt.Errorf("unknown command %q", cmd))
 	}
+	if info, ok := query.ConsumeColdBuild(); ok {
+		fmt.Fprintf(os.Stderr,
+			"\n[codeindex: indexed %d files (%d symbols) in %s — first query on this repo; subsequent queries are fast]\n",
+			info.FilesParsed, info.Symbols, info.Duration.Round(time.Millisecond))
+	}
+}
+
+// hasFlag reports whether a bare flag appears anywhere in the args.
+func hasFlag(f string) bool {
+	for _, a := range os.Args[3:] {
+		if a == f {
+			return true
+		}
+	}
+	return false
+}
+
+// reporter picks the progress surface: JSONL on stdout when --progress was
+// given (machine feed owns stdout; summary goes to stderr), a live TTY
+// renderer when stderr is interactive, throttled plain lines otherwise.
+// The returned finish func prints the final summary on the right stream.
+func reporter(label string, jsonl bool) (progress.Reporter, func(string)) {
+	switch {
+	case jsonl:
+		r := progress.NewJSONL(os.Stdout)
+		return r, func(sum string) { r.Finish(sum); fmt.Fprintln(os.Stderr, sum) }
+	case progress.IsTTY(os.Stderr):
+		r := progress.NewTTY(os.Stderr, label)
+		return r, func(sum string) { r.Finish(sum) }
+	default:
+		r := progress.NewPlain(os.Stderr, label)
+		return r, func(sum string) { r.Finish(sum) }
+	}
 }
 
 func dbPath(root string) string { return filepath.Join(root, ".codeindex", "graph.db") }
@@ -225,20 +265,111 @@ func ensureDBDir(root string) error {
 	return os.MkdirAll(filepath.Join(root, ".codeindex"), 0o755)
 }
 
-func runBuild(root string) error {
+func runBuild(root string, jsonl bool) error {
 	if err := ensureDBDir(root); err != nil {
 		return err
 	}
 	db := dbPath(root)
 	os.Remove(db)
-	start := time.Now()
-	st, err := engine.Build(root, db)
+	rep, done := reporter("index "+filepath.Base(mustAbs(root)), jsonl)
+	st, err := engine.BuildWithProgress(root, db, rep)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("built %s: %d files, %d symbols in %s\n",
-		db, st.FilesParsed, st.Symbols, time.Since(start).Round(time.Millisecond))
+	done(fmt.Sprintf("indexed %d files (%d symbols)", st.FilesParsed, st.Symbols))
 	return nil
+}
+
+func mustAbs(p string) string {
+	if a, err := filepath.Abs(p); err == nil {
+		return a
+	}
+	return p
+}
+
+// runStatus reports index state WITHOUT triggering any indexing — the IDE
+// extension's side-effect-free detection primitive.
+func runStatus(root string, asJSON bool) error {
+	out := map[string]any{"schema_required": graph.SchemaVersion()}
+	db := dbPath(root)
+	if _, err := os.Stat(db); os.IsNotExist(err) {
+		out["state"] = "unindexed"
+		return printStatus(out, asJSON)
+	}
+	// Sidecar first: a live build owns the state.
+	if b, err := os.ReadFile(filepath.Join(root, ".codeindex", "status.json")); err == nil {
+		var side map[string]any
+		if json.Unmarshal(b, &side) == nil {
+			if st, _ := side["state"].(string); st == "building" || st == "patching" {
+				if ts, _ := side["started_at"].(string); ts != "" {
+					if t0, err := time.Parse(time.RFC3339, ts); err == nil && time.Since(t0) > 10*time.Minute {
+						side["stale"] = true // crashed builder, most likely
+					}
+				}
+				for k, v := range side {
+					out[k] = v
+				}
+				return printStatus(out, asJSON)
+			}
+			out["last_indexed"] = side["indexed_at"]
+		}
+	}
+	ver, err := graph.FileSchemaVersion(db)
+	if err != nil {
+		return err
+	}
+	out["schema_version"] = ver
+	if ver != graph.SchemaVersion() {
+		out["state"] = "stale-schema"
+		return printStatus(out, asJSON)
+	}
+	files, symbols, edges, err := graph.IndexCounts(db)
+	if err != nil {
+		return err
+	}
+	fi, _ := os.Stat(db)
+	out["state"] = "indexed"
+	out["files"], out["symbols"], out["edges"] = files, symbols, edges
+	if fi != nil {
+		out["index_bytes"] = fi.Size()
+	}
+	return printStatus(out, asJSON)
+}
+
+func printStatus(out map[string]any, asJSON bool) error {
+	if asJSON {
+		b, err := json.MarshalIndent(out, "", " ")
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(b))
+		return nil
+	}
+	switch out["state"] {
+	case "unindexed":
+		fmt.Println("unindexed (run: codeindex build .)")
+	case "stale-schema":
+		fmt.Printf("stale index: schema v%v, this binary uses v%v (next query rebuilds)\n",
+			out["schema_version"], out["schema_required"])
+	case "building", "patching":
+		fmt.Printf("%v: %v %v/%v (started %v)\n",
+			out["state"], out["phase"], out["done"], out["total"], out["started_at"])
+	default:
+		fmt.Printf("indexed: %v files, %v symbols, %v edges (%.1f MB, schema v%v)\n",
+			out["files"], out["symbols"], out["edges"],
+			float64(toInt64(out["index_bytes"]))/1e6, out["schema_version"])
+		if li, ok := out["last_indexed"]; ok && li != nil {
+			fmt.Printf("last indexed: %v\n", li)
+		}
+	}
+	return nil
+}
+
+func toInt64(v any) int64 {
+	if i, ok := v.(int64); ok {
+		return i
+	}
+	return 0
 }
 
 // BenchResult is the machine-readable output of `bench` — the full
@@ -418,7 +549,7 @@ func runImpact(root, name string, limit int) error {
 // runEnclosing prints the symbols overlapping a line range with caller counts —
 // the edit-hook's data source. Empty result prints nothing and exits 0.
 func runEnclosing(root, file string, start, end int) error {
-	if err := query.Fresh(root); err != nil {
+	if _, err := query.Fresh(root); err != nil {
 		return err
 	}
 	st, err := graph.Open(dbPath(root))

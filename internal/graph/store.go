@@ -177,6 +177,26 @@ func FileSchemaVersion(path string) (int, error) {
 	return v, err
 }
 
+// IndexCounts reads headline counts from an index file without the
+// version-enforcing open path (side-effect-free, for the status verb).
+func IndexCounts(path string) (files, symbols, edges int, err error) {
+	db, err := sql.Open("sqlite3", path)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	defer db.Close()
+	if err := db.QueryRow(`SELECT COUNT(*) FROM files`).Scan(&files); err != nil {
+		return 0, 0, 0, err
+	}
+	if err := db.QueryRow(`SELECT COUNT(*) FROM symbols_t`).Scan(&symbols); err != nil {
+		return 0, 0, 0, err
+	}
+	if err := db.QueryRow(`SELECT COUNT(*) FROM edges_t`).Scan(&edges); err != nil {
+		return 0, 0, 0, err
+	}
+	return files, symbols, edges, nil
+}
+
 // VacuumInto writes a compact, consistent snapshot of the database at src to
 // dst (the export artifact) — no WAL loose ends, free pages dropped.
 func VacuumInto(src, dst string) error {
@@ -400,9 +420,16 @@ func (s *Store) DeleteFile(tx *sql.Tx, path string) ([]string, error) {
 // names. Cost is proportional to references to those names (the blast radius),
 // not to repository size — this is what keeps incremental updates cheap.
 func (s *Store) ReResolveNames(tx *sql.Tx, names map[string]struct{}) error {
+	return s.ReResolveNamesP(tx, names, nil)
+}
+
+// ReResolveNamesP is ReResolveNames with per-name progress (resolution
+// dominates large builds, so this is where live feedback matters most).
+func (s *Store) ReResolveNamesP(tx *sql.Tx, names map[string]struct{}, prog func(done, total int)) error {
 	if len(names) == 0 {
 		return nil
 	}
+	nameDone := 0
 	// File -> namespace map, loaded once: scope-aware re-resolution groups
 	// edges by (qualifier, caller namespace) in memory and batch-updates by
 	// id — O(edges-of-name), never O(groups × edges).
@@ -422,6 +449,10 @@ func (s *Store) ReResolveNames(tx *sql.Tx, names map[string]struct{}) error {
 	frows.Close()
 
 	for name := range names {
+		if prog != nil {
+			nameDone++
+			prog(nameDone, len(names))
+		}
 		erows, err := tx.Query(
 			`SELECT id, dst_qualifier, dst_ns, src_file FROM edges WHERE dst_name=?`, name)
 		if err != nil {

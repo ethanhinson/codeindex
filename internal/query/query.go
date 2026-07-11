@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"codeindex/internal/depmap"
 	"codeindex/internal/engine"
@@ -35,28 +36,64 @@ func SplitAnchor(anchor string) (name, parent string) {
 	return anchor, ""
 }
 
-// Fresh makes the index reflect the working tree: builds if missing, patches
-// otherwise. Safe for concurrent use.
-func Fresh(root string) error {
+// FreshInfo says what Fresh actually did, so query surfaces can disclose an
+// implicit cold build instead of just having been mysteriously slow.
+type FreshInfo struct {
+	Built       bool // full build (index was missing)
+	FilesParsed int
+	Symbols     int
+	Duration    time.Duration
+}
+
+// lastCold remembers a Fresh-triggered full build until a surface discloses
+// it (one disclosure per build: the first query result carries it).
+var lastCold *FreshInfo
+
+// ConsumeColdBuild returns and clears the pending cold-build disclosure.
+func ConsumeColdBuild() (FreshInfo, bool) {
 	mu.Lock()
 	defer mu.Unlock()
+	if lastCold == nil {
+		return FreshInfo{}, false
+	}
+	info := *lastCold
+	lastCold = nil
+	return info, true
+}
+
+// Fresh makes the index reflect the working tree: builds if missing, patches
+// otherwise. Safe for concurrent use.
+func Fresh(root string) (FreshInfo, error) {
+	mu.Lock()
+	defer mu.Unlock()
+	start := time.Now()
 	if err := os.MkdirAll(filepath.Join(root, ".codeindex"), 0o755); err != nil {
-		return err
+		return FreshInfo{}, err
 	}
 	if _, err := os.Stat(dbPath(root)); os.IsNotExist(err) {
-		_, err := engine.Build(root, dbPath(root))
-		return err
+		st, err := engine.Build(root, dbPath(root))
+		info := FreshInfo{Built: true, FilesParsed: st.FilesParsed, Symbols: st.Symbols,
+			Duration: time.Since(start)}
+		if err == nil {
+			lastCold = &info
+		}
+		return info, err
 	}
-	if _, err := engine.Patch(root, dbPath(root)); err != nil {
-		return err
+	st, err := engine.Patch(root, dbPath(root))
+	if err != nil {
+		return FreshInfo{}, err
 	}
 	// Hacked-dep overlay: verify covered vendor files (size+mtime fast path)
 	// and shadow locally modified ones. No-op when no maps are attached.
-	return depmap.VerifyOverlay(root, dbPath(root))
+	if err := depmap.VerifyOverlay(root, dbPath(root)); err != nil {
+		return FreshInfo{}, err
+	}
+	return FreshInfo{FilesParsed: st.FilesParsed, Symbols: st.Symbols,
+		Duration: time.Since(start)}, nil
 }
 
 func open(root string) (*graph.Store, error) {
-	if err := Fresh(root); err != nil {
+	if _, err := Fresh(root); err != nil {
 		return nil, err
 	}
 	return graph.Open(dbPath(root))

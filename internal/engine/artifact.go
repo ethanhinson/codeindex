@@ -7,13 +7,14 @@ import (
 	"path/filepath"
 
 	"codeindex/internal/graph"
+	"codeindex/internal/progress"
 )
 
 // Export freshens the index for root (full build if absent, incremental
 // patch otherwise) and writes a compact, consistent snapshot to out — the
 // shareable artifact a CI job uploads. The artifact is the database itself:
 // self-describing via PRAGMA user_version, portable via repo-relative paths.
-func Export(root, out string) (Stats, error) {
+func Export(root, out string, rep progress.Reporter) (Stats, error) {
 	db := indexPath(root)
 	if err := os.MkdirAll(filepath.Dir(db), 0o755); err != nil {
 		return Stats{}, err
@@ -21,9 +22,9 @@ func Export(root, out string) (Stats, error) {
 	var st Stats
 	var err error
 	if _, statErr := os.Stat(db); os.IsNotExist(statErr) {
-		st, err = Build(root, db)
+		st, err = BuildWithProgress(root, db, rep)
 	} else {
-		st, err = Patch(root, db)
+		st, err = PatchWithProgress(root, db, rep)
 	}
 	if err != nil {
 		return Stats{}, err
@@ -41,7 +42,7 @@ func Export(root, out string) (Stats, error) {
 // current tree. A schema-version mismatch is rejected loudly — a stale CI
 // artifact should be re-exported, not silently rebuilt over. The returned
 // Stats are the drift: how much of the tree the artifact did NOT cover.
-func Import(root, artifact string) (Stats, error) {
+func Import(root, artifact string, rep progress.Reporter) (Stats, error) {
 	artVer, err := graph.FileSchemaVersion(artifact)
 	if err != nil {
 		return Stats{}, fmt.Errorf("reading artifact %s: %w", artifact, err)
@@ -58,7 +59,7 @@ func Import(root, artifact string) (Stats, error) {
 	if err := copyFile(artifact, db); err != nil {
 		return Stats{}, err
 	}
-	return Patch(root, db)
+	return PatchWithProgress(root, db, rep)
 }
 
 func indexPath(root string) string {

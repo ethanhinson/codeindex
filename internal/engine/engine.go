@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"sync"
+	"sync/atomic"
 
 	"codeindex/internal/adapter"
 	_ "codeindex/internal/adapter/golang" // register language adapters
@@ -16,6 +17,7 @@ import (
 	_ "codeindex/internal/adapter/tsjs"
 	"codeindex/internal/graph"
 	"codeindex/internal/merkle"
+	"codeindex/internal/progress"
 )
 
 // Stats summarizes a build or patch.
@@ -25,18 +27,25 @@ type Stats struct {
 	Deleted     int
 }
 
-// parseAll parses the given files concurrently using a worker pool.
-func parseAll(root string, work []merkle.FileWork) ([]*graph.ParsedFile, error) {
+// parseAll parses the given files concurrently using a worker pool; done, if
+// non-nil, is called with the running completion count.
+func parseAll(root string, work []merkle.FileWork, done func(int)) ([]*graph.ParsedFile, error) {
 	out := make([]*graph.ParsedFile, len(work))
 	errs := make([]error, len(work))
 	sem := make(chan struct{}, runtime.NumCPU())
+	var completed int64
 	var wg sync.WaitGroup
 	for i, w := range work {
 		wg.Add(1)
 		sem <- struct{}{}
 		go func(i int, w merkle.FileWork) {
 			defer wg.Done()
-			defer func() { <-sem }()
+			defer func() {
+				<-sem
+				if done != nil {
+					done(int(atomic.AddInt64(&completed, 1)))
+				}
+			}()
 			a := adapter.For(w.Meta.Path)
 			if a == nil {
 				out[i] = &graph.ParsedFile{Path: w.Meta.Path}
@@ -62,17 +71,31 @@ func parseAll(root string, work []merkle.FileWork) ([]*graph.ParsedFile, error) 
 // Build indexes root from scratch into dbPath. All files are inserted, then every
 // edge is re-resolved so results are independent of file insertion order.
 func Build(root, dbPath string) (Stats, error) {
+	return BuildWithProgress(root, dbPath, nil)
+}
+
+// BuildWithProgress is Build with progress reporting. Independent of rep, the
+// engine maintains a best-effort status.json sidecar next to the index so
+// any surface (status verb, IDE status bar) can observe the build.
+func BuildWithProgress(root, dbPath string, rep progress.Reporter) (Stats, error) {
+	side := progress.NewSidecar(sidecarPath(dbPath), "building")
+	rep = progress.Multi(rep, side)
+
 	store, err := graph.Open(dbPath)
 	if err != nil {
 		return Stats{}, err
 	}
 	defer store.Close()
 
+	rep.Report(progress.Event{Phase: "walk"})
 	ch, err := merkle.Detect(root, nil) // nil stored -> everything is "changed"
 	if err != nil {
 		return Stats{}, err
 	}
-	parsed, err := parseAll(root, ch.Changed)
+	total := len(ch.Changed)
+	parsed, err := parseAll(root, ch.Changed, func(done int) {
+		rep.Report(progress.Event{Phase: "parse", Done: done, Total: total})
+	})
 	if err != nil {
 		return Stats{}, err
 	}
@@ -90,6 +113,7 @@ func Build(root, dbPath string) (Stats, error) {
 		}
 		st.FilesParsed++
 		st.Symbols += len(pf.Symbols)
+		rep.Report(progress.Event{Phase: "write", Done: i + 1, Total: total})
 	}
 	if err := tx.Commit(); err != nil {
 		return Stats{}, err
@@ -105,16 +129,35 @@ func Build(root, dbPath string) (Stats, error) {
 		return Stats{}, err
 	}
 	defer tx2.Rollback()
-	if err := store.ReResolveNames(tx2, names); err != nil {
+	if err := store.ReResolveNamesP(tx2, names, func(done, totalNames int) {
+		rep.Report(progress.Event{Phase: "resolve", Done: done, Total: totalNames})
+	}); err != nil {
 		return Stats{}, err
 	}
-	return st, tx2.Commit()
+	if err := tx2.Commit(); err != nil {
+		return Stats{}, err
+	}
+	side.FinishCounts(st.FilesParsed, st.Symbols)
+	return st, nil
+}
+
+func sidecarPath(dbPath string) string {
+	return filepath.Join(filepath.Dir(dbPath), "status.json")
 }
 
 // Patch applies an incremental update to the existing index at dbPath: it detects
 // changed/deleted files, re-parses only those, and re-resolves edges for the
 // affected names (inbound blast radius). The result is identical to a full rebuild.
 func Patch(root, dbPath string) (Stats, error) {
+	return PatchWithProgress(root, dbPath, nil)
+}
+
+// PatchWithProgress is Patch with progress reporting (and the same status
+// sidecar as builds — state "patching").
+func PatchWithProgress(root, dbPath string, rep progress.Reporter) (Stats, error) {
+	side := progress.NewSidecar(sidecarPath(dbPath), "patching")
+	rep = progress.Multi(rep, side)
+
 	store, err := graph.Open(dbPath)
 	if err != nil {
 		return Stats{}, err
@@ -125,11 +168,15 @@ func Patch(root, dbPath string) (Stats, error) {
 	if err != nil {
 		return Stats{}, err
 	}
+	rep.Report(progress.Event{Phase: "walk"})
 	ch, err := merkle.Detect(root, stored)
 	if err != nil {
 		return Stats{}, err
 	}
-	parsed, err := parseAll(root, ch.Changed)
+	total := len(ch.Changed)
+	parsed, err := parseAll(root, ch.Changed, func(done int) {
+		rep.Report(progress.Event{Phase: "parse", Done: done, Total: total})
+	})
 	if err != nil {
 		return Stats{}, err
 	}
@@ -157,6 +204,7 @@ func Patch(root, dbPath string) (Stats, error) {
 		add(after)
 		st.FilesParsed++
 		st.Symbols += len(pf.Symbols)
+		rep.Report(progress.Event{Phase: "write", Done: i + 1, Total: total})
 	}
 	for _, path := range ch.Deleted {
 		names, err := store.DeleteFile(tx, path)
@@ -171,10 +219,16 @@ func Patch(root, dbPath string) (Stats, error) {
 			return Stats{}, err
 		}
 	}
-	if err := store.ReResolveNames(tx, affected); err != nil {
+	if err := store.ReResolveNamesP(tx, affected, func(done, totalNames int) {
+		rep.Report(progress.Event{Phase: "resolve", Done: done, Total: totalNames})
+	}); err != nil {
 		return Stats{}, err
 	}
-	return st, tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return Stats{}, err
+	}
+	side.FinishCounts(st.FilesParsed, st.Symbols)
+	return st, nil
 }
 
 // CountLines counts newline-terminated lines across the walked Go files (a cheap

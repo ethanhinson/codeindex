@@ -2,6 +2,7 @@ package engine
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"codeindex/internal/graph"
+	"codeindex/internal/progress"
 )
 
 // The core guarantee: an artifact exported at tree state A, imported after
@@ -21,7 +23,7 @@ func TestImportThenPatchEqualsRebuild(t *testing.T) {
 		"b/three.go": "package b\nfunc Three() int { return 3 }\n",
 	})
 	artifact := filepath.Join(dir, "artifact.db")
-	if _, err := Export(dir, artifact); err != nil {
+	if _, err := Export(dir, artifact, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -35,7 +37,7 @@ func TestImportThenPatchEqualsRebuild(t *testing.T) {
 
 	// Import into a clean .codeindex (simulate a fresh checkout's index dir).
 	os.RemoveAll(filepath.Join(dir, ".codeindex"))
-	if _, err := Import(dir, artifact); err != nil {
+	if _, err := Import(dir, artifact, nil); err != nil {
 		t.Fatal(err)
 	}
 	rebuilt := filepath.Join(t.TempDir(), "rebuild.db")
@@ -56,7 +58,7 @@ func TestImportMtimeOnlyDriftIsFree(t *testing.T) {
 		"a/two.go": "package a\nfunc Two() int { return 2 }\n",
 	})
 	artifact := filepath.Join(dir, "artifact.db")
-	if _, err := Export(dir, artifact); err != nil {
+	if _, err := Export(dir, artifact, nil); err != nil {
 		t.Fatal(err)
 	}
 	future := time.Now().Add(time.Hour)
@@ -66,7 +68,7 @@ func TestImportMtimeOnlyDriftIsFree(t *testing.T) {
 		}
 	}
 	os.RemoveAll(filepath.Join(dir, ".codeindex"))
-	st, err := Import(dir, artifact)
+	st, err := Import(dir, artifact, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,7 +96,7 @@ func TestImportRejectsSchemaMismatch(t *testing.T) {
 	}
 	db.Close()
 
-	_, err = Import(dir, stale)
+	_, err = Import(dir, stale, nil)
 	if err == nil {
 		t.Fatal("schema-mismatch artifact must be rejected")
 	}
@@ -102,3 +104,45 @@ func TestImportRejectsSchemaMismatch(t *testing.T) {
 		t.Fatal("no index should be installed on rejection")
 	}
 }
+
+// A build must emit monotonic per-phase events ending at done==total, and
+// leave a fresh status.json sidecar.
+func TestBuildProgressEventsAndSidecar(t *testing.T) {
+	dir := writeTree(t, map[string]string{
+		"a/one.go": "package a\nfunc One() int { return Two() }\n",
+		"a/two.go": "package a\nfunc Two() int { return 2 }\n",
+	})
+	rec := &recordingReporter{}
+	db := filepath.Join(dir, ".codeindex", "graph.db")
+	os.MkdirAll(filepath.Dir(db), 0o755)
+	st, err := BuildWithProgress(dir, db, rec)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lastByPhase := map[string]int{}
+	for _, e := range rec.events {
+		if e.Done < lastByPhase[e.Phase] {
+			t.Fatalf("non-monotonic %s: %d after %d", e.Phase, e.Done, lastByPhase[e.Phase])
+		}
+		lastByPhase[e.Phase] = e.Done
+	}
+	if lastByPhase["parse"] != st.FilesParsed || lastByPhase["write"] != st.FilesParsed {
+		t.Fatalf("phases incomplete: %v vs %d files", lastByPhase, st.FilesParsed)
+	}
+	b, err := os.ReadFile(filepath.Join(dir, ".codeindex", "status.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var side map[string]any
+	if err := json.Unmarshal(b, &side); err != nil {
+		t.Fatal(err)
+	}
+	if side["state"] != "fresh" || side["files"] != float64(st.FilesParsed) {
+		t.Fatalf("sidecar terminal state wrong: %v", side)
+	}
+}
+
+type recordingReporter struct{ events []progress.Event }
+
+func (r *recordingReporter) Report(e progress.Event) { r.events = append(r.events, e) }
+func (r *recordingReporter) Finish(string)           {}
