@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"codeindex/internal/adapter"
+	"codeindex/internal/config"
 	"codeindex/internal/graph"
 	"codeindex/internal/merkle"
 )
@@ -31,6 +32,15 @@ func Generate(depDir, namespace, version, outPath string) (files, symbols int, e
 		return 0, 0, err
 	}
 
+	// A dep tree carries its own associations (a vendored Drupal module
+	// needs *.module routed to PHP when mapped, same as a project would).
+	cfg, err := config.Load(depDir)
+	if err != nil {
+		return 0, 0, err
+	}
+	if err := adapter.SetAssociations(cfg.Associations); err != nil {
+		return 0, 0, err
+	}
 	paths, err := merkle.Walk(depDir)
 	if err != nil {
 		return 0, 0, err
@@ -237,6 +247,12 @@ func VerifyOverlay(repo, repoDB string) error {
 		}
 		src, _ := os.ReadFile(full)
 		a := adapter.For(d.Path)
+		if a == nil {
+			// Odd-extension dep file (hacked .module etc): sniff its head.
+			if len(src) > 0 {
+				a = adapter.ForName(adapter.SniffLang(src[:min(len(src), 1024)]))
+			}
+		}
 		if a == nil {
 			continue
 		}

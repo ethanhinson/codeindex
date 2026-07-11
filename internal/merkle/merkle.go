@@ -26,11 +26,13 @@ func skipDir(name string) bool {
 // Walk returns repo-relative paths of source files under root whose extension
 // has a registered language adapter (the registry is the single source of
 // truth — adding a language never touches the walk).
-func Walk(root string) ([]string, error) {
-	exts := make(map[string]bool)
-	for _, e := range adapter.Extensions() {
-		exts[e] = true
-	}
+func Walk(root string) ([]string, error) { return WalkWith(root, nil) }
+
+// WalkWith additionally admits files the extra callback claims — the
+// content-sniffing hook for extensionless/odd-extension source (PHP can be
+// .inc, .module, anything). extra runs only for files the registry does not
+// already cover.
+func WalkWith(root string, extra func(rel string, d fs.DirEntry) bool) ([]string, error) {
 	var out []string
 	err := filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -42,11 +44,11 @@ func Walk(root string) ([]string, error) {
 			}
 			return nil
 		}
-		if exts[filepath.Ext(p)] {
-			rel, err := filepath.Rel(root, p)
-			if err != nil {
-				return err
-			}
+		rel, err := filepath.Rel(root, p)
+		if err != nil {
+			return err
+		}
+		if adapter.Indexable(rel) || (extra != nil && extra(rel, d)) {
 			out = append(out, rel)
 		}
 		return nil
@@ -76,7 +78,12 @@ func hashBytes(b []byte) string {
 // Detect walks root and diffs against stored metadata. The size+mtime fast path
 // avoids reading/hashing files whose stat is unchanged.
 func Detect(root string, stored map[string]graph.FileMeta) (*Change, error) {
-	paths, err := Walk(root)
+	return DetectWith(root, stored, nil)
+}
+
+// DetectWith is Detect with a walk-time sniffing hook (see WalkWith).
+func DetectWith(root string, stored map[string]graph.FileMeta, extra func(rel string, d fs.DirEntry) bool) (*Change, error) {
+	paths, err := WalkWith(root, extra)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { interpretStatus, isSupportedFile, parseProgressLines, Serializer } from "./core";
+import { interpretStatus, isSupportedFile, matchesPattern, parseAssociations, parseProgressLines, Serializer } from "./core";
 
 test("parseProgressLines: complete events, partial tail preserved, noise skipped", () => {
   const chunk =
@@ -65,4 +65,31 @@ test("isSupportedFile", () => {
   assert.ok(isSupportedFile("/x/y.php"));
   assert.ok(!isSupportedFile("/x/a.rs"));
   assert.ok(!isSupportedFile("/x/Makefile"));
+});
+
+test("parseAssociations: valid, malformed, absent", () => {
+  assert.deepEqual(parseAssociations('{"associations":{"*.module":"php","*.inc":"php"}}'), [
+    "*.module",
+    "*.inc",
+  ]);
+  assert.deepEqual(parseAssociations('{"associations":{"*.x": 3}}'), []);
+  assert.deepEqual(parseAssociations("not json"), []);
+  assert.deepEqual(parseAssociations(undefined), []);
+});
+
+test("matchesPattern: basename vs path patterns, glob subset", () => {
+  assert.ok(matchesPattern("*.module", "web/modules/custom/mymod.module"));
+  assert.ok(!matchesPattern("*.module", "a/b/c.php"));
+  assert.ok(matchesPattern("legacy/*.tpl", "legacy/page.tpl"));
+  assert.ok(!matchesPattern("legacy/*.tpl", "other/page.tpl"));
+  assert.ok(matchesPattern("?.inc", "a/x.inc"));
+  assert.ok(!matchesPattern("?.inc", "a/xy.inc"));
+});
+
+test("isSupportedFile honors associations and new defaults", () => {
+  assert.ok(isSupportedFile("a/b.mjs"));
+  assert.ok(isSupportedFile("a/b.phtml"));
+  assert.ok(isSupportedFile("a/b.pyi"));
+  assert.ok(!isSupportedFile("web/mymod.module"));
+  assert.ok(isSupportedFile("web/mymod.module", ["*.module"]));
 });

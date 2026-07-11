@@ -17,7 +17,9 @@ import (
 // Adapter parses PHP source.
 type Adapter struct{}
 
-func (Adapter) Extensions() []string { return []string{".php"} }
+func (Adapter) Name() string { return "php" }
+
+func (Adapter) Extensions() []string { return []string{".php", ".phtml"} }
 
 func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 	parser := sitter.NewParser()

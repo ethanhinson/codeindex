@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -15,6 +16,7 @@ import (
 	_ "codeindex/internal/adapter/php"
 	_ "codeindex/internal/adapter/python"
 	_ "codeindex/internal/adapter/tsjs"
+	"codeindex/internal/config"
 	"codeindex/internal/graph"
 	"codeindex/internal/merkle"
 	"codeindex/internal/progress"
@@ -78,6 +80,9 @@ func Build(root, dbPath string) (Stats, error) {
 // engine maintains a best-effort status.json sidecar next to the index so
 // any surface (status verb, IDE status bar) can observe the build.
 func BuildWithProgress(root, dbPath string, rep progress.Reporter) (Stats, error) {
+	if err := loadAssociations(root); err != nil {
+		return Stats{}, err
+	}
 	side := progress.NewSidecar(sidecarPath(dbPath), "building")
 	rep = progress.Multi(rep, side)
 
@@ -88,8 +93,12 @@ func BuildWithProgress(root, dbPath string, rep progress.Reporter) (Stats, error
 	defer store.Close()
 
 	rep.Report(progress.Event{Phase: "walk"})
-	ch, err := merkle.Detect(root, nil) // nil stored -> everything is "changed"
+	sniff, flushSniff := newSniffer(root, store)
+	ch, err := merkle.DetectWith(root, nil, sniff) // nil stored -> everything is "changed"
 	if err != nil {
+		return Stats{}, err
+	}
+	if err := flushSniff(); err != nil {
 		return Stats{}, err
 	}
 	total := len(ch.Changed)
@@ -141,6 +150,68 @@ func BuildWithProgress(root, dbPath string, rep progress.Reporter) (Stats, error
 	return st, nil
 }
 
+// loadAssociations applies the repo's committed file-type associations
+// (.codeindex.json) before any walk — loaded fresh on every build/patch so
+// a long-lived MCP server picks up config edits on the next query.
+func loadAssociations(root string) error {
+	cfg, err := config.Load(root)
+	if err != nil {
+		return err
+	}
+	return adapter.SetAssociations(cfg.Associations)
+}
+
+// newSniffer returns a walk hook that content-sniffs files no extension or
+// association covers (PHP open tags, shebangs), with verdicts cached in the
+// index keyed by size+mtime so unchanged files never get re-read. flush
+// installs the discovered per-path routes (so parsing finds the right
+// adapter) and persists new verdicts — call it after the walk, before parse.
+func newSniffer(root string, store *graph.Store) (func(rel string, d fs.DirEntry) bool, func() error) {
+	// Routes are strictly per-run: a leftover set from a previous build in
+	// this process would make Indexable() claim a file at walk time and then
+	// vanish before parse (walk sniffs only what the registry doesn't cover).
+	adapter.SetExactRoutes(nil)
+	cache, err := store.SniffCache()
+	if err != nil {
+		cache = map[string]graph.SniffEntry{} // degraded: sniff everything
+	}
+	routes := map[string]string{}
+	var updates []graph.SniffEntry
+
+	sniff := func(rel string, d fs.DirEntry) bool {
+		fi, err := d.Info()
+		if err != nil {
+			return false
+		}
+		size, mtime := fi.Size(), fi.ModTime().UnixNano()
+		if e, ok := cache[rel]; ok && e.Size == size && e.Mtime == mtime {
+			if e.Lang != "" {
+				routes[rel] = e.Lang
+				return true
+			}
+			return false
+		}
+		lang := ""
+		if f, err := os.Open(filepath.Join(root, rel)); err == nil {
+			head := make([]byte, 1024)
+			n, _ := f.Read(head)
+			f.Close()
+			lang = adapter.SniffLang(head[:n])
+		}
+		updates = append(updates, graph.SniffEntry{Path: rel, Size: size, Mtime: mtime, Lang: lang})
+		if lang != "" {
+			routes[rel] = lang
+			return true
+		}
+		return false
+	}
+	flush := func() error {
+		adapter.SetExactRoutes(routes)
+		return store.PutSniffEntries(updates)
+	}
+	return sniff, flush
+}
+
 func sidecarPath(dbPath string) string {
 	return filepath.Join(filepath.Dir(dbPath), "status.json")
 }
@@ -155,6 +226,9 @@ func Patch(root, dbPath string) (Stats, error) {
 // PatchWithProgress is Patch with progress reporting (and the same status
 // sidecar as builds — state "patching").
 func PatchWithProgress(root, dbPath string, rep progress.Reporter) (Stats, error) {
+	if err := loadAssociations(root); err != nil {
+		return Stats{}, err
+	}
 	side := progress.NewSidecar(sidecarPath(dbPath), "patching")
 	rep = progress.Multi(rep, side)
 
@@ -169,8 +243,12 @@ func PatchWithProgress(root, dbPath string, rep progress.Reporter) (Stats, error
 		return Stats{}, err
 	}
 	rep.Report(progress.Event{Phase: "walk"})
-	ch, err := merkle.Detect(root, stored)
+	sniff, flushSniff := newSniffer(root, store)
+	ch, err := merkle.DetectWith(root, stored, sniff)
 	if err != nil {
+		return Stats{}, err
+	}
+	if err := flushSniff(); err != nil {
 		return Stats{}, err
 	}
 	total := len(ch.Changed)

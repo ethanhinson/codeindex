@@ -22,16 +22,23 @@ import (
 // Adapter parses TS/TSX/JS/JSX with the grammar matching the file extension.
 type Adapter struct{}
 
-func (Adapter) Extensions() []string { return []string{".ts", ".tsx", ".js", ".jsx"} }
+func (Adapter) Name() string { return "tsjs" }
+
+func (Adapter) Extensions() []string {
+	return []string{".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts"}
+}
 
 func language(path string) *sitter.Language {
 	switch filepath.Ext(path) {
-	case ".ts":
+	case ".ts", ".mts", ".cts":
 		return typescript.GetLanguage()
 	case ".tsx", ".jsx": // tsx is a superset that handles JSX in both
 		return tsx.GetLanguage()
-	default:
+	case ".js", ".mjs", ".cjs":
 		return javascript.GetLanguage()
+	default:
+		// Association-routed unknown extensions: TS parses the widest slice.
+		return typescript.GetLanguage()
 	}
 }
 

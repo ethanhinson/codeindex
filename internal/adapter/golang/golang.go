@@ -19,6 +19,8 @@ const maxSignature = 160
 // Adapter parses Go source with tree-sitter.
 type Adapter struct{}
 
+func (Adapter) Name() string { return "go" }
+
 func (Adapter) Extensions() []string { return []string{".go"} }
 
 // symbolSpan tracks a symbol plus its byte range so call sites can be attributed

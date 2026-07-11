@@ -89,6 +89,8 @@ CREATE VIEW IF NOT EXISTS edges AS
   JOIN strs c ON c.id=t.confidence_id JOIN strs sf ON sf.id=t.src_file_id;
 CREATE TABLE IF NOT EXISTS merkle (
   path TEXT PRIMARY KEY, hash TEXT NOT NULL, size INTEGER NOT NULL, mtime INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS sniffcache (
+  path TEXT PRIMARY KEY, size INTEGER NOT NULL, mtime INTEGER NOT NULL, lang TEXT NOT NULL);
 `
 
 // intern returns the id of s in strs, inserting on first sight. strs is
@@ -175,6 +177,56 @@ func FileSchemaVersion(path string) (int, error) {
 	var v int
 	err = db.QueryRow(`PRAGMA user_version`).Scan(&v)
 	return v, err
+}
+
+// SniffEntry caches one content-sniff verdict, keyed by size+mtime — the
+// walk re-reads a file head only when the file changed. Negative verdicts
+// (lang="") are cached too, or every walk would re-read every unknown file.
+type SniffEntry struct {
+	Path  string
+	Size  int64
+	Mtime int64
+	Lang  string
+}
+
+// SniffCache loads all cached sniff verdicts.
+func (s *Store) SniffCache() (map[string]SniffEntry, error) {
+	rows, err := s.db.Query(`SELECT path, size, mtime, lang FROM sniffcache`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[string]SniffEntry{}
+	for rows.Next() {
+		var e SniffEntry
+		if err := rows.Scan(&e.Path, &e.Size, &e.Mtime, &e.Lang); err != nil {
+			return nil, err
+		}
+		out[e.Path] = e
+	}
+	return out, rows.Err()
+}
+
+// PutSniffEntries upserts sniff verdicts (own transaction; called once per
+// build/patch with that walk's new observations).
+func (s *Store) PutSniffEntries(entries []SniffEntry) error {
+	if len(entries) == 0 {
+		return nil
+	}
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	for _, e := range entries {
+		if _, err := tx.Exec(
+			`INSERT INTO sniffcache(path,size,mtime,lang) VALUES(?,?,?,?)
+			 ON CONFLICT(path) DO UPDATE SET size=excluded.size, mtime=excluded.mtime, lang=excluded.lang`,
+			e.Path, e.Size, e.Mtime, e.Lang); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 // IndexCounts reads headline counts from an index file without the

@@ -100,9 +100,61 @@ export class Serializer {
   }
 }
 
-export const SUPPORTED_EXTENSIONS = [".go", ".ts", ".tsx", ".js", ".jsx", ".py", ".php"];
+export const SUPPORTED_EXTENSIONS = [
+  ".go",
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+  ".mts",
+  ".cts",
+  ".py",
+  ".pyi",
+  ".php",
+  ".phtml",
+];
 
-export function isSupportedFile(path: string): boolean {
+// parseAssociations extracts the pattern list from .codeindex.json text —
+// the committed repo config the engine honors; the extension mirrors it so
+// saves of associated files (e.g. Drupal *.module) trigger keep-warm too.
+// Malformed or absent config degrades to no extra patterns.
+export function parseAssociations(jsonText: string | undefined): string[] {
+  if (!jsonText) return [];
+  try {
+    const cfg = JSON.parse(jsonText);
+    const assoc = cfg?.associations;
+    if (!assoc || typeof assoc !== "object") return [];
+    return Object.keys(assoc).filter((k) => typeof (assoc as Record<string, unknown>)[k] === "string");
+  } catch {
+    return [];
+  }
+}
+
+// matchesPattern mirrors the engine's rule: basename match, unless the
+// pattern contains '/' — then it matches the workspace-relative path.
+// Glob support is the same subset the engine uses (* ? [class]).
+export function matchesPattern(pattern: string, relPath: string): boolean {
+  const target = pattern.includes("/") ? relPath : relPath.split("/").pop() ?? relPath;
+  const re = new RegExp(
+    "^" +
+      pattern
+        .split("")
+        .map((ch) => {
+          if (ch === "*") return "[^/]*";
+          if (ch === "?") return "[^/]";
+          return ch.replace(/[.+^${}()|[\]\\]/g, "\\$&");
+        })
+        .join("") +
+      "$",
+  );
+  return re.test(target);
+}
+
+export function isSupportedFile(path: string, associationPatterns: string[] = []): boolean {
   const lower = path.toLowerCase();
-  return SUPPORTED_EXTENSIONS.some((e) => lower.endsWith(e));
+  if (SUPPORTED_EXTENSIONS.some((e) => lower.endsWith(e))) return true;
+  const rel = path.replace(/\\/g, "/");
+  return associationPatterns.some((p) => matchesPattern(p, rel));
 }

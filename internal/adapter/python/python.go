@@ -17,7 +17,9 @@ import (
 // Adapter parses Python source.
 type Adapter struct{}
 
-func (Adapter) Extensions() []string { return []string{".py"} }
+func (Adapter) Name() string { return "python" }
+
+func (Adapter) Extensions() []string { return []string{".py", ".pyi"} }
 
 func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 	parser := sitter.NewParser()

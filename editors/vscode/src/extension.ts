@@ -6,7 +6,6 @@ import * as vscode from "vscode";
 import { execFile, spawn } from "child_process";
 import {
   interpretStatus,
-  isSupportedFile,
   parseProgressLines,
   Serializer,
   SUPPORTED_EXTENSIONS,
@@ -36,13 +35,17 @@ export function activate(context: vscode.ExtensionContext): void {
   const root = workspaceRoot();
   if (!root) return;
 
-  // Keep-warm: debounced, serialized incremental refresh on save.
+
+  // Any save triggers the (debounced, serialized) refresh: the engine
+  // content-sniffs odd extensions (PHP in .inc/.module/anything), so the
+  // extension cannot predict which files matter — and a no-op refresh is
+  // milliseconds. Association matching stays available for prompts/UX.
   const refresher = new Serializer(() => runRefresh(context, root), 1500);
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((doc) => {
       if (!config().get<boolean>("keepFresh", true)) return;
       if (context.workspaceState.get<string>(CONSENT_KEY) !== "granted") return;
-      if (isSupportedFile(doc.fileName)) refresher.trigger();
+      if (doc.uri.scheme === "file") refresher.trigger();
     }),
   );
 

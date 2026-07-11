@@ -46,6 +46,19 @@ codeindex import <repo-root> <art.db>   # install artifact + patch local drift
 Teams: build the index once in CI and let everyone import it — see
 [docs/ci.md](docs/ci.md) (kubernetes: 82.5s cold build vs 1.5s import).
 
+File types: built-in extensions (Go, TS/JS incl. .mjs/.cts, Python incl.
+.pyi, PHP incl. .phtml) plus **content detection** — PHP open tags and
+php/python/node shebangs route `.inc`, `.module`, extensionless scripts,
+anything, with zero config (verdicts cached; a Drupal clone just works).
+For explicit control, commit a `.codeindex.json`:
+
+```json
+{"associations": {"*.theme": "php", "legacy/*.tpl": "php"}}
+```
+
+Associations beat extensions beat sniffing; unknown language names fail the
+build loudly.
+
 ## Layout
 
 ```
