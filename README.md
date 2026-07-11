@@ -1,79 +1,184 @@
 # codeindex
 
-A code navigation index that lets an agent (Claude, and eventually IDEs) answer
-"who calls X?", "what depends on X?", and "where is X defined?" with compact
-`file:line + signature` references instead of grepping and reading whole files —
-saving tokens and latency. See `docs/superpowers/specs/` for the design and
-`openspec/` for the spec-driven plan.
+codeindex is a code navigation index for AI agents. It answers questions like "who calls this function?", "what does it depend on?", and "what breaks if I change it?" with compact `file:line` references and signatures, instead of making an agent grep and read whole files.
 
-## Status
+The point is saving tokens and time. In our Go-repo experiments, answering caller and dependency questions through the index used far fewer tokens than grepping (up to 100x to 500x fewer on large files), and agents using it branched out to affected code 62% more often. Full evidence lives in `bench/`.
 
-Working tool with validated consumption surfaces:
+## What it is good at, and what it is not
 
-- **Engine**: tree-sitter adapters for **Go, TypeScript/JavaScript, Python,
-  PHP**; name-based call edges with `[ambiguous]` confidence flags;
-  content-hash incremental updates proven equal to full rebuilds on real repos
-  (kubernetes, nest, flask, laravel). Queries are always fresh (auto-build +
-  patch-on-query).
-- **Claude Code plugin** (`plugin/`): prompt-note + post-edit blast-radius
-  hook + `/impact` — the shape that passed the pre-registered A/B gate
-  (branch-out +62%, locate within tolerance, hook 100%/0 false fires).
-- **MCP server**: `codeindex mcp <repo>` for Cursor/Claude Desktop/VS Code.
+codeindex is a blast-radius tool. Use it when you know a symbol and need to see who calls it, what it calls, and what depends on it.
 
-Evidence: `bench/engine/FINDINGS*.md` (engine), `bench/agent_ab/FINDINGS*.md` +
-`results/dashboard.html` (agent A/B, v1–v4). Measured savings are from Go-repo
-experiments; other languages share the mechanics (engine-validated).
+It is not a search tool. For locating definitions or finding files, plain grep is measurably cheaper. The Claude Code plugin encodes this boundary so agents use each tool where it wins.
 
-## Build
+## Supported languages
 
-Requires **Go 1.24+** and a **C toolchain** (CGO is used by `go-tree-sitter` and
-`go-sqlite3`; macOS: Xcode command-line tools provide `clang`).
+Go, TypeScript, JavaScript, Python, and PHP.
 
+Call resolution is name-based. When two symbols share a name, results carry an `[ambiguous]` flag so you know to verify by file before trusting them. Anonymous functions and lambdas are not indexed as symbols.
+
+Note: the measured token savings above come from Go repositories. The other languages use the same mechanics and pass the same engine validation, but have not been through the same agent experiments yet.
+
+## Install
+
+You need Go 1.24 or newer and a C toolchain (the tree-sitter and SQLite bindings use CGO). On macOS, the Xcode command line tools provide this.
+
+```sh
+git clone https://github.com/ethanhinson/codeindex.git
+cd codeindex
+go build -o /usr/local/bin/codeindex ./cmd/codeindex
 ```
-go build ./cmd/codeindex
+
+Run the tests if you want to confirm the build:
+
+```sh
 go test ./...
 ```
 
-## Use (skeleton)
+## Quick start with your own repo
+
+Point codeindex at any repo root. The first query builds the index automatically, so you can skip straight to asking questions:
+
+```sh
+codeindex callers /path/to/your/repo SomeFunction
+codeindex impact  /path/to/your/repo SomeFunction
+codeindex find    /path/to/your/repo handler --kind function
+```
+
+If you prefer to build up front (useful for big repos, so the first query is not slow):
+
+```sh
+codeindex build /path/to/your/repo --progress
+codeindex status /path/to/your/repo
+```
+
+The index lives in `<repo>/.codeindex/graph.db`. You will probably want to add `.codeindex/` to your gitignore.
+
+Every query checks for changed files first and patches the index before answering, so results are always fresh. There is no manual refresh step in normal use.
+
+## Commands
 
 ```
-codeindex build <repo-root>          # index a Go repo -> <repo>/.codeindex/graph.db
-codeindex bench <repo-root> [out.json]  # measure throughput + prove incremental==full
-codeindex export <repo-root> <out.db>   # compact shareable index artifact (CI)
-codeindex import <repo-root> <art.db>   # install artifact + patch local drift
+codeindex build <repo>                    build or rebuild the index
+codeindex refresh <repo>                  patch the index for changed files
+codeindex status <repo>                   index stats (add --json for machine output)
+
+codeindex callers <repo> <symbol>         who calls this symbol
+codeindex impact <repo> <symbol>          blast radius: callers plus callees, counts first
+codeindex dependents <repo> <anchor>      what depends on this file or package
+codeindex deps <repo> <anchor>            what this file or package depends on
+codeindex find <repo> <query>             symbol search (--kind, --path, --limit)
+codeindex grep <repo> <pattern>           pattern search over indexed symbols
+codeindex enclosing <repo> <file> <a>:<b> which symbol encloses these lines
+
+codeindex export <repo> <out.db>          compact index artifact for sharing
+codeindex import <repo> <artifact.db>     install an artifact, then patch local drift
+
+codeindex mcp <repo>                      serve the index over MCP (stdio)
+codeindex bench <repo> [out.json]         throughput benchmark and incremental-vs-full check
 ```
 
-Teams: build the index once in CI and let everyone import it — see
-[docs/ci.md](docs/ci.md) (kubernetes: 82.5s cold build vs 1.5s import).
+Most query commands take `--limit N` (default 50).
 
-File types: built-in extensions (Go, TS/JS incl. .mjs/.cts, Python incl.
-.pyi, PHP incl. .phtml) plus **content detection** — PHP open tags and
-php/python/node shebangs route `.inc`, `.module`, extensionless scripts,
-anything, with zero config (verdicts cached; a Drupal clone just works).
-For explicit control, commit a `.codeindex.json`:
+## Using it with Claude Code
+
+The `plugin/` directory ships a Claude Code plugin with three pieces:
+
+- A per-prompt note that tells the agent the index exists and when to use it.
+- A post-edit hook that warns the agent when it edits a function with callers elsewhere (once per symbol per session, never blocks edits).
+- An `/codeindex:impact <symbol>` command for a quick blast-radius summary before changing something.
+
+Install:
+
+```sh
+claude --plugin-dir /path/to/code-indexer/plugin
+```
+
+The plugin needs the `codeindex` binary on your PATH (or set `CODEINDEX_BIN`). To silence the post-edit hook, run `touch .codeindex/hook-disabled` in a repo, or set `CODEINDEX_HOOK_DISABLE=1` globally.
+
+See `plugin/README.md` for details and the measurement history behind the design.
+
+## Using it with Cursor, VS Code, or Claude Desktop
+
+`codeindex mcp <repo>` serves `impact`, `callers`, and `callees` to any MCP client over stdio. The tool descriptions carry the usage guidance, so IDE agents pick up the discipline automatically.
+
+Cursor (`.cursor/mcp.json` in the repo, or `~/.cursor/mcp.json` globally):
+
+```json
+{
+  "mcpServers": {
+    "codeindex": {
+      "command": "codeindex",
+      "args": ["mcp", "/absolute/path/to/your/repo"]
+    }
+  }
+}
+```
+
+VS Code (`.vscode/mcp.json`):
+
+```json
+{
+  "servers": {
+    "codeindex": {
+      "type": "stdio",
+      "command": "codeindex",
+      "args": ["mcp", "${workspaceFolder}"]
+    }
+  }
+}
+```
+
+Claude Desktop uses the same shape in `~/Library/Application Support/Claude/claude_desktop_config.json` with an absolute path to the binary.
+
+## File type detection
+
+Built-in extensions cover Go, TS/JS (including `.mjs` and `.cts`), Python (including `.pyi`), and PHP (including `.phtml`). On top of that, content detection routes files by PHP open tags and php/python/node shebangs, so `.inc` files, `.module` files, and extensionless scripts work with zero config. A Drupal clone indexes correctly out of the box.
+
+For explicit control, commit a `.codeindex.json` at the repo root:
 
 ```json
 {"associations": {"*.theme": "php", "legacy/*.tpl": "php"}}
 ```
 
-Associations beat extensions beat sniffing; unknown language names fail the
-build loudly.
+Associations beat extensions, and extensions beat content sniffing. An unknown language name fails the build loudly rather than being silently skipped.
 
-## Layout
+## Dependencies
 
-```
-cmd/codeindex        CLI (build, bench)
-internal/adapter     pluggable language-adapter seam
-internal/adapter/golang  tree-sitter Go adapter (symbols + call sites)
-internal/graph       SQLite store, data model, deterministic name resolution
-internal/merkle      file walk + content hashing + fast-path change detection
-internal/engine      build + incremental patch orchestration
-bench/               token-savings + re-index validation spikes (Python) and
-                     engine benchmark results
+Calls into vendored or installed dependencies can be resolved too:
+
+```sh
+codeindex attach /path/to/your/repo --auto
 ```
 
-## Token-savings evidence
+This picks up Go vendor directories and Composer packages automatically. Resolved dependency symbols show `[dep namespace@version]` provenance, and locally modified dependency files overlay the attached map and are marked `modified`.
 
-The `bench/` Python spikes validated the core premise before the engine existed
-(100–500× fewer tokens for def/callers on large-file Go; see `bench/FINDINGS.md`).
-Set `bench/.env` (see `.env.example`) to count with Claude's exact tokenizer.
+You can also generate a dependency map yourself with `codeindex depmap` and attach it with an explicit prefix.
+
+## Teams and CI
+
+Build the index once in CI, publish the artifact, and let everyone import it instead of building cold:
+
+```sh
+codeindex export <repo> index-artifact.db     # in CI
+codeindex import <repo> index-artifact.db     # on each machine
+```
+
+On the Kubernetes repo, that turns an 82.5 second cold build into a 1.5 second import. See [docs/ci.md](docs/ci.md) for a full setup.
+
+## Repository layout
+
+```
+cmd/codeindex        the CLI
+internal/adapter     language adapters (tree-sitter based)
+internal/graph       SQLite store, data model, name resolution
+internal/merkle      file walking, content hashing, change detection
+internal/engine      build and incremental patch orchestration
+internal/query       query layer (auto-build and patch-on-query)
+internal/mcpserver   MCP server
+internal/depmap      dependency map generation and attach
+plugin/              Claude Code plugin (hooks and /impact command)
+editors/vscode       VS Code integration
+bench/               benchmarks and A/B experiment findings
+docs/                CI setup and design docs
+openspec/            spec-driven development plan
+```
