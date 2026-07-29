@@ -75,3 +75,37 @@ func TestDeleteByFileAndHashes(t *testing.T) {
 		t.Fatal("record survived DeleteByFile")
 	}
 }
+
+func TestGetMissingAndDirect(t *testing.T) {
+	s := openStore(t)
+	if _, ok, err := s.Get("dec-NONE"); err != nil || ok {
+		t.Fatalf("missing get: ok=%v err=%v", ok, err)
+	}
+	r := lore.Record{ID: "itm-X", Type: lore.TypeItem, Title: "t", Date: "2026-07-29",
+		Tags: []string{"a"}, BlockedBy: []string{"itm-Y"}}
+	if err := s.Upsert(r, "repo", "/f.md"); err != nil {
+		t.Fatal(err)
+	}
+	got, ok, err := s.Get("itm-X")
+	if err != nil || !ok || got.Tags[0] != "a" || got.BlockedBy[0] != "itm-Y" {
+		t.Fatalf("direct get: %+v ok=%v err=%v", got, ok, err)
+	}
+}
+
+func TestUpsertPreservesStale(t *testing.T) {
+	s := openStore(t)
+	r := lore.Record{ID: "dec-S", Type: lore.TypeDecision, Title: "t", Date: "2026-07-29"}
+	if err := s.Upsert(r, "repo", "/s.md"); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.SetStale("dec-S", true); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Upsert(r, "repo", "/s.md"); err != nil {
+		t.Fatal(err)
+	}
+	got, _, _ := s.Get("dec-S")
+	if !got.Stale {
+		t.Fatal("re-upsert reset stale; it must be preserved")
+	}
+}

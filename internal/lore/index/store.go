@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS lore_refs (
 CREATE INDEX IF NOT EXISTS idx_lore_refs_rec ON lore_refs(record_id);
 CREATE TABLE IF NOT EXISTS lore_blocked (record_id TEXT NOT NULL, blocked_by TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS lore_tags (record_id TEXT NOT NULL, tag TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_lore_blocked_rec ON lore_blocked(record_id);
+CREATE INDEX IF NOT EXISTS idx_lore_tags_rec ON lore_tags(record_id);
 `
 
 type Store struct{ db *sql.DB }
@@ -89,6 +91,9 @@ func (s *Store) Upsert(r lore.Record, layer, file string) error {
 		return err
 	}
 	defer tx.Rollback()
+	// stale and confidence are deliberately absent from the upsert: they are
+	// index-side derived state, owned by SetStale (and, later, the lifecycle
+	// signals pass) — a record file changing must not reset them.
 	if _, err := tx.Exec(`INSERT INTO lore_records
 		(id,type,title,status,date,layer,file,priority,supersedes,superseded_by,body)
 		VALUES(?,?,?,?,?,?,?,?,?,?,?)
@@ -208,6 +213,9 @@ func (s *Store) loadChildren(r *StoredRecord) error {
 		r.Anchors = append(r.Anchors, a)
 	}
 	rows.Close()
+	if err := rows.Err(); err != nil {
+		return err
+	}
 	rows, err = s.db.Query(`SELECT kind,value FROM lore_refs WHERE record_id=?`, r.ID)
 	if err != nil {
 		return err
@@ -221,6 +229,9 @@ func (s *Store) loadChildren(r *StoredRecord) error {
 		r.Refs = append(r.Refs, ref)
 	}
 	rows.Close()
+	if err := rows.Err(); err != nil {
+		return err
+	}
 	rows, err = s.db.Query(`SELECT blocked_by FROM lore_blocked WHERE record_id=?`, r.ID)
 	if err != nil {
 		return err
@@ -234,6 +245,9 @@ func (s *Store) loadChildren(r *StoredRecord) error {
 		r.BlockedBy = append(r.BlockedBy, b)
 	}
 	rows.Close()
+	if err := rows.Err(); err != nil {
+		return err
+	}
 	rows, err = s.db.Query(`SELECT tag FROM lore_tags WHERE record_id=?`, r.ID)
 	if err != nil {
 		return err
@@ -247,20 +261,32 @@ func (s *Store) loadChildren(r *StoredRecord) error {
 		r.Tags = append(r.Tags, tg)
 	}
 	rows.Close()
+	if err := rows.Err(); err != nil {
+		return err
+	}
 	return nil
 }
 
 func (s *Store) Get(id string) (StoredRecord, bool, error) {
-	all, err := s.All() // corpus is small; reuse the loader
+	var r StoredRecord
+	var typ string
+	var stale int
+	err := s.db.QueryRow(`SELECT id,type,title,status,date,layer,file,priority,
+		supersedes,superseded_by,stale,confidence,body
+		FROM lore_records WHERE id=?`, id).Scan(&r.ID, &typ, &r.Title, &r.Status,
+		&r.Date, &r.Layer, &r.File, &r.Priority, &r.Supersedes, &r.SupersededBy,
+		&stale, &r.Confidence, &r.Body)
+	if err == sql.ErrNoRows {
+		return StoredRecord{}, false, nil
+	}
 	if err != nil {
 		return StoredRecord{}, false, err
 	}
-	for _, r := range all {
-		if r.ID == id {
-			return r, true, nil
-		}
+	r.Type, r.Stale = lore.Type(typ), stale != 0
+	if err := s.loadChildren(&r); err != nil {
+		return StoredRecord{}, false, err
 	}
-	return StoredRecord{}, false, nil
+	return r, true, nil
 }
 
 func (s *Store) FileHashes() (map[string]string, error) {
