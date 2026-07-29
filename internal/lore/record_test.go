@@ -71,3 +71,19 @@ func TestNewIDAndSlug(t *testing.T) {
 		t.Fatalf("slug %q", s)
 	}
 }
+
+func TestRoundTripBodyWithLeadingNewline(t *testing.T) {
+	in := Record{ID: "note-01AN4Z07BY79KA1307SR9X4MV9", Type: TypeNote,
+		Title: "N", Date: "2026-07-29", Body: "\nleading blank line kept\n"}
+	b, err := in.Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, err := Parse(b, TypeNote)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out.Body != in.Body {
+		t.Fatalf("body round-trip: %q != %q", out.Body, in.Body)
+	}
+}

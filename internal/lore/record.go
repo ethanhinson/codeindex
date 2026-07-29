@@ -87,11 +87,13 @@ func Parse(b []byte, t Type) (Record, error) {
 	if err := yaml.Unmarshal(fm, &w); err != nil {
 		return Record{}, fmt.Errorf("frontmatter: %w", err)
 	}
+	bodyStr := string(body)
+	bodyStr, _ = strings.CutPrefix(bodyStr, "\n")
 	r := Record{
 		ID: w.ID, Type: t, Title: w.Title, Status: w.Status, Date: w.Date,
 		Supersedes: w.Supersedes, SupersededBy: w.SupersededBy,
 		Priority: w.Priority, BlockedBy: w.BlockedBy, Tags: w.Tags,
-		Body: strings.TrimLeft(string(body), "\n"),
+		Body: bodyStr,
 	}
 	for _, m := range w.Anchors {
 		r.Anchors = append(r.Anchors, Anchor{Path: m["path"], Symbol: m["symbol"]})
@@ -131,6 +133,7 @@ func (r Record) Marshal() ([]byte, error) {
 	buf.WriteString("---\n")
 	buf.Write(fm)
 	buf.WriteString("---\n")
+	buf.WriteString("\n")
 	buf.WriteString(r.Body)
 	return buf.Bytes(), nil
 }
