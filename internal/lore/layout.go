@@ -60,6 +60,14 @@ func (l Layout) SessionsDir() string { return filepath.Join(l.OverlayDir, "sessi
 // remote hashed, so every checkout of one repo shares one overlay. Repos
 // without an origin fall back to their absolute path.
 func RepoID(root string) string {
+	// Resolve root to absolute path once for consistency.
+	if a, err := filepath.Abs(root); err == nil {
+		root = a
+	}
+	// Resolve symlinks to ensure canonical path (e.g., /var/folders -> /private/var/folders on macOS).
+	if r, err := filepath.EvalSymlinks(root); err == nil {
+		root = r
+	}
 	cmd := exec.Command("git", "config", "--get", "remote.origin.url")
 	cmd.Dir = root
 	out, err := cmd.Output()
@@ -71,8 +79,7 @@ func RepoID(root string) string {
 			slug = key[i+1:]
 		}
 	} else {
-		abs, _ := filepath.Abs(root)
-		key = abs
+		key = root
 	}
 	sum := sha256.Sum256([]byte(key))
 	return fmt.Sprintf("%s-%x", Slug(slug), sum[:6])

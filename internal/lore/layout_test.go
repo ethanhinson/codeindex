@@ -36,8 +36,24 @@ func TestRepoIDNormalizesOriginForms(t *testing.T) {
 
 func TestRepoIDFallsBackToPath(t *testing.T) {
 	dir := t.TempDir() // not a git repo
-	if id := RepoID(dir); id == "" || !strings.Contains(id, "-") {
+	id := RepoID(dir)
+	if id == "" || !strings.Contains(id, "-") {
 		t.Fatalf("fallback id: %q", id)
+	}
+	// Assert the ID ends with a 12-hex-char suffix.
+	parts := strings.Split(id, "-")
+	suffix := parts[len(parts)-1]
+	if len(suffix) != 12 {
+		t.Fatalf("suffix %q not 12 hex chars", suffix)
+	}
+	// Assert relative path gives same ID as absolute form.
+	wd, _ := os.Getwd()
+	defer os.Chdir(wd)
+	os.Chdir(filepath.Dir(dir))
+	rel := filepath.Base(dir)
+	// Both paths resolve through filepath.Abs which handles symlinks on macOS.
+	if RepoID(rel) != RepoID(dir) {
+		t.Fatalf("relative and absolute RepoID differ")
 	}
 }
 
