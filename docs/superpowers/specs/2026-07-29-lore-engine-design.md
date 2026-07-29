@@ -138,20 +138,29 @@ is the curation gate: knowledge enters the shared record as a reviewable diff.
 
 ## Indexing & search
 
-Lore rides the existing `.codeindex/graph.db`:
+Lore lives in its own derived database, `.codeindex/lore.db` (gitignored with
+the rest of `.codeindex/`). Amended from "inside graph.db" during planning:
+`export`/`import` ship `graph.db` as a shareable artifact and lore must not
+ride along (records are already shared via git), and a separate file decouples
+lore schema changes from code-index rebuilds. Joins against the symbol graph
+happen in Go across the two stores, not in SQL.
 
 - **Tables:** `lore_records` (id, type, status, title, file path, date, layer,
-  stale, confidence), `lore_anchors` (record → path/symbol, resolved against
-  existing symbol tables), `lore_refs` (typed external refs), `lore_events`
-  (external evidence feed), and `lore_fts` (FTS5 over title+body, chunked on
-  `##` headings so long records stay findable in pieces).
+  stale, confidence, body), `lore_anchors` (record → path/symbol), `lore_refs`
+  (typed external refs), `lore_events` (external evidence feed), `lore_files`
+  (per-file content hashes for freshness).
 - **Freshness:** every lore query first diffs `.lore/` + overlay against
   stored per-file content hashes (the same flat-hash approach validated for
   code indexing) and re-indexes only changed records. No daemon.
-- **Ranking:** FTS5/BM25, modified by: layer decay (sessions half-life 7 days;
-  committed and curated notes evergreen), status (`superseded`/`done` rank
-  below `active`/`open` and are labeled), and the confidence score from
-  lifecycle signals (below).
+- **Ranking:** BM25-style scoring computed in Go over record chunks (split on
+  `##` headings), reusing `internal/search`'s tokenize/stem machinery — the
+  corpus is small and in-memory scoring is this codebase's validated pattern.
+  Amended from "SQLite FTS5" during planning: FTS5 requires a
+  `sqlite_fts5` build tag on every build/test invocation with
+  mattn/go-sqlite3, a standing footgun for no measurable gain at lore scale.
+  Modifiers: layer decay (sessions half-life 7 days; committed and curated
+  notes evergreen), status (`superseded`/`done` rank below `active`/`open`
+  and are labeled), and the confidence score from lifecycle signals (below).
 - **Staleness:** during reindex, symbol anchors are re-resolved; records whose
   anchored symbols no longer exist get `stale: true`, surfaced in results and
   by `lore doctor`.
