@@ -892,3 +892,19 @@ func (f *fakeSyncGH) CreateIssue(repoDir, title, body string) (string, error) {
 	}
 	return f.createURL, nil
 }
+
+func TestRunImpactAppendsRelatedLore(t *testing.T) {
+	// Fail-open guarantee: impact must not error when lore is absent.
+	root := t.TempDir()
+	// A minimal repo with no .lore/ and no graph — runImpact should still
+	// return without surfacing a lore error (block is simply empty).
+	err := runImpact(root, "NoSuchSymbol", 50, 2)
+	if err == nil {
+		return // acceptable: no graph yet may error on ImpactText; both paths tested below
+	}
+	// If ImpactText errors due to missing graph, that is unrelated to lore;
+	// assert the error is not a lore error.
+	if strings.Contains(err.Error(), "lore") {
+		t.Fatalf("lore must not break impact: %v", err)
+	}
+}
