@@ -1,6 +1,0 @@
-schema: spec-driven
-created: 2026-07-09
-goal: "A/B harness that runs real Claude agents on real GitHub-issue tasks, with
-  and without the codeindex tool, and measures the actual goal metric: total
-  task tokens, tool-call behavior, tool adoption, and task success.
-  Pre-registered decision thresholds gate the rest of the roadmap."

@@ -16,3 +16,6 @@ bench/agent_ab/results/runs*.jsonl
 bench/agent_ab/results/graded*.jsonl
 bench/agent_ab/results/transcripts/
 .superpowers/
+
+# Local agent worktrees (nested repos) — never track
+.claude/worktrees/

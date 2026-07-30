@@ -1,13 +1,13 @@
 ---
 id: itm-01KYR17XECZJ5DYEV1VXQQ3TRD
 title: Migrate openspec/ content into .lore/ and retire the directory
-status: open
+status: done
 date: 2026-07-29
 priority: p2
 blocked_by: [itm-01KYR17XECFKKKJBWRY0A7RCF3]
 related: [dec-01KYR17XEC208KMPSEGKBFT6Y7]
 anchors:
-    - path: openspec/
+    - path: .lore/
 refs:
     - url: .lore/decisions/2026-07-29-lore-replaces-openspec.md
 ---
