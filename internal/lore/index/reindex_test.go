@@ -1,6 +1,8 @@
 package index
 
 import (
+	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -594,10 +596,11 @@ func TestClosesTransitionSecondReindexNoNewCommits(t *testing.T) {
 	storedSince, _ := s.Meta("last_scanned_commit")
 	s.Close()
 
-	// Record the mtime of the item file after first reindex.
-	stat1, err := os.Stat(filepath.Join(l.Dir("repo", lore.TypeItem), "item.md"))
+	// Read file content after first reindex (it has been rewritten to status: done).
+	itemPath := filepath.Join(l.Dir("repo", lore.TypeItem), "item.md")
+	data1, err := os.ReadFile(itemPath)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("ReadFile after first run: %v", err)
 	}
 
 	// Second run: no new commits, runner returns empty. Capture since arg.
@@ -619,9 +622,13 @@ func TestClosesTransitionSecondReindexNoNewCommits(t *testing.T) {
 		t.Fatalf("second run: Report.Closed should be empty, got %v", rep2.Closed)
 	}
 
-	// File mtime unchanged.
-	stat2, _ := os.Stat(filepath.Join(l.Dir("repo", lore.TypeItem), "item.md"))
-	if !stat2.ModTime().Equal(stat1.ModTime()) {
+	// File content unchanged (content-based check, more reliable than mtime on
+	// filesystems with coarse time resolution or after a copy-on-write COW).
+	data2, err := os.ReadFile(itemPath)
+	if err != nil {
+		t.Fatalf("ReadFile after second run: %v", err)
+	}
+	if string(data1) != string(data2) {
 		t.Fatal("second run rewrote item file; it must be unchanged when no new commits")
 	}
 }
@@ -725,5 +732,273 @@ func TestClosesTransitionTwoItemsOneCommit(t *testing.T) {
 		if !ok || row.Status != "done" {
 			t.Fatalf("item %s: ok=%v status=%q", id, ok, row.Status)
 		}
+	}
+}
+
+// --- Survival / churn signals tests ---
+
+// survivalCommit describes a fake git commit for survival signal tests.
+type survivalCommit struct {
+	subject string
+	files   map[string][2]int // path → [added, deleted]
+}
+
+// makeSurvivalRunner returns a fake git runner that emits structured commits
+// with numstat file data. It counts how many times CommitsSince (log) is called
+// so tests can assert exactly-one-call semantics.
+func makeSurvivalRunner(commits []survivalCommit, logCallCount *int) func(string) *gitinfo.Git {
+	return func(root string) *gitinfo.Git {
+		return gitinfo.NewWithRunner(root, func(dir string, args ...string) (string, error) {
+			if len(args) == 0 {
+				return "", nil
+			}
+			switch args[0] {
+			case "rev-parse":
+				for _, a := range args {
+					if a == "--verify" {
+						return "", os.ErrNotExist // HasRef → false → skip ratification
+					}
+				}
+				return fakeHeadSHA + "\n", nil
+			case "log":
+				if logCallCount != nil {
+					*logCallCount++
+				}
+				var sb strings.Builder
+				for i, c := range commits {
+					sha := fmt.Sprintf("%040d", i+1)
+					sb.WriteString(sha + "\x00" + c.subject + "\n\n")
+					for path, stats := range c.files {
+						sb.WriteString(fmt.Sprintf("%d\t%d\t%s\n", stats[0], stats[1], path))
+					}
+					sb.WriteString("\n")
+				}
+				return sb.String(), nil
+			}
+			return "", nil
+		})
+	}
+}
+
+// writeRecWithAnchor writes a lore record with a path anchor into the repo layer
+// and returns the record path and id.
+func writeRecWithAnchor(t *testing.T, l lore.Layout, filename, id, title, anchorPath string) string {
+	t.Helper()
+	dir := l.Dir("repo", lore.TypeDecision)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	r := lore.Record{
+		ID:      id,
+		Type:    lore.TypeDecision,
+		Title:   title,
+		Date:    "2026-07-29",
+		Status:  "active",
+		Body:    "body\n",
+		Anchors: []lore.Anchor{{Path: anchorPath}},
+	}
+	b, err := r.Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := filepath.Join(dir, filename)
+	if err := os.WriteFile(p, b, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return p
+}
+
+// TestSurvivalSignalsAnchoredPathTouched: a commit that touches files under an
+// anchored path (but NOT the record's own file) must increment survived by 1
+// and accumulate churn lines.
+func TestSurvivalSignalsAnchoredPathTouched(t *testing.T) {
+	l := testLayout(t)
+	makeGitDotDir(t, l.RepoRoot)
+	db := filepath.Join(t.TempDir(), "lore.db")
+
+	const recID = "dec-01AN4Z07BY79KA1307SR9X4MV4"
+	writeRecWithAnchor(t, l, "rec.md", recID, "Engine decision", "internal/engine/")
+
+	orig := newGit
+	t.Cleanup(func() { newGit = orig })
+
+	var logCalls int
+	newGit = makeSurvivalRunner([]survivalCommit{
+		{
+			subject: "refactor engine",
+			files: map[string][2]int{
+				"internal/engine/core.go": {5, 3}, // 5 added, 3 deleted
+			},
+		},
+	}, &logCalls)
+
+	s, _, err := Reindex(l, db)
+	if err != nil {
+		t.Fatalf("Reindex: %v", err)
+	}
+	defer s.Close()
+
+	// Exactly one CommitsSince call (shared batch).
+	if logCalls != 1 {
+		t.Fatalf("CommitsSince called %d times; want exactly 1", logCalls)
+	}
+
+	r, ok, err := s.Get(recID)
+	if err != nil || !ok {
+		t.Fatalf("Get: %v ok=%v", err, ok)
+	}
+	if r.Survived != 1 {
+		t.Fatalf("survived: want 1, got %d", r.Survived)
+	}
+	if r.ChurnLines != 8 { // 5 added + 3 deleted
+		t.Fatalf("churn_lines: want 8, got %d", r.ChurnLines)
+	}
+	// confidence = ln(2)/ln(21)
+	wantConf := math.Log(2) / math.Log(21)
+	if math.Abs(r.Confidence-wantConf) > 1e-9 {
+		t.Fatalf("confidence: want %.10f, got %.10f", wantConf, r.Confidence)
+	}
+}
+
+// TestSurvivalSignalsOwnFileTouchedNoIncrement: when a commit touches BOTH the
+// anchored path AND the record's own file, survived must NOT increment.
+func TestSurvivalSignalsOwnFileTouchedNoIncrement(t *testing.T) {
+	l := testLayout(t)
+	makeGitDotDir(t, l.RepoRoot)
+	db := filepath.Join(t.TempDir(), "lore.db")
+
+	const recID = "dec-01AN4Z07BY79KA1307SR9X4MV5"
+	recPath := writeRecWithAnchor(t, l, "rec2.md", recID, "Engine decision 2", "internal/engine/")
+
+	// Make the record's own file relative to repo root.
+	recRelPath, _ := filepath.Rel(l.RepoRoot, recPath)
+
+	orig := newGit
+	t.Cleanup(func() { newGit = orig })
+
+	newGit = makeSurvivalRunner([]survivalCommit{
+		{
+			subject: "update record and engine",
+			files: map[string][2]int{
+				"internal/engine/core.go": {5, 3},
+				recRelPath:                {1, 1}, // record's own file also changed
+			},
+		},
+	}, nil)
+
+	s, _, err := Reindex(l, db)
+	if err != nil {
+		t.Fatalf("Reindex: %v", err)
+	}
+	defer s.Close()
+
+	r, ok, err := s.Get(recID)
+	if err != nil || !ok {
+		t.Fatalf("Get: %v ok=%v", err, ok)
+	}
+	if r.Survived != 0 {
+		t.Fatalf("survived: want 0 (own file touched), got %d", r.Survived)
+	}
+	if r.ChurnLines != 0 {
+		t.Fatalf("churn_lines: want 0 (own file touched), got %d", r.ChurnLines)
+	}
+}
+
+// TestSurvivalSignalsNoPathAnchorNoSignals: a record with only a symbol anchor
+// must NOT accumulate survival signals.
+func TestSurvivalSignalsNoPathAnchorNoSignals(t *testing.T) {
+	l := testLayout(t)
+	makeGitDotDir(t, l.RepoRoot)
+	db := filepath.Join(t.TempDir(), "lore.db")
+
+	const recID = "dec-01AN4Z07BY79KA1307SR9X4MV6"
+	dir := l.Dir("repo", lore.TypeDecision)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	r := lore.Record{
+		ID:      recID,
+		Type:    lore.TypeDecision,
+		Title:   "Symbol anchored",
+		Date:    "2026-07-29",
+		Status:  "active",
+		Body:    "body\n",
+		Anchors: []lore.Anchor{{Symbol: "MyFunc"}}, // symbol only
+	}
+	b, _ := r.Marshal()
+	os.WriteFile(filepath.Join(dir, "sym.md"), b, 0o644)
+
+	orig := newGit
+	t.Cleanup(func() { newGit = orig })
+
+	newGit = makeSurvivalRunner([]survivalCommit{
+		{
+			subject: "changes near MyFunc",
+			files:   map[string][2]int{"internal/engine/core.go": {10, 5}},
+		},
+	}, nil)
+
+	s, _, err := Reindex(l, db)
+	if err != nil {
+		t.Fatalf("Reindex: %v", err)
+	}
+	defer s.Close()
+
+	got, ok, _ := s.Get(recID)
+	if !ok {
+		t.Fatal("record not found")
+	}
+	if got.Survived != 0 || got.ChurnLines != 0 {
+		t.Fatalf("symbol-only anchor should get no signals: survived=%d churn=%d",
+			got.Survived, got.ChurnLines)
+	}
+}
+
+// TestSurvivalSignalsMultipleCommitsAccumulate: two commits touching the anchored
+// path (without touching the record's file) must accumulate survived=2 and
+// combined churn.
+func TestSurvivalSignalsMultipleCommitsAccumulate(t *testing.T) {
+	l := testLayout(t)
+	makeGitDotDir(t, l.RepoRoot)
+	db := filepath.Join(t.TempDir(), "lore.db")
+
+	const recID = "dec-01AN4Z07BY79KA1307SR9X4MV7"
+	writeRecWithAnchor(t, l, "rec3.md", recID, "Engine decision 3", "internal/engine/")
+
+	orig := newGit
+	t.Cleanup(func() { newGit = orig })
+
+	var logCalls int
+	newGit = makeSurvivalRunner([]survivalCommit{
+		{
+			subject: "first engine change",
+			files:   map[string][2]int{"internal/engine/a.go": {4, 2}},
+		},
+		{
+			subject: "second engine change",
+			files:   map[string][2]int{"internal/engine/b.go": {7, 3}},
+		},
+	}, &logCalls)
+
+	s, _, err := Reindex(l, db)
+	if err != nil {
+		t.Fatalf("Reindex: %v", err)
+	}
+	defer s.Close()
+
+	// Exactly one CommitsSince call.
+	if logCalls != 1 {
+		t.Fatalf("CommitsSince called %d times; want exactly 1", logCalls)
+	}
+
+	r, ok, err := s.Get(recID)
+	if err != nil || !ok {
+		t.Fatalf("Get: %v ok=%v", err, ok)
+	}
+	if r.Survived != 2 {
+		t.Fatalf("survived: want 2, got %d", r.Survived)
+	}
+	if r.ChurnLines != 16 { // (4+2)+(7+3) = 6+10 = 16
+		t.Fatalf("churn_lines: want 16, got %d", r.ChurnLines)
 	}
 }

@@ -6,6 +6,7 @@ package index
 import (
 	"database/sql"
 	"fmt"
+	"math"
 
 	_ "github.com/mattn/go-sqlite3"
 
@@ -27,6 +28,7 @@ CREATE TABLE IF NOT EXISTS lore_records (
   supersedes TEXT NOT NULL DEFAULT '', superseded_by TEXT NOT NULL DEFAULT '',
   stale INTEGER NOT NULL DEFAULT 0, confidence REAL NOT NULL DEFAULT 0,
   ratified INTEGER NOT NULL DEFAULT 1,
+  survived INTEGER NOT NULL DEFAULT 0, churn_lines INTEGER NOT NULL DEFAULT 0,
   body TEXT NOT NULL DEFAULT '');
 CREATE INDEX IF NOT EXISTS idx_lore_records_file ON lore_records(file);
 CREATE TABLE IF NOT EXISTS lore_anchors (
@@ -51,6 +53,8 @@ type StoredRecord struct {
 	Stale      bool
 	Confidence float64
 	Ratified   bool
+	Survived   int
+	ChurnLines int
 }
 
 func Open(path string) (*Store, error) {
@@ -180,7 +184,7 @@ func (s *Store) DeleteByFile(file string) error {
 
 func (s *Store) All() ([]StoredRecord, error) {
 	rows, err := s.db.Query(`SELECT id,type,title,status,date,layer,file,priority,
-		supersedes,superseded_by,stale,confidence,ratified,body
+		supersedes,superseded_by,stale,confidence,ratified,survived,churn_lines,body
 		FROM lore_records ORDER BY date DESC, id`)
 	if err != nil {
 		return nil, err
@@ -193,7 +197,7 @@ func (s *Store) All() ([]StoredRecord, error) {
 		var stale, ratified int
 		if err := rows.Scan(&r.ID, &typ, &r.Title, &r.Status, &r.Date, &r.Layer,
 			&r.File, &r.Priority, &r.Supersedes, &r.SupersededBy, &stale,
-			&r.Confidence, &ratified, &r.Body); err != nil {
+			&r.Confidence, &ratified, &r.Survived, &r.ChurnLines, &r.Body); err != nil {
 			return nil, err
 		}
 		r.Type, r.Stale, r.Ratified = lore.Type(typ), stale != 0, ratified != 0
@@ -278,10 +282,10 @@ func (s *Store) Get(id string) (StoredRecord, bool, error) {
 	var typ string
 	var stale, ratified int
 	err := s.db.QueryRow(`SELECT id,type,title,status,date,layer,file,priority,
-		supersedes,superseded_by,stale,confidence,ratified,body
+		supersedes,superseded_by,stale,confidence,ratified,survived,churn_lines,body
 		FROM lore_records WHERE id=?`, id).Scan(&r.ID, &typ, &r.Title, &r.Status,
 		&r.Date, &r.Layer, &r.File, &r.Priority, &r.Supersedes, &r.SupersededBy,
-		&stale, &r.Confidence, &ratified, &r.Body)
+		&stale, &r.Confidence, &ratified, &r.Survived, &r.ChurnLines, &r.Body)
 	if err == sql.ErrNoRows {
 		return StoredRecord{}, false, nil
 	}
@@ -338,6 +342,29 @@ func (s *Store) SetRatified(id string, ratified bool) error {
 		v = 1
 	}
 	_, err := s.db.Exec(`UPDATE lore_records SET ratified=? WHERE id=?`, v, id)
+	return err
+}
+
+// AddSignals increments survived and churn_lines for a record, then recomputes
+// and stores confidence = ln(1+survived)/ln(21), capped at 1.0.
+// survivedDelta and churnDelta must be non-negative.
+func (s *Store) AddSignals(id string, survivedDelta, churnDelta int) error {
+	// Read current survived to compute new confidence.
+	var cur int
+	err := s.db.QueryRow(`SELECT survived FROM lore_records WHERE id=?`, id).Scan(&cur)
+	if err == sql.ErrNoRows {
+		return nil // record not found; no-op
+	}
+	if err != nil {
+		return err
+	}
+	newSurvived := cur + survivedDelta
+	confidence := math.Log(1+float64(newSurvived)) / math.Log(21)
+	if confidence > 1.0 {
+		confidence = 1.0
+	}
+	_, err = s.db.Exec(`UPDATE lore_records SET survived=survived+?, churn_lines=churn_lines+?, confidence=? WHERE id=?`,
+		survivedDelta, churnDelta, confidence, id)
 	return err
 }
 

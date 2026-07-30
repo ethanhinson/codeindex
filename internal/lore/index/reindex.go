@@ -197,8 +197,8 @@ func Reindex(l lore.Layout, dbPath string) (*Store, Report, error) {
 		}
 	}
 
-	// Closes-transition pass: scan commits since the last reindex for
-	// "closes <item-id>" subjects and flip matching open items to done.
+	// Closes-transition + survival signals pass: scan commits since the last
+	// reindex. CommitsSince is called ONCE; both passes iterate the same slice.
 	//
 	// Guard: requires git available (g.Available()) AND a readable HEAD. Unlike
 	// the ratification pass, this does NOT require an origin ref — closes
@@ -209,6 +209,7 @@ func Reindex(l lore.Layout, dbPath string) (*Store, Report, error) {
 			since, _ := s.Meta("last_scanned_commit")
 			commits, err := g.CommitsSince(since, 500)
 			if err == nil {
+				// Closes-transition sub-pass.
 				for _, c := range commits {
 					matches := closesRe.FindAllStringSubmatch(c.Subject, -1)
 					for _, m := range matches {
@@ -259,10 +260,72 @@ func Reindex(l lore.Layout, dbPath string) (*Store, Report, error) {
 						rep.Closed = append(rep.Closed, itemID)
 					}
 				}
+
+				// Survival/churn signals sub-pass (repo-layer records with path anchors only).
+				// For each commit: if an anchored path prefix-matches a changed file path
+				// AND the record's own file is NOT among the commit's changed files
+				// → survived+1, churnLines += added+deleted for matching anchored files.
+				all, aerr := s.All()
+				if aerr == nil {
+					for _, c := range commits {
+						for _, r := range all {
+							if r.Layer != "repo" {
+								continue
+							}
+							// Collect path anchors only.
+							var pathAnchors []string
+							for _, a := range r.Anchors {
+								if a.Path != "" {
+									pathAnchors = append(pathAnchors, a.Path)
+								}
+							}
+							if len(pathAnchors) == 0 {
+								continue
+							}
+							// Determine if the record's own file is in this commit.
+							// Compare relative repo path prefix.
+							ownRelPath, err := filepath.Rel(l.RepoRoot, r.File)
+							if err != nil {
+								continue
+							}
+							ownInCommit := false
+							for changedPath := range c.Files {
+								if changedPath == ownRelPath {
+									ownInCommit = true
+									break
+								}
+							}
+							if ownInCommit {
+								// Record moved with the code — no survival credit.
+								continue
+							}
+							// Check if any anchored path prefix-matches a changed file.
+							survivedDelta := 0
+							churnDelta := 0
+							for _, anchor := range pathAnchors {
+								for changedPath, stats := range c.Files {
+									if strings.HasPrefix(changedPath, anchor) {
+										if survivedDelta == 0 {
+											survivedDelta = 1
+										}
+										churnDelta += stats[0] + stats[1]
+									}
+								}
+							}
+							if survivedDelta > 0 || churnDelta > 0 {
+								if err := s.AddSignals(r.ID, survivedDelta, churnDelta); err != nil {
+									rep.Errors = append(rep.Errors, FileError{r.File, err})
+								}
+							}
+						}
+					}
+				}
 			}
 			// Advance last_scanned_commit even when zero matches, so the next
 			// reindex doesn't re-scan the same commits.
-			_ = s.SetMeta("last_scanned_commit", head)
+			if err := s.SetMeta("last_scanned_commit", head); err != nil {
+				rep.Errors = append(rep.Errors, FileError{"lore_meta", err})
+			}
 		}
 	}
 

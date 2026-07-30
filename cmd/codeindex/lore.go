@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -400,8 +401,12 @@ func loreShow(root string, args []string, out io.Writer) error {
 	if r.Stale {
 		flags = "  STALE"
 	}
-	fmt.Fprintf(out, "%s  %s/%s  %s  %s%s\n\n", r.ID, r.Type, orDash(r.Status),
+	fmt.Fprintf(out, "%s  %s/%s  %s  %s%s\n", r.ID, r.Type, orDash(r.Status),
 		r.Layer, r.File, flags)
+	if r.Survived > 0 {
+		fmt.Fprintf(out, "confidence: %.2f (survived %d commits)\n", r.Confidence, r.Survived)
+	}
+	fmt.Fprintln(out)
 	b, err := r.Record.Marshal()
 	if err != nil {
 		return err
@@ -762,6 +767,14 @@ func loreDoctor(root string, args []string, out io.Writer) error {
 				r.ID, orDash(r.Status))
 			findings++
 		}
+		// Churn-suspect: when churnLines > 3× current total line count of anchored files.
+		if r.ChurnLines > 0 {
+			totalLines := countAnchorLines(r)
+			if r.ChurnLines > 3*totalLines {
+				fmt.Fprintf(out, "churn-suspect  %s  %s\n", r.ID, r.Title)
+				findings++
+			}
+		}
 	}
 	if findings == 0 {
 		fmt.Fprintln(out, "ok: no findings")
@@ -769,4 +782,33 @@ func loreDoctor(root string, args []string, out io.Writer) error {
 		fmt.Fprintf(out, "%d finding(s)\n", findings)
 	}
 	return nil
+}
+
+// countAnchorLines counts the total number of lines across all files reachable
+// under the path anchors of r. Missing paths contribute 0 lines. Only path
+// anchors are counted; symbol anchors are ignored.
+func countAnchorLines(r index.StoredRecord) int {
+	total := 0
+	for _, a := range r.Anchors {
+		if a.Path == "" {
+			continue
+		}
+		// Walk all files under the anchor path.
+		_ = filepath.Walk(a.Path, func(p string, info os.FileInfo, err error) error {
+			if err != nil || info == nil || info.IsDir() {
+				return nil
+			}
+			f, err := os.Open(p)
+			if err != nil {
+				return nil
+			}
+			defer f.Close()
+			scanner := bufio.NewScanner(f)
+			for scanner.Scan() {
+				total++
+			}
+			return nil
+		})
+	}
+	return total
 }

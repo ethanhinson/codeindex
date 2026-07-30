@@ -406,3 +406,137 @@ func TestLoreInitHostCodexRefusesOrphanedMarker(t *testing.T) {
 		t.Fatal("user content was destroyed")
 	}
 }
+
+// TestLoreShowConfidenceLine: when a record has Survived > 0, lore show must
+// print a "confidence: X.XX (survived N commits)" line after the meta line.
+func TestLoreShowConfidenceLine(t *testing.T) {
+	root := loreTestRepo(t)
+
+	// Add a record.
+	out := runLoreOK(t, root, "add", "decision", "--title", "Confidence test",
+		"--body", "x", "--anchor", "path:internal/engine/")
+	id := strings.Fields(out)[1]
+
+	// Directly set survived/confidence in the store.
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatalf("NewLayout: %v", err)
+	}
+	dbPath := filepath.Join(root, ".codeindex", "lore.db")
+	st, _, err := index.Reindex(l, dbPath)
+	if err != nil {
+		t.Fatalf("Reindex: %v", err)
+	}
+	// survived=9 → confidence = ln(10)/ln(21)
+	if err := st.AddSignals(id, 9, 0); err != nil {
+		t.Fatalf("AddSignals: %v", err)
+	}
+	st.Close()
+
+	show := runLoreOK(t, root, "show", id)
+	if !strings.Contains(show, "confidence:") {
+		t.Fatalf("show missing confidence line:\n%s", show)
+	}
+	if !strings.Contains(show, "survived 9 commits") {
+		t.Fatalf("show missing 'survived 9 commits':\n%s", show)
+	}
+}
+
+// TestLoreShowNoConfidenceLineWhenSurvivedZero: when survived=0, no confidence
+// line should appear in lore show output.
+func TestLoreShowNoConfidenceLineWhenSurvivedZero(t *testing.T) {
+	root := loreTestRepo(t)
+	out := runLoreOK(t, root, "add", "decision", "--title", "No confidence", "--body", "x")
+	id := strings.Fields(out)[1]
+	show := runLoreOK(t, root, "show", id)
+	if strings.Contains(show, "confidence:") {
+		t.Fatalf("show should NOT print confidence line when survived=0:\n%s", show)
+	}
+}
+
+// TestLoreDoctorChurnSuspect: a record whose churn_lines > 3× total line count
+// of anchored files must appear in doctor as "churn-suspect".
+func TestLoreDoctorChurnSuspect(t *testing.T) {
+	root := loreTestRepo(t)
+
+	// Create a small file that will be the anchor target.
+	anchorDir := filepath.Join(root, "internal", "engine")
+	if err := os.MkdirAll(anchorDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	anchorFile := filepath.Join(anchorDir, "core.go")
+	// Write exactly 10 lines so total lines = 10.
+	content := strings.Repeat("line\n", 10)
+	if err := os.WriteFile(anchorFile, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Add a decision anchored to that directory.
+	out := runLoreOK(t, root, "add", "decision", "--title", "Churn test",
+		"--body", "x", "--anchor", "path:"+anchorDir+"/")
+	id := strings.Fields(out)[1]
+
+	// Set churn_lines = 31 (> 3×10=30 → churn-suspect).
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatalf("NewLayout: %v", err)
+	}
+	dbPath := filepath.Join(root, ".codeindex", "lore.db")
+	st, _, err2 := index.Reindex(l, dbPath)
+	if err2 != nil {
+		t.Fatalf("Reindex: %v", err2)
+	}
+	if err := st.AddSignals(id, 0, 31); err != nil {
+		t.Fatalf("AddSignals: %v", err)
+	}
+	st.Close()
+
+	doctorOut := runLoreOK(t, root, "doctor")
+	if !strings.Contains(doctorOut, "churn-suspect") {
+		t.Fatalf("doctor missing churn-suspect finding:\n%s", doctorOut)
+	}
+	if !strings.Contains(doctorOut, id) {
+		t.Fatalf("doctor churn-suspect missing id %s:\n%s", id, doctorOut)
+	}
+}
+
+// TestLoreDoctorChurnSuspectBelowThreshold: a record whose churn_lines ≤ 3×
+// total line count must NOT appear in doctor as churn-suspect.
+func TestLoreDoctorChurnSuspectBelowThreshold(t *testing.T) {
+	root := loreTestRepo(t)
+
+	anchorDir := filepath.Join(root, "internal", "engine2")
+	if err := os.MkdirAll(anchorDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	anchorFile := filepath.Join(anchorDir, "core.go")
+	// Write exactly 10 lines.
+	if err := os.WriteFile(anchorFile, []byte(strings.Repeat("line\n", 10)), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	out := runLoreOK(t, root, "add", "decision", "--title", "Below threshold",
+		"--body", "x", "--anchor", "path:"+anchorDir+"/")
+	id := strings.Fields(out)[1]
+
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatalf("NewLayout: %v", err)
+	}
+	dbPath := filepath.Join(root, ".codeindex", "lore.db")
+	st, _, err2 := index.Reindex(l, dbPath)
+	if err2 != nil {
+		t.Fatalf("Reindex: %v", err2)
+	}
+	// churn_lines = 30 = exactly 3×10, NOT > 3×10, so no churn-suspect.
+	if err := st.AddSignals(id, 0, 30); err != nil {
+		t.Fatalf("AddSignals: %v", err)
+	}
+	st.Close()
+
+	doctorOut := runLoreOK(t, root, "doctor")
+	if strings.Contains(doctorOut, "churn-suspect") {
+		t.Fatalf("doctor should NOT emit churn-suspect at exactly 3× threshold:\n%s", doctorOut)
+	}
+	_ = id
+}

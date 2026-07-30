@@ -1,6 +1,7 @@
 package index
 
 import (
+	"math"
 	"strings"
 	"testing"
 	"time"
@@ -57,4 +58,43 @@ func TestSearchChunkSnippet(t *testing.T) {
 
 func containsFold(s, sub string) bool {
 	return strings.Contains(strings.ToLower(s), strings.ToLower(sub))
+}
+
+// TestSearchConfidenceMultiplierAffectsRanking: two otherwise identical records
+// where one has Confidence=1.0 and the other Confidence=0. The high-confidence
+// record must rank first and its score must be ~1.5× the low-confidence score
+// (1.2/0.8 = 1.5).
+func TestSearchConfidenceMultiplierAffectsRanking(t *testing.T) {
+	now := time.Date(2026, 7, 30, 0, 0, 0, 0, time.UTC)
+
+	highConf := StoredRecord{
+		Record: lore.Record{
+			ID: "dec-HIGH", Type: lore.TypeDecision, Title: "engine optimization",
+			Body: "b\n", Status: "active", Date: "2026-07-30",
+		},
+		Layer:      "repo",
+		Confidence: 1.0,
+	}
+	lowConf := StoredRecord{
+		Record: lore.Record{
+			ID: "dec-LOW", Type: lore.TypeDecision, Title: "engine optimization",
+			Body: "b\n", Status: "active", Date: "2026-07-30",
+		},
+		Layer:      "repo",
+		Confidence: 0.0,
+	}
+
+	hits := Search([]StoredRecord{lowConf, highConf}, "engine optimization", now, 10)
+	if len(hits) != 2 {
+		t.Fatalf("expected 2 hits, got %d", len(hits))
+	}
+	if hits[0].Rec.ID != "dec-HIGH" {
+		t.Fatalf("high-confidence record should rank first; got %s first", hits[0].Rec.ID)
+	}
+	// Score ratio should be 1.2/0.8 = 1.5
+	ratio := hits[0].Score / hits[1].Score
+	if math.Abs(ratio-1.5) > 1e-9 {
+		t.Fatalf("score ratio: want 1.5 (1.2/0.8), got %.6f (scores: %.6f / %.6f)",
+			ratio, hits[0].Score, hits[1].Score)
+	}
 }
