@@ -26,6 +26,7 @@ func StaleRecords(repoRoot, graphDBPath string, recs []StoredRecord) (map[string
 				p := filepath.Join(repoRoot, strings.TrimSuffix(a.Path, "/"))
 				if _, err := os.Stat(p); err != nil {
 					stale[r.ID] = true
+					break
 				}
 			}
 			if a.Symbol != "" && db != nil {
@@ -36,6 +37,7 @@ func StaleRecords(repoRoot, graphDBPath string, recs []StoredRecord) (map[string
 				}
 				if n == 0 {
 					stale[r.ID] = true
+					break
 				}
 			}
 		}

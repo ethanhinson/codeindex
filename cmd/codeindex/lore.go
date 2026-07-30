@@ -275,16 +275,18 @@ func orDash(s string) string {
 // --- JSON output ---
 
 type loreJSON struct {
-	ID      string  `json:"id"`
-	Type    string  `json:"type"`
-	Title   string  `json:"title"`
-	Status  string  `json:"status,omitempty"`
-	Date    string  `json:"date"`
-	Layer   string  `json:"layer"`
-	File    string  `json:"file"`
-	Stale   bool    `json:"stale,omitempty"`
-	Score   float64 `json:"score,omitempty"`
-	Snippet string  `json:"snippet,omitempty"`
+	ID       string  `json:"id"`
+	Type     string  `json:"type"`
+	Title    string  `json:"title"`
+	Status   string  `json:"status,omitempty"`
+	Date     string  `json:"date"`
+	Layer    string  `json:"layer"`
+	File     string  `json:"file"`
+	Stale    bool    `json:"stale,omitempty"`
+	Score    float64 `json:"score,omitempty"`
+	Snippet  string  `json:"snippet,omitempty"`
+	Priority string  `json:"priority,omitempty"`
+	Blocked  bool    `json:"blocked,omitempty"`
 }
 
 func toJSON(out io.Writer, v any) error {
@@ -546,7 +548,8 @@ func loreBacklog(root string, args []string, out io.Writer) error {
 		js := make([]loreJSON, 0, len(items))
 		for _, r := range items {
 			js = append(js, loreJSON{ID: r.ID, Type: string(r.Type), Title: r.Title,
-				Status: r.Status, Date: r.Date, Layer: r.Layer, File: r.File})
+				Status: r.Status, Date: r.Date, Layer: r.Layer, File: r.File,
+				Priority: prio(r.Priority), Blocked: blocked(r)})
 		}
 		return toJSON(out, js)
 	}

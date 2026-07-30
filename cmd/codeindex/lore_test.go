@@ -268,3 +268,14 @@ func TestLoreInit(t *testing.T) {
 		t.Fatalf("second init: %q", out)
 	}
 }
+
+func TestLoreBacklogJSONCarriesPriorityAndBlocked(t *testing.T) {
+	root := loreTestRepo(t)
+	out := runLoreOK(t, root, "add", "item", "--title", "Blocker", "--priority", "p1")
+	blocker := strings.Fields(out)[1]
+	runLoreOK(t, root, "add", "item", "--title", "Dependent", "--priority", "p1", "--blocked-by", blocker)
+	js := runLoreOK(t, root, "backlog", "--json")
+	if !strings.Contains(js, `"priority": "p1"`) || !strings.Contains(js, `"blocked": true`) {
+		t.Fatalf("backlog json missing priority/blocked:\n%s", js)
+	}
+}
