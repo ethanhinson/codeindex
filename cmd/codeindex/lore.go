@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -46,6 +47,8 @@ func runLore(root string, args []string, out io.Writer) error {
 		return loreSearch(root, args[1:], out)
 	case "for":
 		return loreFor(root, args[1:], out)
+	case "backlog":
+		return loreBacklog(root, args[1:], out)
 	default:
 		return fmt.Errorf("unknown lore subcommand %q\n%s", args[0], loreUsage)
 	}
@@ -112,6 +115,7 @@ func loreAdd(root string, args []string, out io.Writer) error {
 		Date:   time.Now().UTC().Format("2006-01-02"),
 		Body:   body, Priority: stringFlag(args, "--priority"),
 		Tags: multiFlag(args, "--tag"),
+		BlockedBy: multiFlag(args, "--blocked-by"),
 	}
 	for _, a := range multiFlag(args, "--anchor") {
 		kind, val, ok := strings.Cut(a, ":")
@@ -308,6 +312,87 @@ func loreFor(root string, args []string, out io.Writer) error {
 	}
 	for _, r := range matched {
 		fmt.Fprintf(out, "%s  [%s/%s]  %s\n", r.ID, r.Layer, orDash(r.Status), r.Title)
+	}
+	return nil
+}
+
+// --- backlog ---
+
+func loreBacklog(root string, args []string, out io.Writer) error {
+	_, st, _, err := loreReindex(root)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+	all, err := st.All()
+	if err != nil {
+		return err
+	}
+	openIDs := map[string]bool{}
+	for _, r := range all {
+		if r.Type == lore.TypeItem && r.Status == "open" {
+			openIDs[r.ID] = true
+		}
+	}
+	anchor := stringFlag(args, "--for")
+	var items []index.StoredRecord
+	for _, r := range all {
+		if r.Type != lore.TypeItem || r.Status != "open" {
+			continue
+		}
+		if anchor != "" {
+			ok := false
+			for _, a := range r.Anchors {
+				if anchorMatches(a, anchor) {
+					ok = true
+					break
+				}
+			}
+			if !ok {
+				continue
+			}
+		}
+		items = append(items, r)
+	}
+	blocked := func(r index.StoredRecord) bool {
+		for _, b := range r.BlockedBy {
+			if openIDs[b] {
+				return true
+			}
+		}
+		return false
+	}
+	prio := func(p string) string {
+		if p == "" {
+			return "p2"
+		}
+		return p
+	}
+	sort.SliceStable(items, func(i, j int) bool {
+		pi, pj := prio(items[i].Priority), prio(items[j].Priority)
+		if pi != pj {
+			return pi < pj
+		}
+		bi, bj := blocked(items[i]), blocked(items[j])
+		if bi != bj {
+			return !bi
+		}
+		return items[i].Date < items[j].Date
+	})
+	if boolIn(args, "--json") {
+		js := make([]loreJSON, 0, len(items))
+		for _, r := range items {
+			js = append(js, loreJSON{ID: r.ID, Type: string(r.Type), Title: r.Title,
+				Status: r.Status, Date: r.Date, Layer: r.Layer, File: r.File})
+		}
+		return toJSON(out, js)
+	}
+	for _, r := range items {
+		state := "ready"
+		if blocked(r) {
+			state = "BLOCKED"
+		}
+		fmt.Fprintf(out, "%s  %s  %s  %s\n", r.ID, prio(r.Priority), state, r.Title)
 	}
 	return nil
 }
