@@ -94,9 +94,40 @@ existing reverse edges already in the store:
 
 Exposed two ways:
 
-- `lore show <id>` gains a **"Referenced by:"** section listing inbound records.
+- `lore show <id>` gains a **"Referenced by:"** section listing direct (depth-1)
+  inbound records.
 - New `lore related <id>` view prints out-links and back-links together — the
-  Obsidian backlink pane rendered as text.
+  Obsidian backlink pane rendered as text — and supports **full-trace
+  traversal** (see §4a): `lore related <id> [--depth N | --depth all]`, each
+  reached record annotated with its distance and the edge type it arrived on.
+
+### 4a. Traversal — full trace, cycle-safe, depth-bounded
+
+Both `lore related` and the impact expansion (§5) walk the record graph rather
+than doing a fixed one-hop lookup. One shared traversal primitive in
+`internal/lore/index`:
+
+```
+Trace(recs, startID, opts) -> []Reached   // Reached = {id, distance, viaEdge, viaParent}
+```
+
+- **Cycle-safe**: a visited set keyed by record id; the graph has cycles
+  (mutual `related`, supersede chains), so re-visits are skipped and the first
+  (shortest) distance wins. Breadth-first so distances are minimal.
+- **Edges walked**: `related` (both directions — the graph is treated as
+  undirected for discovery), plus `supersedes`/`superseded_by` and
+  `blocked_by`/its reverse. Anchors are *not* traversed as record→record edges
+  (they bridge to code, handled at the query entrypoint in §5).
+- **Depth is configurable and inferred, not fixed at 1.**
+  - `--depth N` bounds the walk to N hops.
+  - `--depth all` (and the `lore related` default) is **full trace**: walk until
+    the connected component is exhausted, bounded only by the safety cap below.
+  - The *inferred default* for a context where unbounded output would be noise
+    (the `impact` block, §5) is a small N derived from output budget, overridable
+    by the same flag — never a hard-coded 1.
+- **Safety cap**: a total-reached ceiling (e.g. 200 records) stops pathological
+  walks on a densely linked graph; when the cap truncates, the output says so
+  (no silent truncation).
 
 ### 4. Resolution + shared formatter
 
@@ -116,11 +147,15 @@ Exposed two ways:
 
 - Bring the Related-lore block to the **CLI `impact`** command (`runImpact` →
   composed after `query.ImpactText`). Same "never break navigation" contract.
-- Extend matching beyond direct symbol-anchor by **one hop**: a record anchored
-  to the queried symbol pulls in its `related:` neighbors. So `impact Foo`
-  surfaces the decision anchored to `Foo` *and* the note that decision links to.
-  Cap and ordering (active/open first, cap 5) preserved; the one-hop neighbors
-  fill remaining slots after direct matches, deduped.
+- **Entrypoint**: records directly anchored to the queried symbol are the walk
+  roots (distance 0). From those roots, `Trace` (§4a) expands along the record
+  graph to the configured depth — so `impact Foo` surfaces the decision anchored
+  to `Foo`, the note *it* links to, the item *that* note links to, and so on for
+  a full trace when asked. `codeindex impact <symbol> [--related-depth N|all]`
+  exposes the control; the default is the inferred small-N budget, not 1.
+- Ordering within the block: distance ascending, then active/open first; each
+  entry annotated with its distance from the anchored root so a deep trace stays
+  legible. The prior cap becomes the §4a safety cap; truncation is stated.
 
 ### 6. Measurement — graph-health in `lore doctor`
 
@@ -166,7 +201,9 @@ new feature surface to maintain.
 - `store_test.go`: `lore_links` upsert + reindex; schemaVersion-mismatch wipe
   includes `lore_links`.
 - `index`: backlink union query; slug/id resolution (exact, ambiguous, missing);
-  one-hop related expansion for impact.
+  `Trace` traversal — depth bounding (N and `all`), cycle safety (mutual
+  `related` and supersede loops terminate), shortest-distance-wins, edge-type
+  and distance annotation, and safety-cap truncation reporting.
 - `lore_tools_test.go`: shared formatter used by both CLI and MCP paths; CLI
   impact degrades to plain output when lore is unavailable.
 - `loreDoctor`: orphan / dangling-link / density reporting on a fixture graph.
@@ -176,7 +213,8 @@ new feature surface to maintain.
 1. `related:` authored in a record survives round-trip and appears in
    `lore show` out-links and the target's "Referenced by:".
 2. `codeindex impact <symbol>` (CLI) surfaces the same Related-lore block the
-   MCP tool does, including one-hop `related` neighbors, and never fails the
-   navigation output when lore is broken.
+   MCP tool does; `--related-depth N|all` traces the record graph from the
+   anchored roots (distance-annotated, cycle-safe), and the block never fails
+   the navigation output when lore is broken.
 3. `lore doctor` reports orphans, dangling links, and link density; the numbers
    move measurably as we link the existing backlog.
