@@ -3,6 +3,7 @@ id: note-01KYR17XECYXPGDZPKC4HQDSEA
 title: docket (danielhanold) comparison — gaps both directions, adoptable ideas
 date: 2026-07-29
 tags: [competitive-analysis, roadmap]
+related: [dec-01KYTG2C8BPFS0GV787Y8AA4QM]
 refs:
     - url: https://github.com/danielhanold/docket
 ---

@@ -4,6 +4,7 @@ title: Lore gains a free-form record→record 'related' edge with full-trace gra
 status: active
 date: "2026-07-30"
 tags: [knowledge-graph]
+related: [dec-01KYR17XECDN2T35W7ERZ932Y8, note-01KYR17XECYXPGDZPKC4HQDSEA, itm-01KYTGCATA2045YS4MC3XQ0HVD]
 anchors:
     - path: internal/lore/record.go
     - path: internal/lore/index/

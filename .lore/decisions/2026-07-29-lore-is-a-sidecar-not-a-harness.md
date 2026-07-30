@@ -3,6 +3,7 @@ id: dec-01KYR17XECC2X5P01CQZN5D0YH
 title: Lore is a sidecar service, not a mediating harness
 status: active
 date: 2026-07-29
+related: [dec-01KYR17XECA6GT2VX6QCGGRXKK, dec-01KYR17XEC208KMPSEGKBFT6Y7]
 refs:
     - url: docs/superpowers/specs/2026-07-29-lore-engine-design.md
 ---

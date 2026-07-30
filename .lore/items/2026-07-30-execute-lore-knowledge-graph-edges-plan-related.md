@@ -5,6 +5,7 @@ status: open
 date: "2026-07-30"
 priority: p1
 tags: [knowledge-graph]
+related: [dec-01KYTG2C8BPFS0GV787Y8AA4QM]
 anchors:
     - path: internal/lore/record.go
     - path: internal/lore/index/
