@@ -1,7 +1,7 @@
 ---
 id: itm-01KYTGCATA2045YS4MC3XQ0HVD
 title: Execute lore knowledge-graph-edges plan (related edge, Trace, lore-in-impact, graph-health)
-status: open
+status: done
 date: "2026-07-30"
 priority: p1
 tags: [knowledge-graph]
