@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -94,7 +95,8 @@ first: codeindex lore <root> search '<query>' (or the lore_search / lore_for_sym
 MCP tools). When a decision is made or a non-obvious root cause found, record it
 with codeindex lore <root> add decision --title "..." --body - (include rejected
 alternatives). Active decisions are constraints, not suggestions.
-MCP: codeindex mcp <repo-root>`
+MCP: codeindex mcp <repo-root>
+When you file or reference an external ticket (GitHub, Jira, Linear) for tracked work, record its reference on the lore item (--ref gh-issue:owner/repo#N).`
 
 const loreReadme = `# .lore/ — project decisions, work items, and notes
 
@@ -873,7 +875,7 @@ func loreDoctor(root string, args []string, out io.Writer) error {
 		}
 		// Churn-suspect: when churnLines > 3× current total line count of anchored files.
 		if r.ChurnLines > 0 {
-			totalLines := countAnchorLines(r)
+			totalLines := countAnchorLines(root, r)
 			if r.ChurnLines > 3*totalLines {
 				fmt.Fprintf(out, "churn-suspect  %s  %s\n", r.ID, r.Title)
 				findings++
@@ -939,6 +941,14 @@ func loreSync(root string, args []string, out io.Writer) error {
 				}
 				if err := os.WriteFile(r.File, newData, 0o644); err != nil {
 					return fmt.Errorf("lore sync: write %s: %w", r.File, err)
+				}
+				// Update the index to reflect the mutated record.
+				h := fmt.Sprintf("%x", sha256.Sum256(newData))
+				if err := st.Upsert(rec, r.Layer, r.File); err != nil {
+					return fmt.Errorf("lore sync: index upsert %s: %w", r.ID, err)
+				}
+				if err := st.SetFileHash(r.File, h); err != nil {
+					return fmt.Errorf("lore sync: index hash %s: %w", r.File, err)
 				}
 				fmt.Fprintf(out, "synced %s done (issue %s closed)\n", r.ID, ref.Value)
 			}
@@ -1015,6 +1025,14 @@ func lorePush(root string, args []string, out io.Writer) error {
 	if err := os.WriteFile(r.File, newData, 0o644); err != nil {
 		return fmt.Errorf("lore push: write %s: %w", r.File, err)
 	}
+	// Update the index to reflect the appended ref.
+	h := fmt.Sprintf("%x", sha256.Sum256(newData))
+	if err := st.Upsert(rec, r.Layer, r.File); err != nil {
+		return fmt.Errorf("lore push: index upsert %s: %w", r.ID, err)
+	}
+	if err := st.SetFileHash(r.File, h); err != nil {
+		return fmt.Errorf("lore push: index hash %s: %w", r.File, err)
+	}
 	fmt.Fprintf(out, "pushed %s %s\n", id, issueURL)
 	return nil
 }
@@ -1040,14 +1058,15 @@ func urlToRef(url string) string {
 // countAnchorLines counts the total number of lines across all files reachable
 // under the path anchors of r. Missing paths contribute 0 lines. Only path
 // anchors are counted; symbol anchors are ignored.
-func countAnchorLines(r index.StoredRecord) int {
+func countAnchorLines(root string, r index.StoredRecord) int {
 	total := 0
 	for _, a := range r.Anchors {
 		if a.Path == "" {
 			continue
 		}
-		// Walk all files under the anchor path.
-		_ = filepath.Walk(a.Path, func(p string, info os.FileInfo, err error) error {
+		// Walk all files under the anchor path (joined with repo root so that
+		// repo-relative anchor paths work regardless of process CWD).
+		_ = filepath.Walk(filepath.Join(root, a.Path), func(p string, info os.FileInfo, err error) error {
 			if err != nil || info == nil || info.IsDir() {
 				return nil
 			}

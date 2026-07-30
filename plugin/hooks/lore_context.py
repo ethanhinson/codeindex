@@ -2,7 +2,7 @@
 """codeindex UserPromptSubmit hook: make lore always visible.
 
 Why this exists (measured): always-visible notes drive adoption; lazy skills
-collapse to ~10% on "easy-looking" tasks (v3a). This hook injects a ≤80-token
+collapse to ~10% on "easy-looking" tasks (v3a). This hook injects a ≤~100-token
 lore availability note on each prompt — only in repos that have .lore/ and only
 when the codeindex binary is available. The note is the trigger; the MCP tools
 and CLI are the depth.
@@ -23,7 +23,8 @@ NOTE = (
     "`codeindex lore <root> search '<q>'`). "
     "When a decision is made or a non-obvious root cause found, record it with "
     "lore_add — include rejected alternatives. "
-    "Active decisions are constraints."
+    "Active decisions are constraints. "
+    "When you file or reference an external ticket (GitHub, Jira, Linear) for tracked work, record its reference on the lore item (--ref gh-issue:owner/repo#N)."
 )
 
 

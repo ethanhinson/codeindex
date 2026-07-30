@@ -461,6 +461,7 @@ func TestLoreShowNoConfidenceLineWhenSurvivedZero(t *testing.T) {
 // of anchored files must appear in doctor as "churn-suspect".
 func TestLoreDoctorChurnSuspect(t *testing.T) {
 	root := loreTestRepo(t)
+	t.Chdir(t.TempDir()) // CWD != root; proves fix works via filepath.Join(root, a.Path)
 
 	// Create a small file that will be the anchor target.
 	anchorDir := filepath.Join(root, "internal", "engine")
@@ -474,9 +475,9 @@ func TestLoreDoctorChurnSuspect(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Add a decision anchored to that directory.
+	// Add a decision anchored to that directory using a repo-relative path.
 	out := runLoreOK(t, root, "add", "decision", "--title", "Churn test",
-		"--body", "x", "--anchor", "path:"+anchorDir+"/")
+		"--body", "x", "--anchor", "path:internal/engine/")
 	id := strings.Fields(out)[1]
 
 	// Set churn_lines = 31 (> 3×10=30 → churn-suspect).
@@ -507,6 +508,7 @@ func TestLoreDoctorChurnSuspect(t *testing.T) {
 // total line count must NOT appear in doctor as churn-suspect.
 func TestLoreDoctorChurnSuspectBelowThreshold(t *testing.T) {
 	root := loreTestRepo(t)
+	t.Chdir(t.TempDir()) // CWD != root; proves fix works via filepath.Join(root, a.Path)
 
 	anchorDir := filepath.Join(root, "internal", "engine2")
 	if err := os.MkdirAll(anchorDir, 0o755); err != nil {
@@ -519,7 +521,7 @@ func TestLoreDoctorChurnSuspectBelowThreshold(t *testing.T) {
 	}
 
 	out := runLoreOK(t, root, "add", "decision", "--title", "Below threshold",
-		"--body", "x", "--anchor", "path:"+anchorDir+"/")
+		"--body", "x", "--anchor", "path:internal/engine2/")
 	id := strings.Fields(out)[1]
 
 	l, err := lore.NewLayout(root)
@@ -680,6 +682,27 @@ func TestLoreSyncGithub_FlipsDoneOnClosedIssue(t *testing.T) {
 	if rec.Status != "done" {
 		t.Fatalf("item status not flipped to done: %q", rec.Status)
 	}
+
+	// Assert index is fresh: Get shows status done and a follow-up Reindex reports Indexed==0.
+	l2, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	st2, rep2, err := index.Reindex(l2, filepath.Join(root, ".codeindex", "lore.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st2.Close()
+	if rep2.Indexed != 0 {
+		t.Fatalf("sync should have updated index: Reindex.Indexed=%d (want 0)", rep2.Indexed)
+	}
+	row, ok, err := st2.Get(id)
+	if err != nil || !ok {
+		t.Fatalf("Get after sync: ok=%v err=%v", ok, err)
+	}
+	if row.Status != "done" {
+		t.Fatalf("index row status=%q, want done", row.Status)
+	}
 }
 
 // TestLoreSyncGithub_OpenIssue_NoOp: when a gh-issue ref is OPEN, no change.
@@ -778,6 +801,33 @@ func TestLorePush_AppendsRefAndPrintsURL(t *testing.T) {
 	}
 	if !foundRef {
 		t.Fatalf("gh-issue ref not appended to record, refs: %v", rec.Refs)
+	}
+
+	// Assert index is fresh: Get shows the new ref and Reindex reports Indexed==0.
+	l2, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	st2, rep2, err2 := index.Reindex(l2, filepath.Join(root, ".codeindex", "lore.db"))
+	if err2 != nil {
+		t.Fatal(err2)
+	}
+	defer st2.Close()
+	if rep2.Indexed != 0 {
+		t.Fatalf("push should have updated index: Reindex.Indexed=%d (want 0)", rep2.Indexed)
+	}
+	row, ok, err := st2.Get(id)
+	if err != nil || !ok {
+		t.Fatalf("Get after push: ok=%v err=%v", ok, err)
+	}
+	foundRefInIndex := false
+	for _, ref := range row.Refs {
+		if ref.Kind == "gh-issue" && strings.Contains(ref.Value, "#99") {
+			foundRefInIndex = true
+		}
+	}
+	if !foundRefInIndex {
+		t.Fatalf("index row missing gh-issue ref after push, refs: %v", row.Refs)
 	}
 }
 
