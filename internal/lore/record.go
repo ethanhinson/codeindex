@@ -164,11 +164,26 @@ func (r Record) Marshal() ([]byte, error) {
 	buf.WriteString("---\n")
 	buf.Write(fm)
 	if len(r.Extra) > 0 {
-		extraBytes, err := yaml.Marshal(r.Extra)
-		if err != nil {
-			return nil, err
+		// Marshal-side collision guard: filter Extra to exclude keys in knownKeys.
+		// This prevents deliberate API misuse like r.Extra["title"] from creating
+		// duplicate YAML keys where the last one silently wins.
+		filteredExtra := make(map[string]any)
+		knownKeysMap := make(map[string]bool)
+		for _, k := range knownKeys {
+			knownKeysMap[k] = true
 		}
-		buf.Write(extraBytes)
+		for k, v := range r.Extra {
+			if !knownKeysMap[k] {
+				filteredExtra[k] = v
+			}
+		}
+		if len(filteredExtra) > 0 {
+			extraBytes, err := yaml.Marshal(filteredExtra)
+			if err != nil {
+				return nil, err
+			}
+			buf.Write(extraBytes)
+		}
 	}
 	buf.WriteString("---\n")
 	buf.WriteString("\n")

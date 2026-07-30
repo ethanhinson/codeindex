@@ -1,6 +1,7 @@
 package lore
 
 import (
+	"bytes"
 	"reflect"
 	"strings"
 	"testing"
@@ -150,6 +151,15 @@ func TestExtraFieldsRoundTrip(t *testing.T) {
 		r2.Status != "active" || r2.Body != "Body.\n" {
 		t.Fatalf("known fields corrupted: %+v", r2)
 	}
+
+	// Byte-idempotency assertion: Marshal∘Parse∘Marshal produces stable bytes.
+	b2, err := r2.Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(b, b2) {
+		t.Fatalf("byte-idempotency failed:\nfirst:\n%s\nsecond:\n%s", b, b2)
+	}
 }
 
 // TestNoExtraForKnownKeys verifies that a record with only known frontmatter
@@ -173,12 +183,60 @@ func TestNoExtraForKnownKeys(t *testing.T) {
 	}
 }
 
-// TestKnownKeysCoversWireFields asserts knownKeys length equals wire struct
-// field count so a future field can't be forgotten.
+// TestKnownKeysCoversWireFields asserts set equality between knownKeys and the
+// wire struct's yaml tag names (excluding omitempty/flow), not just length.
+// A typo'd entry must fail.
 func TestKnownKeysCoversWireFields(t *testing.T) {
 	wireType := reflect.TypeOf(wire{})
-	if len(knownKeys) != wireType.NumField() {
-		t.Fatalf("knownKeys has %d entries but wire has %d fields — update knownKeys",
-			len(knownKeys), wireType.NumField())
+
+	// Extract yaml tag names from wire struct, stripping ,omitempty and ,flow.
+	wireTagNames := make(map[string]bool)
+	for i := 0; i < wireType.NumField(); i++ {
+		field := wireType.Field(i)
+		tag := field.Tag.Get("yaml")
+		if tag == "" {
+			t.Fatalf("field %s missing yaml tag", field.Name)
+		}
+		// Strip options like ,omitempty or ,flow.
+		tagName := strings.Split(tag, ",")[0]
+		wireTagNames[tagName] = true
+	}
+
+	// Convert knownKeys to map for comparison.
+	knownKeysMap := make(map[string]bool)
+	for _, k := range knownKeys {
+		knownKeysMap[k] = true
+	}
+
+	// Assert set equality.
+	for k := range wireTagNames {
+		if !knownKeysMap[k] {
+			t.Fatalf("wire field %q not in knownKeys", k)
+		}
+	}
+	for k := range knownKeysMap {
+		if !wireTagNames[k] {
+			t.Fatalf("knownKeys entry %q not found in wire struct", k)
+		}
+	}
+}
+
+// TestMarshalSkipsExtraCollidingWithKnownKeys verifies the collision guard:
+// Marshal must skip Extra keys that collide with known field names, preventing
+// duplicate YAML keys where the last one silently wins.
+func TestMarshalSkipsExtraCollidingWithKnownKeys(t *testing.T) {
+	r := Record{ID: "note-01AN4Z07BY79KA1307SR9X4MV9", Type: TypeNote,
+		Title: "Real", Date: "2026-07-30",
+		Extra: map[string]any{"title": "shadow", "hook": "kept"}}
+	b, err := r.Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Count(string(b), "title:") != 1 || !strings.Contains(string(b), "hook:") {
+		t.Fatalf("collision guard failed:\n%s", b)
+	}
+	out, err := Parse(b, TypeNote)
+	if err != nil || out.Title != "Real" {
+		t.Fatalf("known field lost: %+v %v", out, err)
 	}
 }
