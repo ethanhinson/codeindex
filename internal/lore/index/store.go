@@ -420,6 +420,7 @@ func (s *Store) InsertEvent(sha, typ, status, detail, created string) error {
 // sha. Both directions are needed because commit refs may be 7-char short SHAs
 // while stored events may hold full 40-char SHAs (or vice versa).
 // Results are returned oldest first (by created ASC).
+// Events with empty sha are never matched.
 func (s *Store) EventsForSHAPrefixes(prefixes []string) ([]Event, error) {
 	if len(prefixes) == 0 {
 		return nil, nil
@@ -435,6 +436,10 @@ func (s *Store) EventsForSHAPrefixes(prefixes []string) ([]Event, error) {
 		var e Event
 		if err := rows.Scan(&e.SHA, &e.Type, &e.Status, &e.Detail, &e.Created); err != nil {
 			return nil, err
+		}
+		// Skip empty-SHA events; they never match.
+		if e.SHA == "" {
+			continue
 		}
 		for _, p := range prefixes {
 			if strings.HasPrefix(e.SHA, p) || strings.HasPrefix(p, e.SHA) {

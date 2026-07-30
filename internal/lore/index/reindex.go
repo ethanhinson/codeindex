@@ -71,7 +71,7 @@ type eventLine struct {
 // ingestEvents reads <OverlayDir>/events.jsonl through the hash-diff gate
 // (reusing lore_files tracking). On change: DELETE all lore_events rows and
 // re-insert from the file. Malformed lines are added to rep.Errors; ingestion
-// continues. Missing file → no-op (not an error).
+// continues. Missing file → no-op (deletion is handled in Reindex's main cleanup loop).
 //
 // Note: lore_events is rebuilt wholesale from the JSONL file on any change
 // (simplest idempotent approach: delete-all + re-insert). This trades a small
@@ -81,8 +81,9 @@ func ingestEvents(s *Store, l lore.Layout, rep *Report) {
 	eventsPath := filepath.Join(l.OverlayDir, "events.jsonl")
 	data, err := os.ReadFile(eventsPath)
 	if err != nil {
-		// Missing file is fine (no events yet). Other errors are silently ignored
-		// per fail-open contract (CI must never break on storage issues).
+		// Missing file or read error is fine — file deletion is handled in Reindex
+		// by the main cleanup loop (lines ~240 in reindex.go). Other errors are
+		// silently ignored per fail-open contract (CI must never break on storage issues).
 		return
 	}
 
@@ -207,6 +208,13 @@ func Reindex(l lore.Layout, dbPath string) (*Store, Report, error) {
 	for p := range stored {
 		if seen[p] {
 			continue
+		}
+		// Special handling for events.jsonl: delete all lore_events rows when the file is deleted.
+		eventsPath := filepath.Join(l.OverlayDir, "events.jsonl")
+		if p == eventsPath {
+			if _, err := s.db.Exec(`DELETE FROM lore_events`); err != nil {
+				// Storage failure: still proceed with hash deletion.
+			}
 		}
 		if err := s.DeleteByFile(p); err != nil {
 			s.Close()

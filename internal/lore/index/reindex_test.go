@@ -1145,3 +1145,121 @@ func TestReindexEventsMalformedLine(t *testing.T) {
 		t.Fatalf("want 2 valid events, got %d", len(evs))
 	}
 }
+
+// TestReindexDeletedEventsJSONLPurgesStaleRows: when events.jsonl is deleted
+// after being indexed, the next reindex must DELETE all lore_events rows and
+// the file hash entry, leaving no stale rows behind.
+func TestReindexDeletedEventsJSONLPurgesStaleRows(t *testing.T) {
+	l := testLayout(t)
+	db := filepath.Join(t.TempDir(), "lore.db")
+	eventsPath := filepath.Join(l.OverlayDir, "events.jsonl")
+
+	// First reindex: write and ingest events.jsonl.
+	evJSON := `{"sha":"ddd1111","type":"deploy","status":"ok","detail":"","created":"2026-01-01T00:00:00Z"}` + "\n"
+	writeEventsJSONL(t, l.OverlayDir, evJSON)
+
+	s1, _, err := Reindex(l, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Verify event was ingested.
+	evs, err := s1.EventsForSHAPrefixes([]string{"ddd1111"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(evs) != 1 {
+		t.Fatalf("after first reindex: want 1 event, got %d", len(evs))
+	}
+
+	// Verify hash entry was stored.
+	hashes1, _ := s1.FileHashes()
+	if hashes1[eventsPath] == "" {
+		t.Fatal("events.jsonl hash not stored after first reindex")
+	}
+	s1.Close()
+
+	// Delete events.jsonl from disk.
+	if err := os.Remove(eventsPath); err != nil {
+		t.Fatal(err)
+	}
+
+	// Second reindex with deleted file should purge stale rows and hash entry.
+	s2, _, err := Reindex(l, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s2.Close()
+
+	// After deletion, EventsForSHAPrefixes should return nothing.
+	evs, err = s2.EventsForSHAPrefixes([]string{"ddd1111"})
+	if err != nil {
+		t.Fatalf("EventsForSHAPrefixes after deletion: %v", err)
+	}
+	if len(evs) != 0 {
+		t.Fatalf("after deletion: want 0 events, got %d (stale rows not purged): %+v", len(evs), evs)
+	}
+
+	// Verify the file hash entry was also deleted.
+	hashes2, _ := s2.FileHashes()
+	if hashes2[eventsPath] != "" {
+		t.Fatalf("file hash entry for %s still exists (want empty): %q", eventsPath, hashes2[eventsPath])
+	}
+}
+
+// TestStoreDELETEFromLoreEvents: verify that DELETE FROM lore_events works correctly.
+func TestStoreDELETEFromLoreEvents(t *testing.T) {
+	s := openStore(t)
+
+	// Insert two events.
+	if err := s.InsertEvent("aaa1111", "deploy", "ok", "", "2026-01-01T00:00:00Z"); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.InsertEvent("bbb2222", "test", "failed", "", "2026-01-02T00:00:00Z"); err != nil {
+		t.Fatal(err)
+	}
+
+	// Verify they're there.
+	evs1, _ := s.EventsForSHAPrefixes([]string{"aaa", "bbb"})
+	if len(evs1) != 2 {
+		t.Fatalf("before delete: want 2 events, got %d", len(evs1))
+	}
+
+	// Execute raw DELETE.
+	if _, err := s.db.Exec(`DELETE FROM lore_events`); err != nil {
+		t.Fatalf("DELETE error: %v", err)
+	}
+
+	// Verify they're gone.
+	evs2, _ := s.EventsForSHAPrefixes([]string{"aaa", "bbb"})
+	if len(evs2) != 0 {
+		t.Fatalf("after delete: want 0 events, got %d: %+v", len(evs2), evs2)
+	}
+}
+
+// TestLoreEventCLIWritesEmptySHAEvent: the CLI loreEvent function writes events
+// with empty SHA when no commit is available, and these events are stored
+// (valid CI evidence) but not returned by EventsForSHAPrefixes.
+func TestLoreEventCLIWritesEmptySHAEvent(t *testing.T) {
+	db := filepath.Join(t.TempDir(), "lore.db")
+
+	// Simulate: insert an event with empty SHA (as loreEvent would do).
+	s, _ := Open(db)
+	if err := s.InsertEvent("", "ci", "ok", "build succeeded, no commit", "2026-01-01T00:00:00Z"); err != nil {
+		t.Fatal(err)
+	}
+	s.Close()
+
+	// Re-open and query.
+	s, _ = Open(db)
+	defer s.Close()
+
+	// EventsForSHAPrefixes with any prefix should not return the empty-SHA event.
+	evs, err := s.EventsForSHAPrefixes([]string{"abc123", "def456", ""})
+	if err != nil {
+		t.Fatalf("EventsForSHAPrefixes: %v", err)
+	}
+	if len(evs) != 0 {
+		t.Fatalf("empty-SHA event should never match any query, got %d: %+v", len(evs), evs)
+	}
+}

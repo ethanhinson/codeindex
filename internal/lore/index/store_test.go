@@ -319,3 +319,49 @@ func TestEventsForSHAPrefixesOldestFirst(t *testing.T) {
 		t.Fatalf("order wrong: %+v", evs)
 	}
 }
+
+// TestEventsForSHAPrefixesEmptySHANeverMatches verifies that events with
+// empty sha="" are never returned by EventsForSHAPrefixes, even if they exist
+// in the database. They are valid for storage (CI evidence) but not queryable.
+func TestEventsForSHAPrefixesEmptySHANeverMatches(t *testing.T) {
+	s := openStore(t)
+	// Insert an event with empty SHA (as loreEvent would do when no commit is available).
+	if err := s.InsertEvent("", "ci", "ok", "no commit info", "2026-07-01T00:00:00Z"); err != nil {
+		t.Fatal(err)
+	}
+	// Insert a normal event with a real SHA.
+	const realSHA = "abc123def456"
+	if err := s.InsertEvent(realSHA, "deploy", "ok", "", "2026-07-02T00:00:00Z"); err != nil {
+		t.Fatal(err)
+	}
+
+	// Query with a prefix that matches the real event should only return it.
+	evs, err := s.EventsForSHAPrefixes([]string{"abc"})
+	if err != nil {
+		t.Fatalf("EventsForSHAPrefixes: %v", err)
+	}
+	if len(evs) != 1 {
+		t.Fatalf("want 1 event (empty-SHA filtered out), got %d: %+v", len(evs), evs)
+	}
+	if evs[0].SHA != realSHA {
+		t.Fatalf("got event with wrong SHA: %q (want %q)", evs[0].SHA, realSHA)
+	}
+
+	// Query with "x" prefix that matches neither should return nothing.
+	evs2, err := s.EventsForSHAPrefixes([]string{"x"})
+	if err != nil {
+		t.Fatalf("EventsForSHAPrefixes with non-match: %v", err)
+	}
+	if len(evs2) != 0 {
+		t.Fatalf("non-matching query should return 0 events, got %d: %+v", len(evs2), evs2)
+	}
+
+	// Query with full realSHA should return it.
+	evs3, err := s.EventsForSHAPrefixes([]string{realSHA})
+	if err != nil {
+		t.Fatalf("EventsForSHAPrefixes full SHA: %v", err)
+	}
+	if len(evs3) != 1 {
+		t.Fatalf("full SHA query: want 1, got %d: %+v", len(evs3), evs3)
+	}
+}
