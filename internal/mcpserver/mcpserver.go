@@ -157,6 +157,8 @@ func New(repo, version string) *mcp.Server {
 		return text(out), nil, nil
 	})
 
+	addLoreTools(s, repo)
+
 	return s
 }
 
