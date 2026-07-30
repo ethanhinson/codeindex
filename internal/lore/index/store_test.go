@@ -109,3 +109,49 @@ func TestUpsertPreservesStale(t *testing.T) {
 		t.Fatal("re-upsert reset stale; it must be preserved")
 	}
 }
+
+// TestMetaRoundTrip verifies that Meta returns empty string when unset, and
+// SetMeta followed by Meta returns the stored value. It also verifies that the
+// reserved 'schema' key is not collided with.
+func TestMetaRoundTrip(t *testing.T) {
+	s := openStore(t)
+
+	// Unset key returns empty string, no error.
+	v, err := s.Meta("last_scanned_commit")
+	if err != nil {
+		t.Fatalf("Meta unset key: %v", err)
+	}
+	if v != "" {
+		t.Fatalf("Meta unset key: want empty, got %q", v)
+	}
+
+	// SetMeta then Meta round-trips.
+	if err := s.SetMeta("last_scanned_commit", "abc123"); err != nil {
+		t.Fatalf("SetMeta: %v", err)
+	}
+	v, err = s.Meta("last_scanned_commit")
+	if err != nil {
+		t.Fatalf("Meta after set: %v", err)
+	}
+	if v != "abc123" {
+		t.Fatalf("Meta after set: want %q, got %q", "abc123", v)
+	}
+
+	// Update works (upsert semantics).
+	if err := s.SetMeta("last_scanned_commit", "def456"); err != nil {
+		t.Fatalf("SetMeta update: %v", err)
+	}
+	v, err = s.Meta("last_scanned_commit")
+	if err != nil || v != "def456" {
+		t.Fatalf("Meta after update: %v %q", err, v)
+	}
+
+	// The 'schema' key written by Open is still intact (no collision).
+	sv, err := s.Meta("schema")
+	if err != nil {
+		t.Fatalf("Meta schema: %v", err)
+	}
+	if sv == "" {
+		t.Fatal("Meta schema: schema key must not be empty")
+	}
+}

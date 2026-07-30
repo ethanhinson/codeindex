@@ -5,12 +5,17 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
 	"codeindex/internal/lore"
 	"codeindex/internal/lore/gitinfo"
 )
+
+// closesRe matches "closes <item-id>" in commit subjects (case-insensitive).
+// The character class [0-9A-HJKMNP-TV-Z] is Crockford base32 (excludes I, L, O, U).
+var closesRe = regexp.MustCompile(`(?i)\bcloses\s+(itm-[0-9A-HJKMNP-TV-Z]{26})\b`)
 
 // newGit is the test seam for gitinfo construction. Tests override this to
 // inject a fake runner without touching the filesystem or a live git binary.
@@ -27,6 +32,9 @@ type Report struct {
 	// Duplicates holds entries formatted "<id>: <path1>, <path2>" for IDs
 	// found in more than one file during this reindex run.
 	Duplicates []string
+	// Closed holds the IDs of items whose status was flipped to "done" by a
+	// "closes <id>" commit subject during this reindex run.
+	Closed []string
 }
 
 // source is one directory to scan: its layer tag and the record type its
@@ -186,6 +194,75 @@ func Reindex(l lore.Layout, dbPath string) (*Store, Report, error) {
 				s.Close()
 				return nil, rep, err
 			}
+		}
+	}
+
+	// Closes-transition pass: scan commits since the last reindex for
+	// "closes <item-id>" subjects and flip matching open items to done.
+	//
+	// Guard: requires git available (g.Available()) AND a readable HEAD. Unlike
+	// the ratification pass, this does NOT require an origin ref — closes
+	// transitions work in origin-less repos.
+	if g.Available() {
+		head, err := g.Head()
+		if err == nil && head != "" {
+			since, _ := s.Meta("last_scanned_commit")
+			commits, err := g.CommitsSince(since, 500)
+			if err == nil {
+				for _, c := range commits {
+					matches := closesRe.FindAllStringSubmatch(c.Subject, -1)
+					for _, m := range matches {
+						itemID := m[1]
+						row, found, err := s.Get(itemID)
+						if err != nil || !found {
+							continue // unknown ID — skip silently
+						}
+						if string(row.Type) != string(lore.TypeItem) || row.Status != "open" {
+							continue // not an open item — skip silently
+						}
+						// Durable rewrite: Parse → mutate → Marshal → WriteFile.
+						data, err := os.ReadFile(row.File)
+						if err != nil {
+							rep.Errors = append(rep.Errors, FileError{row.File, err})
+							continue
+						}
+						rec, err := lore.Parse(data, lore.TypeItem)
+						if err != nil {
+							rep.Errors = append(rep.Errors, FileError{row.File, err})
+							continue
+						}
+						rec.Status = "done"
+						shortSHA := c.SHA
+						if len(shortSHA) > 7 {
+							shortSHA = shortSHA[:7]
+						}
+						rec.Refs = append(rec.Refs, lore.Ref{Kind: "commit", Value: shortSHA})
+						newData, err := rec.Marshal()
+						if err != nil {
+							rep.Errors = append(rep.Errors, FileError{row.File, err})
+							continue
+						}
+						if err := os.WriteFile(row.File, newData, 0o644); err != nil {
+							rep.Errors = append(rep.Errors, FileError{row.File, err})
+							continue
+						}
+						// Re-upsert and update file hash so next reindex sees it as unchanged.
+						if err := s.Upsert(rec, row.Layer, row.File); err != nil {
+							rep.Errors = append(rep.Errors, FileError{row.File, err})
+							continue
+						}
+						newHash := fmt.Sprintf("%x", sha256.Sum256(newData))
+						if err := s.SetFileHash(row.File, newHash); err != nil {
+							rep.Errors = append(rep.Errors, FileError{row.File, err})
+							continue
+						}
+						rep.Closed = append(rep.Closed, itemID)
+					}
+				}
+			}
+			// Advance last_scanned_commit even when zero matches, so the next
+			// reindex doesn't re-scan the same commits.
+			_ = s.SetMeta("last_scanned_commit", head)
 		}
 	}
 

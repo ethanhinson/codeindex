@@ -340,3 +340,29 @@ func (s *Store) SetRatified(id string, ratified bool) error {
 	_, err := s.db.Exec(`UPDATE lore_records SET ratified=? WHERE id=?`, v, id)
 	return err
 }
+
+// Meta returns the value of a named key in lore_meta. When the key is unset
+// Meta returns ("", nil). The reserved 'schema' key is readable but must not
+// be written via SetMeta (use the internal schema migration path instead).
+func (s *Store) Meta(key string) (string, error) {
+	var v string
+	err := s.db.QueryRow(`SELECT value FROM lore_meta WHERE key=?`, key).Scan(&v)
+	if err == sql.ErrNoRows {
+		return "", nil
+	}
+	if err != nil {
+		return "", err
+	}
+	return v, nil
+}
+
+// SetMeta stores or overwrites a named key in lore_meta. The 'schema' key is
+// reserved for internal schema versioning and may not be set via SetMeta.
+func (s *Store) SetMeta(key, val string) error {
+	if key == "schema" {
+		return fmt.Errorf("lore_meta: key %q is reserved", key)
+	}
+	_, err := s.db.Exec(`INSERT INTO lore_meta(key,value) VALUES(?,?)
+		ON CONFLICT(key) DO UPDATE SET value=excluded.value`, key, val)
+	return err
+}

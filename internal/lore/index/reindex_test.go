@@ -415,3 +415,315 @@ func TestUpsertPreservesRatified(t *testing.T) {
 		t.Fatal("re-upsert must not reset ratified; it is derived state")
 	}
 }
+
+// --- Closes-transition tests ---
+
+// fakeHeadSHA is the full SHA returned by the fake git runner as HEAD.
+const fakeHeadSHA = "abc1234567890000000000000000000000000000"
+
+// writeOpenItem writes an open item record file in the repo items dir and
+// returns its path.
+func writeOpenItem(t *testing.T, l lore.Layout, filename, id, title string) string {
+	t.Helper()
+	dir := l.Dir("repo", lore.TypeItem)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	r := lore.Record{
+		ID:     id,
+		Type:   lore.TypeItem,
+		Title:  title,
+		Date:   "2026-07-29",
+		Status: "open",
+		Body:   "item body\n",
+	}
+	b, err := r.Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := filepath.Join(dir, filename)
+	if err := os.WriteFile(p, b, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return p
+}
+
+// makeClosesRunner returns a fake git runner that:
+// - Available: .git dir must exist in root (checked by Available() itself)
+// - Head() succeeds with fakeHeadSHA
+// - CommitsSince(sinceSHA, 500) returns commits built from commitSubjects
+//   (sinceSHA is captured into receivedSince for assertion)
+// - ratification HasRef returns false (no origin), so ratification is skipped.
+func makeClosesRunner(commitSubjects []string, receivedSince *string) func(string) *gitinfo.Git {
+	return func(root string) *gitinfo.Git {
+		return gitinfo.NewWithRunner(root, func(dir string, args ...string) (string, error) {
+			if len(args) == 0 {
+				return "", nil
+			}
+			switch args[0] {
+			case "rev-parse":
+				// Head() call: rev-parse HEAD → return fake SHA
+				// HasRef call: rev-parse --verify --quiet <ref> → fail (no origin)
+				for _, a := range args {
+					if a == "--verify" {
+						return "", os.ErrNotExist // HasRef → false → skip ratification
+					}
+				}
+				return fakeHeadSHA + "\n", nil
+			case "log":
+				// CommitsSince call. Capture the since SHA from the range arg.
+				if receivedSince != nil {
+					for _, a := range args {
+						if strings.Contains(a, "..HEAD") {
+							*receivedSince = strings.TrimSuffix(a, "..HEAD")
+							break
+						}
+					}
+				}
+				// Build fake log output in numstat format.
+				// Format: <sha>\x00<subject>\n\n
+				var sb strings.Builder
+				for i, subj := range commitSubjects {
+					sha := fakeHeadSHA[:40]
+					// Give each commit a distinct SHA based on index.
+					sha = strings.Repeat("0", 39-i%39) + strings.Repeat("a", 1+i%39)
+					if len(sha) > 40 {
+						sha = sha[:40]
+					}
+					sb.WriteString(sha + "\x00" + subj + "\n\n")
+				}
+				return sb.String(), nil
+			}
+			return "", nil
+		})
+	}
+}
+
+// TestClosesTransitionOpenItemFlipsToDone: a commit with subject
+// "closes <item-id>" causes the item file on disk to flip to status: done,
+// appends a commit ref, updates the index row, advances last_scanned_commit,
+// and populates Report.Closed.
+func TestClosesTransitionOpenItemFlipsToDone(t *testing.T) {
+	l := testLayout(t)
+	makeGitDotDir(t, l.RepoRoot)
+	db := filepath.Join(t.TempDir(), "lore.db")
+
+	const itemID = "itm-01AN4Z07BY79KA1307SR9X4MV4"
+	itemPath := writeOpenItem(t, l, "item.md", itemID, "My item")
+
+	orig := newGit
+	t.Cleanup(func() { newGit = orig })
+	newGit = makeClosesRunner([]string{"closes " + itemID}, nil)
+
+	s, rep, err := Reindex(l, db)
+	if err != nil {
+		t.Fatalf("Reindex: %v", err)
+	}
+	defer s.Close()
+
+	// Report.Closed must contain the item ID.
+	if len(rep.Closed) != 1 || rep.Closed[0] != itemID {
+		t.Fatalf("Report.Closed: %v", rep.Closed)
+	}
+
+	// File on disk must now have status: done.
+	data, err := os.ReadFile(itemPath)
+	if err != nil {
+		t.Fatalf("ReadFile: %v", err)
+	}
+	parsed, err := lore.Parse(data, lore.TypeItem)
+	if err != nil {
+		t.Fatalf("Parse rewritten file: %v", err)
+	}
+	if parsed.Status != "done" {
+		t.Fatalf("status on disk: want done, got %q", parsed.Status)
+	}
+
+	// A commit ref must have been appended.
+	var hasCommitRef bool
+	for _, ref := range parsed.Refs {
+		if ref.Kind == "commit" {
+			hasCommitRef = true
+		}
+	}
+	if !hasCommitRef {
+		t.Fatalf("no commit ref appended; refs=%v", parsed.Refs)
+	}
+
+	// Index row must also show done.
+	row, ok, err := s.Get(itemID)
+	if err != nil || !ok {
+		t.Fatalf("Get %s: %v ok=%v", itemID, err, ok)
+	}
+	if row.Status != "done" {
+		t.Fatalf("index status: want done, got %q", row.Status)
+	}
+
+	// last_scanned_commit must be set to HEAD.
+	meta, err := s.Meta("last_scanned_commit")
+	if err != nil {
+		t.Fatalf("Meta: %v", err)
+	}
+	if meta == "" {
+		t.Fatal("last_scanned_commit not set after Reindex")
+	}
+}
+
+// TestClosesTransitionSecondReindexNoNewCommits: second Reindex with no new
+// commits (CommitsSince called with stored SHA) causes no rewrites.
+func TestClosesTransitionSecondReindexNoNewCommits(t *testing.T) {
+	l := testLayout(t)
+	makeGitDotDir(t, l.RepoRoot)
+	db := filepath.Join(t.TempDir(), "lore.db")
+
+	const itemID = "itm-01AN4Z07BY79KA1307SR9X4MV4"
+	writeOpenItem(t, l, "item.md", itemID, "My item")
+
+	orig := newGit
+	t.Cleanup(func() { newGit = orig })
+
+	// First run: commit closes item.
+	newGit = makeClosesRunner([]string{"closes " + itemID}, nil)
+	s, rep, err := Reindex(l, db)
+	if err != nil {
+		t.Fatalf("first Reindex: %v", err)
+	}
+	if len(rep.Closed) != 1 {
+		t.Fatalf("first run: want 1 closed, got %v", rep.Closed)
+	}
+	storedSince, _ := s.Meta("last_scanned_commit")
+	s.Close()
+
+	// Record the mtime of the item file after first reindex.
+	stat1, err := os.Stat(filepath.Join(l.Dir("repo", lore.TypeItem), "item.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Second run: no new commits, runner returns empty. Capture since arg.
+	var receivedSince string
+	newGit = makeClosesRunner(nil, &receivedSince)
+	s2, rep2, err := Reindex(l, db)
+	if err != nil {
+		t.Fatalf("second Reindex: %v", err)
+	}
+	defer s2.Close()
+
+	// Must have passed the stored SHA to CommitsSince.
+	if receivedSince != storedSince {
+		t.Fatalf("CommitsSince since arg: want %q, got %q", storedSince, receivedSince)
+	}
+
+	// No rewrites: Report.Closed empty.
+	if len(rep2.Closed) != 0 {
+		t.Fatalf("second run: Report.Closed should be empty, got %v", rep2.Closed)
+	}
+
+	// File mtime unchanged.
+	stat2, _ := os.Stat(filepath.Join(l.Dir("repo", lore.TypeItem), "item.md"))
+	if !stat2.ModTime().Equal(stat1.ModTime()) {
+		t.Fatal("second run rewrote item file; it must be unchanged when no new commits")
+	}
+}
+
+// TestClosesTransitionNonOpenOrMissingSkipped: closing a decision ID or an
+// already-done item leaves the records untouched.
+func TestClosesTransitionNonOpenOrMissingSkipped(t *testing.T) {
+	l := testLayout(t)
+	makeGitDotDir(t, l.RepoRoot)
+	db := filepath.Join(t.TempDir(), "lore.db")
+
+	// Write a decision with ID prefix "dec-".
+	const decID = "dec-01AN4Z07BY79KA1307SR9X4MV4"
+	decDir := l.Dir("repo", lore.TypeDecision)
+	if err := os.MkdirAll(decDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	dec := lore.Record{ID: decID, Type: lore.TypeDecision, Title: "Decision",
+		Date: "2026-07-29", Status: "active", Body: "b\n"}
+	decBytes, _ := dec.Marshal()
+	if err := os.WriteFile(filepath.Join(decDir, "dec.md"), decBytes, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Write an already-done item.
+	const doneItemID = "itm-01AN4Z07BY79KA1307SR9X4MV5"
+	itemDir := l.Dir("repo", lore.TypeItem)
+	if err := os.MkdirAll(itemDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	doneItem := lore.Record{ID: doneItemID, Type: lore.TypeItem, Title: "Done item",
+		Date: "2026-07-29", Status: "done", Body: "b\n"}
+	doneBytes, _ := doneItem.Marshal()
+	if err := os.WriteFile(filepath.Join(itemDir, "done.md"), doneBytes, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	orig := newGit
+	t.Cleanup(func() { newGit = orig })
+
+	// Commit closes: decision ID, already-done item, and unknown ID.
+	subjects := []string{
+		"closes " + decID,
+		"closes " + doneItemID,
+		"closes itm-99999999999999999999999999",
+	}
+	newGit = makeClosesRunner(subjects, nil)
+
+	s, rep, err := Reindex(l, db)
+	if err != nil {
+		t.Fatalf("Reindex: %v", err)
+	}
+	defer s.Close()
+
+	// None should appear in Report.Closed.
+	if len(rep.Closed) != 0 {
+		t.Fatalf("want no closed items, got %v", rep.Closed)
+	}
+
+	// Decision status unchanged.
+	dr, ok, _ := s.Get(decID)
+	if !ok || dr.Status != "active" {
+		t.Fatalf("decision status changed: ok=%v status=%q", ok, dr.Status)
+	}
+
+	// Already-done item status unchanged.
+	ir, ok, _ := s.Get(doneItemID)
+	if !ok || ir.Status != "done" {
+		t.Fatalf("done item status changed: ok=%v status=%q", ok, ir.Status)
+	}
+}
+
+// TestClosesTransitionTwoItemsOneCommit: one commit subject matching two item
+// IDs causes both items to flip to done.
+func TestClosesTransitionTwoItemsOneCommit(t *testing.T) {
+	l := testLayout(t)
+	makeGitDotDir(t, l.RepoRoot)
+	db := filepath.Join(t.TempDir(), "lore.db")
+
+	const itemID1 = "itm-01AN4Z07BY79KA1307SR9X4MV4"
+	const itemID2 = "itm-01AN4Z07BY79KA1307SR9X4MV6"
+	writeOpenItem(t, l, "item1.md", itemID1, "Item one")
+	writeOpenItem(t, l, "item2.md", itemID2, "Item two")
+
+	orig := newGit
+	t.Cleanup(func() { newGit = orig })
+	// Subject closes both IDs.
+	newGit = makeClosesRunner([]string{"closes " + itemID1 + " closes " + itemID2}, nil)
+
+	s, rep, err := Reindex(l, db)
+	if err != nil {
+		t.Fatalf("Reindex: %v", err)
+	}
+	defer s.Close()
+
+	if len(rep.Closed) != 2 {
+		t.Fatalf("want 2 closed, got %v", rep.Closed)
+	}
+	for _, id := range []string{itemID1, itemID2} {
+		row, ok, _ := s.Get(id)
+		if !ok || row.Status != "done" {
+			t.Fatalf("item %s: ok=%v status=%q", id, ok, row.Status)
+		}
+	}
+}
