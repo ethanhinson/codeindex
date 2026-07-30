@@ -53,6 +53,8 @@ func runLore(root string, args []string, out io.Writer) error {
 		return lorePromote(root, args[1:], out)
 	case "supersede":
 		return loreSupersede(root, args[1:], out)
+	case "doctor":
+		return loreDoctor(root, args[1:], out)
 	default:
 		return fmt.Errorf("unknown lore subcommand %q\n%s", args[0], loreUsage)
 	}
@@ -510,6 +512,69 @@ func loreBacklog(root string, args []string, out io.Writer) error {
 			state = "BLOCKED"
 		}
 		fmt.Fprintf(out, "%s  %s  %s  %s\n", r.ID, prio(r.Priority), state, r.Title)
+	}
+	return nil
+}
+
+// --- doctor ---
+
+func loreDoctor(root string, args []string, out io.Writer) error {
+	_, st, rep, err := loreReindex(root)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+	findings := 0
+	for _, fe := range rep.Errors {
+		fmt.Fprintf(out, "parse-error  %s  %v\n", fe.Path, fe.Err)
+		findings++
+	}
+	all, err := st.All()
+	if err != nil {
+		return err
+	}
+	stale, err := index.StaleRecords(root, dbPath(root), all)
+	if err != nil {
+		return err
+	}
+	byID := map[string]index.StoredRecord{}
+	for _, r := range all {
+		byID[r.ID] = r
+	}
+	for _, r := range all {
+		if stale[r.ID] {
+			fmt.Fprintf(out, "stale-anchor  %s  %s\n", r.ID, r.Title)
+			findings++
+			if err := st.SetStale(r.ID, true); err != nil {
+				return err
+			}
+		} else if r.Stale {
+			if err := st.SetStale(r.ID, false); err != nil {
+				return err
+			}
+		}
+		if r.Supersedes != "" {
+			if _, ok := byID[r.Supersedes]; !ok {
+				fmt.Fprintf(out, "dangling-ref  %s  supersedes %s\n", r.ID, r.Supersedes)
+				findings++
+			}
+		}
+		for _, b := range r.BlockedBy {
+			if _, ok := byID[b]; !ok {
+				fmt.Fprintf(out, "dangling-ref  %s  blocked_by %s\n", r.ID, b)
+				findings++
+			}
+		}
+		if r.SupersededBy != "" && r.Status != "superseded" {
+			fmt.Fprintf(out, "inconsistent  %s  superseded_by set but status is %s\n",
+				r.ID, orDash(r.Status))
+			findings++
+		}
+	}
+	if findings == 0 {
+		fmt.Fprintln(out, "ok: no findings")
+	} else {
+		fmt.Fprintf(out, "%d finding(s)\n", findings)
 	}
 	return nil
 }

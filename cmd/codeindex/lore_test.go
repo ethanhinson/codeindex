@@ -222,3 +222,29 @@ func TestLorePromoteCollisionDisambiguates(t *testing.T) {
 		t.Fatalf("collision overwrote a file; want 2 files, got %v", files)
 	}
 }
+
+func TestLoreDoctorFindings(t *testing.T) {
+	root := loreTestRepo(t)
+	// dangling supersedes + malformed file + stale path anchor
+	runLoreOK(t, root, "add", "decision", "--title", "Anchored",
+		"--anchor", "path:no/such/dir/")
+	dir := filepath.Join(root, ".lore", "notes")
+	os.MkdirAll(dir, 0o755)
+	os.WriteFile(filepath.Join(dir, "bad.md"), []byte("not a record"), 0o644)
+
+	out := runLoreOK(t, root, "doctor")
+	for _, want := range []string{"parse-error", "stale-anchor", "finding"} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("doctor missing %q:\n%s", want, out)
+		}
+	}
+}
+
+func TestLoreDoctorClean(t *testing.T) {
+	root := loreTestRepo(t)
+	runLoreOK(t, root, "add", "note", "--title", "Fine", "--body", "x")
+	out := runLoreOK(t, root, "doctor")
+	if !strings.Contains(out, "ok: no findings") {
+		t.Fatalf("doctor clean:\n%s", out)
+	}
+}
