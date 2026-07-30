@@ -248,3 +248,23 @@ func TestLoreDoctorClean(t *testing.T) {
 		t.Fatalf("doctor clean:\n%s", out)
 	}
 }
+
+func TestLoreInit(t *testing.T) {
+	root := loreTestRepo(t)
+	out := runLoreOK(t, root, "init")
+	for _, d := range []string{"decisions", "items", "notes"} {
+		if fi, err := os.Stat(filepath.Join(root, ".lore", d)); err != nil || !fi.IsDir() {
+			t.Fatalf("missing dir %s: %v", d, err)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(root, ".lore", "README.md")); err != nil {
+		t.Fatal("missing .lore/README.md")
+	}
+	if !strings.Contains(out, ".lore") {
+		t.Fatalf("init output: %q", out)
+	}
+	out = runLoreOK(t, root, "init")
+	if !strings.Contains(out, "already initialized") {
+		t.Fatalf("second init: %q", out)
+	}
+}

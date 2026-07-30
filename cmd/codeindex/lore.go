@@ -55,9 +55,53 @@ func runLore(root string, args []string, out io.Writer) error {
 		return loreSupersede(root, args[1:], out)
 	case "doctor":
 		return loreDoctor(root, args[1:], out)
+	case "init":
+		return loreInit(root, args[1:], out)
 	default:
 		return fmt.Errorf("unknown lore subcommand %q\n%s", args[0], loreUsage)
 	}
+}
+
+// --- init ---
+
+const loreReadme = `# .lore/ — project decisions, work items, and notes
+
+Records are Markdown files with YAML frontmatter, one file per record,
+managed by ` + "`codeindex lore`" + ` and reviewed like code (they land via PRs).
+
+- decisions/ — why the code is the way it is; status: active | superseded | rejected
+- items/     — known work; status: open | done | dropped; priority p0..p3
+- notes/     — gotchas, conventions, context
+
+Useful commands:
+  codeindex lore . add decision --title "..." --body - --anchor symbol:Foo
+  codeindex lore . search "query"
+  codeindex lore . for internal/some/pkg/
+  codeindex lore . backlog
+  codeindex lore . doctor
+`
+
+func loreInit(root string, args []string, out io.Writer) error {
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		return err
+	}
+	readme := filepath.Join(l.RepoDir, "README.md")
+	if _, err := os.Stat(readme); err == nil {
+		fmt.Fprintln(out, "already initialized:", l.RepoDir)
+		return nil
+	}
+	for _, t := range []lore.Type{lore.TypeDecision, lore.TypeItem, lore.TypeNote} {
+		if err := os.MkdirAll(l.Dir("repo", t), 0o755); err != nil {
+			return err
+		}
+	}
+	if err := os.WriteFile(readme, []byte(loreReadme), 0o644); err != nil {
+		return err
+	}
+	fmt.Fprintf(out, "initialized %s (decisions/ items/ notes/)\n", l.RepoDir)
+	fmt.Fprintln(out, "note: keep .codeindex/ gitignored — the lore index (lore.db) is derived")
+	return nil
 }
 
 // --- flag helpers (plain args scan, matching main.go's style) ---
