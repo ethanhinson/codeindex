@@ -13,9 +13,20 @@ import (
 	"time"
 
 	"codeindex/internal/lore"
+	"codeindex/internal/lore/ghsync"
 	"codeindex/internal/lore/gitinfo"
 	"codeindex/internal/lore/index"
 )
+
+// ghSyncer is the interface satisfied by *ghsync.GH and by test fakes.
+type ghSyncer interface {
+	IssueState(repoDir, ref string) (string, error)
+	CreateIssue(repoDir, title, body string) (string, error)
+}
+
+// newGH is the test seam for ghsync construction. Tests override this to inject
+// a fake runner without touching the filesystem or requiring a live gh binary.
+var newGH func() ghSyncer = func() ghSyncer { return ghsync.New() }
 
 func loreDBPath(root string) string {
 	return filepath.Join(root, ".codeindex", "lore.db")
@@ -34,7 +45,7 @@ func loreReindex(root string) (lore.Layout, *index.Store, index.Report, error) {
 }
 
 const loreUsage = "usage: codeindex lore <repo-root> " +
-	"<add|show|search|for|backlog|promote|supersede|doctor|init|capture|event> ..."
+	"<add|show|search|for|backlog|promote|supersede|doctor|init|capture|event|sync|push> ..."
 
 func runLore(root string, args []string, out io.Writer) error {
 	if len(args) == 0 {
@@ -63,6 +74,10 @@ func runLore(root string, args []string, out io.Writer) error {
 		return loreCapture(root, args[1:], out)
 	case "event":
 		return loreEvent(root, args[1:])
+	case "sync":
+		return loreSync(root, args[1:], out)
+	case "push":
+		return lorePush(root, args[1:], out)
 	default:
 		return fmt.Errorf("unknown lore subcommand %q\n%s", args[0], loreUsage)
 	}
@@ -871,6 +886,155 @@ func loreDoctor(root string, args []string, out io.Writer) error {
 		fmt.Fprintf(out, "%d finding(s)\n", findings)
 	}
 	return nil
+}
+
+// --- sync ---
+
+// loreSync implements "lore sync github": for every ITEM with a gh-issue ref,
+// check the issue state via gh. If the issue is CLOSED and the item is open,
+// durably flip the item to done (Parse/Marshal/WriteFile). gh errors are real
+// errors (explicit user command — the one exception to fail-open).
+func loreSync(root string, args []string, out io.Writer) error {
+	if len(args) == 0 || args[0] != "github" {
+		return errors.New("usage: codeindex lore <repo> sync github")
+	}
+	l, st, _, err := loreReindex(root)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+
+	all, err := st.All()
+	if err != nil {
+		return err
+	}
+
+	gh := newGH()
+	for _, r := range all {
+		if r.Type != lore.TypeItem {
+			continue
+		}
+		for _, ref := range r.Refs {
+			if ref.Kind != "gh-issue" {
+				continue
+			}
+			state, err := gh.IssueState(l.RepoRoot, ref.Value)
+			if err != nil {
+				return fmt.Errorf("lore sync: %w (check: gh auth status)", err)
+			}
+			if state == "CLOSED" && r.Status == "open" {
+				// Durable write-back: Parse → mutate → Marshal → WriteFile.
+				data, err := os.ReadFile(r.File)
+				if err != nil {
+					return fmt.Errorf("lore sync: read %s: %w", r.File, err)
+				}
+				rec, err := lore.Parse(data, lore.TypeItem)
+				if err != nil {
+					return fmt.Errorf("lore sync: parse %s: %w", r.File, err)
+				}
+				rec.Status = "done"
+				newData, err := rec.Marshal()
+				if err != nil {
+					return fmt.Errorf("lore sync: marshal %s: %w", r.File, err)
+				}
+				if err := os.WriteFile(r.File, newData, 0o644); err != nil {
+					return fmt.Errorf("lore sync: write %s: %w", r.File, err)
+				}
+				fmt.Fprintf(out, "synced %s done (issue %s closed)\n", r.ID, ref.Value)
+			}
+			// Only process the first gh-issue ref per item.
+			break
+		}
+	}
+	return nil
+}
+
+// --- push ---
+
+// lorePush implements "lore push <id>": create a GitHub issue for the item and
+// append a gh-issue ref durably. The item must have no existing gh-issue ref.
+func lorePush(root string, args []string, out io.Writer) error {
+	if len(args) < 1 {
+		return errors.New("usage: codeindex lore <repo> push <id>")
+	}
+	id := args[0]
+	l, st, _, err := loreReindex(root)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+
+	r, ok, err := st.Get(id)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return fmt.Errorf("no record %q", id)
+	}
+	if r.Type != lore.TypeItem {
+		return fmt.Errorf("lore push: %s is a %s; only items can be pushed to GitHub", id, r.Type)
+	}
+	// Refuse if there's already a gh-issue ref.
+	for _, ref := range r.Refs {
+		if ref.Kind == "gh-issue" {
+			return fmt.Errorf("lore push: %s already has a gh-issue ref (%s)", id, ref.Value)
+		}
+	}
+
+	// Build the body with backlink.
+	body := r.Body
+	if !strings.HasSuffix(body, "\n") {
+		body += "\n"
+	}
+	body += "\nlore: " + id
+
+	gh := newGH()
+	issueURL, err := gh.CreateIssue(l.RepoRoot, r.Title, body)
+	if err != nil {
+		return fmt.Errorf("lore push: %w", err)
+	}
+
+	// Derive the ref value from the URL: extract "owner/repo#N".
+	// URL form: https://github.com/owner/repo/issues/N
+	ghRef := urlToRef(issueURL)
+
+	// Durable ref append: Parse → append Ref → Marshal → WriteFile.
+	data, err := os.ReadFile(r.File)
+	if err != nil {
+		return fmt.Errorf("lore push: read %s: %w", r.File, err)
+	}
+	rec, err := lore.Parse(data, lore.TypeItem)
+	if err != nil {
+		return fmt.Errorf("lore push: parse %s: %w", r.File, err)
+	}
+	rec.Refs = append(rec.Refs, lore.Ref{Kind: "gh-issue", Value: ghRef})
+	newData, err := rec.Marshal()
+	if err != nil {
+		return fmt.Errorf("lore push: marshal %s: %w", r.File, err)
+	}
+	if err := os.WriteFile(r.File, newData, 0o644); err != nil {
+		return fmt.Errorf("lore push: write %s: %w", r.File, err)
+	}
+	fmt.Fprintf(out, "pushed %s %s\n", id, issueURL)
+	return nil
+}
+
+// urlToRef converts a GitHub issue URL to a ref of the form "owner/repo#N".
+// For example: "https://github.com/owner/repo/issues/42" → "owner/repo#42".
+// If the URL doesn't match, the full URL is returned as-is.
+func urlToRef(url string) string {
+	// Strip protocol + host.
+	const ghBase = "https://github.com/"
+	after, ok := strings.CutPrefix(url, ghBase)
+	if !ok {
+		return url
+	}
+	// after = "owner/repo/issues/42"
+	parts := strings.Split(after, "/")
+	if len(parts) == 4 && parts[2] == "issues" {
+		return parts[0] + "/" + parts[1] + "#" + parts[3]
+	}
+	return url
 }
 
 // countAnchorLines counts the total number of lines across all files reachable

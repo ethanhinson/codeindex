@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -632,4 +633,212 @@ func TestLoreShowDisplaysEventLines(t *testing.T) {
 	if !strings.Contains(show, "event: deploy ok (abc1234") {
 		t.Fatalf("show missing event line:\n%s", show)
 	}
+}
+
+// --- lore sync github tests ---
+
+// TestLoreSyncGithub_FlipsDoneOnClosedIssue: when a gh-issue ref is CLOSED,
+// the item's status is durably written to "done".
+func TestLoreSyncGithub_FlipsDoneOnClosedIssue(t *testing.T) {
+	root := loreTestRepo(t)
+
+	// Add an open item with a gh-issue ref.
+	out := runLoreOK(t, root, "add", "item",
+		"--title", "Open task",
+		"--body", "needs doing\n",
+		"--ref", "gh-issue:owner/repo#7")
+	id := strings.Fields(out)[1]
+
+	// Install a fake GH that returns CLOSED for any issue.
+	fakeGH := &fakeSyncGH{state: "CLOSED"}
+	origNewGH := newGH
+	newGH = func() ghSyncer { return fakeGH }
+	defer func() { newGH = origNewGH }()
+
+	syncOut := runLoreOK(t, root, "sync", "github")
+	if !strings.Contains(syncOut, "synced "+id+" done") {
+		t.Fatalf("sync output missing synced line:\n%s", syncOut)
+	}
+
+	// Verify durable write-back: parse the file.
+	ll, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	files, _ := filepath.Glob(filepath.Join(ll.Dir("repo", lore.TypeItem), "*.md"))
+	if len(files) != 1 {
+		t.Fatalf("expected 1 item file, got %v", files)
+	}
+	data, err := os.ReadFile(files[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	rec, err := lore.Parse(data, lore.TypeItem)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rec.Status != "done" {
+		t.Fatalf("item status not flipped to done: %q", rec.Status)
+	}
+}
+
+// TestLoreSyncGithub_OpenIssue_NoOp: when a gh-issue ref is OPEN, no change.
+func TestLoreSyncGithub_OpenIssue_NoOp(t *testing.T) {
+	root := loreTestRepo(t)
+
+	out := runLoreOK(t, root, "add", "item",
+		"--title", "Still open",
+		"--body", "pending\n",
+		"--ref", "gh-issue:owner/repo#3")
+	_ = strings.Fields(out)[1]
+
+	fakeGH := &fakeSyncGH{state: "OPEN"}
+	origNewGH := newGH
+	newGH = func() ghSyncer { return fakeGH }
+	defer func() { newGH = origNewGH }()
+
+	syncOut := runLoreOK(t, root, "sync", "github")
+	if strings.Contains(syncOut, "synced") {
+		t.Fatalf("open issue should produce no output, got: %q", syncOut)
+	}
+}
+
+// TestLoreSyncGithub_GHError_PropagatesAsError: when gh returns an error,
+// sync returns a real error (not fail-open).
+func TestLoreSyncGithub_GHError_PropagatesAsError(t *testing.T) {
+	root := loreTestRepo(t)
+
+	runLoreOK(t, root, "add", "item",
+		"--title", "Error item",
+		"--body", "x\n",
+		"--ref", "gh-issue:owner/repo#1")
+
+	fakeGH := &fakeSyncGH{err: errors.New("gh: not logged in")}
+	origNewGH := newGH
+	newGH = func() ghSyncer { return fakeGH }
+	defer func() { newGH = origNewGH }()
+
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"sync", "github"}, &buf); err == nil {
+		t.Fatal("want error when gh fails")
+	}
+}
+
+// --- lore push tests ---
+
+// TestLorePush_AppendsRefAndPrintsURL: push creates an issue and appends ref.
+func TestLorePush_AppendsRefAndPrintsURL(t *testing.T) {
+	root := loreTestRepo(t)
+
+	out := runLoreOK(t, root, "add", "item",
+		"--title", "Push me",
+		"--body", "some work\n")
+	id := strings.Fields(out)[1]
+
+	fakeGH := &fakeSyncGH{createURL: "https://github.com/owner/repo/issues/99"}
+	origNewGH := newGH
+	newGH = func() ghSyncer { return fakeGH }
+	defer func() { newGH = origNewGH }()
+
+	pushOut := runLoreOK(t, root, "push", id)
+	if !strings.Contains(pushOut, "pushed "+id) {
+		t.Fatalf("push output missing 'pushed <id>':\n%s", pushOut)
+	}
+	if !strings.Contains(pushOut, "https://github.com/owner/repo/issues/99") {
+		t.Fatalf("push output missing URL:\n%s", pushOut)
+	}
+
+	// Assert the fake runner received --body containing "lore: <id>"
+	if !strings.Contains(fakeGH.lastBody, "lore: "+id) {
+		t.Fatalf("gh body missing backlink 'lore: %s', got body: %q", id, fakeGH.lastBody)
+	}
+
+	// Verify durable ref write-back: parse the file.
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	files, _ := filepath.Glob(filepath.Join(l.Dir("repo", lore.TypeItem), "*.md"))
+	if len(files) != 1 {
+		t.Fatalf("expected 1 item file, got %v", files)
+	}
+	data, err := os.ReadFile(files[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	rec, err := lore.Parse(data, lore.TypeItem)
+	if err != nil {
+		t.Fatal(err)
+	}
+	foundRef := false
+	for _, ref := range rec.Refs {
+		if ref.Kind == "gh-issue" && strings.Contains(ref.Value, "#99") {
+			foundRef = true
+		}
+	}
+	if !foundRef {
+		t.Fatalf("gh-issue ref not appended to record, refs: %v", rec.Refs)
+	}
+}
+
+// TestLorePush_RefusesExistingGHIssue: push errors if item already has gh-issue.
+func TestLorePush_RefusesExistingGHIssue(t *testing.T) {
+	root := loreTestRepo(t)
+
+	out := runLoreOK(t, root, "add", "item",
+		"--title", "Already pushed",
+		"--body", "x\n",
+		"--ref", "gh-issue:owner/repo#5")
+	id := strings.Fields(out)[1]
+
+	fakeGH := &fakeSyncGH{createURL: "https://github.com/owner/repo/issues/6"}
+	origNewGH := newGH
+	newGH = func() ghSyncer { return fakeGH }
+	defer func() { newGH = origNewGH }()
+
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"push", id}, &buf); err == nil {
+		t.Fatal("want error pushing item that already has a gh-issue ref")
+	}
+}
+
+// TestLorePush_RefusesNonItem: push errors if record is not an item.
+func TestLorePush_RefusesNonItem(t *testing.T) {
+	root := loreTestRepo(t)
+
+	out := runLoreOK(t, root, "add", "decision",
+		"--title", "Not an item",
+		"--body", "x\n")
+	id := strings.Fields(out)[1]
+
+	fakeGH := &fakeSyncGH{createURL: "https://github.com/owner/repo/issues/1"}
+	origNewGH := newGH
+	newGH = func() ghSyncer { return fakeGH }
+	defer func() { newGH = origNewGH }()
+
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"push", id}, &buf); err == nil {
+		t.Fatal("want error pushing non-item record")
+	}
+}
+
+// --- fake GH implementation for CLI tests ---
+
+type fakeSyncGH struct {
+	state     string
+	err       error
+	createURL string
+	lastBody  string
+}
+
+func (f *fakeSyncGH) IssueState(repoDir, ref string) (string, error) {
+	return f.state, f.err
+}
+
+func (f *fakeSyncGH) CreateIssue(repoDir, title, body string) (string, error) {
+	f.lastBody = body
+	if f.err != nil {
+		return "", f.err
+	}
+	return f.createURL, nil
 }

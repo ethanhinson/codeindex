@@ -134,6 +134,34 @@ args = ["mcp", "."]
 
 **Claude Code** — the plugin ships the hooks; `lore init --host claude` prints a pointer to `plugin/README.md`. Install the plugin once and all lore-enabled repos get the always-visible note automatically.
 
+### Third-party sync
+
+Lore items can be linked to GitHub issues via a `gh-issue` ref. Once linked, `lore sync github` reconciles status from GitHub and `lore push` creates a new issue from an item.
+
+**Push an item to GitHub Issues** (creates the issue, appends the ref):
+
+```sh
+codeindex lore <repo> push itm-<id>
+# → pushed itm-<id> https://github.com/owner/repo/issues/42
+```
+
+**Sync closed issues back to lore** (flips open items to done when the GitHub issue is closed):
+
+```sh
+codeindex lore <repo> sync github
+# → synced itm-<id> done (issue owner/repo#42 closed)
+```
+
+Sync uses the `gh` CLI — run `gh auth login` first. Sync errors are real errors, not fail-open: they are surfaced immediately so auth problems are not silently ignored.
+
+**Zero-integration tier** — teams whose agents file tickets via their own tracker tools can record `gh-issue` refs directly on lore items without using `lore push`:
+
+```sh
+codeindex lore <repo> add item --title "..." --ref gh-issue:owner/repo#N
+```
+
+The `lore init --host` skills instruct agents to record refs on lore items when they create issues via host tools, so the link is captured even without an explicit `lore push`.
+
 ## Using it with Claude Code
 
 The `plugin/` directory ships a Claude Code plugin with three pieces:
