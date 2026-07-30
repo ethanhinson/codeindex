@@ -337,17 +337,6 @@ func loreSearch(root string, args []string, out io.Writer) error {
 
 // --- for ---
 
-// anchorMatches reports whether record anchor a covers query anchor q:
-// symbols match exactly; paths match on either-direction prefix.
-func anchorMatches(a lore.Anchor, q string) bool {
-	if a.Symbol != "" {
-		return a.Symbol == q
-	}
-	ap := strings.TrimSuffix(a.Path, "/")
-	qp := strings.TrimSuffix(q, "/")
-	return ap != "" && (strings.HasPrefix(qp, ap) || strings.HasPrefix(ap, qp))
-}
-
 func loreFor(root string, args []string, out io.Writer) error {
 	if len(args) < 1 {
 		return fmt.Errorf("usage: codeindex lore <repo> for <path-or-symbol> [--json]")
@@ -361,15 +350,7 @@ func loreFor(root string, args []string, out io.Writer) error {
 	if err != nil {
 		return err
 	}
-	var matched []index.StoredRecord
-	for _, r := range all {
-		for _, a := range r.Anchors {
-			if anchorMatches(a, args[0]) {
-				matched = append(matched, r)
-				break
-			}
-		}
-	}
+	matched := index.RecordsForAnchor(all, args[0])
 	if boolIn(args, "--json") {
 		js := make([]loreJSON, 0, len(matched))
 		for _, r := range matched {
@@ -505,19 +486,10 @@ func loreBacklog(root string, args []string, out io.Writer) error {
 		if r.Type != lore.TypeItem || r.Status != "open" {
 			continue
 		}
-		if anchor != "" {
-			ok := false
-			for _, a := range r.Anchors {
-				if anchorMatches(a, anchor) {
-					ok = true
-					break
-				}
-			}
-			if !ok {
-				continue
-			}
-		}
 		items = append(items, r)
+	}
+	if anchor != "" {
+		items = index.RecordsForAnchor(items, anchor)
 	}
 	blocked := func(r index.StoredRecord) bool {
 		for _, b := range r.BlockedBy {
