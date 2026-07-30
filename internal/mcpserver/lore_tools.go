@@ -212,25 +212,7 @@ func relatedLoreBlock(repo, symbol string) string {
 	if err != nil {
 		return ""
 	}
-	matched := index.RecordsForAnchor(all, symbol)
-	if len(matched) == 0 {
-		return ""
-	}
-	// Active/open first, then the rest; cap at 5.
-	var head, tail []index.StoredRecord
-	for _, r := range matched {
-		if r.Status == "active" || r.Status == "open" {
-			head = append(head, r)
-		} else {
-			tail = append(tail, r)
-		}
-	}
-	ordered := append(head, tail...)
-	if len(ordered) > 5 {
-		ordered = ordered[:5]
-	}
-	return "\n\nRelated lore (decisions/items anchored to this symbol):\n" +
-		formatRecords(ordered)
+	return index.RelatedLoreBlock(all, symbol, -1)
 }
 
 func orLoreDash(s string) string {
