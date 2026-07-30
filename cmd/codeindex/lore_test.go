@@ -249,7 +249,9 @@ func TestLoreDoctorFindings(t *testing.T) {
 
 func TestLoreDoctorClean(t *testing.T) {
 	root := loreTestRepo(t)
-	runLoreOK(t, root, "add", "note", "--title", "Fine", "--body", "x")
+	// Symbol-anchored note: symbol anchors are never stale (graph.db absent → skipped),
+	// and the anchor prevents orphan detection.
+	runLoreOK(t, root, "add", "note", "--title", "Fine", "--body", "x", "--anchor", "symbol:SomeFunc")
 	out := runLoreOK(t, root, "doctor")
 	if !strings.Contains(out, "ok: no findings") {
 		t.Fatalf("doctor clean:\n%s", out)
@@ -907,6 +909,28 @@ func TestRunImpactAppendsRelatedLore(t *testing.T) {
 	// assert the error is not a lore error.
 	if strings.Contains(err.Error(), "lore") {
 		t.Fatalf("lore must not break impact: %v", err)
+	}
+}
+
+func TestLoreDoctorGraphHealth(t *testing.T) {
+	root := t.TempDir()
+	if err := loreInitScaffold(root, nil, io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	// A note with a dangling related link and no anchors => dangling + orphan-ish.
+	if err := loreAdd(root, []string{"note", "--title", "Floating", "--related", "itm-DOESNOTEXIST"}, io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	var out strings.Builder
+	if err := loreDoctor(root, nil, &out); err != nil {
+		t.Fatal(err)
+	}
+	s := out.String()
+	if !strings.Contains(s, "dangling-link") {
+		t.Fatalf("expected dangling-link finding:\n%s", s)
+	}
+	if !strings.Contains(s, "graph:") {
+		t.Fatalf("expected graph density summary:\n%s", s)
 	}
 }
 

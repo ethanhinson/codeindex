@@ -918,6 +918,12 @@ func loreDoctor(root string, args []string, out io.Writer) error {
 				findings++
 			}
 		}
+		for _, rel := range r.Related {
+			if _, ok := index.ResolveID(all, rel); !ok {
+				fmt.Fprintf(out, "dangling-link  %s  related %s\n", r.ID, rel)
+				findings++
+			}
+		}
 		if r.SupersededBy != "" && r.Status != "superseded" {
 			fmt.Fprintf(out, "inconsistent  %s  superseded_by set but status is %s\n",
 				r.ID, orDash(r.Status))
@@ -932,6 +938,27 @@ func loreDoctor(root string, args []string, out io.Writer) error {
 			}
 		}
 	}
+	edges := 0
+	orphans := 0
+	for _, r := range all {
+		outDeg := len(r.Related) + len(r.BlockedBy)
+		if r.Supersedes != "" {
+			outDeg++
+		}
+		edges += outDeg
+		connected := outDeg > 0 || r.SupersededBy != "" || len(index.Backlinks(all, r.ID)) > 0
+		if !connected && len(r.Anchors) == 0 {
+			fmt.Fprintf(out, "orphan  %s  %s\n", r.ID, r.Title)
+			orphans++
+			findings++
+		}
+	}
+	density := 0.0
+	if len(all) > 0 {
+		density = float64(edges) / float64(len(all))
+	}
+	fmt.Fprintf(out, "graph: %d records, %d edges, %.2f edges/record, %d orphans\n",
+		len(all), edges, density, orphans)
 	if findings == 0 {
 		fmt.Fprintln(out, "ok: no findings")
 	} else {
