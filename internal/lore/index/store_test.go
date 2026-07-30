@@ -3,6 +3,7 @@ package index
 import (
 	"math"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"codeindex/internal/lore"
@@ -227,5 +228,94 @@ func TestMetaRoundTrip(t *testing.T) {
 	}
 	if sv == "" {
 		t.Fatal("Meta schema: schema key must not be empty")
+	}
+}
+
+// TestInsertEventAndEventsForSHAPrefixes verifies the round-trip for
+// InsertEvent and EventsForSHAPrefixes, including both-direction prefix matching.
+func TestInsertEventAndEventsForSHAPrefixes(t *testing.T) {
+	s := openStore(t)
+
+	// Insert two events with different SHAs.
+	const full40 = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+	const other40 = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+	if err := s.InsertEvent(full40, "deploy", "ok", "prod", "2026-01-01T00:00:00Z"); err != nil {
+		t.Fatalf("InsertEvent: %v", err)
+	}
+	if err := s.InsertEvent(other40, "deploy", "failed", "", "2026-01-02T00:00:00Z"); err != nil {
+		t.Fatalf("InsertEvent other: %v", err)
+	}
+
+	// Query by 7-char short SHA (prefix of full40) — short is prefix of stored full40.
+	short7 := full40[:7]
+	evs, err := s.EventsForSHAPrefixes([]string{short7})
+	if err != nil {
+		t.Fatalf("EventsForSHAPrefixes: %v", err)
+	}
+	if len(evs) != 1 {
+		t.Fatalf("want 1 event, got %d: %+v", len(evs), evs)
+	}
+	if evs[0].SHA != full40 || evs[0].Type != "deploy" || evs[0].Status != "ok" {
+		t.Fatalf("event mismatch: %+v", evs[0])
+	}
+
+	// Query by full40 as prefix → full40 is a prefix of itself.
+	evs2, err := s.EventsForSHAPrefixes([]string{full40})
+	if err != nil {
+		t.Fatalf("EventsForSHAPrefixes full: %v", err)
+	}
+	if len(evs2) != 1 || evs2[0].SHA != full40 {
+		t.Fatalf("full SHA query: %+v", evs2)
+	}
+
+	// Reverse direction: stored SHA is a 7-char short, query with full 40-char
+	// that starts with those 7 chars. HasPrefix(full40, short7stored) is true.
+	s2 := openStore(t)
+	const short7stored = "a1b2c3d"
+	if err := s2.InsertEvent(short7stored, "test", "ok", "", "2026-01-03T00:00:00Z"); err != nil {
+		t.Fatalf("InsertEvent short: %v", err)
+	}
+	// full40 starts with "a1b2c3d4..." so HasPrefix(full40, short7stored) = true.
+	evs3, err := s2.EventsForSHAPrefixes([]string{full40})
+	if err != nil {
+		t.Fatalf("EventsForSHAPrefixes reverse: %v", err)
+	}
+	if len(evs3) != 1 {
+		t.Fatalf("reverse direction: want 1, got %d: %+v", len(evs3), evs3)
+	}
+	if evs3[0].SHA != short7stored {
+		t.Fatalf("reverse direction: got SHA %q, want %q", evs3[0].SHA, short7stored)
+	}
+
+	// Empty prefixes → no results.
+	evs4, err := s.EventsForSHAPrefixes(nil)
+	if err != nil || len(evs4) != 0 {
+		t.Fatalf("empty prefixes: %v %+v", err, evs4)
+	}
+
+	// No-match query.
+	evs5, err := s.EventsForSHAPrefixes([]string{"00000000"})
+	if err != nil || len(evs5) != 0 {
+		t.Fatalf("no-match: %v %+v", err, evs5)
+	}
+}
+
+// TestEventsForSHAPrefixesOldestFirst verifies results are ordered by created ASC.
+func TestEventsForSHAPrefixesOldestFirst(t *testing.T) {
+	s := openStore(t)
+	const sha = "deadbeef"
+	if err := s.InsertEvent(sha, "deploy", "ok", "", "2026-06-01T00:00:00Z"); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.InsertEvent(sha, "deploy", "failed", "", "2026-01-01T00:00:00Z"); err != nil {
+		t.Fatal(err)
+	}
+	evs, err := s.EventsForSHAPrefixes([]string{sha})
+	if err != nil || len(evs) != 2 {
+		t.Fatalf("got %d events, err=%v", len(evs), err)
+	}
+	// Oldest first: 2026-01-01 before 2026-06-01.
+	if !strings.HasPrefix(evs[0].Created, "2026-01") || !strings.HasPrefix(evs[1].Created, "2026-06") {
+		t.Fatalf("order wrong: %+v", evs)
 	}
 }

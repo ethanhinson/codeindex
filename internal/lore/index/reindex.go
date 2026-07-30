@@ -1,7 +1,10 @@
 package index
 
 import (
+	"bufio"
+	"bytes"
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -54,6 +57,66 @@ func sources(l lore.Layout) []source {
 	}
 	out = append(out, source{l.SessionsDir(), "session", lore.TypeNote})
 	return out
+}
+
+// eventLine is the JSON structure of one line in events.jsonl.
+type eventLine struct {
+	SHA     string `json:"sha"`
+	Type    string `json:"type"`
+	Status  string `json:"status"`
+	Detail  string `json:"detail"`
+	Created string `json:"created"`
+}
+
+// ingestEvents reads <OverlayDir>/events.jsonl through the hash-diff gate
+// (reusing lore_files tracking). On change: DELETE all lore_events rows and
+// re-insert from the file. Malformed lines are added to rep.Errors; ingestion
+// continues. Missing file → no-op (not an error).
+//
+// Note: lore_events is rebuilt wholesale from the JSONL file on any change
+// (simplest idempotent approach: delete-all + re-insert). This trades a small
+// re-insert cost for simplicity — events.jsonl is append-only in practice so
+// a content-hash change always means new events were appended.
+func ingestEvents(s *Store, l lore.Layout, rep *Report) {
+	eventsPath := filepath.Join(l.OverlayDir, "events.jsonl")
+	data, err := os.ReadFile(eventsPath)
+	if err != nil {
+		// Missing file is fine (no events yet). Other errors are silently ignored
+		// per fail-open contract (CI must never break on storage issues).
+		return
+	}
+
+	h := fmt.Sprintf("%x", sha256.Sum256(data))
+	stored, _ := s.FileHashes()
+	if stored[eventsPath] == h {
+		return // unchanged — hash gate; skip re-insert
+	}
+
+	// Changed (or new): delete all existing events and re-insert.
+	if _, err := s.db.Exec(`DELETE FROM lore_events`); err != nil {
+		// Storage failure: fail-open, do not update hash so next run retries.
+		return
+	}
+
+	scanner := bufio.NewScanner(bytes.NewReader(data))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" {
+			continue
+		}
+		var ev eventLine
+		if err := json.Unmarshal([]byte(line), &ev); err != nil {
+			rep.Errors = append(rep.Errors, FileError{eventsPath, fmt.Errorf("events.jsonl: %w", err)})
+			continue
+		}
+		if err := s.InsertEvent(ev.SHA, ev.Type, ev.Status, ev.Detail, ev.Created); err != nil {
+			// Storage failure on insert: fail-open, keep going.
+			continue
+		}
+	}
+
+	// Update the file hash so next reindex sees it as unchanged.
+	_ = s.SetFileHash(eventsPath, h)
 }
 
 // Reindex opens (or creates) the lore index and patches it to match the
@@ -328,6 +391,10 @@ func Reindex(l lore.Layout, dbPath string) (*Store, Report, error) {
 			}
 		}
 	}
+
+	// Ingest events.jsonl from the overlay directory (fail-open: storage errors
+	// are silently swallowed so CI is never broken by missing/unwritable paths).
+	ingestEvents(s, l, &rep)
 
 	return s, rep, nil
 }

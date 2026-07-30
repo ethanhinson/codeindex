@@ -7,19 +7,23 @@ import (
 	"database/sql"
 	"fmt"
 	"math"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 
 	"codeindex/internal/lore"
 )
 
-// schemaVersion 2 spans tasks 4+6 (ratified column added here; task 6 adds
-// two more columns without an additional bump).
+// schemaVersion 2 spans tasks 4+6+7 (ratified column added in task 4; task 6
+// adds two more columns; task 7 adds lore_events — all without a version bump).
 const schemaVersion = 2
 
 const schema = `
 CREATE TABLE IF NOT EXISTS lore_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS lore_files (path TEXT PRIMARY KEY, hash TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS lore_events (
+  sha TEXT NOT NULL DEFAULT '', type TEXT NOT NULL, status TEXT NOT NULL,
+  detail TEXT NOT NULL DEFAULT '', created TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS lore_records (
   id TEXT PRIMARY KEY, type TEXT NOT NULL, title TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT '', date TEXT NOT NULL DEFAULT '',
@@ -44,6 +48,15 @@ CREATE INDEX IF NOT EXISTS idx_lore_tags_rec ON lore_tags(record_id);
 `
 
 type Store struct{ db *sql.DB }
+
+// Event is one row from lore_events.
+type Event struct {
+	SHA     string
+	Type    string
+	Status  string
+	Detail  string
+	Created string
+}
 
 // StoredRecord is a record plus its index-side metadata.
 type StoredRecord struct {
@@ -76,7 +89,7 @@ func Open(path string) (*Store, error) {
 	} else if err == nil && ver != fmt.Sprint(schemaVersion) {
 		// Derived data: on mismatch, wipe and let the next reindex rebuild.
 		for _, t := range []string{"lore_files", "lore_records", "lore_anchors",
-			"lore_refs", "lore_blocked", "lore_tags"} {
+			"lore_refs", "lore_blocked", "lore_tags", "lore_events"} {
 			if _, err = db.Exec("DELETE FROM " + t); err != nil {
 				break
 			}
@@ -392,4 +405,43 @@ func (s *Store) SetMeta(key, val string) error {
 	_, err := s.db.Exec(`INSERT INTO lore_meta(key,value) VALUES(?,?)
 		ON CONFLICT(key) DO UPDATE SET value=excluded.value`, key, val)
 	return err
+}
+
+// InsertEvent appends one row to lore_events.
+func (s *Store) InsertEvent(sha, typ, status, detail, created string) error {
+	_, err := s.db.Exec(
+		`INSERT INTO lore_events(sha,type,status,detail,created) VALUES(?,?,?,?,?)`,
+		sha, typ, status, detail, created)
+	return err
+}
+
+// EventsForSHAPrefixes returns events whose sha field is a prefix of any
+// element in prefixes, or any element in prefixes is a prefix of the stored
+// sha. Both directions are needed because commit refs may be 7-char short SHAs
+// while stored events may hold full 40-char SHAs (or vice versa).
+// Results are returned oldest first (by created ASC).
+func (s *Store) EventsForSHAPrefixes(prefixes []string) ([]Event, error) {
+	if len(prefixes) == 0 {
+		return nil, nil
+	}
+	rows, err := s.db.Query(
+		`SELECT sha,type,status,detail,created FROM lore_events ORDER BY created ASC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Event
+	for rows.Next() {
+		var e Event
+		if err := rows.Scan(&e.SHA, &e.Type, &e.Status, &e.Detail, &e.Created); err != nil {
+			return nil, err
+		}
+		for _, p := range prefixes {
+			if strings.HasPrefix(e.SHA, p) || strings.HasPrefix(p, e.SHA) {
+				out = append(out, e)
+				break
+			}
+		}
+	}
+	return out, rows.Err()
 }

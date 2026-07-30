@@ -1002,3 +1002,146 @@ func TestSurvivalSignalsMultipleCommitsAccumulate(t *testing.T) {
 		t.Fatalf("churn_lines: want 16, got %d", r.ChurnLines)
 	}
 }
+
+// --- events.jsonl ingestion tests ---
+
+func writeEventsJSONL(t *testing.T, dir, content string) string {
+	t.Helper()
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	p := filepath.Join(dir, "events.jsonl")
+	if err := os.WriteFile(p, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return p
+}
+
+// TestReindexIngestsEventsJSONL: a valid events.jsonl in the overlay dir is
+// ingested into lore_events on first reindex.
+func TestReindexIngestsEventsJSONL(t *testing.T) {
+	l := testLayout(t)
+	db := filepath.Join(t.TempDir(), "lore.db")
+
+	evJSON := `{"sha":"abc1234","type":"deploy","status":"ok","detail":"prod","created":"2026-01-01T00:00:00Z"}` + "\n"
+	writeEventsJSONL(t, l.OverlayDir, evJSON)
+
+	s, rep, err := Reindex(l, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	if len(rep.Errors) != 0 {
+		t.Fatalf("unexpected errors: %v", rep.Errors)
+	}
+
+	evs, err := s.EventsForSHAPrefixes([]string{"abc1234"})
+	if err != nil {
+		t.Fatalf("EventsForSHAPrefixes: %v", err)
+	}
+	if len(evs) != 1 {
+		t.Fatalf("want 1 event, got %d", len(evs))
+	}
+	if evs[0].Type != "deploy" || evs[0].Status != "ok" || evs[0].Detail != "prod" {
+		t.Fatalf("event: %+v", evs[0])
+	}
+}
+
+// TestReindexEventsHashGate: second reindex with unchanged events.jsonl must
+// not re-insert rows (no duplicate rows). We verify by checking the row count
+// stays at 1, not 2, after two runs.
+func TestReindexEventsHashGate(t *testing.T) {
+	l := testLayout(t)
+	db := filepath.Join(t.TempDir(), "lore.db")
+
+	evJSON := `{"sha":"aaa1111","type":"deploy","status":"ok","detail":"","created":"2026-01-01T00:00:00Z"}` + "\n"
+	writeEventsJSONL(t, l.OverlayDir, evJSON)
+
+	s1, _, err := Reindex(l, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s1.Close()
+
+	// Second run: same file, same hash → hash gate fires.
+	s2, _, err := Reindex(l, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s2.Close()
+
+	evs, err := s2.EventsForSHAPrefixes([]string{"aaa1111"})
+	if err != nil {
+		t.Fatalf("EventsForSHAPrefixes: %v", err)
+	}
+	// Must have exactly 1 row (not 2 from a duplicate insert).
+	if len(evs) != 1 {
+		t.Fatalf("hash gate: want 1 row, got %d (duplicate inserts?)", len(evs))
+	}
+}
+
+// TestReindexEventsHashGateReIngestsOnChange: when events.jsonl gains a new
+// line, the next reindex re-ingests from scratch (delete-all + re-insert).
+func TestReindexEventsHashGateReIngestsOnChange(t *testing.T) {
+	l := testLayout(t)
+	db := filepath.Join(t.TempDir(), "lore.db")
+
+	line1 := `{"sha":"bbb1111","type":"deploy","status":"ok","detail":"","created":"2026-01-01T00:00:00Z"}` + "\n"
+	writeEventsJSONL(t, l.OverlayDir, line1)
+
+	s1, _, err := Reindex(l, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s1.Close()
+
+	// Append a second event.
+	line2 := `{"sha":"bbb2222","type":"test","status":"failed","detail":"","created":"2026-02-01T00:00:00Z"}` + "\n"
+	writeEventsJSONL(t, l.OverlayDir, line1+line2)
+
+	s2, _, err := Reindex(l, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s2.Close()
+
+	evs, err := s2.EventsForSHAPrefixes([]string{"bbb1111", "bbb2222"})
+	if err != nil {
+		t.Fatalf("EventsForSHAPrefixes: %v", err)
+	}
+	if len(evs) != 2 {
+		t.Fatalf("after change: want 2 events, got %d", len(evs))
+	}
+}
+
+// TestReindexEventsMalformedLine: a malformed JSONL line adds to rep.Errors
+// but valid lines before/after it are still ingested.
+func TestReindexEventsMalformedLine(t *testing.T) {
+	l := testLayout(t)
+	db := filepath.Join(t.TempDir(), "lore.db")
+
+	content := `{"sha":"ccc1111","type":"deploy","status":"ok","detail":"","created":"2026-01-01T00:00:00Z"}` + "\n" +
+		`NOT JSON AT ALL` + "\n" +
+		`{"sha":"ccc2222","type":"test","status":"ok","detail":"","created":"2026-02-01T00:00:00Z"}` + "\n"
+	writeEventsJSONL(t, l.OverlayDir, content)
+
+	s, rep, err := Reindex(l, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+
+	// One error from the malformed line.
+	if len(rep.Errors) != 1 {
+		t.Fatalf("want 1 error, got %d: %v", len(rep.Errors), rep.Errors)
+	}
+
+	// Both valid events ingested.
+	evs, err := s.EventsForSHAPrefixes([]string{"ccc1111", "ccc2222"})
+	if err != nil {
+		t.Fatalf("EventsForSHAPrefixes: %v", err)
+	}
+	if len(evs) != 2 {
+		t.Fatalf("want 2 valid events, got %d", len(evs))
+	}
+}

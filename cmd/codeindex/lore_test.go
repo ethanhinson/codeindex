@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -539,4 +541,95 @@ func TestLoreDoctorChurnSuspectBelowThreshold(t *testing.T) {
 		t.Fatalf("doctor should NOT emit churn-suspect at exactly 3× threshold:\n%s", doctorOut)
 	}
 	_ = id
+}
+
+// --- lore event tests ---
+
+// TestLoreEventWritesJSONL: event subcommand appends one JSON line.
+func TestLoreEventWritesJSONL(t *testing.T) {
+	root := loreTestRepo(t)
+
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"event", "--type", "deploy", "--status", "ok",
+		"--commit", "abc1234", "--detail", "prod release"}, &buf); err != nil {
+		t.Fatalf("lore event: %v", err)
+	}
+
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	eventsPath := filepath.Join(l.OverlayDir, "events.jsonl")
+	data, err := os.ReadFile(eventsPath)
+	if err != nil {
+		t.Fatalf("read events.jsonl: %v", err)
+	}
+
+	// Parse the one line.
+	type evLine struct {
+		SHA     string `json:"sha"`
+		Type    string `json:"type"`
+		Status  string `json:"status"`
+		Detail  string `json:"detail"`
+		Created string `json:"created"`
+	}
+	var ev evLine
+	scanner := bufio.NewScanner(bytes.NewReader(data))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" {
+			continue
+		}
+		if err := json.Unmarshal([]byte(line), &ev); err != nil {
+			t.Fatalf("parse JSONL: %v — line: %q", err, line)
+		}
+	}
+	if ev.SHA != "abc1234" || ev.Type != "deploy" || ev.Status != "ok" || ev.Detail != "prod release" {
+		t.Fatalf("event fields: %+v", ev)
+	}
+	if ev.Created == "" {
+		t.Fatal("created field empty")
+	}
+}
+
+// TestLoreEventMissingTypeErrors: omitting --type returns a usage error.
+func TestLoreEventMissingTypeErrors(t *testing.T) {
+	root := loreTestRepo(t)
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"event", "--status", "ok"}, &buf); err == nil {
+		t.Fatal("want usage error when --type missing")
+	}
+}
+
+// TestLoreEventMissingStatusErrors: omitting --status returns a usage error.
+func TestLoreEventMissingStatusErrors(t *testing.T) {
+	root := loreTestRepo(t)
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"event", "--type", "deploy"}, &buf); err == nil {
+		t.Fatal("want usage error when --status missing")
+	}
+}
+
+// TestLoreShowDisplaysEventLines: a record with a commit ref shows matching events.
+func TestLoreShowDisplaysEventLines(t *testing.T) {
+	root := loreTestRepo(t)
+
+	// Add a record with a commit ref.
+	out := runLoreOK(t, root, "add", "decision",
+		"--title", "Deploy test",
+		"--body", "test\n",
+		"--ref", "commit:abc1234567890abcdef1234567890abcdef12345")
+	id := strings.Fields(out)[1]
+
+	// Record an event matching that commit (by 7-char short).
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"event", "--type", "deploy", "--status", "ok",
+		"--commit", "abc1234567890abcdef1234567890abcdef12345"}, &buf); err != nil {
+		t.Fatalf("lore event: %v", err)
+	}
+
+	show := runLoreOK(t, root, "show", id)
+	if !strings.Contains(show, "event: deploy ok (abc1234") {
+		t.Fatalf("show missing event line:\n%s", show)
+	}
 }

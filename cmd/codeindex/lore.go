@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"codeindex/internal/lore"
+	"codeindex/internal/lore/gitinfo"
 	"codeindex/internal/lore/index"
 )
 
@@ -33,7 +34,7 @@ func loreReindex(root string) (lore.Layout, *index.Store, index.Report, error) {
 }
 
 const loreUsage = "usage: codeindex lore <repo-root> " +
-	"<add|show|search|for|backlog|promote|supersede|doctor|init|capture> ..."
+	"<add|show|search|for|backlog|promote|supersede|doctor|init|capture|event> ..."
 
 func runLore(root string, args []string, out io.Writer) error {
 	if len(args) == 0 {
@@ -60,6 +61,8 @@ func runLore(root string, args []string, out io.Writer) error {
 		return loreInit(root, args[1:], out)
 	case "capture":
 		return loreCapture(root, args[1:], out)
+	case "event":
+		return loreEvent(root, args[1:])
 	default:
 		return fmt.Errorf("unknown lore subcommand %q\n%s", args[0], loreUsage)
 	}
@@ -252,6 +255,71 @@ func loreCapture(root string, args []string, out io.Writer) error {
 	return nil
 }
 
+// --- event ---
+
+// loreEvent appends one JSON line to <OverlayDir>/events.jsonl.
+// --type and --status are required (usage error when missing).
+// All storage failures are fail-open: return nil so CI is never broken.
+func loreEvent(root string, args []string) error {
+	typ := stringFlag(args, "--type")
+	status := stringFlag(args, "--status")
+	if typ == "" || status == "" {
+		return errors.New("usage: codeindex lore <repo> event --type <t> --status <ok|failed> [--commit <sha>] [--detail <text>]")
+	}
+
+	detail := stringFlag(args, "--detail")
+	commit := stringFlag(args, "--commit")
+	if commit == "" {
+		// Default to gitinfo Head() when available.
+		l, err := lore.NewLayout(root)
+		if err == nil {
+			g := gitinfo.New(l.RepoRoot)
+			if g.Available() {
+				if sha, err := g.Head(); err == nil {
+					commit = sha
+				}
+			}
+		}
+	}
+
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		return nil // fail-open
+	}
+	if err := os.MkdirAll(l.OverlayDir, 0o755); err != nil {
+		return nil // fail-open
+	}
+	eventsPath := filepath.Join(l.OverlayDir, "events.jsonl")
+
+	type eventRecord struct {
+		SHA     string `json:"sha"`
+		Type    string `json:"type"`
+		Status  string `json:"status"`
+		Detail  string `json:"detail,omitempty"`
+		Created string `json:"created"`
+	}
+	ev := eventRecord{
+		SHA:     commit,
+		Type:    typ,
+		Status:  status,
+		Detail:  detail,
+		Created: time.Now().UTC().Format(time.RFC3339),
+	}
+	line, err := json.Marshal(ev)
+	if err != nil {
+		return nil // fail-open
+	}
+
+	f, err := os.OpenFile(eventsPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return nil // fail-open
+	}
+	defer f.Close()
+	line = append(line, '\n')
+	_, _ = f.Write(line)
+	return nil
+}
+
 // --- flag helpers (plain args scan, matching main.go's style) ---
 
 func stringFlag(args []string, name string) string {
@@ -406,6 +474,27 @@ func loreShow(root string, args []string, out io.Writer) error {
 	if r.Survived > 0 {
 		fmt.Fprintf(out, "confidence: %.2f (survived %d commits)\n", r.Confidence, r.Survived)
 	}
+
+	// Collect commit ref values for event lookup.
+	var commitRefs []string
+	for _, ref := range r.Refs {
+		if ref.Kind == "commit" {
+			commitRefs = append(commitRefs, ref.Value)
+		}
+	}
+	if len(commitRefs) > 0 {
+		events, err := st.EventsForSHAPrefixes(commitRefs)
+		if err == nil {
+			for _, ev := range events {
+				sha7 := ev.SHA
+				if len(sha7) > 7 {
+					sha7 = sha7[:7]
+				}
+				fmt.Fprintf(out, "event: %s %s (%s)\n", ev.Type, ev.Status, sha7)
+			}
+		}
+	}
+
 	fmt.Fprintln(out)
 	b, err := r.Record.Marshal()
 	if err != nil {
