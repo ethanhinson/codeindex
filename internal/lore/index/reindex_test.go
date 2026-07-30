@@ -3,6 +3,7 @@ package index
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"codeindex/internal/lore"
@@ -113,5 +114,103 @@ func TestSessionsIndexAsSessionLayer(t *testing.T) {
 	got, ok, _ := s.Get("note-S")
 	if !ok || got.Layer != "session" {
 		t.Fatalf("session layer: %+v ok=%v", got, ok)
+	}
+}
+
+// TestReindexDuplicateIDReported checks that when the same ID exists in two
+// different layer files, Report.Duplicates has exactly one entry naming both
+// paths, and the last-upserted (overlay) file wins the index row.
+func TestReindexDuplicateIDReported(t *testing.T) {
+	l := testLayout(t)
+	db := filepath.Join(t.TempDir(), "lore.db")
+	const dupID = "dec-DUP"
+	repoPath := writeRec(t, l.Dir("repo", lore.TypeDecision), "dup.md",
+		dupID, "Repo copy", lore.TypeDecision)
+	overlayPath := writeRec(t, l.Dir("overlay", lore.TypeDecision), "dup.md",
+		dupID, "Overlay copy", lore.TypeDecision)
+
+	s, rep, err := Reindex(l, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+
+	// Exactly one duplicate entry.
+	if len(rep.Duplicates) != 1 {
+		t.Fatalf("want 1 duplicate, got %d: %v", len(rep.Duplicates), rep.Duplicates)
+	}
+	entry := rep.Duplicates[0]
+	if !strings.Contains(entry, dupID) {
+		t.Errorf("duplicate entry missing id %q: %q", dupID, entry)
+	}
+	if !strings.Contains(entry, repoPath) {
+		t.Errorf("duplicate entry missing repo path %q: %q", repoPath, entry)
+	}
+	if !strings.Contains(entry, overlayPath) {
+		t.Errorf("duplicate entry missing overlay path %q: %q", overlayPath, entry)
+	}
+
+	// Last-writer-wins: overlay is processed after repo, so it should win.
+	got, ok, _ := s.Get(dupID)
+	if !ok {
+		t.Fatal("duplicate id not in index at all")
+	}
+	if got.File != overlayPath {
+		t.Errorf("expected overlay copy to win, got file=%q", got.File)
+	}
+}
+
+// TestReindexDuplicateIDThreeWay checks that three files sharing one ID yield
+// a single Duplicates entry naming all three paths.
+func TestReindexDuplicateIDThreeWay(t *testing.T) {
+	l := testLayout(t)
+	const dupID = "dec-TRI"
+	p1 := writeRec(t, l.Dir("repo", lore.TypeDecision), "a.md", dupID, "A", lore.TypeDecision)
+	p2 := writeRec(t, l.Dir("repo", lore.TypeDecision), "b.md", dupID, "B", lore.TypeDecision)
+	p3 := writeRec(t, l.Dir("overlay", lore.TypeDecision), "c.md", dupID, "C", lore.TypeDecision)
+
+	s, rep, err := Reindex(l, filepath.Join(t.TempDir(), "lore.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	if len(rep.Duplicates) != 1 {
+		t.Fatalf("want 1 duplicate entry, got %d: %v", len(rep.Duplicates), rep.Duplicates)
+	}
+	for _, p := range []string{p1, p2, p3} {
+		if !strings.Contains(rep.Duplicates[0], p) {
+			t.Errorf("entry missing path %q: %q", p, rep.Duplicates[0])
+		}
+	}
+}
+
+// TestReindexDuplicateIDOnSecondRunUnchanged checks that unchanged files still
+// surface duplicates on a second reindex run: all files are parsed for ID
+// tracking even when their hash is unchanged.
+func TestReindexDuplicateIDOnSecondRunUnchanged(t *testing.T) {
+	l := testLayout(t)
+	db := filepath.Join(t.TempDir(), "lore.db")
+	const dupID = "dec-DUP2"
+	writeRec(t, l.Dir("repo", lore.TypeDecision), "dup2.md",
+		dupID, "Repo copy", lore.TypeDecision)
+	writeRec(t, l.Dir("overlay", lore.TypeDecision), "dup2.md",
+		dupID, "Overlay copy", lore.TypeDecision)
+
+	// First run populates the DB.
+	s, _, err := Reindex(l, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s.Close()
+
+	// Second run: nothing changed on disk, but duplicates must still be reported.
+	s2, rep2, err := Reindex(l, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s2.Close()
+
+	if len(rep2.Duplicates) != 1 {
+		t.Fatalf("second run: want 1 duplicate, got %d: %v", len(rep2.Duplicates), rep2.Duplicates)
 	}
 }

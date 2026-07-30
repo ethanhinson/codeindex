@@ -695,6 +695,12 @@ func loreDoctor(root string, args []string, out io.Writer) error {
 		fmt.Fprintf(out, "parse-error  %s  %v\n", fe.Path, fe.Err)
 		findings++
 	}
+	for _, d := range rep.Duplicates {
+		// Report entries are "<id>: <path1>, <path2>"; print as columns.
+		id, paths, _ := strings.Cut(d, ": ")
+		fmt.Fprintf(out, "duplicate-id  %s  %s\n", id, paths)
+		findings++
+	}
 	all, err := st.All()
 	if err != nil {
 		return err

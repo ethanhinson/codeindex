@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"codeindex/internal/lore"
 )
 
 func loreTestRepo(t *testing.T) string {
@@ -246,6 +248,44 @@ func TestLoreDoctorClean(t *testing.T) {
 	out := runLoreOK(t, root, "doctor")
 	if !strings.Contains(out, "ok: no findings") {
 		t.Fatalf("doctor clean:\n%s", out)
+	}
+}
+
+// TestLoreDoctorDuplicateID checks that when two files carry the same ID,
+// lore doctor emits a "duplicate-id" finding and counts it.
+func TestLoreDoctorDuplicateID(t *testing.T) {
+	root := loreTestRepo(t)
+
+	// Write one record via the normal add path (repo layer).
+	out := runLoreOK(t, root, "add", "decision", "--title", "The Decision", "--body", "x")
+	id := strings.Fields(out)[1]
+
+	// Derive the overlay decisions dir from the Layout (same logic as production).
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatalf("NewLayout: %v", err)
+	}
+	overlayDecisions := l.Dir("overlay", lore.TypeDecision)
+	if err := os.MkdirAll(overlayDecisions, 0o755); err != nil {
+		t.Fatalf("mkdir overlay: %v", err)
+	}
+
+	dupFile := filepath.Join(overlayDecisions, "2026-07-29-dup.md")
+	content := "---\nid: " + id + "\ntitle: Dup overlay\ntype: decision\nstatus: active\ndate: 2026-07-29\n---\nDuplicate.\n"
+	if err := os.WriteFile(dupFile, []byte(content), 0o644); err != nil {
+		t.Fatalf("write dup file: %v", err)
+	}
+
+	out = runLoreOK(t, root, "doctor")
+	// Column format matches the other finding types: duplicate-id  <id>  <paths>
+	if !strings.Contains(out, "duplicate-id  "+id+"  ") {
+		t.Fatalf("doctor missing duplicate-id column finding:\n%s", out)
+	}
+	if !strings.Contains(out, dupFile) {
+		t.Fatalf("doctor finding missing duplicate path %q:\n%s", dupFile, out)
+	}
+	if !strings.Contains(out, "finding") {
+		t.Fatalf("doctor missing findings count:\n%s", out)
 	}
 }
 
