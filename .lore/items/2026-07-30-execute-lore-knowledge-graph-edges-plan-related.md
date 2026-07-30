@@ -12,6 +12,7 @@ anchors:
     - path: cmd/codeindex/lore.go
 refs:
     - url: docs/superpowers/plans/2026-07-30-lore-knowledge-graph-edges.md
+    - gh-pr: ethanhinson/codeindex#1
 ---
 
 Implement the 7-task plan at
