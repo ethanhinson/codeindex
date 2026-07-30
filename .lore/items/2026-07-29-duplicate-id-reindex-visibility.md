@@ -1,7 +1,7 @@
 ---
 id: itm-01KYRS1YSWEV1CCEB1X8SGMDJ1
 title: Duplicate-ID records can silently vanish from the lore index
-status: open
+status: done
 date: 2026-07-29
 priority: p2
 tags: [integrity]
@@ -23,3 +23,5 @@ Report (doctor prints them); optionally force a re-parse when DeleteByFile
 removed rows whose ID survives in another tracked file. Acceptable to defer
 for dogfood because lore.db is sanctioned-rebuildable, but must land before
 multi-writer workflows (claim/lease).
+
+completion: Report.Duplicates populated in Reindex (all files parsed for ID tracking); lore doctor surfaces duplicate-id findings.

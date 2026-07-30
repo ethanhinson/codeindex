@@ -39,6 +39,9 @@ func formatRecords(recs []index.StoredRecord) string {
 		if r.Stale {
 			flag = "  STALE"
 		}
+		if !r.Ratified {
+			flag += "  UNRATIFIED"
+		}
 		fmt.Fprintf(&b, "%s  [%s/%s]  %s%s\n", r.ID, r.Layer, status, r.Title, flag)
 	}
 	return b.String()
@@ -64,8 +67,15 @@ func loreSearchText(repo, query string, limit int) (string, error) {
 		if status == "" {
 			status = "-"
 		}
-		fmt.Fprintf(&b, "%s  %.2f  [%s/%s]  %s — %s\n",
-			h.Rec.ID, h.Score, h.Rec.Layer, status, h.Rec.Title, h.Snippet)
+		flag := ""
+		if h.Rec.Stale {
+			flag = "  STALE"
+		}
+		if !h.Rec.Ratified {
+			flag += "  UNRATIFIED"
+		}
+		fmt.Fprintf(&b, "%s  %.2f  [%s/%s]  %s — %s%s\n",
+			h.Rec.ID, h.Score, h.Rec.Layer, status, h.Rec.Title, h.Snippet, flag)
 	}
 	return b.String(), nil
 }
@@ -152,7 +162,11 @@ func loreBacklogText(repo, anchor string) (string, error) {
 		if blocked(r) {
 			state = "BLOCKED"
 		}
-		fmt.Fprintf(&b, "%s  %s  %s  %s\n", r.ID, prio(r.Priority), state, r.Title)
+		flag := ""
+		if !r.Ratified {
+			flag = "  UNRATIFIED"
+		}
+		fmt.Fprintf(&b, "%s  %s  %s  %s%s\n", r.ID, prio(r.Priority), state, r.Title, flag)
 	}
 	return b.String(), nil
 }

@@ -1,11 +1,17 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
+	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"codeindex/internal/lore"
+	"codeindex/internal/lore/index"
 )
 
 func loreTestRepo(t *testing.T) string {
@@ -249,6 +255,44 @@ func TestLoreDoctorClean(t *testing.T) {
 	}
 }
 
+// TestLoreDoctorDuplicateID checks that when two files carry the same ID,
+// lore doctor emits a "duplicate-id" finding and counts it.
+func TestLoreDoctorDuplicateID(t *testing.T) {
+	root := loreTestRepo(t)
+
+	// Write one record via the normal add path (repo layer).
+	out := runLoreOK(t, root, "add", "decision", "--title", "The Decision", "--body", "x")
+	id := strings.Fields(out)[1]
+
+	// Derive the overlay decisions dir from the Layout (same logic as production).
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatalf("NewLayout: %v", err)
+	}
+	overlayDecisions := l.Dir("overlay", lore.TypeDecision)
+	if err := os.MkdirAll(overlayDecisions, 0o755); err != nil {
+		t.Fatalf("mkdir overlay: %v", err)
+	}
+
+	dupFile := filepath.Join(overlayDecisions, "2026-07-29-dup.md")
+	content := "---\nid: " + id + "\ntitle: Dup overlay\ntype: decision\nstatus: active\ndate: 2026-07-29\n---\nDuplicate.\n"
+	if err := os.WriteFile(dupFile, []byte(content), 0o644); err != nil {
+		t.Fatalf("write dup file: %v", err)
+	}
+
+	out = runLoreOK(t, root, "doctor")
+	// Column format matches the other finding types: duplicate-id  <id>  <paths>
+	if !strings.Contains(out, "duplicate-id  "+id+"  ") {
+		t.Fatalf("doctor missing duplicate-id column finding:\n%s", out)
+	}
+	if !strings.Contains(out, dupFile) {
+		t.Fatalf("doctor finding missing duplicate path %q:\n%s", dupFile, out)
+	}
+	if !strings.Contains(out, "finding") {
+		t.Fatalf("doctor missing findings count:\n%s", out)
+	}
+}
+
 func TestLoreInit(t *testing.T) {
 	root := loreTestRepo(t)
 	out := runLoreOK(t, root, "init")
@@ -277,6 +321,41 @@ func TestLoreBacklogJSONCarriesPriorityAndBlocked(t *testing.T) {
 	js := runLoreOK(t, root, "backlog", "--json")
 	if !strings.Contains(js, `"priority": "p1"`) || !strings.Contains(js, `"blocked": true`) {
 		t.Fatalf("backlog json missing priority/blocked:\n%s", js)
+	}
+}
+
+func TestLoreSearchUnratifiedLabel(t *testing.T) {
+	// This test verifies that an unratified record's search output line contains
+	// "UNRATIFIED". We simulate an unratified record by directly manipulating
+	// the store after reindex, using SetRatified.
+	root := loreTestRepo(t)
+
+	// Add a record that will be in the index.
+	out := runLoreOK(t, root, "add", "decision",
+		"--title", "Branch only decision",
+		"--body", "not on main branch")
+	id := strings.Fields(out)[1]
+
+	// Force-set it as unratified by opening the store directly.
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatalf("NewLayout: %v", err)
+	}
+	dbPath := filepath.Join(root, ".codeindex", "lore.db")
+	// Reindex once to seed the DB.
+	st, _, err2 := index.Reindex(l, dbPath)
+	if err2 != nil {
+		t.Fatalf("reindex: %v", err2)
+	}
+	if err := st.SetRatified(id, false); err != nil {
+		t.Fatalf("SetRatified: %v", err)
+	}
+	st.Close()
+
+	// Now search — the result should include UNRATIFIED.
+	searchOut := runLoreOK(t, root, "search", "branch only")
+	if !strings.Contains(searchOut, "UNRATIFIED") {
+		t.Fatalf("search output missing UNRATIFIED for unratified record:\n%s", searchOut)
 	}
 }
 
@@ -329,4 +408,487 @@ func TestLoreInitHostCodexRefusesOrphanedMarker(t *testing.T) {
 	if !strings.Contains(string(b), "precious user content below") {
 		t.Fatal("user content was destroyed")
 	}
+}
+
+// TestLoreShowConfidenceLine: when a record has Survived > 0, lore show must
+// print a "confidence: X.XX (survived N commits)" line after the meta line.
+func TestLoreShowConfidenceLine(t *testing.T) {
+	root := loreTestRepo(t)
+
+	// Add a record.
+	out := runLoreOK(t, root, "add", "decision", "--title", "Confidence test",
+		"--body", "x", "--anchor", "path:internal/engine/")
+	id := strings.Fields(out)[1]
+
+	// Directly set survived/confidence in the store.
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatalf("NewLayout: %v", err)
+	}
+	dbPath := filepath.Join(root, ".codeindex", "lore.db")
+	st, _, err := index.Reindex(l, dbPath)
+	if err != nil {
+		t.Fatalf("Reindex: %v", err)
+	}
+	// survived=9 → confidence = ln(10)/ln(21)
+	if err := st.AddSignals(id, 9, 0); err != nil {
+		t.Fatalf("AddSignals: %v", err)
+	}
+	st.Close()
+
+	show := runLoreOK(t, root, "show", id)
+	if !strings.Contains(show, "confidence:") {
+		t.Fatalf("show missing confidence line:\n%s", show)
+	}
+	if !strings.Contains(show, "survived 9 commits") {
+		t.Fatalf("show missing 'survived 9 commits':\n%s", show)
+	}
+}
+
+// TestLoreShowNoConfidenceLineWhenSurvivedZero: when survived=0, no confidence
+// line should appear in lore show output.
+func TestLoreShowNoConfidenceLineWhenSurvivedZero(t *testing.T) {
+	root := loreTestRepo(t)
+	out := runLoreOK(t, root, "add", "decision", "--title", "No confidence", "--body", "x")
+	id := strings.Fields(out)[1]
+	show := runLoreOK(t, root, "show", id)
+	if strings.Contains(show, "confidence:") {
+		t.Fatalf("show should NOT print confidence line when survived=0:\n%s", show)
+	}
+}
+
+// TestLoreDoctorChurnSuspect: a record whose churn_lines > 3× total line count
+// of anchored files must appear in doctor as "churn-suspect".
+func TestLoreDoctorChurnSuspect(t *testing.T) {
+	root := loreTestRepo(t)
+	t.Chdir(t.TempDir()) // CWD != root; proves fix works via filepath.Join(root, a.Path)
+
+	// Create a small file that will be the anchor target.
+	anchorDir := filepath.Join(root, "internal", "engine")
+	if err := os.MkdirAll(anchorDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	anchorFile := filepath.Join(anchorDir, "core.go")
+	// Write exactly 10 lines so total lines = 10.
+	content := strings.Repeat("line\n", 10)
+	if err := os.WriteFile(anchorFile, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Add a decision anchored to that directory using a repo-relative path.
+	out := runLoreOK(t, root, "add", "decision", "--title", "Churn test",
+		"--body", "x", "--anchor", "path:internal/engine/")
+	id := strings.Fields(out)[1]
+
+	// Set churn_lines = 31 (> 3×10=30 → churn-suspect).
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatalf("NewLayout: %v", err)
+	}
+	dbPath := filepath.Join(root, ".codeindex", "lore.db")
+	st, _, err2 := index.Reindex(l, dbPath)
+	if err2 != nil {
+		t.Fatalf("Reindex: %v", err2)
+	}
+	if err := st.AddSignals(id, 0, 31); err != nil {
+		t.Fatalf("AddSignals: %v", err)
+	}
+	st.Close()
+
+	doctorOut := runLoreOK(t, root, "doctor")
+	if !strings.Contains(doctorOut, "churn-suspect") {
+		t.Fatalf("doctor missing churn-suspect finding:\n%s", doctorOut)
+	}
+	if !strings.Contains(doctorOut, id) {
+		t.Fatalf("doctor churn-suspect missing id %s:\n%s", id, doctorOut)
+	}
+}
+
+// TestLoreDoctorChurnSuspectBelowThreshold: a record whose churn_lines ≤ 3×
+// total line count must NOT appear in doctor as churn-suspect.
+func TestLoreDoctorChurnSuspectBelowThreshold(t *testing.T) {
+	root := loreTestRepo(t)
+	t.Chdir(t.TempDir()) // CWD != root; proves fix works via filepath.Join(root, a.Path)
+
+	anchorDir := filepath.Join(root, "internal", "engine2")
+	if err := os.MkdirAll(anchorDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	anchorFile := filepath.Join(anchorDir, "core.go")
+	// Write exactly 10 lines.
+	if err := os.WriteFile(anchorFile, []byte(strings.Repeat("line\n", 10)), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	out := runLoreOK(t, root, "add", "decision", "--title", "Below threshold",
+		"--body", "x", "--anchor", "path:internal/engine2/")
+	id := strings.Fields(out)[1]
+
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatalf("NewLayout: %v", err)
+	}
+	dbPath := filepath.Join(root, ".codeindex", "lore.db")
+	st, _, err2 := index.Reindex(l, dbPath)
+	if err2 != nil {
+		t.Fatalf("Reindex: %v", err2)
+	}
+	// churn_lines = 30 = exactly 3×10, NOT > 3×10, so no churn-suspect.
+	if err := st.AddSignals(id, 0, 30); err != nil {
+		t.Fatalf("AddSignals: %v", err)
+	}
+	st.Close()
+
+	doctorOut := runLoreOK(t, root, "doctor")
+	if strings.Contains(doctorOut, "churn-suspect") {
+		t.Fatalf("doctor should NOT emit churn-suspect at exactly 3× threshold:\n%s", doctorOut)
+	}
+	_ = id
+}
+
+// --- lore event tests ---
+
+// TestLoreEventWritesJSONL: event subcommand appends one JSON line.
+func TestLoreEventWritesJSONL(t *testing.T) {
+	root := loreTestRepo(t)
+
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"event", "--type", "deploy", "--status", "ok",
+		"--commit", "abc1234", "--detail", "prod release"}, &buf); err != nil {
+		t.Fatalf("lore event: %v", err)
+	}
+
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	eventsPath := filepath.Join(l.OverlayDir, "events.jsonl")
+	data, err := os.ReadFile(eventsPath)
+	if err != nil {
+		t.Fatalf("read events.jsonl: %v", err)
+	}
+
+	// Parse the one line.
+	type evLine struct {
+		SHA     string `json:"sha"`
+		Type    string `json:"type"`
+		Status  string `json:"status"`
+		Detail  string `json:"detail"`
+		Created string `json:"created"`
+	}
+	var ev evLine
+	scanner := bufio.NewScanner(bytes.NewReader(data))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" {
+			continue
+		}
+		if err := json.Unmarshal([]byte(line), &ev); err != nil {
+			t.Fatalf("parse JSONL: %v — line: %q", err, line)
+		}
+	}
+	if ev.SHA != "abc1234" || ev.Type != "deploy" || ev.Status != "ok" || ev.Detail != "prod release" {
+		t.Fatalf("event fields: %+v", ev)
+	}
+	if ev.Created == "" {
+		t.Fatal("created field empty")
+	}
+}
+
+// TestLoreEventMissingTypeErrors: omitting --type returns a usage error.
+func TestLoreEventMissingTypeErrors(t *testing.T) {
+	root := loreTestRepo(t)
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"event", "--status", "ok"}, &buf); err == nil {
+		t.Fatal("want usage error when --type missing")
+	}
+}
+
+// TestLoreEventMissingStatusErrors: omitting --status returns a usage error.
+func TestLoreEventMissingStatusErrors(t *testing.T) {
+	root := loreTestRepo(t)
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"event", "--type", "deploy"}, &buf); err == nil {
+		t.Fatal("want usage error when --status missing")
+	}
+}
+
+// TestLoreShowDisplaysEventLines: a record with a commit ref shows matching events.
+func TestLoreShowDisplaysEventLines(t *testing.T) {
+	root := loreTestRepo(t)
+
+	// Add a record with a commit ref.
+	out := runLoreOK(t, root, "add", "decision",
+		"--title", "Deploy test",
+		"--body", "test\n",
+		"--ref", "commit:abc1234567890abcdef1234567890abcdef12345")
+	id := strings.Fields(out)[1]
+
+	// Record an event matching that commit (by 7-char short).
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"event", "--type", "deploy", "--status", "ok",
+		"--commit", "abc1234567890abcdef1234567890abcdef12345"}, &buf); err != nil {
+		t.Fatalf("lore event: %v", err)
+	}
+
+	show := runLoreOK(t, root, "show", id)
+	if !strings.Contains(show, "event: deploy ok (abc1234") {
+		t.Fatalf("show missing event line:\n%s", show)
+	}
+}
+
+// --- lore sync github tests ---
+
+// TestLoreSyncGithub_FlipsDoneOnClosedIssue: when a gh-issue ref is CLOSED,
+// the item's status is durably written to "done".
+func TestLoreSyncGithub_FlipsDoneOnClosedIssue(t *testing.T) {
+	root := loreTestRepo(t)
+
+	// Add an open item with a gh-issue ref.
+	out := runLoreOK(t, root, "add", "item",
+		"--title", "Open task",
+		"--body", "needs doing\n",
+		"--ref", "gh-issue:owner/repo#7")
+	id := strings.Fields(out)[1]
+
+	// Install a fake GH that returns CLOSED for any issue.
+	fakeGH := &fakeSyncGH{state: "CLOSED"}
+	origNewGH := newGH
+	newGH = func() ghSyncer { return fakeGH }
+	defer func() { newGH = origNewGH }()
+
+	syncOut := runLoreOK(t, root, "sync", "github")
+	if !strings.Contains(syncOut, "synced "+id+" done") {
+		t.Fatalf("sync output missing synced line:\n%s", syncOut)
+	}
+
+	// Verify durable write-back: parse the file.
+	ll, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	files, _ := filepath.Glob(filepath.Join(ll.Dir("repo", lore.TypeItem), "*.md"))
+	if len(files) != 1 {
+		t.Fatalf("expected 1 item file, got %v", files)
+	}
+	data, err := os.ReadFile(files[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	rec, err := lore.Parse(data, lore.TypeItem)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rec.Status != "done" {
+		t.Fatalf("item status not flipped to done: %q", rec.Status)
+	}
+
+	// Assert index is fresh: Get shows status done and a follow-up Reindex reports Indexed==0.
+	l2, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	st2, rep2, err := index.Reindex(l2, filepath.Join(root, ".codeindex", "lore.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st2.Close()
+	if rep2.Indexed != 0 {
+		t.Fatalf("sync should have updated index: Reindex.Indexed=%d (want 0)", rep2.Indexed)
+	}
+	row, ok, err := st2.Get(id)
+	if err != nil || !ok {
+		t.Fatalf("Get after sync: ok=%v err=%v", ok, err)
+	}
+	if row.Status != "done" {
+		t.Fatalf("index row status=%q, want done", row.Status)
+	}
+}
+
+// TestLoreSyncGithub_OpenIssue_NoOp: when a gh-issue ref is OPEN, no change.
+func TestLoreSyncGithub_OpenIssue_NoOp(t *testing.T) {
+	root := loreTestRepo(t)
+
+	out := runLoreOK(t, root, "add", "item",
+		"--title", "Still open",
+		"--body", "pending\n",
+		"--ref", "gh-issue:owner/repo#3")
+	_ = strings.Fields(out)[1]
+
+	fakeGH := &fakeSyncGH{state: "OPEN"}
+	origNewGH := newGH
+	newGH = func() ghSyncer { return fakeGH }
+	defer func() { newGH = origNewGH }()
+
+	syncOut := runLoreOK(t, root, "sync", "github")
+	if strings.Contains(syncOut, "synced") {
+		t.Fatalf("open issue should produce no output, got: %q", syncOut)
+	}
+}
+
+// TestLoreSyncGithub_GHError_PropagatesAsError: when gh returns an error,
+// sync returns a real error (not fail-open).
+func TestLoreSyncGithub_GHError_PropagatesAsError(t *testing.T) {
+	root := loreTestRepo(t)
+
+	runLoreOK(t, root, "add", "item",
+		"--title", "Error item",
+		"--body", "x\n",
+		"--ref", "gh-issue:owner/repo#1")
+
+	fakeGH := &fakeSyncGH{err: errors.New("gh: not logged in")}
+	origNewGH := newGH
+	newGH = func() ghSyncer { return fakeGH }
+	defer func() { newGH = origNewGH }()
+
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"sync", "github"}, &buf); err == nil {
+		t.Fatal("want error when gh fails")
+	}
+}
+
+// --- lore push tests ---
+
+// TestLorePush_AppendsRefAndPrintsURL: push creates an issue and appends ref.
+func TestLorePush_AppendsRefAndPrintsURL(t *testing.T) {
+	root := loreTestRepo(t)
+
+	out := runLoreOK(t, root, "add", "item",
+		"--title", "Push me",
+		"--body", "some work\n")
+	id := strings.Fields(out)[1]
+
+	fakeGH := &fakeSyncGH{createURL: "https://github.com/owner/repo/issues/99"}
+	origNewGH := newGH
+	newGH = func() ghSyncer { return fakeGH }
+	defer func() { newGH = origNewGH }()
+
+	pushOut := runLoreOK(t, root, "push", id)
+	if !strings.Contains(pushOut, "pushed "+id) {
+		t.Fatalf("push output missing 'pushed <id>':\n%s", pushOut)
+	}
+	if !strings.Contains(pushOut, "https://github.com/owner/repo/issues/99") {
+		t.Fatalf("push output missing URL:\n%s", pushOut)
+	}
+
+	// Assert the fake runner received --body containing "lore: <id>"
+	if !strings.Contains(fakeGH.lastBody, "lore: "+id) {
+		t.Fatalf("gh body missing backlink 'lore: %s', got body: %q", id, fakeGH.lastBody)
+	}
+
+	// Verify durable ref write-back: parse the file.
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	files, _ := filepath.Glob(filepath.Join(l.Dir("repo", lore.TypeItem), "*.md"))
+	if len(files) != 1 {
+		t.Fatalf("expected 1 item file, got %v", files)
+	}
+	data, err := os.ReadFile(files[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	rec, err := lore.Parse(data, lore.TypeItem)
+	if err != nil {
+		t.Fatal(err)
+	}
+	foundRef := false
+	for _, ref := range rec.Refs {
+		if ref.Kind == "gh-issue" && strings.Contains(ref.Value, "#99") {
+			foundRef = true
+		}
+	}
+	if !foundRef {
+		t.Fatalf("gh-issue ref not appended to record, refs: %v", rec.Refs)
+	}
+
+	// Assert index is fresh: Get shows the new ref and Reindex reports Indexed==0.
+	l2, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	st2, rep2, err2 := index.Reindex(l2, filepath.Join(root, ".codeindex", "lore.db"))
+	if err2 != nil {
+		t.Fatal(err2)
+	}
+	defer st2.Close()
+	if rep2.Indexed != 0 {
+		t.Fatalf("push should have updated index: Reindex.Indexed=%d (want 0)", rep2.Indexed)
+	}
+	row, ok, err := st2.Get(id)
+	if err != nil || !ok {
+		t.Fatalf("Get after push: ok=%v err=%v", ok, err)
+	}
+	foundRefInIndex := false
+	for _, ref := range row.Refs {
+		if ref.Kind == "gh-issue" && strings.Contains(ref.Value, "#99") {
+			foundRefInIndex = true
+		}
+	}
+	if !foundRefInIndex {
+		t.Fatalf("index row missing gh-issue ref after push, refs: %v", row.Refs)
+	}
+}
+
+// TestLorePush_RefusesExistingGHIssue: push errors if item already has gh-issue.
+func TestLorePush_RefusesExistingGHIssue(t *testing.T) {
+	root := loreTestRepo(t)
+
+	out := runLoreOK(t, root, "add", "item",
+		"--title", "Already pushed",
+		"--body", "x\n",
+		"--ref", "gh-issue:owner/repo#5")
+	id := strings.Fields(out)[1]
+
+	fakeGH := &fakeSyncGH{createURL: "https://github.com/owner/repo/issues/6"}
+	origNewGH := newGH
+	newGH = func() ghSyncer { return fakeGH }
+	defer func() { newGH = origNewGH }()
+
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"push", id}, &buf); err == nil {
+		t.Fatal("want error pushing item that already has a gh-issue ref")
+	}
+}
+
+// TestLorePush_RefusesNonItem: push errors if record is not an item.
+func TestLorePush_RefusesNonItem(t *testing.T) {
+	root := loreTestRepo(t)
+
+	out := runLoreOK(t, root, "add", "decision",
+		"--title", "Not an item",
+		"--body", "x\n")
+	id := strings.Fields(out)[1]
+
+	fakeGH := &fakeSyncGH{createURL: "https://github.com/owner/repo/issues/1"}
+	origNewGH := newGH
+	newGH = func() ghSyncer { return fakeGH }
+	defer func() { newGH = origNewGH }()
+
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"push", id}, &buf); err == nil {
+		t.Fatal("want error pushing non-item record")
+	}
+}
+
+// --- fake GH implementation for CLI tests ---
+
+type fakeSyncGH struct {
+	state     string
+	err       error
+	createURL string
+	lastBody  string
+}
+
+func (f *fakeSyncGH) IssueState(repoDir, ref string) (string, error) {
+	return f.state, f.err
+}
+
+func (f *fakeSyncGH) CreateIssue(repoDir, title, body string) (string, error) {
+	f.lastBody = body
+	if f.err != nil {
+		return "", f.err
+	}
+	return f.createURL, nil
 }

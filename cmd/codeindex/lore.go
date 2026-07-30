@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,8 +14,20 @@ import (
 	"time"
 
 	"codeindex/internal/lore"
+	"codeindex/internal/lore/ghsync"
+	"codeindex/internal/lore/gitinfo"
 	"codeindex/internal/lore/index"
 )
+
+// ghSyncer is the interface satisfied by *ghsync.GH and by test fakes.
+type ghSyncer interface {
+	IssueState(repoDir, ref string) (string, error)
+	CreateIssue(repoDir, title, body string) (string, error)
+}
+
+// newGH is the test seam for ghsync construction. Tests override this to inject
+// a fake runner without touching the filesystem or requiring a live gh binary.
+var newGH func() ghSyncer = func() ghSyncer { return ghsync.New() }
 
 func loreDBPath(root string) string {
 	return filepath.Join(root, ".codeindex", "lore.db")
@@ -32,7 +46,7 @@ func loreReindex(root string) (lore.Layout, *index.Store, index.Report, error) {
 }
 
 const loreUsage = "usage: codeindex lore <repo-root> " +
-	"<add|show|search|for|backlog|promote|supersede|doctor|init|capture> ..."
+	"<add|show|search|for|backlog|promote|supersede|doctor|init|capture|event|sync|push> ..."
 
 func runLore(root string, args []string, out io.Writer) error {
 	if len(args) == 0 {
@@ -59,6 +73,12 @@ func runLore(root string, args []string, out io.Writer) error {
 		return loreInit(root, args[1:], out)
 	case "capture":
 		return loreCapture(root, args[1:], out)
+	case "event":
+		return loreEvent(root, args[1:])
+	case "sync":
+		return loreSync(root, args[1:], out)
+	case "push":
+		return lorePush(root, args[1:], out)
 	default:
 		return fmt.Errorf("unknown lore subcommand %q\n%s", args[0], loreUsage)
 	}
@@ -75,7 +95,8 @@ first: codeindex lore <root> search '<query>' (or the lore_search / lore_for_sym
 MCP tools). When a decision is made or a non-obvious root cause found, record it
 with codeindex lore <root> add decision --title "..." --body - (include rejected
 alternatives). Active decisions are constraints, not suggestions.
-MCP: codeindex mcp <repo-root>`
+MCP: codeindex mcp <repo-root>
+When you file or reference an external ticket (GitHub, Jira, Linear) for tracked work, record its reference on the lore item (--ref gh-issue:owner/repo#N).`
 
 const loreReadme = `# .lore/ — project decisions, work items, and notes
 
@@ -251,6 +272,71 @@ func loreCapture(root string, args []string, out io.Writer) error {
 	return nil
 }
 
+// --- event ---
+
+// loreEvent appends one JSON line to <OverlayDir>/events.jsonl.
+// --type and --status are required (usage error when missing).
+// All storage failures are fail-open: return nil so CI is never broken.
+func loreEvent(root string, args []string) error {
+	typ := stringFlag(args, "--type")
+	status := stringFlag(args, "--status")
+	if typ == "" || status == "" {
+		return errors.New("usage: codeindex lore <repo> event --type <t> --status <ok|failed> [--commit <sha>] [--detail <text>]")
+	}
+
+	detail := stringFlag(args, "--detail")
+	commit := stringFlag(args, "--commit")
+	if commit == "" {
+		// Default to gitinfo Head() when available.
+		l, err := lore.NewLayout(root)
+		if err == nil {
+			g := gitinfo.New(l.RepoRoot)
+			if g.Available() {
+				if sha, err := g.Head(); err == nil {
+					commit = sha
+				}
+			}
+		}
+	}
+
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		return nil // fail-open
+	}
+	if err := os.MkdirAll(l.OverlayDir, 0o755); err != nil {
+		return nil // fail-open
+	}
+	eventsPath := filepath.Join(l.OverlayDir, "events.jsonl")
+
+	type eventRecord struct {
+		SHA     string `json:"sha"`
+		Type    string `json:"type"`
+		Status  string `json:"status"`
+		Detail  string `json:"detail,omitempty"`
+		Created string `json:"created"`
+	}
+	ev := eventRecord{
+		SHA:     commit,
+		Type:    typ,
+		Status:  status,
+		Detail:  detail,
+		Created: time.Now().UTC().Format(time.RFC3339),
+	}
+	line, err := json.Marshal(ev)
+	if err != nil {
+		return nil // fail-open
+	}
+
+	f, err := os.OpenFile(eventsPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return nil // fail-open
+	}
+	defer f.Close()
+	line = append(line, '\n')
+	_, _ = f.Write(line)
+	return nil
+}
+
 // --- flag helpers (plain args scan, matching main.go's style) ---
 
 func stringFlag(args []string, name string) string {
@@ -400,8 +486,33 @@ func loreShow(root string, args []string, out io.Writer) error {
 	if r.Stale {
 		flags = "  STALE"
 	}
-	fmt.Fprintf(out, "%s  %s/%s  %s  %s%s\n\n", r.ID, r.Type, orDash(r.Status),
+	fmt.Fprintf(out, "%s  %s/%s  %s  %s%s\n", r.ID, r.Type, orDash(r.Status),
 		r.Layer, r.File, flags)
+	if r.Survived > 0 {
+		fmt.Fprintf(out, "confidence: %.2f (survived %d commits)\n", r.Confidence, r.Survived)
+	}
+
+	// Collect commit ref values for event lookup.
+	var commitRefs []string
+	for _, ref := range r.Refs {
+		if ref.Kind == "commit" {
+			commitRefs = append(commitRefs, ref.Value)
+		}
+	}
+	if len(commitRefs) > 0 {
+		events, err := st.EventsForSHAPrefixes(commitRefs)
+		if err == nil {
+			for _, ev := range events {
+				sha7 := ev.SHA
+				if len(sha7) > 7 {
+					sha7 = sha7[:7]
+				}
+				fmt.Fprintf(out, "event: %s %s (%s)\n", ev.Type, ev.Status, sha7)
+			}
+		}
+	}
+
+	fmt.Fprintln(out)
 	b, err := r.Record.Marshal()
 	if err != nil {
 		return err
@@ -422,18 +533,19 @@ func orDash(s string) string {
 // --- JSON output ---
 
 type loreJSON struct {
-	ID       string  `json:"id"`
-	Type     string  `json:"type"`
-	Title    string  `json:"title"`
-	Status   string  `json:"status,omitempty"`
-	Date     string  `json:"date"`
-	Layer    string  `json:"layer"`
-	File     string  `json:"file"`
-	Stale    bool    `json:"stale,omitempty"`
-	Score    float64 `json:"score,omitempty"`
-	Snippet  string  `json:"snippet,omitempty"`
-	Priority string  `json:"priority,omitempty"`
-	Blocked  bool    `json:"blocked,omitempty"`
+	ID         string  `json:"id"`
+	Type       string  `json:"type"`
+	Title      string  `json:"title"`
+	Status     string  `json:"status,omitempty"`
+	Date       string  `json:"date"`
+	Layer      string  `json:"layer"`
+	File       string  `json:"file"`
+	Stale      bool    `json:"stale,omitempty"`
+	Unratified bool    `json:"unratified,omitempty"`
+	Score      float64 `json:"score,omitempty"`
+	Snippet    string  `json:"snippet,omitempty"`
+	Priority   string  `json:"priority,omitempty"`
+	Blocked    bool    `json:"blocked,omitempty"`
 }
 
 func toJSON(out io.Writer, v any) error {
@@ -443,6 +555,20 @@ func toJSON(out io.Writer, v any) error {
 	}
 	_, err = fmt.Fprintln(out, string(b))
 	return err
+}
+
+// recordFlags returns the trailing flag string for a record (e.g. "  STALE",
+// "  UNRATIFIED", or both combined). These suffixes are appended to text
+// output lines for search, for, and backlog.
+func recordFlags(stale, ratified bool) string {
+	flags := ""
+	if stale {
+		flags += "  STALE"
+	}
+	if !ratified {
+		flags += "  UNRATIFIED"
+	}
+	return flags
 }
 
 // --- search ---
@@ -471,13 +597,15 @@ func loreSearch(root string, args []string, out io.Writer) error {
 			js = append(js, loreJSON{ID: h.Rec.ID, Type: string(h.Rec.Type),
 				Title: h.Rec.Title, Status: h.Rec.Status, Date: h.Rec.Date,
 				Layer: h.Rec.Layer, File: h.Rec.File, Stale: h.Rec.Stale,
+				Unratified: !h.Rec.Ratified,
 				Score: h.Score, Snippet: h.Snippet})
 		}
 		return toJSON(out, js)
 	}
 	for _, h := range hits {
-		fmt.Fprintf(out, "%s  %.2f  [%s/%s]  %s — %s\n",
-			h.Rec.ID, h.Score, h.Rec.Layer, orDash(h.Rec.Status), h.Rec.Title, h.Snippet)
+		fmt.Fprintf(out, "%s  %.2f  [%s/%s]  %s — %s%s\n",
+			h.Rec.ID, h.Score, h.Rec.Layer, orDash(h.Rec.Status), h.Rec.Title, h.Snippet,
+			recordFlags(h.Rec.Stale, h.Rec.Ratified))
 	}
 	return nil
 }
@@ -502,12 +630,14 @@ func loreFor(root string, args []string, out io.Writer) error {
 		js := make([]loreJSON, 0, len(matched))
 		for _, r := range matched {
 			js = append(js, loreJSON{ID: r.ID, Type: string(r.Type), Title: r.Title,
-				Status: r.Status, Date: r.Date, Layer: r.Layer, File: r.File, Stale: r.Stale})
+				Status: r.Status, Date: r.Date, Layer: r.Layer, File: r.File, Stale: r.Stale,
+				Unratified: !r.Ratified})
 		}
 		return toJSON(out, js)
 	}
 	for _, r := range matched {
-		fmt.Fprintf(out, "%s  [%s/%s]  %s\n", r.ID, r.Layer, orDash(r.Status), r.Title)
+		fmt.Fprintf(out, "%s  [%s/%s]  %s%s\n", r.ID, r.Layer, orDash(r.Status), r.Title,
+			recordFlags(r.Stale, r.Ratified))
 	}
 	return nil
 }
@@ -668,7 +798,7 @@ func loreBacklog(root string, args []string, out io.Writer) error {
 		for _, r := range items {
 			js = append(js, loreJSON{ID: r.ID, Type: string(r.Type), Title: r.Title,
 				Status: r.Status, Date: r.Date, Layer: r.Layer, File: r.File,
-				Priority: prio(r.Priority), Blocked: blocked(r)})
+				Priority: prio(r.Priority), Blocked: blocked(r), Unratified: !r.Ratified})
 		}
 		return toJSON(out, js)
 	}
@@ -677,7 +807,8 @@ func loreBacklog(root string, args []string, out io.Writer) error {
 		if blocked(r) {
 			state = "BLOCKED"
 		}
-		fmt.Fprintf(out, "%s  %s  %s  %s\n", r.ID, prio(r.Priority), state, r.Title)
+		fmt.Fprintf(out, "%s  %s  %s  %s%s\n", r.ID, prio(r.Priority), state, r.Title,
+			recordFlags(r.Stale, r.Ratified))
 	}
 	return nil
 }
@@ -693,6 +824,12 @@ func loreDoctor(root string, args []string, out io.Writer) error {
 	findings := 0
 	for _, fe := range rep.Errors {
 		fmt.Fprintf(out, "parse-error  %s  %v\n", fe.Path, fe.Err)
+		findings++
+	}
+	for _, d := range rep.Duplicates {
+		// Report entries are "<id>: <path1>, <path2>"; print as columns.
+		id, paths, _ := strings.Cut(d, ": ")
+		fmt.Fprintf(out, "duplicate-id  %s  %s\n", id, paths)
 		findings++
 	}
 	all, err := st.All()
@@ -736,6 +873,14 @@ func loreDoctor(root string, args []string, out io.Writer) error {
 				r.ID, orDash(r.Status))
 			findings++
 		}
+		// Churn-suspect: when churnLines > 3× current total line count of anchored files.
+		if r.ChurnLines > 0 {
+			totalLines := countAnchorLines(root, r)
+			if r.ChurnLines > 3*totalLines {
+				fmt.Fprintf(out, "churn-suspect  %s  %s\n", r.ID, r.Title)
+				findings++
+			}
+		}
 	}
 	if findings == 0 {
 		fmt.Fprintln(out, "ok: no findings")
@@ -743,4 +888,199 @@ func loreDoctor(root string, args []string, out io.Writer) error {
 		fmt.Fprintf(out, "%d finding(s)\n", findings)
 	}
 	return nil
+}
+
+// --- sync ---
+
+// loreSync implements "lore sync github": for every ITEM with a gh-issue ref,
+// check the issue state via gh. If the issue is CLOSED and the item is open,
+// durably flip the item to done (Parse/Marshal/WriteFile). gh errors are real
+// errors (explicit user command — the one exception to fail-open).
+func loreSync(root string, args []string, out io.Writer) error {
+	if len(args) == 0 || args[0] != "github" {
+		return errors.New("usage: codeindex lore <repo> sync github")
+	}
+	l, st, _, err := loreReindex(root)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+
+	all, err := st.All()
+	if err != nil {
+		return err
+	}
+
+	gh := newGH()
+	for _, r := range all {
+		if r.Type != lore.TypeItem {
+			continue
+		}
+		for _, ref := range r.Refs {
+			if ref.Kind != "gh-issue" {
+				continue
+			}
+			state, err := gh.IssueState(l.RepoRoot, ref.Value)
+			if err != nil {
+				return fmt.Errorf("lore sync: %w (check: gh auth status)", err)
+			}
+			if state == "CLOSED" && r.Status == "open" {
+				// Durable write-back: Parse → mutate → Marshal → WriteFile.
+				data, err := os.ReadFile(r.File)
+				if err != nil {
+					return fmt.Errorf("lore sync: read %s: %w", r.File, err)
+				}
+				rec, err := lore.Parse(data, lore.TypeItem)
+				if err != nil {
+					return fmt.Errorf("lore sync: parse %s: %w", r.File, err)
+				}
+				rec.Status = "done"
+				newData, err := rec.Marshal()
+				if err != nil {
+					return fmt.Errorf("lore sync: marshal %s: %w", r.File, err)
+				}
+				if err := os.WriteFile(r.File, newData, 0o644); err != nil {
+					return fmt.Errorf("lore sync: write %s: %w", r.File, err)
+				}
+				// Update the index to reflect the mutated record.
+				h := fmt.Sprintf("%x", sha256.Sum256(newData))
+				if err := st.Upsert(rec, r.Layer, r.File); err != nil {
+					return fmt.Errorf("lore sync: index upsert %s: %w", r.ID, err)
+				}
+				if err := st.SetFileHash(r.File, h); err != nil {
+					return fmt.Errorf("lore sync: index hash %s: %w", r.File, err)
+				}
+				fmt.Fprintf(out, "synced %s done (issue %s closed)\n", r.ID, ref.Value)
+			}
+			// Only process the first gh-issue ref per item.
+			break
+		}
+	}
+	return nil
+}
+
+// --- push ---
+
+// lorePush implements "lore push <id>": create a GitHub issue for the item and
+// append a gh-issue ref durably. The item must have no existing gh-issue ref.
+func lorePush(root string, args []string, out io.Writer) error {
+	if len(args) < 1 {
+		return errors.New("usage: codeindex lore <repo> push <id>")
+	}
+	id := args[0]
+	l, st, _, err := loreReindex(root)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+
+	r, ok, err := st.Get(id)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return fmt.Errorf("no record %q", id)
+	}
+	if r.Type != lore.TypeItem {
+		return fmt.Errorf("lore push: %s is a %s; only items can be pushed to GitHub", id, r.Type)
+	}
+	// Refuse if there's already a gh-issue ref.
+	for _, ref := range r.Refs {
+		if ref.Kind == "gh-issue" {
+			return fmt.Errorf("lore push: %s already has a gh-issue ref (%s)", id, ref.Value)
+		}
+	}
+
+	// Build the body with backlink.
+	body := r.Body
+	if !strings.HasSuffix(body, "\n") {
+		body += "\n"
+	}
+	body += "\nlore: " + id
+
+	gh := newGH()
+	issueURL, err := gh.CreateIssue(l.RepoRoot, r.Title, body)
+	if err != nil {
+		return fmt.Errorf("lore push: %w", err)
+	}
+
+	// Derive the ref value from the URL: extract "owner/repo#N".
+	// URL form: https://github.com/owner/repo/issues/N
+	ghRef := urlToRef(issueURL)
+
+	// Durable ref append: Parse → append Ref → Marshal → WriteFile.
+	data, err := os.ReadFile(r.File)
+	if err != nil {
+		return fmt.Errorf("lore push: read %s: %w", r.File, err)
+	}
+	rec, err := lore.Parse(data, lore.TypeItem)
+	if err != nil {
+		return fmt.Errorf("lore push: parse %s: %w", r.File, err)
+	}
+	rec.Refs = append(rec.Refs, lore.Ref{Kind: "gh-issue", Value: ghRef})
+	newData, err := rec.Marshal()
+	if err != nil {
+		return fmt.Errorf("lore push: marshal %s: %w", r.File, err)
+	}
+	if err := os.WriteFile(r.File, newData, 0o644); err != nil {
+		return fmt.Errorf("lore push: write %s: %w", r.File, err)
+	}
+	// Update the index to reflect the appended ref.
+	h := fmt.Sprintf("%x", sha256.Sum256(newData))
+	if err := st.Upsert(rec, r.Layer, r.File); err != nil {
+		return fmt.Errorf("lore push: index upsert %s: %w", r.ID, err)
+	}
+	if err := st.SetFileHash(r.File, h); err != nil {
+		return fmt.Errorf("lore push: index hash %s: %w", r.File, err)
+	}
+	fmt.Fprintf(out, "pushed %s %s\n", id, issueURL)
+	return nil
+}
+
+// urlToRef converts a GitHub issue URL to a ref of the form "owner/repo#N".
+// For example: "https://github.com/owner/repo/issues/42" → "owner/repo#42".
+// If the URL doesn't match, the full URL is returned as-is.
+func urlToRef(url string) string {
+	// Strip protocol + host.
+	const ghBase = "https://github.com/"
+	after, ok := strings.CutPrefix(url, ghBase)
+	if !ok {
+		return url
+	}
+	// after = "owner/repo/issues/42"
+	parts := strings.Split(after, "/")
+	if len(parts) == 4 && parts[2] == "issues" {
+		return parts[0] + "/" + parts[1] + "#" + parts[3]
+	}
+	return url
+}
+
+// countAnchorLines counts the total number of lines across all files reachable
+// under the path anchors of r. Missing paths contribute 0 lines. Only path
+// anchors are counted; symbol anchors are ignored.
+func countAnchorLines(root string, r index.StoredRecord) int {
+	total := 0
+	for _, a := range r.Anchors {
+		if a.Path == "" {
+			continue
+		}
+		// Walk all files under the anchor path (joined with repo root so that
+		// repo-relative anchor paths work regardless of process CWD).
+		_ = filepath.Walk(filepath.Join(root, a.Path), func(p string, info os.FileInfo, err error) error {
+			if err != nil || info == nil || info.IsDir() {
+				return nil
+			}
+			f, err := os.Open(p)
+			if err != nil {
+				return nil
+			}
+			defer f.Close()
+			scanner := bufio.NewScanner(f)
+			for scanner.Scan() {
+				total++
+			}
+			return nil
+		})
+	}
+	return total
 }

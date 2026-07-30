@@ -6,17 +6,24 @@ package index
 import (
 	"database/sql"
 	"fmt"
+	"math"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 
 	"codeindex/internal/lore"
 )
 
-const schemaVersion = 1
+// schemaVersion 2 spans tasks 4+6+7 (ratified column added in task 4; task 6
+// adds two more columns; task 7 adds lore_events — all without a version bump).
+const schemaVersion = 2
 
 const schema = `
 CREATE TABLE IF NOT EXISTS lore_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS lore_files (path TEXT PRIMARY KEY, hash TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS lore_events (
+  sha TEXT NOT NULL DEFAULT '', type TEXT NOT NULL, status TEXT NOT NULL,
+  detail TEXT NOT NULL DEFAULT '', created TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS lore_records (
   id TEXT PRIMARY KEY, type TEXT NOT NULL, title TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT '', date TEXT NOT NULL DEFAULT '',
@@ -24,6 +31,8 @@ CREATE TABLE IF NOT EXISTS lore_records (
   priority TEXT NOT NULL DEFAULT '',
   supersedes TEXT NOT NULL DEFAULT '', superseded_by TEXT NOT NULL DEFAULT '',
   stale INTEGER NOT NULL DEFAULT 0, confidence REAL NOT NULL DEFAULT 0,
+  ratified INTEGER NOT NULL DEFAULT 1,
+  survived INTEGER NOT NULL DEFAULT 0, churn_lines INTEGER NOT NULL DEFAULT 0,
   body TEXT NOT NULL DEFAULT '');
 CREATE INDEX IF NOT EXISTS idx_lore_records_file ON lore_records(file);
 CREATE TABLE IF NOT EXISTS lore_anchors (
@@ -40,6 +49,15 @@ CREATE INDEX IF NOT EXISTS idx_lore_tags_rec ON lore_tags(record_id);
 
 type Store struct{ db *sql.DB }
 
+// Event is one row from lore_events.
+type Event struct {
+	SHA     string
+	Type    string
+	Status  string
+	Detail  string
+	Created string
+}
+
 // StoredRecord is a record plus its index-side metadata.
 type StoredRecord struct {
 	lore.Record
@@ -47,6 +65,9 @@ type StoredRecord struct {
 	File       string
 	Stale      bool
 	Confidence float64
+	Ratified   bool
+	Survived   int
+	ChurnLines int
 }
 
 func Open(path string) (*Store, error) {
@@ -68,7 +89,7 @@ func Open(path string) (*Store, error) {
 	} else if err == nil && ver != fmt.Sprint(schemaVersion) {
 		// Derived data: on mismatch, wipe and let the next reindex rebuild.
 		for _, t := range []string{"lore_files", "lore_records", "lore_anchors",
-			"lore_refs", "lore_blocked", "lore_tags"} {
+			"lore_refs", "lore_blocked", "lore_tags", "lore_events"} {
 			if _, err = db.Exec("DELETE FROM " + t); err != nil {
 				break
 			}
@@ -93,9 +114,9 @@ func (s *Store) Upsert(r lore.Record, layer, file string) error {
 		return err
 	}
 	defer tx.Rollback()
-	// stale and confidence are deliberately absent from the upsert: they are
-	// index-side derived state, owned by SetStale (and, later, the lifecycle
-	// signals pass) — a record file changing must not reset them.
+	// stale, confidence, and ratified are deliberately absent from the upsert:
+	// they are index-side derived state, owned by SetStale / SetRatified (and
+	// the lifecycle signals pass) — a record file changing must not reset them.
 	if _, err := tx.Exec(`INSERT INTO lore_records
 		(id,type,title,status,date,layer,file,priority,supersedes,superseded_by,body)
 		VALUES(?,?,?,?,?,?,?,?,?,?,?)
@@ -176,7 +197,7 @@ func (s *Store) DeleteByFile(file string) error {
 
 func (s *Store) All() ([]StoredRecord, error) {
 	rows, err := s.db.Query(`SELECT id,type,title,status,date,layer,file,priority,
-		supersedes,superseded_by,stale,confidence,body
+		supersedes,superseded_by,stale,confidence,ratified,survived,churn_lines,body
 		FROM lore_records ORDER BY date DESC, id`)
 	if err != nil {
 		return nil, err
@@ -186,13 +207,13 @@ func (s *Store) All() ([]StoredRecord, error) {
 	for rows.Next() {
 		var r StoredRecord
 		var typ string
-		var stale int
+		var stale, ratified int
 		if err := rows.Scan(&r.ID, &typ, &r.Title, &r.Status, &r.Date, &r.Layer,
 			&r.File, &r.Priority, &r.Supersedes, &r.SupersededBy, &stale,
-			&r.Confidence, &r.Body); err != nil {
+			&r.Confidence, &ratified, &r.Survived, &r.ChurnLines, &r.Body); err != nil {
 			return nil, err
 		}
-		r.Type, r.Stale = lore.Type(typ), stale != 0
+		r.Type, r.Stale, r.Ratified = lore.Type(typ), stale != 0, ratified != 0
 		if err := s.loadChildren(&r); err != nil {
 			return nil, err
 		}
@@ -272,19 +293,19 @@ func (s *Store) loadChildren(r *StoredRecord) error {
 func (s *Store) Get(id string) (StoredRecord, bool, error) {
 	var r StoredRecord
 	var typ string
-	var stale int
+	var stale, ratified int
 	err := s.db.QueryRow(`SELECT id,type,title,status,date,layer,file,priority,
-		supersedes,superseded_by,stale,confidence,body
+		supersedes,superseded_by,stale,confidence,ratified,survived,churn_lines,body
 		FROM lore_records WHERE id=?`, id).Scan(&r.ID, &typ, &r.Title, &r.Status,
 		&r.Date, &r.Layer, &r.File, &r.Priority, &r.Supersedes, &r.SupersededBy,
-		&stale, &r.Confidence, &r.Body)
+		&stale, &r.Confidence, &ratified, &r.Survived, &r.ChurnLines, &r.Body)
 	if err == sql.ErrNoRows {
 		return StoredRecord{}, false, nil
 	}
 	if err != nil {
 		return StoredRecord{}, false, err
 	}
-	r.Type, r.Stale = lore.Type(typ), stale != 0
+	r.Type, r.Stale, r.Ratified = lore.Type(typ), stale != 0, ratified != 0
 	if err := s.loadChildren(&r); err != nil {
 		return StoredRecord{}, false, err
 	}
@@ -326,4 +347,106 @@ func (s *Store) SetStale(id string, stale bool) error {
 	}
 	_, err := s.db.Exec(`UPDATE lore_records SET stale=? WHERE id=?`, v, id)
 	return err
+}
+
+func (s *Store) SetRatified(id string, ratified bool) error {
+	v := 0
+	if ratified {
+		v = 1
+	}
+	_, err := s.db.Exec(`UPDATE lore_records SET ratified=? WHERE id=?`, v, id)
+	return err
+}
+
+// AddSignals increments survived and churn_lines for a record, then recomputes
+// and stores confidence = ln(1+survived)/ln(21), capped at 1.0.
+// survivedDelta and churnDelta must be non-negative.
+func (s *Store) AddSignals(id string, survivedDelta, churnDelta int) error {
+	// Read current survived to compute new confidence.
+	var cur int
+	err := s.db.QueryRow(`SELECT survived FROM lore_records WHERE id=?`, id).Scan(&cur)
+	if err == sql.ErrNoRows {
+		return nil // record not found; no-op
+	}
+	if err != nil {
+		return err
+	}
+	newSurvived := cur + survivedDelta
+	confidence := math.Log(1+float64(newSurvived)) / math.Log(21)
+	if confidence > 1.0 {
+		confidence = 1.0
+	}
+	_, err = s.db.Exec(`UPDATE lore_records SET survived=survived+?, churn_lines=churn_lines+?, confidence=? WHERE id=?`,
+		survivedDelta, churnDelta, confidence, id)
+	return err
+}
+
+// Meta returns the value of a named key in lore_meta. When the key is unset
+// Meta returns ("", nil). The reserved 'schema' key is readable but must not
+// be written via SetMeta (use the internal schema migration path instead).
+func (s *Store) Meta(key string) (string, error) {
+	var v string
+	err := s.db.QueryRow(`SELECT value FROM lore_meta WHERE key=?`, key).Scan(&v)
+	if err == sql.ErrNoRows {
+		return "", nil
+	}
+	if err != nil {
+		return "", err
+	}
+	return v, nil
+}
+
+// SetMeta stores or overwrites a named key in lore_meta. The 'schema' key is
+// reserved for internal schema versioning and may not be set via SetMeta.
+func (s *Store) SetMeta(key, val string) error {
+	if key == "schema" {
+		return fmt.Errorf("lore_meta: key %q is reserved", key)
+	}
+	_, err := s.db.Exec(`INSERT INTO lore_meta(key,value) VALUES(?,?)
+		ON CONFLICT(key) DO UPDATE SET value=excluded.value`, key, val)
+	return err
+}
+
+// InsertEvent appends one row to lore_events.
+func (s *Store) InsertEvent(sha, typ, status, detail, created string) error {
+	_, err := s.db.Exec(
+		`INSERT INTO lore_events(sha,type,status,detail,created) VALUES(?,?,?,?,?)`,
+		sha, typ, status, detail, created)
+	return err
+}
+
+// EventsForSHAPrefixes returns events whose sha field is a prefix of any
+// element in prefixes, or any element in prefixes is a prefix of the stored
+// sha. Both directions are needed because commit refs may be 7-char short SHAs
+// while stored events may hold full 40-char SHAs (or vice versa).
+// Results are returned oldest first (by created ASC).
+// Events with empty sha are never matched.
+func (s *Store) EventsForSHAPrefixes(prefixes []string) ([]Event, error) {
+	if len(prefixes) == 0 {
+		return nil, nil
+	}
+	rows, err := s.db.Query(
+		`SELECT sha,type,status,detail,created FROM lore_events ORDER BY created ASC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Event
+	for rows.Next() {
+		var e Event
+		if err := rows.Scan(&e.SHA, &e.Type, &e.Status, &e.Detail, &e.Created); err != nil {
+			return nil, err
+		}
+		// Skip empty-SHA events; they never match.
+		if e.SHA == "" {
+			continue
+		}
+		for _, p := range prefixes {
+			if strings.HasPrefix(e.SHA, p) || strings.HasPrefix(p, e.SHA) {
+				out = append(out, e)
+				break
+			}
+		}
+	}
+	return out, rows.Err()
 }

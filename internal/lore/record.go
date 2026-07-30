@@ -39,6 +39,7 @@ type Record struct {
 	Anchors      []Anchor
 	Refs         []Ref
 	Body         string
+	Extra        map[string]any // unknown frontmatter keys preserved for forward-compat
 }
 
 func NewID(t Type) string {
@@ -72,6 +73,22 @@ type wire struct {
 	Refs         []map[string]string `yaml:"refs,omitempty"`
 }
 
+// knownKeys lists the yaml tag names of all wire struct fields. This must stay
+// in sync with wire (enforced by TestKnownKeysCoversWireFields).
+var knownKeys = []string{
+	"id",
+	"title",
+	"status",
+	"date",
+	"supersedes",
+	"superseded_by",
+	"priority",
+	"blocked_by",
+	"tags",
+	"anchors",
+	"refs",
+}
+
 // Parse splits frontmatter from body and decodes. The type comes from the
 // caller (derived from the directory), never from the file.
 func Parse(b []byte, t Type) (Record, error) {
@@ -87,13 +104,27 @@ func Parse(b []byte, t Type) (Record, error) {
 	if err := yaml.Unmarshal(fm, &w); err != nil {
 		return Record{}, fmt.Errorf("frontmatter: %w", err)
 	}
+
+	// Second pass: capture unknown keys into Extra.
+	var all map[string]any
+	if err := yaml.Unmarshal(fm, &all); err != nil {
+		return Record{}, fmt.Errorf("frontmatter (extra pass): %w", err)
+	}
+	for _, k := range knownKeys {
+		delete(all, k)
+	}
+	var extra map[string]any
+	if len(all) > 0 {
+		extra = all
+	}
+
 	bodyStr := string(body)
 	bodyStr, _ = strings.CutPrefix(bodyStr, "\n")
 	r := Record{
 		ID: w.ID, Type: t, Title: w.Title, Status: w.Status, Date: w.Date,
 		Supersedes: w.Supersedes, SupersededBy: w.SupersededBy,
 		Priority: w.Priority, BlockedBy: w.BlockedBy, Tags: w.Tags,
-		Body: bodyStr,
+		Body: bodyStr, Extra: extra,
 	}
 	for _, m := range w.Anchors {
 		r.Anchors = append(r.Anchors, Anchor{Path: m["path"], Symbol: m["symbol"]})
@@ -132,6 +163,28 @@ func (r Record) Marshal() ([]byte, error) {
 	var buf bytes.Buffer
 	buf.WriteString("---\n")
 	buf.Write(fm)
+	if len(r.Extra) > 0 {
+		// Marshal-side collision guard: filter Extra to exclude keys in knownKeys.
+		// This prevents deliberate API misuse like r.Extra["title"] from creating
+		// duplicate YAML keys where the last one silently wins.
+		filteredExtra := make(map[string]any)
+		knownKeysMap := make(map[string]bool)
+		for _, k := range knownKeys {
+			knownKeysMap[k] = true
+		}
+		for k, v := range r.Extra {
+			if !knownKeysMap[k] {
+				filteredExtra[k] = v
+			}
+		}
+		if len(filteredExtra) > 0 {
+			extraBytes, err := yaml.Marshal(filteredExtra)
+			if err != nil {
+				return nil, err
+			}
+			buf.Write(extraBytes)
+		}
+	}
 	buf.WriteString("---\n")
 	buf.WriteString("\n")
 	buf.WriteString(r.Body)

@@ -36,6 +36,9 @@ func Search(recs []StoredRecord, query string, now time.Time, limit int) []Hit {
 		if r.Stale {
 			score *= 0.7
 		}
+		// Confidence multiplier: 0.8 + 0.4×confidence (range 0.8–1.2).
+		// Evidence nudges ranking but never dominates; zero confidence → 0.8.
+		score *= 0.8 + 0.4*r.Confidence
 		hits = append(hits, Hit{Rec: r, Score: score, Snippet: snippet})
 	}
 	sort.Slice(hits, func(i, j int) bool {
