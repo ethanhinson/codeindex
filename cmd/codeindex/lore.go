@@ -1,0 +1,627 @@
+package main
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
+	"time"
+
+	"codeindex/internal/lore"
+	"codeindex/internal/lore/index"
+)
+
+func loreDBPath(root string) string {
+	return filepath.Join(root, ".codeindex", "lore.db")
+}
+
+// loreReindex is every lore subcommand's preamble: locate layers, patch the
+// derived index, hand back the open store. Parse errors are fail-open (the
+// report carries them; doctor surfaces them).
+func loreReindex(root string) (lore.Layout, *index.Store, index.Report, error) {
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		return lore.Layout{}, nil, index.Report{}, err
+	}
+	st, rep, err := index.Reindex(l, loreDBPath(root))
+	return l, st, rep, err
+}
+
+const loreUsage = "usage: codeindex lore <repo-root> " +
+	"<add|show|search|for|backlog|promote|supersede|doctor|init> ..."
+
+func runLore(root string, args []string, out io.Writer) error {
+	if len(args) == 0 {
+		return errors.New(loreUsage)
+	}
+	switch args[0] {
+	case "add":
+		return loreAdd(root, args[1:], out)
+	case "show":
+		return loreShow(root, args[1:], out)
+	case "search":
+		return loreSearch(root, args[1:], out)
+	case "for":
+		return loreFor(root, args[1:], out)
+	case "backlog":
+		return loreBacklog(root, args[1:], out)
+	case "promote":
+		return lorePromote(root, args[1:], out)
+	case "supersede":
+		return loreSupersede(root, args[1:], out)
+	case "doctor":
+		return loreDoctor(root, args[1:], out)
+	case "init":
+		return loreInit(root, args[1:], out)
+	default:
+		return fmt.Errorf("unknown lore subcommand %q\n%s", args[0], loreUsage)
+	}
+}
+
+// --- init ---
+
+const loreReadme = `# .lore/ — project decisions, work items, and notes
+
+Records are Markdown files with YAML frontmatter, one file per record,
+managed by ` + "`codeindex lore`" + ` and reviewed like code (they land via PRs).
+
+- decisions/ — why the code is the way it is; status: active | superseded | rejected
+- items/     — known work; status: open | done | dropped; priority p0..p3
+- notes/     — gotchas, conventions, context
+
+Useful commands:
+  codeindex lore . add decision --title "..." --body - --anchor symbol:Foo
+  codeindex lore . search "query"
+  codeindex lore . for internal/some/pkg/
+  codeindex lore . backlog
+  codeindex lore . doctor
+`
+
+func loreInit(root string, args []string, out io.Writer) error {
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		return err
+	}
+	readme := filepath.Join(l.RepoDir, "README.md")
+	if _, err := os.Stat(readme); err == nil {
+		fmt.Fprintln(out, "already initialized:", l.RepoDir)
+		return nil
+	}
+	for _, t := range []lore.Type{lore.TypeDecision, lore.TypeItem, lore.TypeNote} {
+		if err := os.MkdirAll(l.Dir("repo", t), 0o755); err != nil {
+			return err
+		}
+	}
+	if err := os.WriteFile(readme, []byte(loreReadme), 0o644); err != nil {
+		return err
+	}
+	fmt.Fprintf(out, "initialized %s (decisions/ items/ notes/)\n", l.RepoDir)
+	fmt.Fprintln(out, "note: keep .codeindex/ gitignored — the lore index (lore.db) is derived")
+	return nil
+}
+
+// --- flag helpers (plain args scan, matching main.go's style) ---
+
+func stringFlag(args []string, name string) string {
+	for i := 0; i < len(args)-1; i++ {
+		if args[i] == name {
+			return args[i+1]
+		}
+	}
+	return ""
+}
+
+func multiFlag(args []string, name string) []string {
+	var out []string
+	for i := 0; i < len(args)-1; i++ {
+		if args[i] == name {
+			out = append(out, args[i+1])
+		}
+	}
+	return out
+}
+
+func boolIn(args []string, name string) bool {
+	for _, a := range args {
+		if a == name {
+			return true
+		}
+	}
+	return false
+}
+
+// --- record construction helpers ---
+
+// recordFromFlags builds a new record of typ from add-style flags.
+func recordFromFlags(typ lore.Type, args []string) (lore.Record, error) {
+	title := stringFlag(args, "--title")
+	if title == "" {
+		return lore.Record{}, fmt.Errorf("--title is required")
+	}
+	body := stringFlag(args, "--body")
+	if body == "-" {
+		b, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			return lore.Record{}, err
+		}
+		body = string(b)
+	}
+	if body != "" && !strings.HasSuffix(body, "\n") {
+		body += "\n"
+	}
+	rec := lore.Record{
+		ID: lore.NewID(typ), Type: typ, Title: title,
+		Status: lore.DefaultStatus(typ),
+		Date:   time.Now().UTC().Format("2006-01-02"),
+		Body:   body, Priority: stringFlag(args, "--priority"),
+		Tags: multiFlag(args, "--tag"), BlockedBy: multiFlag(args, "--blocked-by"),
+	}
+	for _, a := range multiFlag(args, "--anchor") {
+		kind, val, ok := strings.Cut(a, ":")
+		if !ok || (kind != "path" && kind != "symbol") {
+			return lore.Record{}, fmt.Errorf("bad --anchor %q (want path:P or symbol:S)", a)
+		}
+		if kind == "path" {
+			rec.Anchors = append(rec.Anchors, lore.Anchor{Path: val})
+		} else {
+			rec.Anchors = append(rec.Anchors, lore.Anchor{Symbol: val})
+		}
+	}
+	for _, r := range multiFlag(args, "--ref") {
+		kind, val, ok := strings.Cut(r, ":")
+		if !ok {
+			return lore.Record{}, fmt.Errorf("bad --ref %q (want kind:value)", r)
+		}
+		rec.Refs = append(rec.Refs, lore.Ref{Kind: kind, Value: val})
+	}
+	return rec, nil
+}
+
+// writeNewRecord marshals rec and writes it into the layer/type directory,
+// disambiguating same-day slug collisions with the ID tail.
+func writeNewRecord(l lore.Layout, rec lore.Record, layer string) (string, error) {
+	dir := l.Dir(layer, rec.Type)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return "", err
+	}
+	name := rec.Date + "-" + lore.Slug(rec.Title) + ".md"
+	path := filepath.Join(dir, name)
+	if _, err := os.Stat(path); err == nil {
+		name = rec.Date + "-" + lore.Slug(rec.Title) + "-" + rec.ID[len(rec.ID)-6:] + ".md"
+		path = filepath.Join(dir, name)
+	}
+	b, err := rec.Marshal()
+	if err != nil {
+		return "", err
+	}
+	return path, os.WriteFile(path, b, 0o644)
+}
+
+// --- add ---
+
+func loreAdd(root string, args []string, out io.Writer) error {
+	if len(args) < 1 {
+		return fmt.Errorf("usage: codeindex lore <repo> add <decision|item|note> --title T ...")
+	}
+	typ := lore.Type(args[0])
+	if typ != lore.TypeDecision && typ != lore.TypeItem && typ != lore.TypeNote {
+		return fmt.Errorf("unknown record type %q (want decision|item|note)", args[0])
+	}
+	rec, err := recordFromFlags(typ, args[1:])
+	if err != nil {
+		return err
+	}
+	layer := "repo"
+	if boolIn(args, "--private") {
+		layer = "overlay"
+	}
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		return err
+	}
+	path, err := writeNewRecord(l, rec, layer)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(out, "created %s %s\n", rec.ID, path)
+	return nil
+}
+
+// --- show ---
+
+func loreShow(root string, args []string, out io.Writer) error {
+	if len(args) < 1 {
+		return fmt.Errorf("usage: codeindex lore <repo> show <id>")
+	}
+	_, st, _, err := loreReindex(root)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+	r, ok, err := st.Get(args[0])
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return fmt.Errorf("no record %q", args[0])
+	}
+	flags := ""
+	if r.Stale {
+		flags = "  STALE"
+	}
+	fmt.Fprintf(out, "%s  %s/%s  %s  %s%s\n\n", r.ID, r.Type, orDash(r.Status),
+		r.Layer, r.File, flags)
+	b, err := r.Record.Marshal()
+	if err != nil {
+		return err
+	}
+	if _, err := out.Write(b); err != nil {
+		return err
+	}
+	return nil
+}
+
+func orDash(s string) string {
+	if s == "" {
+		return "-"
+	}
+	return s
+}
+
+// --- JSON output ---
+
+type loreJSON struct {
+	ID       string  `json:"id"`
+	Type     string  `json:"type"`
+	Title    string  `json:"title"`
+	Status   string  `json:"status,omitempty"`
+	Date     string  `json:"date"`
+	Layer    string  `json:"layer"`
+	File     string  `json:"file"`
+	Stale    bool    `json:"stale,omitempty"`
+	Score    float64 `json:"score,omitempty"`
+	Snippet  string  `json:"snippet,omitempty"`
+	Priority string  `json:"priority,omitempty"`
+	Blocked  bool    `json:"blocked,omitempty"`
+}
+
+func toJSON(out io.Writer, v any) error {
+	b, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprintln(out, string(b))
+	return err
+}
+
+// --- search ---
+
+func loreSearch(root string, args []string, out io.Writer) error {
+	if len(args) < 1 {
+		return fmt.Errorf("usage: codeindex lore <repo> search <query> [--limit N] [--json]")
+	}
+	limit := 10
+	if v := stringFlag(args, "--limit"); v != "" {
+		fmt.Sscanf(v, "%d", &limit)
+	}
+	_, st, _, err := loreReindex(root)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+	all, err := st.All()
+	if err != nil {
+		return err
+	}
+	hits := index.Search(all, args[0], time.Now().UTC(), limit)
+	if boolIn(args, "--json") {
+		js := make([]loreJSON, 0, len(hits))
+		for _, h := range hits {
+			js = append(js, loreJSON{ID: h.Rec.ID, Type: string(h.Rec.Type),
+				Title: h.Rec.Title, Status: h.Rec.Status, Date: h.Rec.Date,
+				Layer: h.Rec.Layer, File: h.Rec.File, Stale: h.Rec.Stale,
+				Score: h.Score, Snippet: h.Snippet})
+		}
+		return toJSON(out, js)
+	}
+	for _, h := range hits {
+		fmt.Fprintf(out, "%s  %.2f  [%s/%s]  %s — %s\n",
+			h.Rec.ID, h.Score, h.Rec.Layer, orDash(h.Rec.Status), h.Rec.Title, h.Snippet)
+	}
+	return nil
+}
+
+// --- for ---
+
+// anchorMatches reports whether record anchor a covers query anchor q:
+// symbols match exactly; paths match on either-direction prefix.
+func anchorMatches(a lore.Anchor, q string) bool {
+	if a.Symbol != "" {
+		return a.Symbol == q
+	}
+	ap := strings.TrimSuffix(a.Path, "/")
+	qp := strings.TrimSuffix(q, "/")
+	return ap != "" && (strings.HasPrefix(qp, ap) || strings.HasPrefix(ap, qp))
+}
+
+func loreFor(root string, args []string, out io.Writer) error {
+	if len(args) < 1 {
+		return fmt.Errorf("usage: codeindex lore <repo> for <path-or-symbol> [--json]")
+	}
+	_, st, _, err := loreReindex(root)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+	all, err := st.All()
+	if err != nil {
+		return err
+	}
+	var matched []index.StoredRecord
+	for _, r := range all {
+		for _, a := range r.Anchors {
+			if anchorMatches(a, args[0]) {
+				matched = append(matched, r)
+				break
+			}
+		}
+	}
+	if boolIn(args, "--json") {
+		js := make([]loreJSON, 0, len(matched))
+		for _, r := range matched {
+			js = append(js, loreJSON{ID: r.ID, Type: string(r.Type), Title: r.Title,
+				Status: r.Status, Date: r.Date, Layer: r.Layer, File: r.File, Stale: r.Stale})
+		}
+		return toJSON(out, js)
+	}
+	for _, r := range matched {
+		fmt.Fprintf(out, "%s  [%s/%s]  %s\n", r.ID, r.Layer, orDash(r.Status), r.Title)
+	}
+	return nil
+}
+
+// --- promote ---
+
+func lorePromote(root string, args []string, out io.Writer) error {
+	if len(args) < 1 {
+		return fmt.Errorf("usage: codeindex lore <repo> promote <id>")
+	}
+	l, st, _, err := loreReindex(root)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+	r, ok, err := st.Get(args[0])
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return fmt.Errorf("no record %q", args[0])
+	}
+	if r.Layer == "repo" {
+		return fmt.Errorf("%s is already in the committed layer (%s)", r.ID, r.File)
+	}
+	dest := l.Dir("repo", r.Type) // session records promote as their parsed type (note)
+	if err := os.MkdirAll(dest, 0o755); err != nil {
+		return err
+	}
+	newPath := filepath.Join(dest, filepath.Base(r.File))
+	if _, err := os.Stat(newPath); err == nil {
+		base := strings.TrimSuffix(filepath.Base(r.File), ".md")
+		newPath = filepath.Join(dest, base+"-"+r.ID[len(r.ID)-6:]+".md")
+	}
+	b, err := os.ReadFile(r.File)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(newPath, b, 0o644); err != nil {
+		return err
+	}
+	if err := os.Remove(r.File); err != nil {
+		return err
+	}
+	fmt.Fprintf(out, "promoted %s %s\n", r.ID, newPath)
+	return nil
+}
+
+// --- supersede ---
+
+func loreSupersede(root string, args []string, out io.Writer) error {
+	if len(args) < 1 {
+		return fmt.Errorf("usage: codeindex lore <repo> supersede <old-id> --title T ...")
+	}
+	l, st, _, err := loreReindex(root)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+	old, ok, err := st.Get(args[0])
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return fmt.Errorf("no record %q", args[0])
+	}
+	if old.Type != lore.TypeDecision {
+		return fmt.Errorf("%s is a %s; only decisions are superseded", old.ID, old.Type)
+	}
+	rec, err := recordFromFlags(lore.TypeDecision, args[1:])
+	if err != nil {
+		return err
+	}
+	rec.Supersedes = old.ID
+	path, err := writeNewRecord(l, rec, "repo")
+	if err != nil {
+		return err
+	}
+	// Durable transition on the old record: rewrite its file.
+	ob, err := os.ReadFile(old.File)
+	if err != nil {
+		return err
+	}
+	or, err := lore.Parse(ob, old.Type)
+	if err != nil {
+		return err
+	}
+	or.Status = "superseded"
+	or.SupersededBy = rec.ID
+	nb, err := or.Marshal()
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(old.File, nb, 0o644); err != nil {
+		return err
+	}
+	fmt.Fprintf(out, "created %s %s\n", rec.ID, path)
+	fmt.Fprintf(out, "superseded %s\n", old.ID)
+	return nil
+}
+
+// --- backlog ---
+
+func loreBacklog(root string, args []string, out io.Writer) error {
+	_, st, _, err := loreReindex(root)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+	all, err := st.All()
+	if err != nil {
+		return err
+	}
+	openIDs := map[string]bool{}
+	for _, r := range all {
+		if r.Type == lore.TypeItem && r.Status == "open" {
+			openIDs[r.ID] = true
+		}
+	}
+	anchor := stringFlag(args, "--for")
+	var items []index.StoredRecord
+	for _, r := range all {
+		if r.Type != lore.TypeItem || r.Status != "open" {
+			continue
+		}
+		if anchor != "" {
+			ok := false
+			for _, a := range r.Anchors {
+				if anchorMatches(a, anchor) {
+					ok = true
+					break
+				}
+			}
+			if !ok {
+				continue
+			}
+		}
+		items = append(items, r)
+	}
+	blocked := func(r index.StoredRecord) bool {
+		for _, b := range r.BlockedBy {
+			if openIDs[b] {
+				return true
+			}
+		}
+		return false
+	}
+	prio := func(p string) string {
+		if p == "" {
+			return "p2"
+		}
+		return p
+	}
+	sort.SliceStable(items, func(i, j int) bool {
+		pi, pj := prio(items[i].Priority), prio(items[j].Priority)
+		if pi != pj {
+			return pi < pj
+		}
+		bi, bj := blocked(items[i]), blocked(items[j])
+		if bi != bj {
+			return !bi
+		}
+		return items[i].Date < items[j].Date
+	})
+	if boolIn(args, "--json") {
+		js := make([]loreJSON, 0, len(items))
+		for _, r := range items {
+			js = append(js, loreJSON{ID: r.ID, Type: string(r.Type), Title: r.Title,
+				Status: r.Status, Date: r.Date, Layer: r.Layer, File: r.File,
+				Priority: prio(r.Priority), Blocked: blocked(r)})
+		}
+		return toJSON(out, js)
+	}
+	for _, r := range items {
+		state := "ready"
+		if blocked(r) {
+			state = "BLOCKED"
+		}
+		fmt.Fprintf(out, "%s  %s  %s  %s\n", r.ID, prio(r.Priority), state, r.Title)
+	}
+	return nil
+}
+
+// --- doctor ---
+
+func loreDoctor(root string, args []string, out io.Writer) error {
+	_, st, rep, err := loreReindex(root)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+	findings := 0
+	for _, fe := range rep.Errors {
+		fmt.Fprintf(out, "parse-error  %s  %v\n", fe.Path, fe.Err)
+		findings++
+	}
+	all, err := st.All()
+	if err != nil {
+		return err
+	}
+	stale, err := index.StaleRecords(root, dbPath(root), all)
+	if err != nil {
+		return err
+	}
+	byID := map[string]index.StoredRecord{}
+	for _, r := range all {
+		byID[r.ID] = r
+	}
+	for _, r := range all {
+		if stale[r.ID] {
+			fmt.Fprintf(out, "stale-anchor  %s  %s\n", r.ID, r.Title)
+			findings++
+			if err := st.SetStale(r.ID, true); err != nil {
+				return err
+			}
+		} else if r.Stale {
+			if err := st.SetStale(r.ID, false); err != nil {
+				return err
+			}
+		}
+		if r.Supersedes != "" {
+			if _, ok := byID[r.Supersedes]; !ok {
+				fmt.Fprintf(out, "dangling-ref  %s  supersedes %s\n", r.ID, r.Supersedes)
+				findings++
+			}
+		}
+		for _, b := range r.BlockedBy {
+			if _, ok := byID[b]; !ok {
+				fmt.Fprintf(out, "dangling-ref  %s  blocked_by %s\n", r.ID, b)
+				findings++
+			}
+		}
+		if r.SupersededBy != "" && r.Status != "superseded" {
+			fmt.Fprintf(out, "inconsistent  %s  superseded_by set but status is %s\n",
+				r.ID, orDash(r.Status))
+			findings++
+		}
+	}
+	if findings == 0 {
+		fmt.Fprintln(out, "ok: no findings")
+	} else {
+		fmt.Fprintf(out, "%d finding(s)\n", findings)
+	}
+	return nil
+}

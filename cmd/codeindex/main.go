@@ -28,7 +28,7 @@ const version = "0.2.0"
 func main() {
 	if len(os.Args) < 3 {
 		fmt.Fprintln(os.Stderr,
-			"usage: codeindex <build|refresh|status|callers|callees|impact|dependents|deps|find|grep|tree|depmap|attach|export|import|enclosing|mcp|bench> <repo-root> ...")
+			"usage: codeindex <build|refresh|status|callers|callees|impact|dependents|deps|find|grep|tree|depmap|attach|export|import|enclosing|lore|mcp|bench> <repo-root> ...")
 		os.Exit(2)
 	}
 	cmd, root := os.Args[1], os.Args[2]
@@ -215,6 +215,10 @@ func main() {
 		}
 	case "tree":
 		if err := runTree(root); err != nil {
+			fatal(err)
+		}
+	case "lore":
+		if err := runLore(root, os.Args[3:], os.Stdout); err != nil {
 			fatal(err)
 		}
 	case "enclosing":

@@ -80,6 +80,26 @@ codeindex bench <repo> [out.json]         throughput benchmark and incremental-v
 
 Most query commands take `--limit N` (default 50).
 
+## Lore: decisions, work items, and notes
+
+`codeindex lore` keeps project knowledge in the repo — decisions (with
+rationale and rejected alternatives), a backlog of work items, and notes —
+as Markdown records in `.lore/`, versioned and reviewed like code, plus a
+private per-user overlay. Records anchor to files and symbols in the index,
+so `lore for <path|symbol>` answers "what do we know about the code I am
+about to change", and anchors go detectably stale when the code moves on.
+
+```
+codeindex lore <repo> init                      scaffold .lore/
+codeindex lore <repo> add <type> --title ...    record a decision/item/note (--private for the overlay)
+codeindex lore <repo> search <query>            ranked search across layers
+codeindex lore <repo> for <path|symbol>         records anchored to this code
+codeindex lore <repo> backlog [--for anchor]    open items, priority-ordered
+codeindex lore <repo> promote <id>              private record -> committed .lore/
+codeindex lore <repo> supersede <id> --title .. replace a decision, back-linked
+codeindex lore <repo> doctor                    stale anchors, dangling refs, parse errors
+```
+
 ## Using it with Claude Code
 
 The `plugin/` directory ships a Claude Code plugin with three pieces:
