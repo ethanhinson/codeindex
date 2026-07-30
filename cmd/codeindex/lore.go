@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -41,6 +42,10 @@ func runLore(root string, args []string, out io.Writer) error {
 		return loreAdd(root, args[1:], out)
 	case "show":
 		return loreShow(root, args[1:], out)
+	case "search":
+		return loreSearch(root, args[1:], out)
+	case "for":
+		return loreFor(root, args[1:], out)
 	default:
 		return fmt.Errorf("unknown lore subcommand %q\n%s", args[0], loreUsage)
 	}
@@ -195,4 +200,114 @@ func orDash(s string) string {
 		return "-"
 	}
 	return s
+}
+
+// --- JSON output ---
+
+type loreJSON struct {
+	ID      string  `json:"id"`
+	Type    string  `json:"type"`
+	Title   string  `json:"title"`
+	Status  string  `json:"status,omitempty"`
+	Date    string  `json:"date"`
+	Layer   string  `json:"layer"`
+	File    string  `json:"file"`
+	Stale   bool    `json:"stale,omitempty"`
+	Score   float64 `json:"score,omitempty"`
+	Snippet string  `json:"snippet,omitempty"`
+}
+
+func toJSON(out io.Writer, v any) error {
+	b, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprintln(out, string(b))
+	return err
+}
+
+// --- search ---
+
+func loreSearch(root string, args []string, out io.Writer) error {
+	if len(args) < 1 {
+		return fmt.Errorf("usage: codeindex lore <repo> search <query> [--limit N] [--json]")
+	}
+	limit := 10
+	if v := stringFlag(args, "--limit"); v != "" {
+		fmt.Sscanf(v, "%d", &limit)
+	}
+	_, st, _, err := loreReindex(root)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+	all, err := st.All()
+	if err != nil {
+		return err
+	}
+	hits := index.Search(all, args[0], time.Now().UTC(), limit)
+	if boolIn(args, "--json") {
+		js := make([]loreJSON, 0, len(hits))
+		for _, h := range hits {
+			js = append(js, loreJSON{ID: h.Rec.ID, Type: string(h.Rec.Type),
+				Title: h.Rec.Title, Status: h.Rec.Status, Date: h.Rec.Date,
+				Layer: h.Rec.Layer, File: h.Rec.File, Stale: h.Rec.Stale,
+				Score: h.Score, Snippet: h.Snippet})
+		}
+		return toJSON(out, js)
+	}
+	for _, h := range hits {
+		fmt.Fprintf(out, "%s  %.2f  [%s/%s]  %s — %s\n",
+			h.Rec.ID, h.Score, h.Rec.Layer, orDash(h.Rec.Status), h.Rec.Title, h.Snippet)
+	}
+	return nil
+}
+
+// --- for ---
+
+// anchorMatches reports whether record anchor a covers query anchor q:
+// symbols match exactly; paths match on either-direction prefix.
+func anchorMatches(a lore.Anchor, q string) bool {
+	if a.Symbol != "" {
+		return a.Symbol == q
+	}
+	ap := strings.TrimSuffix(a.Path, "/")
+	qp := strings.TrimSuffix(q, "/")
+	return ap != "" && (strings.HasPrefix(qp, ap) || strings.HasPrefix(ap, qp))
+}
+
+func loreFor(root string, args []string, out io.Writer) error {
+	if len(args) < 1 {
+		return fmt.Errorf("usage: codeindex lore <repo> for <path-or-symbol> [--json]")
+	}
+	_, st, _, err := loreReindex(root)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+	all, err := st.All()
+	if err != nil {
+		return err
+	}
+	var matched []index.StoredRecord
+	for _, r := range all {
+		for _, a := range r.Anchors {
+			if anchorMatches(a, args[0]) {
+				matched = append(matched, r)
+				break
+			}
+		}
+	}
+	if boolIn(args, "--json") {
+		js := make([]loreJSON, 0, len(matched))
+		for _, r := range matched {
+			js = append(js, loreJSON{ID: r.ID, Type: string(r.Type), Title: r.Title,
+				Status: r.Status, Date: r.Date, Layer: r.Layer, File: r.File, Stale: r.Stale})
+		}
+		return toJSON(out, js)
+	}
+	for _, r := range matched {
+		fmt.Fprintf(out, "%s  [%s/%s]  %s\n", r.ID, r.Layer, orDash(r.Status), r.Title)
+	}
+	return nil
 }

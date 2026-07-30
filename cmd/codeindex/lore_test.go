@@ -68,3 +68,36 @@ func TestLoreShowUnknownID(t *testing.T) {
 		t.Fatal("want error for unknown id")
 	}
 }
+
+func TestLoreSearchTextAndJSON(t *testing.T) {
+	root := loreTestRepo(t)
+	runLoreOK(t, root, "add", "decision", "--title", "Use Go for the engine",
+		"--body", "static binary")
+	runLoreOK(t, root, "add", "note", "--title", "Unrelated", "--body", "zzz")
+
+	out := runLoreOK(t, root, "search", "go engine")
+	if !strings.Contains(out, "dec-") || strings.Contains(out, "Unrelated") {
+		t.Fatalf("search text:\n%s", out)
+	}
+	js := runLoreOK(t, root, "search", "go engine", "--json")
+	if !strings.Contains(js, `"title": "Use Go for the engine"`) {
+		t.Fatalf("search json:\n%s", js)
+	}
+}
+
+func TestLoreFor(t *testing.T) {
+	root := loreTestRepo(t)
+	runLoreOK(t, root, "add", "decision", "--title", "Engine dir decision",
+		"--anchor", "path:internal/engine/")
+	runLoreOK(t, root, "add", "decision", "--title", "Symbol decision",
+		"--anchor", "symbol:ResolveImports")
+
+	out := runLoreOK(t, root, "for", "internal/engine/resolver.go")
+	if !strings.Contains(out, "Engine dir decision") || strings.Contains(out, "Symbol decision") {
+		t.Fatalf("for path:\n%s", out)
+	}
+	out = runLoreOK(t, root, "for", "ResolveImports")
+	if !strings.Contains(out, "Symbol decision") {
+		t.Fatalf("for symbol:\n%s", out)
+	}
+}
