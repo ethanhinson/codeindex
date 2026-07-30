@@ -35,6 +35,7 @@ type Record struct {
 	SupersededBy string
 	Priority     string // items: p0..p3
 	BlockedBy    []string
+	Related      []string
 	Tags         []string
 	Anchors      []Anchor
 	Refs         []Ref
@@ -68,6 +69,7 @@ type wire struct {
 	SupersededBy string              `yaml:"superseded_by,omitempty"`
 	Priority     string              `yaml:"priority,omitempty"`
 	BlockedBy    []string            `yaml:"blocked_by,omitempty,flow"`
+	Related      []string            `yaml:"related,omitempty,flow"`
 	Tags         []string            `yaml:"tags,omitempty,flow"`
 	Anchors      []map[string]string `yaml:"anchors,omitempty"`
 	Refs         []map[string]string `yaml:"refs,omitempty"`
@@ -84,6 +86,7 @@ var knownKeys = []string{
 	"superseded_by",
 	"priority",
 	"blocked_by",
+	"related",
 	"tags",
 	"anchors",
 	"refs",
@@ -123,7 +126,7 @@ func Parse(b []byte, t Type) (Record, error) {
 	r := Record{
 		ID: w.ID, Type: t, Title: w.Title, Status: w.Status, Date: w.Date,
 		Supersedes: w.Supersedes, SupersededBy: w.SupersededBy,
-		Priority: w.Priority, BlockedBy: w.BlockedBy, Tags: w.Tags,
+		Priority: w.Priority, BlockedBy: w.BlockedBy, Related: w.Related, Tags: w.Tags,
 		Body: bodyStr, Extra: extra,
 	}
 	for _, m := range w.Anchors {
@@ -141,7 +144,7 @@ func (r Record) Marshal() ([]byte, error) {
 	w := wire{
 		ID: r.ID, Title: r.Title, Status: r.Status, Date: r.Date,
 		Supersedes: r.Supersedes, SupersededBy: r.SupersededBy,
-		Priority: r.Priority, BlockedBy: r.BlockedBy, Tags: r.Tags,
+		Priority: r.Priority, BlockedBy: r.BlockedBy, Related: r.Related, Tags: r.Tags,
 	}
 	for _, a := range r.Anchors {
 		m := map[string]string{}
