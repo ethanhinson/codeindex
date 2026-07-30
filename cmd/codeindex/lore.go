@@ -32,7 +32,7 @@ func loreReindex(root string) (lore.Layout, *index.Store, index.Report, error) {
 }
 
 const loreUsage = "usage: codeindex lore <repo-root> " +
-	"<add|show|search|for|backlog|promote|supersede|doctor|init> ..."
+	"<add|show|search|for|backlog|promote|supersede|doctor|init|capture> ..."
 
 func runLore(root string, args []string, out io.Writer) error {
 	if len(args) == 0 {
@@ -57,6 +57,8 @@ func runLore(root string, args []string, out io.Writer) error {
 		return loreDoctor(root, args[1:], out)
 	case "init":
 		return loreInit(root, args[1:], out)
+	case "capture":
+		return loreCapture(root, args[1:], out)
 	default:
 		return fmt.Errorf("unknown lore subcommand %q\n%s", args[0], loreUsage)
 	}
@@ -101,6 +103,28 @@ func loreInit(root string, args []string, out io.Writer) error {
 	}
 	fmt.Fprintf(out, "initialized %s (decisions/ items/ notes/)\n", l.RepoDir)
 	fmt.Fprintln(out, "note: keep .codeindex/ gitignored — the lore index (lore.db) is derived")
+	return nil
+}
+
+// --- capture ---
+
+func loreCapture(root string, args []string, out io.Writer) error {
+	if !boolIn(args, "--stdin") {
+		return errors.New("usage: codeindex lore <repo> capture --stdin")
+	}
+	raw, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		return nil // fail-open: hooks must never surface errors
+	}
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		return nil
+	}
+	path, err := lore.CaptureSession(l, raw, time.Now().UTC())
+	if err != nil || path == "" {
+		return nil
+	}
+	fmt.Fprintf(out, "captured %s\n", path)
 	return nil
 }
 

@@ -279,3 +279,11 @@ func TestLoreBacklogJSONCarriesPriorityAndBlocked(t *testing.T) {
 		t.Fatalf("backlog json missing priority/blocked:\n%s", js)
 	}
 }
+
+func TestLoreCaptureRequiresStdinFlag(t *testing.T) {
+	root := loreTestRepo(t)
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"capture"}, &buf); err == nil {
+		t.Fatal("want usage error without --stdin")
+	}
+}
