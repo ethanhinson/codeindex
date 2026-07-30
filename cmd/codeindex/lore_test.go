@@ -287,3 +287,30 @@ func TestLoreCaptureRequiresStdinFlag(t *testing.T) {
 		t.Fatal("want usage error without --stdin")
 	}
 }
+
+func TestLoreInitHostCursorAndCodex(t *testing.T) {
+	root := loreTestRepo(t)
+	runLoreOK(t, root, "init", "--host", "cursor")
+	b, err := os.ReadFile(filepath.Join(root, ".cursor", "rules", "lore.mdc"))
+	if err != nil || !strings.Contains(string(b), "alwaysApply: true") ||
+		!strings.Contains(string(b), "codeindex lore") {
+		t.Fatalf("cursor rule: %v\n%s", err, b)
+	}
+	runLoreOK(t, root, "init", "--host", "codex")
+	runLoreOK(t, root, "init", "--host", "codex") // idempotent
+	ab, err := os.ReadFile(filepath.Join(root, "AGENTS.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Count(string(ab), "codeindex-lore:start") != 1 {
+		t.Fatalf("managed block duplicated:\n%s", ab)
+	}
+}
+
+func TestLoreInitHostUnknown(t *testing.T) {
+	root := loreTestRepo(t)
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"init", "--host", "vim"}, &buf); err == nil {
+		t.Fatal("want error for unknown host")
+	}
+}

@@ -66,6 +66,17 @@ func runLore(root string, args []string, out io.Writer) error {
 
 // --- init ---
 
+// loreHostContract is the behavioral contract injected into every host surface
+// (Cursor .mdc rule, Codex AGENTS.md block). Single source of truth so the
+// three hosts never drift.
+const loreHostContract = `This repo keeps lore: committed decisions, work items, and notes (.lore/).
+Before architectural choices or when past decisions are referenced, search lore
+first: codeindex lore <root> search '<query>' (or the lore_search / lore_for_symbol
+MCP tools). When a decision is made or a non-obvious root cause found, record it
+with codeindex lore <root> add decision --title "..." --body - (include rejected
+alternatives). Active decisions are constraints, not suggestions.
+MCP: codeindex mcp <repo-root>`
+
 const loreReadme = `# .lore/ — project decisions, work items, and notes
 
 Records are Markdown files with YAML frontmatter, one file per record,
@@ -84,6 +95,41 @@ Useful commands:
 `
 
 func loreInit(root string, args []string, out io.Writer) error {
+	host := stringFlag(args, "--host")
+
+	if host == "" {
+		// No-flag path: unchanged behavior.
+		return loreInitScaffold(root, args, out)
+	}
+
+	// With --host: scaffold first (tolerate already-initialized), then host surface.
+	if err := loreInitScaffoldIdempotent(root, out); err != nil {
+		return err
+	}
+	switch host {
+	case "cursor":
+		return initCursor(root, out)
+	case "codex":
+		return initCodex(root, out)
+	case "claude":
+		fmt.Fprintln(out, "Claude Code plugin: see plugin/README.md — the plugin ships the hooks; lore init does not duplicate them.")
+		return nil
+	case "all":
+		if err := initCursor(root, out); err != nil {
+			return err
+		}
+		if err := initCodex(root, out); err != nil {
+			return err
+		}
+		fmt.Fprintln(out, "Claude Code plugin: see plugin/README.md — the plugin ships the hooks; lore init does not duplicate them.")
+		return nil
+	default:
+		return fmt.Errorf("unknown host %q (valid: cursor, codex, claude, all)", host)
+	}
+}
+
+// loreInitScaffold is the original no-flag loreInit behavior.
+func loreInitScaffold(root string, args []string, out io.Writer) error {
 	l, err := lore.NewLayout(root)
 	if err != nil {
 		return err
@@ -103,6 +149,94 @@ func loreInit(root string, args []string, out io.Writer) error {
 	}
 	fmt.Fprintf(out, "initialized %s (decisions/ items/ notes/)\n", l.RepoDir)
 	fmt.Fprintln(out, "note: keep .codeindex/ gitignored — the lore index (lore.db) is derived")
+	return nil
+}
+
+// loreInitScaffoldIdempotent sets up .lore/ dirs and README if not already present, silently.
+func loreInitScaffoldIdempotent(root string, out io.Writer) error {
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		return err
+	}
+	readme := filepath.Join(l.RepoDir, "README.md")
+	if _, err := os.Stat(readme); err == nil {
+		// Already initialized — nothing to do.
+		return nil
+	}
+	for _, t := range []lore.Type{lore.TypeDecision, lore.TypeItem, lore.TypeNote} {
+		if err := os.MkdirAll(l.Dir("repo", t), 0o755); err != nil {
+			return err
+		}
+	}
+	if err := os.WriteFile(readme, []byte(loreReadme), 0o644); err != nil {
+		return err
+	}
+	fmt.Fprintf(out, "initialized %s (decisions/ items/ notes/)\n", l.RepoDir)
+	fmt.Fprintln(out, "note: keep .codeindex/ gitignored — the lore index (lore.db) is derived")
+	return nil
+}
+
+const cursorMDCTemplate = `---
+description: Project lore — decisions, work items, notes
+alwaysApply: true
+---
+
+` + loreHostContract + `
+`
+
+// initCursor writes .cursor/rules/lore.mdc with alwaysApply frontmatter and the contract.
+func initCursor(root string, out io.Writer) error {
+	dir := filepath.Join(root, ".cursor", "rules")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	path := filepath.Join(dir, "lore.mdc")
+	if err := os.WriteFile(path, []byte(cursorMDCTemplate), 0o644); err != nil {
+		return err
+	}
+	fmt.Fprintf(out, "wrote %s\n", path)
+	return nil
+}
+
+const codexBlockStart = "<!-- codeindex-lore:start (managed by codeindex lore init — do not hand-edit) -->"
+const codexBlockEnd = "<!-- codeindex-lore:end -->"
+
+// initCodex appends (or replaces in-place) a marker-delimited block in AGENTS.md.
+func initCodex(root string, out io.Writer) error {
+	agentsPath := filepath.Join(root, "AGENTS.md")
+	block := codexBlockStart + "\n" + loreHostContract + "\n" + codexBlockEnd
+
+	existing, err := os.ReadFile(agentsPath)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	content := string(existing)
+	startIdx := strings.Index(content, codexBlockStart)
+	if startIdx >= 0 {
+		// Replace existing block in place.
+		endIdx := strings.Index(content, codexBlockEnd)
+		if endIdx < 0 {
+			// Malformed: just replace from start to end of file.
+			content = content[:startIdx] + block
+		} else {
+			content = content[:startIdx] + block + content[endIdx+len(codexBlockEnd):]
+		}
+	} else {
+		// Append to file (with a newline separator if file is non-empty).
+		if len(content) > 0 && !strings.HasSuffix(content, "\n") {
+			content += "\n"
+		}
+		if len(content) > 0 {
+			content += "\n"
+		}
+		content += block + "\n"
+	}
+
+	if err := os.WriteFile(agentsPath, []byte(content), 0o644); err != nil {
+		return err
+	}
+	fmt.Fprintf(out, "wrote managed lore block in %s\n", agentsPath)
 	return nil
 }
 

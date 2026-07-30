@@ -100,6 +100,40 @@ codeindex lore <repo> supersede <id> --title .. replace a decision, back-linked
 codeindex lore <repo> doctor                    stale anchors, dangling refs, parse errors
 ```
 
+### Host setup
+
+After running `lore init`, register the behavioral contract with your AI coding host so it always sees the lore context:
+
+```sh
+codeindex lore <repo> init --host cursor   # writes .cursor/rules/lore.mdc (alwaysApply)
+codeindex lore <repo> init --host codex    # writes managed block in AGENTS.md (idempotent)
+codeindex lore <repo> init --host claude   # prints pointer to plugin/README.md
+codeindex lore <repo> init --host all      # cursor + codex + claude pointer
+```
+
+**Cursor** — after running `--host cursor`, add the MCP server so lore tools are available to the agent. In `.cursor/mcp.json` (repo) or `~/.cursor/mcp.json` (global):
+
+```json
+{
+  "mcpServers": {
+    "codeindex": {
+      "command": "codeindex",
+      "args": ["mcp", "."]
+    }
+  }
+}
+```
+
+**Codex** — after running `--host codex`, add the MCP server. In `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.codeindex]
+command = "codeindex"
+args = ["mcp", "."]
+```
+
+**Claude Code** — the plugin ships the hooks; `lore init --host claude` prints a pointer to `plugin/README.md`. Install the plugin once and all lore-enabled repos get the always-visible note automatically.
+
 ## Using it with Claude Code
 
 The `plugin/` directory ships a Claude Code plugin with three pieces:
