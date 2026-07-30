@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -33,7 +34,7 @@ const loreUsage = "usage: codeindex lore <repo-root> " +
 
 func runLore(root string, args []string, out io.Writer) error {
 	if len(args) == 0 {
-		return fmt.Errorf(loreUsage)
+		return errors.New(loreUsage)
 	}
 	switch args[0] {
 	case "add":
@@ -183,7 +184,9 @@ func loreShow(root string, args []string, out io.Writer) error {
 	if err != nil {
 		return err
 	}
-	out.Write(b)
+	if _, err := out.Write(b); err != nil {
+		return err
+	}
 	return nil
 }
 
