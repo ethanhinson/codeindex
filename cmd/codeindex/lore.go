@@ -422,18 +422,19 @@ func orDash(s string) string {
 // --- JSON output ---
 
 type loreJSON struct {
-	ID       string  `json:"id"`
-	Type     string  `json:"type"`
-	Title    string  `json:"title"`
-	Status   string  `json:"status,omitempty"`
-	Date     string  `json:"date"`
-	Layer    string  `json:"layer"`
-	File     string  `json:"file"`
-	Stale    bool    `json:"stale,omitempty"`
-	Score    float64 `json:"score,omitempty"`
-	Snippet  string  `json:"snippet,omitempty"`
-	Priority string  `json:"priority,omitempty"`
-	Blocked  bool    `json:"blocked,omitempty"`
+	ID         string  `json:"id"`
+	Type       string  `json:"type"`
+	Title      string  `json:"title"`
+	Status     string  `json:"status,omitempty"`
+	Date       string  `json:"date"`
+	Layer      string  `json:"layer"`
+	File       string  `json:"file"`
+	Stale      bool    `json:"stale,omitempty"`
+	Unratified bool    `json:"unratified,omitempty"`
+	Score      float64 `json:"score,omitempty"`
+	Snippet    string  `json:"snippet,omitempty"`
+	Priority   string  `json:"priority,omitempty"`
+	Blocked    bool    `json:"blocked,omitempty"`
 }
 
 func toJSON(out io.Writer, v any) error {
@@ -443,6 +444,20 @@ func toJSON(out io.Writer, v any) error {
 	}
 	_, err = fmt.Fprintln(out, string(b))
 	return err
+}
+
+// recordFlags returns the trailing flag string for a record (e.g. "  STALE",
+// "  UNRATIFIED", or both combined). These suffixes are appended to text
+// output lines for search, for, and backlog.
+func recordFlags(stale, ratified bool) string {
+	flags := ""
+	if stale {
+		flags += "  STALE"
+	}
+	if !ratified {
+		flags += "  UNRATIFIED"
+	}
+	return flags
 }
 
 // --- search ---
@@ -471,13 +486,15 @@ func loreSearch(root string, args []string, out io.Writer) error {
 			js = append(js, loreJSON{ID: h.Rec.ID, Type: string(h.Rec.Type),
 				Title: h.Rec.Title, Status: h.Rec.Status, Date: h.Rec.Date,
 				Layer: h.Rec.Layer, File: h.Rec.File, Stale: h.Rec.Stale,
+				Unratified: !h.Rec.Ratified,
 				Score: h.Score, Snippet: h.Snippet})
 		}
 		return toJSON(out, js)
 	}
 	for _, h := range hits {
-		fmt.Fprintf(out, "%s  %.2f  [%s/%s]  %s — %s\n",
-			h.Rec.ID, h.Score, h.Rec.Layer, orDash(h.Rec.Status), h.Rec.Title, h.Snippet)
+		fmt.Fprintf(out, "%s  %.2f  [%s/%s]  %s — %s%s\n",
+			h.Rec.ID, h.Score, h.Rec.Layer, orDash(h.Rec.Status), h.Rec.Title, h.Snippet,
+			recordFlags(h.Rec.Stale, h.Rec.Ratified))
 	}
 	return nil
 }
@@ -502,12 +519,14 @@ func loreFor(root string, args []string, out io.Writer) error {
 		js := make([]loreJSON, 0, len(matched))
 		for _, r := range matched {
 			js = append(js, loreJSON{ID: r.ID, Type: string(r.Type), Title: r.Title,
-				Status: r.Status, Date: r.Date, Layer: r.Layer, File: r.File, Stale: r.Stale})
+				Status: r.Status, Date: r.Date, Layer: r.Layer, File: r.File, Stale: r.Stale,
+				Unratified: !r.Ratified})
 		}
 		return toJSON(out, js)
 	}
 	for _, r := range matched {
-		fmt.Fprintf(out, "%s  [%s/%s]  %s\n", r.ID, r.Layer, orDash(r.Status), r.Title)
+		fmt.Fprintf(out, "%s  [%s/%s]  %s%s\n", r.ID, r.Layer, orDash(r.Status), r.Title,
+			recordFlags(r.Stale, r.Ratified))
 	}
 	return nil
 }
@@ -668,7 +687,7 @@ func loreBacklog(root string, args []string, out io.Writer) error {
 		for _, r := range items {
 			js = append(js, loreJSON{ID: r.ID, Type: string(r.Type), Title: r.Title,
 				Status: r.Status, Date: r.Date, Layer: r.Layer, File: r.File,
-				Priority: prio(r.Priority), Blocked: blocked(r)})
+				Priority: prio(r.Priority), Blocked: blocked(r), Unratified: !r.Ratified})
 		}
 		return toJSON(out, js)
 	}
@@ -677,7 +696,8 @@ func loreBacklog(root string, args []string, out io.Writer) error {
 		if blocked(r) {
 			state = "BLOCKED"
 		}
-		fmt.Fprintf(out, "%s  %s  %s  %s\n", r.ID, prio(r.Priority), state, r.Title)
+		fmt.Fprintf(out, "%s  %s  %s  %s%s\n", r.ID, prio(r.Priority), state, r.Title,
+			recordFlags(r.Stale, r.Ratified))
 	}
 	return nil
 }

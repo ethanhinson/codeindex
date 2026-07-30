@@ -67,6 +67,15 @@ func (g *Git) DefaultBranch() string {
 	return "main"
 }
 
+// HasRef reports whether a git ref exists using
+// `git rev-parse --verify --quiet <ref>`. Used to guard the ratification pass:
+// if origin/main (or refs/remotes/origin/HEAD) doesn't exist, there is no
+// remote to compare against and we must not mark everything unratified.
+func (g *Git) HasRef(ref string) bool {
+	_, err := g.runner(g.root, "rev-parse", "--verify", "--quiet", ref)
+	return err == nil
+}
+
 // FileOnBranch reports whether relPath exists on branch using
 // `git cat-file -e <branch>:<relPath>`. An error (exit code 1 or binary not
 // found) means the file does not exist on that branch.

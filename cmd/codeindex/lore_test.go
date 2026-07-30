@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"codeindex/internal/lore"
+	"codeindex/internal/lore/index"
 )
 
 func loreTestRepo(t *testing.T) string {
@@ -317,6 +318,41 @@ func TestLoreBacklogJSONCarriesPriorityAndBlocked(t *testing.T) {
 	js := runLoreOK(t, root, "backlog", "--json")
 	if !strings.Contains(js, `"priority": "p1"`) || !strings.Contains(js, `"blocked": true`) {
 		t.Fatalf("backlog json missing priority/blocked:\n%s", js)
+	}
+}
+
+func TestLoreSearchUnratifiedLabel(t *testing.T) {
+	// This test verifies that an unratified record's search output line contains
+	// "UNRATIFIED". We simulate an unratified record by directly manipulating
+	// the store after reindex, using SetRatified.
+	root := loreTestRepo(t)
+
+	// Add a record that will be in the index.
+	out := runLoreOK(t, root, "add", "decision",
+		"--title", "Branch only decision",
+		"--body", "not on main branch")
+	id := strings.Fields(out)[1]
+
+	// Force-set it as unratified by opening the store directly.
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		t.Fatalf("NewLayout: %v", err)
+	}
+	dbPath := filepath.Join(root, ".codeindex", "lore.db")
+	// Reindex once to seed the DB.
+	st, _, err2 := index.Reindex(l, dbPath)
+	if err2 != nil {
+		t.Fatalf("reindex: %v", err2)
+	}
+	if err := st.SetRatified(id, false); err != nil {
+		t.Fatalf("SetRatified: %v", err)
+	}
+	st.Close()
+
+	// Now search — the result should include UNRATIFIED.
+	searchOut := runLoreOK(t, root, "search", "branch only")
+	if !strings.Contains(searchOut, "UNRATIFIED") {
+		t.Fatalf("search output missing UNRATIFIED for unratified record:\n%s", searchOut)
 	}
 }
 

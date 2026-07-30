@@ -9,7 +9,12 @@ import (
 	"strings"
 
 	"codeindex/internal/lore"
+	"codeindex/internal/lore/gitinfo"
 )
+
+// newGit is the test seam for gitinfo construction. Tests override this to
+// inject a fake runner without touching the filesystem or a live git binary.
+var newGit func(root string) *gitinfo.Git = gitinfo.New
 
 type FileError struct {
 	Path string
@@ -149,6 +154,40 @@ func Reindex(l lore.Layout, dbPath string) (*Store, Report, error) {
 		rep.Duplicates = append(rep.Duplicates, id+": "+strings.Join(paths, ", "))
 	}
 	sort.Strings(rep.Duplicates)
+
+	// Ratification pass: for each repo-layer record, determine whether the file
+	// is present on origin/<default-branch>. Overlay and session records are
+	// always ratified (their default is 1).
+	//
+	// Guard: only run this pass when origin exists. Without an origin ref,
+	// FileOnBranch would return false for every file and mark everything
+	// unratified — which is wrong for repos that have no remote yet. We check
+	// HasRef("refs/remotes/origin/HEAD") as a reliable proxy for "origin
+	// exists and has been fetched." This is intentional: if origin is not
+	// configured, we trust the current state and leave all records ratified.
+	g := newGit(l.RepoRoot)
+	if g.Available() && g.HasRef("refs/remotes/origin/HEAD") {
+		branch := "origin/" + g.DefaultBranch()
+		all, err := s.All()
+		if err != nil {
+			s.Close()
+			return nil, rep, err
+		}
+		for _, r := range all {
+			if r.Layer != "repo" {
+				continue // overlay/session always ratified
+			}
+			relPath, err := filepath.Rel(l.RepoRoot, r.File)
+			if err != nil {
+				continue
+			}
+			ratified := g.FileOnBranch(branch, relPath)
+			if err := s.SetRatified(r.ID, ratified); err != nil {
+				s.Close()
+				return nil, rep, err
+			}
+		}
+	}
 
 	return s, rep, nil
 }

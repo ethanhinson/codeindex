@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"codeindex/internal/lore"
+	"codeindex/internal/lore/gitinfo"
 )
 
 func writeRec(t *testing.T, dir, name, id, title string, typ lore.Type) string {
@@ -212,5 +213,205 @@ func TestReindexDuplicateIDOnSecondRunUnchanged(t *testing.T) {
 
 	if len(rep2.Duplicates) != 1 {
 		t.Fatalf("second run: want 1 duplicate, got %d: %v", len(rep2.Duplicates), rep2.Duplicates)
+	}
+}
+
+// --- Ratification tests ---
+
+// makeGitDotDir creates a fake .git directory so gitinfo.Available() returns true.
+func makeGitDotDir(t *testing.T, root string) {
+	t.Helper()
+	if err := os.MkdirAll(filepath.Join(root, ".git"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestRatificationRepoLayerAbsentOnBranch: a repo-layer record whose file is
+// not on origin/main → Ratified == false after Reindex.
+func TestRatificationRepoLayerAbsentOnBranch(t *testing.T) {
+	l := testLayout(t)
+	db := filepath.Join(t.TempDir(), "lore.db")
+	makeGitDotDir(t, l.RepoRoot)
+
+	writeRec(t, l.Dir("repo", lore.TypeDecision), "a.md", "dec-A", "A", lore.TypeDecision)
+
+	// Fake runner: origin/HEAD ref exists, but cat-file returns error (file absent on branch).
+	orig := newGit
+	t.Cleanup(func() { newGit = orig })
+	newGit = func(root string) *gitinfo.Git {
+		return gitinfo.NewWithRunner(root, func(dir string, args ...string) (string, error) {
+			if len(args) == 0 {
+				return "", nil
+			}
+			switch args[0] {
+			case "rev-parse":
+				// HasRef("refs/remotes/origin/HEAD") succeeds → origin exists.
+				return "", nil
+			case "symbolic-ref":
+				return "refs/remotes/origin/main\n", nil
+			case "cat-file":
+				// File absent on branch → error.
+				return "", os.ErrNotExist
+			}
+			return "", nil
+		})
+	}
+
+	s, _, err := Reindex(l, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+
+	r, ok, err := s.Get("dec-A")
+	if err != nil || !ok {
+		t.Fatalf("get dec-A: %v ok=%v", err, ok)
+	}
+	if r.Ratified {
+		t.Fatal("repo-layer record absent on branch must be Ratified=false")
+	}
+}
+
+// TestRatificationRepoLayerPresentOnBranch: a repo-layer record whose file IS
+// on origin/main → Ratified == true.
+func TestRatificationRepoLayerPresentOnBranch(t *testing.T) {
+	l := testLayout(t)
+	db := filepath.Join(t.TempDir(), "lore.db")
+	makeGitDotDir(t, l.RepoRoot)
+
+	writeRec(t, l.Dir("repo", lore.TypeDecision), "b.md", "dec-B", "B", lore.TypeDecision)
+
+	orig := newGit
+	t.Cleanup(func() { newGit = orig })
+	newGit = func(root string) *gitinfo.Git {
+		return gitinfo.NewWithRunner(root, func(dir string, args ...string) (string, error) {
+			if len(args) == 0 {
+				return "", nil
+			}
+			switch args[0] {
+			case "rev-parse":
+				return "", nil // HasRef succeeds
+			case "symbolic-ref":
+				return "refs/remotes/origin/main\n", nil
+			case "cat-file":
+				return "", nil // file present on branch → no error
+			}
+			return "", nil
+		})
+	}
+
+	s, _, err := Reindex(l, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+
+	r, ok, err := s.Get("dec-B")
+	if err != nil || !ok {
+		t.Fatalf("get dec-B: %v ok=%v", err, ok)
+	}
+	if !r.Ratified {
+		t.Fatal("repo-layer record present on branch must be Ratified=true")
+	}
+}
+
+// TestRatificationOverlayAlwaysRatified: an overlay record is always Ratified
+// regardless of git state.
+func TestRatificationOverlayAlwaysRatified(t *testing.T) {
+	l := testLayout(t)
+	db := filepath.Join(t.TempDir(), "lore.db")
+	makeGitDotDir(t, l.RepoRoot)
+
+	writeRec(t, l.Dir("overlay", lore.TypeNote), "o.md", "note-O", "Overlay", lore.TypeNote)
+
+	orig := newGit
+	t.Cleanup(func() { newGit = orig })
+	newGit = func(root string) *gitinfo.Git {
+		return gitinfo.NewWithRunner(root, func(dir string, args ...string) (string, error) {
+			if len(args) == 0 {
+				return "", nil
+			}
+			switch args[0] {
+			case "rev-parse":
+				return "", nil
+			case "symbolic-ref":
+				return "refs/remotes/origin/main\n", nil
+			case "cat-file":
+				return "", os.ErrNotExist // absent on branch
+			}
+			return "", nil
+		})
+	}
+
+	s, _, err := Reindex(l, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+
+	r, ok, err := s.Get("note-O")
+	if err != nil || !ok {
+		t.Fatalf("get note-O: %v ok=%v", err, ok)
+	}
+	if !r.Ratified {
+		t.Fatal("overlay record must always be Ratified=true")
+	}
+}
+
+// TestRatificationNoOriginRefKeepsEverythingRatified: when there is no
+// origin ref (HasRef returns false), no ratification pass runs and all
+// records stay at their default Ratified=true.
+func TestRatificationNoOriginRefKeepsEverythingRatified(t *testing.T) {
+	l := testLayout(t)
+	db := filepath.Join(t.TempDir(), "lore.db")
+	makeGitDotDir(t, l.RepoRoot)
+
+	writeRec(t, l.Dir("repo", lore.TypeDecision), "c.md", "dec-C", "C", lore.TypeDecision)
+
+	orig := newGit
+	t.Cleanup(func() { newGit = orig })
+	newGit = func(root string) *gitinfo.Git {
+		return gitinfo.NewWithRunner(root, func(dir string, args ...string) (string, error) {
+			if len(args) == 0 {
+				return "", nil
+			}
+			// rev-parse fails → HasRef returns false → no origin → skip ratification.
+			return "", os.ErrNotExist
+		})
+	}
+
+	s, _, err := Reindex(l, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+
+	r, ok, err := s.Get("dec-C")
+	if err != nil || !ok {
+		t.Fatalf("get dec-C: %v ok=%v", err, ok)
+	}
+	if !r.Ratified {
+		t.Fatal("no-origin guard: repo record must stay Ratified=true when origin ref absent")
+	}
+}
+
+// TestUpsertPreservesRatified: re-upserting a record must not reset Ratified
+// (it is derived state like stale/confidence).
+func TestUpsertPreservesRatified(t *testing.T) {
+	s := openStore(t)
+	r := lore.Record{ID: "dec-R", Type: lore.TypeDecision, Title: "t", Date: "2026-07-29"}
+	if err := s.Upsert(r, "repo", "/r.md"); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.SetRatified("dec-R", false); err != nil {
+		t.Fatal(err)
+	}
+	// Re-upsert must not reset ratified back to true.
+	if err := s.Upsert(r, "repo", "/r.md"); err != nil {
+		t.Fatal(err)
+	}
+	got, _, _ := s.Get("dec-R")
+	if got.Ratified {
+		t.Fatal("re-upsert must not reset ratified; it is derived state")
 	}
 }

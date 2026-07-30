@@ -12,7 +12,9 @@ import (
 	"codeindex/internal/lore"
 )
 
-const schemaVersion = 1
+// schemaVersion 2 spans tasks 4+6 (ratified column added here; task 6 adds
+// two more columns without an additional bump).
+const schemaVersion = 2
 
 const schema = `
 CREATE TABLE IF NOT EXISTS lore_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -24,6 +26,7 @@ CREATE TABLE IF NOT EXISTS lore_records (
   priority TEXT NOT NULL DEFAULT '',
   supersedes TEXT NOT NULL DEFAULT '', superseded_by TEXT NOT NULL DEFAULT '',
   stale INTEGER NOT NULL DEFAULT 0, confidence REAL NOT NULL DEFAULT 0,
+  ratified INTEGER NOT NULL DEFAULT 1,
   body TEXT NOT NULL DEFAULT '');
 CREATE INDEX IF NOT EXISTS idx_lore_records_file ON lore_records(file);
 CREATE TABLE IF NOT EXISTS lore_anchors (
@@ -47,6 +50,7 @@ type StoredRecord struct {
 	File       string
 	Stale      bool
 	Confidence float64
+	Ratified   bool
 }
 
 func Open(path string) (*Store, error) {
@@ -93,9 +97,9 @@ func (s *Store) Upsert(r lore.Record, layer, file string) error {
 		return err
 	}
 	defer tx.Rollback()
-	// stale and confidence are deliberately absent from the upsert: they are
-	// index-side derived state, owned by SetStale (and, later, the lifecycle
-	// signals pass) — a record file changing must not reset them.
+	// stale, confidence, and ratified are deliberately absent from the upsert:
+	// they are index-side derived state, owned by SetStale / SetRatified (and
+	// the lifecycle signals pass) — a record file changing must not reset them.
 	if _, err := tx.Exec(`INSERT INTO lore_records
 		(id,type,title,status,date,layer,file,priority,supersedes,superseded_by,body)
 		VALUES(?,?,?,?,?,?,?,?,?,?,?)
@@ -176,7 +180,7 @@ func (s *Store) DeleteByFile(file string) error {
 
 func (s *Store) All() ([]StoredRecord, error) {
 	rows, err := s.db.Query(`SELECT id,type,title,status,date,layer,file,priority,
-		supersedes,superseded_by,stale,confidence,body
+		supersedes,superseded_by,stale,confidence,ratified,body
 		FROM lore_records ORDER BY date DESC, id`)
 	if err != nil {
 		return nil, err
@@ -186,13 +190,13 @@ func (s *Store) All() ([]StoredRecord, error) {
 	for rows.Next() {
 		var r StoredRecord
 		var typ string
-		var stale int
+		var stale, ratified int
 		if err := rows.Scan(&r.ID, &typ, &r.Title, &r.Status, &r.Date, &r.Layer,
 			&r.File, &r.Priority, &r.Supersedes, &r.SupersededBy, &stale,
-			&r.Confidence, &r.Body); err != nil {
+			&r.Confidence, &ratified, &r.Body); err != nil {
 			return nil, err
 		}
-		r.Type, r.Stale = lore.Type(typ), stale != 0
+		r.Type, r.Stale, r.Ratified = lore.Type(typ), stale != 0, ratified != 0
 		if err := s.loadChildren(&r); err != nil {
 			return nil, err
 		}
@@ -272,19 +276,19 @@ func (s *Store) loadChildren(r *StoredRecord) error {
 func (s *Store) Get(id string) (StoredRecord, bool, error) {
 	var r StoredRecord
 	var typ string
-	var stale int
+	var stale, ratified int
 	err := s.db.QueryRow(`SELECT id,type,title,status,date,layer,file,priority,
-		supersedes,superseded_by,stale,confidence,body
+		supersedes,superseded_by,stale,confidence,ratified,body
 		FROM lore_records WHERE id=?`, id).Scan(&r.ID, &typ, &r.Title, &r.Status,
 		&r.Date, &r.Layer, &r.File, &r.Priority, &r.Supersedes, &r.SupersededBy,
-		&stale, &r.Confidence, &r.Body)
+		&stale, &r.Confidence, &ratified, &r.Body)
 	if err == sql.ErrNoRows {
 		return StoredRecord{}, false, nil
 	}
 	if err != nil {
 		return StoredRecord{}, false, err
 	}
-	r.Type, r.Stale = lore.Type(typ), stale != 0
+	r.Type, r.Stale, r.Ratified = lore.Type(typ), stale != 0, ratified != 0
 	if err := s.loadChildren(&r); err != nil {
 		return StoredRecord{}, false, err
 	}
@@ -325,5 +329,14 @@ func (s *Store) SetStale(id string, stale bool) error {
 		v = 1
 	}
 	_, err := s.db.Exec(`UPDATE lore_records SET stale=? WHERE id=?`, v, id)
+	return err
+}
+
+func (s *Store) SetRatified(id string, ratified bool) error {
+	v := 0
+	if ratified {
+		v = 1
+	}
+	_, err := s.db.Exec(`UPDATE lore_records SET ratified=? WHERE id=?`, v, id)
 	return err
 }

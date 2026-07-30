@@ -111,6 +111,29 @@ func TestDefaultBranch_FallsBackToMainOnError(t *testing.T) {
 	}
 }
 
+func TestHasRef_TrueWhenRevParseSucceeds(t *testing.T) {
+	dir := t.TempDir()
+	fr := &fakeRunner{
+		outputs: map[string]string{"rev-parse": ""},
+	}
+	g := gitinfo.NewWithRunner(dir, fr.run)
+	if !g.HasRef("origin/main") {
+		t.Fatal("expected HasRef=true when runner returns no error")
+	}
+}
+
+func TestHasRef_FalseWhenRevParseFails(t *testing.T) {
+	dir := t.TempDir()
+	fr := &fakeRunner{
+		outputs: map[string]string{},
+		errors:  map[string]error{"rev-parse": exec.ErrNotFound},
+	}
+	g := gitinfo.NewWithRunner(dir, fr.run)
+	if g.HasRef("origin/main") {
+		t.Fatal("expected HasRef=false when runner returns error")
+	}
+}
+
 func TestFileOnBranch_TrueWhenNoError(t *testing.T) {
 	dir := t.TempDir()
 	fr := &fakeRunner{
