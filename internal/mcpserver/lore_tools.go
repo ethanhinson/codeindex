@@ -186,6 +186,39 @@ func loreShowText(repo, id string) (string, error) {
 	return b.String(), nil
 }
 
+// relatedLoreBlock returns lore anchored to symbol, or "" — lore must never
+// break code navigation, so every error path collapses to the empty string.
+func relatedLoreBlock(repo, symbol string) string {
+	_, st, err := loreOpen(repo)
+	if err != nil {
+		return ""
+	}
+	defer st.Close()
+	all, err := st.All()
+	if err != nil {
+		return ""
+	}
+	matched := index.RecordsForAnchor(all, symbol)
+	if len(matched) == 0 {
+		return ""
+	}
+	// Active/open first, then the rest; cap at 5.
+	var head, tail []index.StoredRecord
+	for _, r := range matched {
+		if r.Status == "active" || r.Status == "open" {
+			head = append(head, r)
+		} else {
+			tail = append(tail, r)
+		}
+	}
+	ordered := append(head, tail...)
+	if len(ordered) > 5 {
+		ordered = ordered[:5]
+	}
+	return "\n\nRelated lore (decisions/items anchored to this symbol):\n" +
+		formatRecords(ordered)
+}
+
 func orLoreDash(s string) string {
 	if s == "" {
 		return "-"

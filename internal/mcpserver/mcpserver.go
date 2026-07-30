@@ -59,12 +59,13 @@ func New(repo, version string) *mcp.Server {
 			"to modify, rename, or delete: its definitions, every caller (what " +
 			"breaks), and its callees, counts-first. Use BEFORE changing a " +
 			"function/method/type, when assessing refactor impact, or for " +
-			"dead-code checks. " + trust + notFor,
+			"dead-code checks. Output may include a Related lore section — decisions and open work items attached to this symbol; treat active decisions as constraints. " + trust + notFor,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, in symbolArgs) (*mcp.CallToolResult, any, error) {
 		out, err := query.ImpactText(repo, in.Symbol, limitOr(in.Limit))
 		if err != nil {
 			return nil, nil, fmt.Errorf("impact %q: %w", in.Symbol, err)
 		}
+		out += relatedLoreBlock(repo, in.Symbol)
 		return text(out), nil, nil
 	})
 
@@ -73,12 +74,14 @@ func New(repo, version string) *mcp.Server {
 		Description: "Who calls a KNOWN symbol (Go, TS/JS, Python, PHP): its definition(s) plus every " +
 			"call site as path:line references with the calling function's name. " +
 			"Use for 'who calls X / which functions use X / is X dead code'. " +
+			"Output may include a Related lore section — decisions and open work items attached to this symbol; treat active decisions as constraints. " +
 			trust + notFor,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, in symbolArgs) (*mcp.CallToolResult, any, error) {
 		out, err := query.CallersText(repo, in.Symbol, limitOr(in.Limit))
 		if err != nil {
 			return nil, nil, fmt.Errorf("callers %q: %w", in.Symbol, err)
 		}
+		out += relatedLoreBlock(repo, in.Symbol)
 		return text(out), nil, nil
 	})
 

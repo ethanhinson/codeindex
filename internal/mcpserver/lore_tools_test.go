@@ -97,3 +97,17 @@ func TestLoreAddRecordWithPriorityAndBlockedBy(t *testing.T) {
 		t.Errorf("expected blocked_by [itm-001], got %v", rec.BlockedBy)
 	}
 }
+
+func TestRelatedLoreBlock(t *testing.T) {
+	root := loreFixtureRepo(t) // has a decision anchored to ResolveImports
+	blk := relatedLoreBlock(root, "ResolveImports")
+	if !strings.Contains(blk, "Related lore") || !strings.Contains(blk, "Use Go for the engine") {
+		t.Fatalf("block:\n%s", blk)
+	}
+	if blk := relatedLoreBlock(root, "NothingHere"); blk != "" {
+		t.Fatalf("want empty block for unanchored symbol, got %q", blk)
+	}
+	if blk := relatedLoreBlock(t.TempDir(), "X"); blk != "" {
+		t.Fatalf("want empty block for repo without lore, got %q", blk)
+	}
+}
