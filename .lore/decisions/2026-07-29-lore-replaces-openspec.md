@@ -24,5 +24,7 @@ freshness, references-only output) related to
 note-01KYTPDHJH59PG2M0FFTEYC92Z; the agent-A/B value boundary became
 note-01KYTPPJQ8P164D382G97WWB99; completed changes/specs are preserved in git
 history. Anchor re-pointed from openspec/ (removed) to .lore/. The OpenSpec
-CLI tooling under .claude/ (opsx commands, openspec-* skills) is a separate
-concern, tracked for removal as a follow-up.
+CLI tooling under .claude/ (opsx commands, openspec-* skills, dead settings
+permissions) was also fully removed the same day
+(itm-01KYTPTJACEDBW6X47TTXV3YM0). Only archival prose mentions remain in dated
+design docs and bench/ findings (intentional historical provenance).

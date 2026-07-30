@@ -1,15 +1,21 @@
 ---
 id: itm-01KYTPTJACEDBW6X47TTXV3YM0
 title: Remove OpenSpec CLI tooling under .claude/ (opsx commands, openspec-* skills)
-status: open
+status: done
 date: "2026-07-30"
 priority: p3
 related: [dec-01KYR17XEC208KMPSEGKBFT6Y7]
 tags: [cleanup]
 anchors:
-    - path: .claude/commands/opsx/
-    - path: .claude/skills/
+    - path: .claude/
 ---
+
+Done 2026-07-30: removed all 5 `.claude/commands/opsx/*.md` and 5
+`.claude/skills/openspec-*/` and purged the 10 dead `Bash(openspec ...)` grants
+from `.claude/settings.local.json`. Archival prose mentions in dated design
+docs (docs/superpowers/specs/2026-07-08, 2026-07-09) and bench/ findings were
+left intact as historical provenance.
+
 
 Follow-up from retiring openspec/ (itm-01KYR17XECZJ5DYEV1VXQQ3TRD). The
 directory is gone but the OpenSpec workflow tooling remains git-tracked:

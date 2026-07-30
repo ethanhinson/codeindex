@@ -1,14 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(openspec --help)",
-      "Bash(openspec init *)",
       "Bash(git init *)",
-      "Bash(openspec instructions *)",
-      "Bash(openspec change *)",
-      "Bash(openspec new *)",
-      "Bash(openspec status *)",
-      "Bash(openspec validate *)",
       "Bash(git add *)",
       "Bash(git commit -q -m ' *)",
       "Bash(ctags --version)",
@@ -29,7 +22,6 @@
       "Bash(python3 *)",
       "Bash(git rm *)",
       "Bash(git reset *)",
-      "Bash(openspec list *)",
       "Bash(command -v brew)",
       "Bash(echo \"brew: $\\(command -v brew || echo MISSING\\)\")",
       "Bash(command -v go)",
@@ -56,7 +48,6 @@
       "Read(//tmp/**)",
       "Bash(/Users/ethanhinson/.nvm/versions/node/v20.11.0/lib/node_modules/@qwen-code/qwen-code/vendor/ripgrep/arm64-darwin/rg -n -w IsDebugging --type go)",
       "Bash(open /Users/ethanhinson/dev/code-indexer/bench/agent_ab/results/dashboard.html)",
-      "Bash(openspec show *)",
       "Bash(git commit *)",
       "Bash(awk '{print $2, $10, substr\\($0, index\\($0,$11\\), 120\\)}')",
       "Bash(pkill -f \"run_ab.py --full --tag v3\")",
@@ -71,7 +62,6 @@
       "Bash(git push *)",
       "Bash(echo \"=== rows: $\\(wc -l < /Users/ethanhinson/dev/code-indexer/bench/agent_ab/results/runs_v6.jsonl 2>/dev/null\\) / 80 ===  spent: \\\\$$\\(python3 -c \"import json; print\\(round\\(sum\\(json.loads\\(l\\).get\\('cost_usd'\\) or 0 for l in open\\('/Users/ethanhinson/dev/code-indexer/bench/agent_ab/results/runs_v6.jsonl'\\)\\),2\\)\\)\" 2>/dev/null\\)\")",
       "Bash(echo \"=== rows: $\\(wc -l < /Users/ethanhinson/dev/code-indexer/bench/agent_ab/results/runs_v6.jsonl \\) / 80 === spent: \\\\$$\\(python3 -c \"import json; print\\(round\\(sum\\(json.loads\\(l\\).get\\('cost_usd'\\) or 0 for l in open\\('/Users/ethanhinson/dev/code-indexer/bench/agent_ab/results/runs_v6.jsonl'\\)\\),2\\)\\)\" \\)\")",
-      "Bash(openspec archive *)",
       "Bash(npm --version)",
       "Bash(mkdir -p specs/ide-extension)",
       "Bash(npx tsc *)",
