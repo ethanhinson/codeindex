@@ -54,3 +54,29 @@ we are an engine (Go binary, SQLite index, MCP tools, symbol graph).
 3. promotion_state on notes + /lore-review graduation into AGENTS.md.
 4. discovered_from on items; branch/pr fields (Plan 3 already adds refs).
 5. `lore board` rendered view (derived, never source of truth).
+
+## Update 2026-07-30 — drift check after the knowledge-graph-edges work (PR #1)
+
+Re-verified this note against the current backlog and code.
+
+**Still accurate — every "what docket has that we lack" gap remains open** (backlog
+confirms each is `ready`): claim/lease (itm-…RHT), reconcile skill (itm-…41J),
+promotion pipeline / promotion_state (itm-…1VY; the `promote` command is
+private→committed promotion, not notes-graduation), `lore board` (itm-…9SC),
+per-skill model/effort pinning. "We only detect staleness; docket repairs it"
+is still true — `lore doctor` now adds orphan/dangling-link/density detection,
+but still no auto-repair.
+
+**Drifted (undersells us) — "what we have that docket lacks" is now bigger.**
+Since this note was written we shipped a record↔record knowledge graph docket has
+no analog for (ref: [[dec-01KYTG2C8BPFS0GV787Y8AA4QM]], PR #1):
+free-form `related:` edges + backlinks (`lore related`, "Referenced by:" in
+`lore show`), a full-trace cycle-safe `Trace` walk, graph-health metrics
+(orphans / dangling-links / edges-per-record) in `lore doctor`, and `related_lore`
+now surfaced in the CLI `impact` command, not just MCP. We went from "code-aware
+records" to "code-aware AND a connected, health-measured knowledge graph."
+
+**Minor:** adoption candidate #4's branch/pr links are now demonstrably usable via
+typed refs (`gh-pr: owner/repo#N`, recorded on itm-…HVD for PR #1); only
+`discovered_from` remains unbuilt from that item. Nothing in the original analysis
+is false — the drift is omission, not error.
