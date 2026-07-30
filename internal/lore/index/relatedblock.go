@@ -52,7 +52,10 @@ func RelatedLoreBlock(recs []StoredRecord, symbol string, depth int) string {
 		if entries[i].d != entries[j].d {
 			return entries[i].d < entries[j].d
 		}
-		return rank(entries[i].r.Status) < rank(entries[j].r.Status)
+		if rank(entries[i].r.Status) != rank(entries[j].r.Status) {
+			return rank(entries[i].r.Status) < rank(entries[j].r.Status)
+		}
+		return entries[i].r.ID < entries[j].r.ID
 	})
 	total := len(entries)
 	if len(entries) > relatedBlockCap {
