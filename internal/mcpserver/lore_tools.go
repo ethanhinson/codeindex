@@ -214,7 +214,7 @@ func writeNewLoreRecord(l lore.Layout, rec lore.Record, layer string) (string, e
 }
 
 // loreAddRecord validates args, builds a record, writes it, returns "created <id> <path>".
-func loreAddRecord(repo string, typ lore.Type, title, body string, anchors, refs []string, private bool) (string, error) {
+func loreAddRecord(repo string, typ lore.Type, title, body string, anchors, refs []string, private bool, priority string, tags []string, blockedBy []string) (string, error) {
 	if typ != lore.TypeDecision && typ != lore.TypeItem && typ != lore.TypeNote {
 		return "", fmt.Errorf("unknown record type %q (want decision|item|note)", typ)
 	}
@@ -225,12 +225,15 @@ func loreAddRecord(repo string, typ lore.Type, title, body string, anchors, refs
 		body += "\n"
 	}
 	rec := lore.Record{
-		ID:     lore.NewID(typ),
-		Type:   typ,
-		Title:  title,
-		Status: lore.DefaultStatus(typ),
-		Date:   time.Now().UTC().Format("2006-01-02"),
-		Body:   body,
+		ID:        lore.NewID(typ),
+		Type:      typ,
+		Title:     title,
+		Status:    lore.DefaultStatus(typ),
+		Date:      time.Now().UTC().Format("2006-01-02"),
+		Body:      body,
+		Priority:  priority,
+		Tags:      tags,
+		BlockedBy: blockedBy,
 	}
 	for _, a := range anchors {
 		kind, val, ok := strings.Cut(a, ":")
@@ -334,20 +337,23 @@ func addLoreTools(s *mcp.Server, repo string) {
 	})
 
 	type addArgs struct {
-		Type    string   `json:"type" jsonschema:"decision, item, or note"`
-		Title   string   `json:"title" jsonschema:"short descriptive title"`
-		Body    string   `json:"body" jsonschema:"full body text (markdown); for decisions include rationale AND rejected alternatives"`
-		Anchors []string `json:"anchors,omitempty" jsonschema:"optional; each entry is path:P or symbol:S"`
-		Refs    []string `json:"refs,omitempty" jsonschema:"optional; each entry is kind:value (e.g. gh-issue:org/repo#12)"`
-		Private bool     `json:"private,omitempty" jsonschema:"if true, write to the private overlay layer instead of the committed .lore/ dir"`
+		Type      string   `json:"type" jsonschema:"decision, item, or note"`
+		Title     string   `json:"title" jsonschema:"short descriptive title"`
+		Body      string   `json:"body" jsonschema:"full body text (markdown); for decisions include rationale AND rejected alternatives"`
+		Anchors   []string `json:"anchors,omitempty" jsonschema:"optional; each entry is path:P or symbol:S"`
+		Refs      []string `json:"refs,omitempty" jsonschema:"optional; each entry is kind:value (e.g. gh-issue:org/repo#12)"`
+		Private   bool     `json:"private,omitempty" jsonschema:"if true, write to the private overlay layer instead of the committed .lore/ dir"`
+		Priority  string   `json:"priority,omitempty" jsonschema:"optional; item priority p0..p3 (p0 = most urgent)"`
+		Tags      []string `json:"tags,omitempty" jsonschema:"optional; free-form tags"`
+		BlockedBy []string `json:"blocked_by,omitempty" jsonschema:"optional; item IDs that must complete first"`
 	}
 	mcp.AddTool(s, &mcp.Tool{
 		Name: "lore_add",
 		Description: "Record a decision (with rationale AND rejected alternatives in the body), a work item, " +
 			"or a note. Use when an architectural choice is made, a non-obvious root cause is found, or " +
-			"the user says 'remember this' / 'we decided'. Write it while you have full context.",
+			"the user says 'remember this' / 'we decided'. Write it while you have full context; for items set priority p0..p3 and blocked_by.",
 	}, func(ctx context.Context, req *mcp.CallToolRequest, in addArgs) (*mcp.CallToolResult, any, error) {
-		out, err := loreAddRecord(repo, lore.Type(in.Type), in.Title, in.Body, in.Anchors, in.Refs, in.Private)
+		out, err := loreAddRecord(repo, lore.Type(in.Type), in.Title, in.Body, in.Anchors, in.Refs, in.Private, in.Priority, in.Tags, in.BlockedBy)
 		if err != nil {
 			return nil, nil, fmt.Errorf("lore_add: %w", err)
 		}
