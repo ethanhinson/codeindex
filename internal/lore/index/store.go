@@ -50,7 +50,9 @@ type StoredRecord struct {
 }
 
 func Open(path string) (*Store, error) {
-	db, err := sql.Open("sqlite3", path)
+	// cross-process contention is real (long-lived MCP server + CLI + Stop-hook captures share lore.db);
+	// busy_timeout waits instead of failing SQLITE_BUSY, WAL lets readers proceed during writes.
+	db, err := sql.Open("sqlite3", path+"?_busy_timeout=5000&_journal_mode=WAL")
 	if err != nil {
 		return nil, err
 	}

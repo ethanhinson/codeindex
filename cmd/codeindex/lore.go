@@ -128,14 +128,19 @@ func loreInit(root string, args []string, out io.Writer) error {
 	}
 }
 
-// loreInitScaffold is the original no-flag loreInit behavior.
-func loreInitScaffold(root string, args []string, out io.Writer) error {
+// loreInitScaffoldCore sets up the .lore/ scaffold. When idempotent is true,
+// a pre-existing README is silently accepted (used by --host flows). When false,
+// it reports "already initialized" and returns (original no-flag behavior).
+func loreInitScaffoldCore(root string, out io.Writer, idempotent bool) error {
 	l, err := lore.NewLayout(root)
 	if err != nil {
 		return err
 	}
 	readme := filepath.Join(l.RepoDir, "README.md")
 	if _, err := os.Stat(readme); err == nil {
+		if idempotent {
+			return nil
+		}
 		fmt.Fprintln(out, "already initialized:", l.RepoDir)
 		return nil
 	}
@@ -152,28 +157,14 @@ func loreInitScaffold(root string, args []string, out io.Writer) error {
 	return nil
 }
 
+// loreInitScaffold is the original no-flag loreInit behavior.
+func loreInitScaffold(root string, args []string, out io.Writer) error {
+	return loreInitScaffoldCore(root, out, false)
+}
+
 // loreInitScaffoldIdempotent sets up .lore/ dirs and README if not already present, silently.
 func loreInitScaffoldIdempotent(root string, out io.Writer) error {
-	l, err := lore.NewLayout(root)
-	if err != nil {
-		return err
-	}
-	readme := filepath.Join(l.RepoDir, "README.md")
-	if _, err := os.Stat(readme); err == nil {
-		// Already initialized — nothing to do.
-		return nil
-	}
-	for _, t := range []lore.Type{lore.TypeDecision, lore.TypeItem, lore.TypeNote} {
-		if err := os.MkdirAll(l.Dir("repo", t), 0o755); err != nil {
-			return err
-		}
-	}
-	if err := os.WriteFile(readme, []byte(loreReadme), 0o644); err != nil {
-		return err
-	}
-	fmt.Fprintf(out, "initialized %s (decisions/ items/ notes/)\n", l.RepoDir)
-	fmt.Fprintln(out, "note: keep .codeindex/ gitignored — the lore index (lore.db) is derived")
-	return nil
+	return loreInitScaffoldCore(root, out, true)
 }
 
 const cursorMDCTemplate = `---
@@ -214,14 +205,12 @@ func initCodex(root string, out io.Writer) error {
 	content := string(existing)
 	startIdx := strings.Index(content, codexBlockStart)
 	if startIdx >= 0 {
-		// Replace existing block in place.
+		// Replace existing block in place — but only if the end marker is present and follows start.
 		endIdx := strings.Index(content, codexBlockEnd)
-		if endIdx < 0 {
-			// Malformed: just replace from start to end of file.
-			content = content[:startIdx] + block
-		} else {
-			content = content[:startIdx] + block + content[endIdx+len(codexBlockEnd):]
+		if endIdx < 0 || endIdx < startIdx {
+			return fmt.Errorf("AGENTS.md has a codeindex-lore start marker without a matching end marker; remove the codeindex-lore markers by hand and re-run")
 		}
+		content = content[:startIdx] + block + content[endIdx+len(codexBlockEnd):]
 	} else {
 		// Append to file (with a newline separator if file is non-empty).
 		if len(content) > 0 && !strings.HasSuffix(content, "\n") {

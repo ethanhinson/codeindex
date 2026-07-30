@@ -77,7 +77,8 @@ func TestHandshakeListAndCall(t *testing.T) {
 			t.Errorf("tool %s description missing anchor language", tl.Name)
 		}
 	}
-	for _, want := range []string{"impact", "callers", "callees", "dependents", "find", "grep"} {
+	for _, want := range []string{"impact", "callers", "callees", "dependents", "find", "grep",
+		"lore_search", "lore_for_symbol", "lore_backlog", "lore_show", "lore_add"} {
 		if !names[want] {
 			t.Errorf("missing tool %q; got %v", want, names)
 		}

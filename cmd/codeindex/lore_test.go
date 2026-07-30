@@ -314,3 +314,19 @@ func TestLoreInitHostUnknown(t *testing.T) {
 		t.Fatal("want error for unknown host")
 	}
 }
+
+func TestLoreInitHostCodexRefusesOrphanedMarker(t *testing.T) {
+	root := loreTestRepo(t)
+	orphaned := "# My agents\n" + codexBlockStart + "\nprecious user content below\n"
+	if err := os.WriteFile(filepath.Join(root, "AGENTS.md"), []byte(orphaned), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"init", "--host", "codex"}, &buf); err == nil {
+		t.Fatal("want error on orphaned start marker")
+	}
+	b, _ := os.ReadFile(filepath.Join(root, "AGENTS.md"))
+	if !strings.Contains(string(b), "precious user content below") {
+		t.Fatal("user content was destroyed")
+	}
+}
