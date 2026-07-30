@@ -320,6 +320,35 @@ func TestEventsForSHAPrefixesOldestFirst(t *testing.T) {
 	}
 }
 
+func TestLoreLinksUpsertAndLoad(t *testing.T) {
+	st, err := Open(filepath.Join(t.TempDir(), "lore.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+	rec := lore.Record{ID: "itm-A", Type: lore.TypeItem, Title: "A",
+		Related: []string{"dec-B", "some-slug"}}
+	if err := st.Upsert(rec, "repo", "items/a.md"); err != nil {
+		t.Fatal(err)
+	}
+	got, ok, err := st.Get("itm-A")
+	if err != nil || !ok {
+		t.Fatalf("Get: ok=%v err=%v", ok, err)
+	}
+	if len(got.Related) != 2 || got.Related[0] != "dec-B" || got.Related[1] != "some-slug" {
+		t.Fatalf("Related = %v", got.Related)
+	}
+	// Re-upsert with fewer links replaces, not appends.
+	rec.Related = []string{"dec-B"}
+	if err := st.Upsert(rec, "repo", "items/a.md"); err != nil {
+		t.Fatal(err)
+	}
+	got, _, _ = st.Get("itm-A")
+	if len(got.Related) != 1 {
+		t.Fatalf("after re-upsert Related = %v", got.Related)
+	}
+}
+
 // TestEventsForSHAPrefixesEmptySHANeverMatches verifies that events with
 // empty sha="" are never returned by EventsForSHAPrefixes, even if they exist
 // in the database. They are valid for storage (CI evidence) but not queryable.

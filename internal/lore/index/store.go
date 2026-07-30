@@ -14,9 +14,9 @@ import (
 	"codeindex/internal/lore"
 )
 
-// schemaVersion 2 spans tasks 4+6+7 (ratified column added in task 4; task 6
-// adds two more columns; task 7 adds lore_events — all without a version bump).
-const schemaVersion = 2
+// schemaVersion 3 adds lore_links (record→record related edges) in the
+// knowledge-graph-edges work.
+const schemaVersion = 3
 
 const schema = `
 CREATE TABLE IF NOT EXISTS lore_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -45,6 +45,9 @@ CREATE TABLE IF NOT EXISTS lore_blocked (record_id TEXT NOT NULL, blocked_by TEX
 CREATE TABLE IF NOT EXISTS lore_tags (record_id TEXT NOT NULL, tag TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS idx_lore_blocked_rec ON lore_blocked(record_id);
 CREATE INDEX IF NOT EXISTS idx_lore_tags_rec ON lore_tags(record_id);
+CREATE TABLE IF NOT EXISTS lore_links (record_id TEXT NOT NULL, related_id TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_lore_links_rec ON lore_links(record_id);
+CREATE INDEX IF NOT EXISTS idx_lore_links_rel ON lore_links(related_id);
 `
 
 type Store struct{ db *sql.DB }
@@ -89,7 +92,7 @@ func Open(path string) (*Store, error) {
 	} else if err == nil && ver != fmt.Sprint(schemaVersion) {
 		// Derived data: on mismatch, wipe and let the next reindex rebuild.
 		for _, t := range []string{"lore_files", "lore_records", "lore_anchors",
-			"lore_refs", "lore_blocked", "lore_tags", "lore_events"} {
+			"lore_refs", "lore_blocked", "lore_tags", "lore_events", "lore_links"} {
 			if _, err = db.Exec("DELETE FROM " + t); err != nil {
 				break
 			}
@@ -128,7 +131,7 @@ func (s *Store) Upsert(r lore.Record, layer, file string) error {
 		r.Priority, r.Supersedes, r.SupersededBy, r.Body); err != nil {
 		return err
 	}
-	for _, t := range []string{"lore_anchors", "lore_refs", "lore_blocked", "lore_tags"} {
+	for _, t := range []string{"lore_anchors", "lore_refs", "lore_blocked", "lore_tags", "lore_links"} {
 		if _, err := tx.Exec("DELETE FROM "+t+" WHERE record_id=?", r.ID); err != nil {
 			return err
 		}
@@ -148,6 +151,12 @@ func (s *Store) Upsert(r lore.Record, layer, file string) error {
 	for _, b := range r.BlockedBy {
 		if _, err := tx.Exec(`INSERT INTO lore_blocked(record_id,blocked_by) VALUES(?,?)`,
 			r.ID, b); err != nil {
+			return err
+		}
+	}
+	for _, rel := range r.Related {
+		if _, err := tx.Exec(`INSERT INTO lore_links(record_id,related_id) VALUES(?,?)`,
+			r.ID, rel); err != nil {
 			return err
 		}
 	}
@@ -182,7 +191,7 @@ func (s *Store) DeleteByFile(file string) error {
 	rows.Close()
 	for _, id := range ids {
 		for _, t := range []string{"lore_records", "lore_anchors", "lore_refs",
-			"lore_blocked", "lore_tags"} {
+			"lore_blocked", "lore_tags", "lore_links"} {
 			col := "record_id"
 			if t == "lore_records" {
 				col = "id"
@@ -282,6 +291,22 @@ func (s *Store) loadChildren(r *StoredRecord) error {
 			return err
 		}
 		r.Tags = append(r.Tags, tg)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	rows, err = s.db.Query(`SELECT related_id FROM lore_links WHERE record_id=?`, r.ID)
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var rel string
+		if err := rows.Scan(&rel); err != nil {
+			rows.Close()
+			return err
+		}
+		r.Related = append(r.Related, rel)
 	}
 	rows.Close()
 	if err := rows.Err(); err != nil {

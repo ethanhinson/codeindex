@@ -240,3 +240,30 @@ func TestMarshalSkipsExtraCollidingWithKnownKeys(t *testing.T) {
 		t.Fatalf("known field lost: %+v %v", out, err)
 	}
 }
+
+func TestRelatedRoundTrip(t *testing.T) {
+	src := []byte("---\n" +
+		"id: itm-X\n" +
+		"title: A\n" +
+		"date: \"2026-07-30\"\n" +
+		"related: [dec-Y, some-slug]\n" +
+		"---\n\nbody\n")
+	r, err := Parse(src, TypeItem)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(r.Related) != 2 || r.Related[0] != "dec-Y" || r.Related[1] != "some-slug" {
+		t.Fatalf("Related = %v", r.Related)
+	}
+	out, err := r.Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+	r2, err := Parse(out, TypeItem)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(r2.Related) != 2 || r2.Related[0] != "dec-Y" {
+		t.Fatalf("round-trip Related = %v", r2.Related)
+	}
+}

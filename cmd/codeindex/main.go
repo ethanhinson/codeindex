@@ -17,6 +17,7 @@ import (
 	"codeindex/internal/depmap"
 	"codeindex/internal/engine"
 	"codeindex/internal/graph"
+	"codeindex/internal/lore/index"
 	"codeindex/internal/mcpserver"
 	"codeindex/internal/merkle"
 	"codeindex/internal/progress"
@@ -88,13 +89,23 @@ func main() {
 		}
 	case "impact":
 		if len(os.Args) < 4 {
-			fatal(fmt.Errorf("usage: codeindex impact <repo-root> <symbol> [--limit N]"))
+			fatal(fmt.Errorf("usage: codeindex impact <repo-root> <symbol> [--limit N] [--related-depth N|all]"))
 		}
 		limit := 50
-		if len(os.Args) >= 6 && os.Args[4] == "--limit" {
-			fmt.Sscanf(os.Args[5], "%d", &limit)
+		relatedDepth := 2
+		for i := 4; i < len(os.Args)-1; i++ {
+			switch os.Args[i] {
+			case "--limit":
+				fmt.Sscanf(os.Args[i+1], "%d", &limit)
+			case "--related-depth":
+				if os.Args[i+1] == "all" {
+					relatedDepth = -1
+				} else {
+					fmt.Sscanf(os.Args[i+1], "%d", &relatedDepth)
+				}
+			}
 		}
-		if err := runImpact(root, os.Args[3], limit); err != nil {
+		if err := runImpact(root, os.Args[3], limit, relatedDepth); err != nil {
 			fatal(err)
 		}
 	case "dependents", "deps":
@@ -572,14 +583,30 @@ func runCallees(root, name string, limit int) error {
 	return nil
 }
 
-// runImpact prints the composed counts-first blast-radius summary.
-func runImpact(root, name string, limit int) error {
+// runImpact prints the counts-first blast-radius summary, then any related
+// lore. Lore must never break navigation: a lore failure drops the block.
+func runImpact(root, name string, limit, relatedDepth int) error {
 	out, err := query.ImpactText(root, name, limit)
 	if err != nil {
 		return err
 	}
 	fmt.Print(out)
+	fmt.Print(relatedLoreForImpact(root, name, relatedDepth))
 	return nil
+}
+
+// relatedLoreForImpact returns the related-lore block or "" on any error.
+func relatedLoreForImpact(root, symbol string, depth int) string {
+	_, st, _, err := loreReindex(root)
+	if err != nil {
+		return ""
+	}
+	defer st.Close()
+	all, err := st.All()
+	if err != nil {
+		return ""
+	}
+	return index.RelatedLoreBlock(all, symbol, depth)
 }
 
 // runEnclosing prints the symbols overlapping a line range with caller counts —
