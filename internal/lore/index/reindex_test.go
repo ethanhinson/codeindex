@@ -64,7 +64,9 @@ func TestReindexAddChangeRemove(t *testing.T) {
 
 	// Change + remove are picked up.
 	writeRec(t, l.Dir("repo", lore.TypeDecision), "a.md", "dec-A", "Renamed", lore.TypeDecision)
-	os.Remove(filepath.Join(l.Dir("overlay", lore.TypeNote), "n.md"))
+	if err := os.Remove(filepath.Join(l.Dir("overlay", lore.TypeNote), "n.md")); err != nil {
+		t.Fatal(err)
+	}
 	s, rep, err = Reindex(l, db)
 	if err != nil || rep.Indexed != 1 || rep.Removed != 1 {
 		t.Fatalf("third run: %+v %v", rep, err)
@@ -82,8 +84,12 @@ func TestReindexAddChangeRemove(t *testing.T) {
 func TestReindexFailOpenOnMalformed(t *testing.T) {
 	l := testLayout(t)
 	dir := l.Dir("repo", lore.TypeNote)
-	os.MkdirAll(dir, 0o755)
-	os.WriteFile(filepath.Join(dir, "bad.md"), []byte("no frontmatter"), 0o644)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "bad.md"), []byte("no frontmatter"), 0o644); err != nil {
+		t.Fatal(err)
+	}
 	writeRec(t, dir, "good.md", "note-G", "Good", lore.TypeNote)
 
 	s, rep, err := Reindex(l, filepath.Join(t.TempDir(), "lore.db"))
