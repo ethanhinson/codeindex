@@ -1,6 +1,0 @@
-schema: spec-driven
-created: 2026-07-10
-goal: "Package codeindex for agents: trigger-disciplined Claude Code plugin
-  (skill + /impact /callers /callees + post-edit blast-radius hook), a
-  pre-registered v3 A/B gate proving no locate regression and retained
-  branch-out savings, then an MCP server for IDEs"

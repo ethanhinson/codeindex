@@ -263,5 +263,5 @@ plugin/              Claude Code plugin (hooks and /impact command)
 editors/vscode       VS Code integration
 bench/               benchmarks and A/B experiment findings
 docs/                CI setup and design docs
-openspec/            spec-driven development plan
+.lore/               decisions, work items, and notes (the spec-driven workflow)
 ```

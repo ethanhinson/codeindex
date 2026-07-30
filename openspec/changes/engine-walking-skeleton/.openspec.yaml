@@ -1,8 +1,0 @@
-schema: spec-driven
-created: 2026-07-09
-goal: "Minimal real vertical slice of the Go engine for one language (Go):
-  tree-sitter parse -> name-based symbols + call edges -> SQLite -> file-level
-  Merkle + fast-path -> build + one incremental patch, with a bench that
-  measures parse/patch throughput and proves an incremental update equals a full
-  rebuild. Purpose: de-risk the two engine-only unknowns before the full
-  core-indexing-engine build."
