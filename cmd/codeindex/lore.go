@@ -49,6 +49,10 @@ func runLore(root string, args []string, out io.Writer) error {
 		return loreFor(root, args[1:], out)
 	case "backlog":
 		return loreBacklog(root, args[1:], out)
+	case "promote":
+		return lorePromote(root, args[1:], out)
+	case "supersede":
+		return loreSupersede(root, args[1:], out)
 	default:
 		return fmt.Errorf("unknown lore subcommand %q\n%s", args[0], loreUsage)
 	}
@@ -84,25 +88,19 @@ func boolIn(args []string, name string) bool {
 	return false
 }
 
-// --- add ---
+// --- record construction helpers ---
 
-func loreAdd(root string, args []string, out io.Writer) error {
-	if len(args) < 1 {
-		return fmt.Errorf("usage: codeindex lore <repo> add <decision|item|note> --title T ...")
-	}
-	typ := lore.Type(args[0])
-	if typ != lore.TypeDecision && typ != lore.TypeItem && typ != lore.TypeNote {
-		return fmt.Errorf("unknown record type %q (want decision|item|note)", args[0])
-	}
+// recordFromFlags builds a new record of typ from add-style flags.
+func recordFromFlags(typ lore.Type, args []string) (lore.Record, error) {
 	title := stringFlag(args, "--title")
 	if title == "" {
-		return fmt.Errorf("--title is required")
+		return lore.Record{}, fmt.Errorf("--title is required")
 	}
 	body := stringFlag(args, "--body")
 	if body == "-" {
 		b, err := io.ReadAll(os.Stdin)
 		if err != nil {
-			return err
+			return lore.Record{}, err
 		}
 		body = string(b)
 	}
@@ -114,13 +112,12 @@ func loreAdd(root string, args []string, out io.Writer) error {
 		Status: lore.DefaultStatus(typ),
 		Date:   time.Now().UTC().Format("2006-01-02"),
 		Body:   body, Priority: stringFlag(args, "--priority"),
-		Tags: multiFlag(args, "--tag"),
-		BlockedBy: multiFlag(args, "--blocked-by"),
+		Tags: multiFlag(args, "--tag"), BlockedBy: multiFlag(args, "--blocked-by"),
 	}
 	for _, a := range multiFlag(args, "--anchor") {
 		kind, val, ok := strings.Cut(a, ":")
 		if !ok || (kind != "path" && kind != "symbol") {
-			return fmt.Errorf("bad --anchor %q (want path:P or symbol:S)", a)
+			return lore.Record{}, fmt.Errorf("bad --anchor %q (want path:P or symbol:S)", a)
 		}
 		if kind == "path" {
 			rec.Anchors = append(rec.Anchors, lore.Anchor{Path: val})
@@ -131,9 +128,46 @@ func loreAdd(root string, args []string, out io.Writer) error {
 	for _, r := range multiFlag(args, "--ref") {
 		kind, val, ok := strings.Cut(r, ":")
 		if !ok {
-			return fmt.Errorf("bad --ref %q (want kind:value)", r)
+			return lore.Record{}, fmt.Errorf("bad --ref %q (want kind:value)", r)
 		}
 		rec.Refs = append(rec.Refs, lore.Ref{Kind: kind, Value: val})
+	}
+	return rec, nil
+}
+
+// writeNewRecord marshals rec and writes it into the layer/type directory,
+// disambiguating same-day slug collisions with the ID tail.
+func writeNewRecord(l lore.Layout, rec lore.Record, layer string) (string, error) {
+	dir := l.Dir(layer, rec.Type)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return "", err
+	}
+	name := rec.Date + "-" + lore.Slug(rec.Title) + ".md"
+	path := filepath.Join(dir, name)
+	if _, err := os.Stat(path); err == nil {
+		name = rec.Date + "-" + lore.Slug(rec.Title) + "-" + rec.ID[len(rec.ID)-6:] + ".md"
+		path = filepath.Join(dir, name)
+	}
+	b, err := rec.Marshal()
+	if err != nil {
+		return "", err
+	}
+	return path, os.WriteFile(path, b, 0o644)
+}
+
+// --- add ---
+
+func loreAdd(root string, args []string, out io.Writer) error {
+	if len(args) < 1 {
+		return fmt.Errorf("usage: codeindex lore <repo> add <decision|item|note> --title T ...")
+	}
+	typ := lore.Type(args[0])
+	if typ != lore.TypeDecision && typ != lore.TypeItem && typ != lore.TypeNote {
+		return fmt.Errorf("unknown record type %q (want decision|item|note)", args[0])
+	}
+	rec, err := recordFromFlags(typ, args[1:])
+	if err != nil {
+		return err
 	}
 	layer := "repo"
 	if boolIn(args, "--private") {
@@ -143,22 +177,8 @@ func loreAdd(root string, args []string, out io.Writer) error {
 	if err != nil {
 		return err
 	}
-	dir := l.Dir(layer, typ)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return err
-	}
-	name := rec.Date + "-" + lore.Slug(title) + ".md"
-	path := filepath.Join(dir, name)
-	if _, err := os.Stat(path); err == nil {
-		// Same-day same-slug collision: disambiguate with the ID tail.
-		name = rec.Date + "-" + lore.Slug(title) + "-" + rec.ID[len(rec.ID)-6:] + ".md"
-		path = filepath.Join(dir, name)
-	}
-	b, err := rec.Marshal()
+	path, err := writeNewRecord(l, rec, layer)
 	if err != nil {
-		return err
-	}
-	if err := os.WriteFile(path, b, 0o644); err != nil {
 		return err
 	}
 	fmt.Fprintf(out, "created %s %s\n", rec.ID, path)
@@ -313,6 +333,99 @@ func loreFor(root string, args []string, out io.Writer) error {
 	for _, r := range matched {
 		fmt.Fprintf(out, "%s  [%s/%s]  %s\n", r.ID, r.Layer, orDash(r.Status), r.Title)
 	}
+	return nil
+}
+
+// --- promote ---
+
+func lorePromote(root string, args []string, out io.Writer) error {
+	if len(args) < 1 {
+		return fmt.Errorf("usage: codeindex lore <repo> promote <id>")
+	}
+	l, st, _, err := loreReindex(root)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+	r, ok, err := st.Get(args[0])
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return fmt.Errorf("no record %q", args[0])
+	}
+	if r.Layer == "repo" {
+		return fmt.Errorf("%s is already in the committed layer (%s)", r.ID, r.File)
+	}
+	dest := l.Dir("repo", r.Type) // session records promote as their parsed type (note)
+	if err := os.MkdirAll(dest, 0o755); err != nil {
+		return err
+	}
+	newPath := filepath.Join(dest, filepath.Base(r.File))
+	b, err := os.ReadFile(r.File)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(newPath, b, 0o644); err != nil {
+		return err
+	}
+	if err := os.Remove(r.File); err != nil {
+		return err
+	}
+	fmt.Fprintf(out, "promoted %s %s\n", r.ID, newPath)
+	return nil
+}
+
+// --- supersede ---
+
+func loreSupersede(root string, args []string, out io.Writer) error {
+	if len(args) < 1 {
+		return fmt.Errorf("usage: codeindex lore <repo> supersede <old-id> --title T ...")
+	}
+	l, st, _, err := loreReindex(root)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+	old, ok, err := st.Get(args[0])
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return fmt.Errorf("no record %q", args[0])
+	}
+	if old.Type != lore.TypeDecision {
+		return fmt.Errorf("%s is a %s; only decisions are superseded", old.ID, old.Type)
+	}
+	rec, err := recordFromFlags(lore.TypeDecision, args[1:])
+	if err != nil {
+		return err
+	}
+	rec.Supersedes = old.ID
+	path, err := writeNewRecord(l, rec, "repo")
+	if err != nil {
+		return err
+	}
+	// Durable transition on the old record: rewrite its file.
+	ob, err := os.ReadFile(old.File)
+	if err != nil {
+		return err
+	}
+	or, err := lore.Parse(ob, old.Type)
+	if err != nil {
+		return err
+	}
+	or.Status = "superseded"
+	or.SupersededBy = rec.ID
+	nb, err := or.Marshal()
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(old.File, nb, 0o644); err != nil {
+		return err
+	}
+	fmt.Fprintf(out, "created %s %s\n", rec.ID, path)
+	fmt.Fprintf(out, "superseded %s\n", old.ID)
 	return nil
 }
 

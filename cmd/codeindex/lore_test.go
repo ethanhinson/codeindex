@@ -150,3 +150,60 @@ func TestLoreBacklogBlockedFlag(t *testing.T) {
 		}
 	}
 }
+
+func TestLoreBacklogBlockedSortsBelowReadySamePriority(t *testing.T) {
+	root := loreTestRepo(t)
+	out := runLoreOK(t, root, "add", "item", "--title", "Blocker item", "--priority", "p1")
+	blocker := strings.Fields(out)[1]
+	runLoreOK(t, root, "add", "item", "--title", "Blocked peer", "--priority", "p1", "--blocked-by", blocker)
+	out = runLoreOK(t, root, "backlog")
+	lines := strings.Split(strings.TrimSpace(out), "\n")
+	if len(lines) != 2 {
+		t.Fatalf("lines: %v", lines)
+	}
+	if !strings.Contains(lines[0], "Blocker item") || !strings.Contains(lines[1], "Blocked peer") {
+		t.Fatalf("blocked item must sort below ready peer at same priority:\n%s", out)
+	}
+}
+
+func TestLorePromote(t *testing.T) {
+	root := loreTestRepo(t)
+	out := runLoreOK(t, root, "add", "note", "--title", "Gotcha", "--body", "x", "--private")
+	id := strings.Fields(out)[1]
+	out = runLoreOK(t, root, "promote", id)
+	if !strings.Contains(out, "promoted "+id) {
+		t.Fatalf("promote out: %q", out)
+	}
+	repoFiles, _ := filepath.Glob(filepath.Join(root, ".lore", "notes", "*.md"))
+	overlayFiles, _ := filepath.Glob(filepath.Join(os.Getenv("CODEINDEX_HOME"),
+		"lore", "*", "notes", "*.md"))
+	if len(repoFiles) != 1 || len(overlayFiles) != 0 {
+		t.Fatalf("repo=%v overlay=%v", repoFiles, overlayFiles)
+	}
+	// Re-promoting errors.
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"promote", id}, &buf); err == nil {
+		t.Fatal("want error promoting a repo-layer record")
+	}
+}
+
+func TestLoreSupersede(t *testing.T) {
+	root := loreTestRepo(t)
+	out := runLoreOK(t, root, "add", "decision", "--title", "Old way", "--body", "x")
+	oldID := strings.Fields(out)[1]
+	out = runLoreOK(t, root, "supersede", oldID, "--title", "New way", "--body", "y")
+	if !strings.Contains(out, "created dec-") || !strings.Contains(out, "superseded "+oldID) {
+		t.Fatalf("supersede out: %q", out)
+	}
+	newID := strings.Fields(strings.Split(out, "\n")[0])[1]
+
+	oldShow := runLoreOK(t, root, "show", oldID)
+	if !strings.Contains(oldShow, "status: superseded") ||
+		!strings.Contains(oldShow, "superseded_by: "+newID) {
+		t.Fatalf("old record not rewritten:\n%s", oldShow)
+	}
+	newShow := runLoreOK(t, root, "show", newID)
+	if !strings.Contains(newShow, "supersedes: "+oldID) {
+		t.Fatalf("new record missing supersedes:\n%s", newShow)
+	}
+}
