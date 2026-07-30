@@ -279,3 +279,54 @@ func TestLoreBacklogJSONCarriesPriorityAndBlocked(t *testing.T) {
 		t.Fatalf("backlog json missing priority/blocked:\n%s", js)
 	}
 }
+
+func TestLoreCaptureRequiresStdinFlag(t *testing.T) {
+	root := loreTestRepo(t)
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"capture"}, &buf); err == nil {
+		t.Fatal("want usage error without --stdin")
+	}
+}
+
+func TestLoreInitHostCursorAndCodex(t *testing.T) {
+	root := loreTestRepo(t)
+	runLoreOK(t, root, "init", "--host", "cursor")
+	b, err := os.ReadFile(filepath.Join(root, ".cursor", "rules", "lore.mdc"))
+	if err != nil || !strings.Contains(string(b), "alwaysApply: true") ||
+		!strings.Contains(string(b), "codeindex lore") {
+		t.Fatalf("cursor rule: %v\n%s", err, b)
+	}
+	runLoreOK(t, root, "init", "--host", "codex")
+	runLoreOK(t, root, "init", "--host", "codex") // idempotent
+	ab, err := os.ReadFile(filepath.Join(root, "AGENTS.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Count(string(ab), "codeindex-lore:start") != 1 {
+		t.Fatalf("managed block duplicated:\n%s", ab)
+	}
+}
+
+func TestLoreInitHostUnknown(t *testing.T) {
+	root := loreTestRepo(t)
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"init", "--host", "vim"}, &buf); err == nil {
+		t.Fatal("want error for unknown host")
+	}
+}
+
+func TestLoreInitHostCodexRefusesOrphanedMarker(t *testing.T) {
+	root := loreTestRepo(t)
+	orphaned := "# My agents\n" + codexBlockStart + "\nprecious user content below\n"
+	if err := os.WriteFile(filepath.Join(root, "AGENTS.md"), []byte(orphaned), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	var buf bytes.Buffer
+	if err := runLore(root, []string{"init", "--host", "codex"}, &buf); err == nil {
+		t.Fatal("want error on orphaned start marker")
+	}
+	b, _ := os.ReadFile(filepath.Join(root, "AGENTS.md"))
+	if !strings.Contains(string(b), "precious user content below") {
+		t.Fatal("user content was destroyed")
+	}
+}
