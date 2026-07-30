@@ -207,3 +207,18 @@ func TestLoreSupersede(t *testing.T) {
 		t.Fatalf("new record missing supersedes:\n%s", newShow)
 	}
 }
+
+func TestLorePromoteCollisionDisambiguates(t *testing.T) {
+	root := loreTestRepo(t)
+	out := runLoreOK(t, root, "add", "note", "--title", "Same Name", "--body", "private", "--private")
+	id := strings.Fields(out)[1]
+	runLoreOK(t, root, "add", "note", "--title", "Same Name", "--body", "committed")
+	out = runLoreOK(t, root, "promote", id)
+	if !strings.Contains(out, "promoted "+id) {
+		t.Fatalf("promote out: %q", out)
+	}
+	files, _ := filepath.Glob(filepath.Join(root, ".lore", "notes", "*.md"))
+	if len(files) != 2 {
+		t.Fatalf("collision overwrote a file; want 2 files, got %v", files)
+	}
+}

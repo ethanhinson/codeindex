@@ -362,6 +362,10 @@ func lorePromote(root string, args []string, out io.Writer) error {
 		return err
 	}
 	newPath := filepath.Join(dest, filepath.Base(r.File))
+	if _, err := os.Stat(newPath); err == nil {
+		base := strings.TrimSuffix(filepath.Base(r.File), ".md")
+		newPath = filepath.Join(dest, base+"-"+r.ID[len(r.ID)-6:]+".md")
+	}
 	b, err := os.ReadFile(r.File)
 	if err != nil {
 		return err
