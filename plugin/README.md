@@ -33,6 +33,23 @@ claude --plugin-dir /path/to/code-indexer/plugin
 (The v3 A/B gate measured the earlier skill + primitive-command apparatus as
 net-negative — ~3.1k-token footprint — so v4 deliberately ships without them.)
 
+## Lore
+
+Decision history and work-item tracking for repos that have run `codeindex lore init`.
+
+| Piece | What it does |
+|---|---|
+| **Lore note** (UserPromptSubmit hook) | Injects a ≤80-token availability note per prompt when `.lore/` exists: reminds the model to consult past decisions before architectural choices and to record new ones. Always-visible beats lazy skill (same philosophy as the prompt note above). |
+| **Capture hook** (Stop hook) | When `.lore/` exists and the binary is available, pipes the session payload to `codeindex lore <cwd> capture --stdin` at the end of every session. Captures go into the private overlay (decay in ranking; promotable). **Never prints to stdout** — a capture must never block the agent's stop. Only activates in repos that have run `lore init`. |
+| **`/codeindex:decide <title>`** | Records a decision in `.lore/` with rationale and rejected alternatives from the current conversation. Supports `--anchor symbol:X` / `--anchor path:Y` to link to the code discussed. |
+| **`/codeindex:lore <query>`** | Searches `.lore/` for relevant decisions, work items, and notes, then shows the active backlog. Asks the model to summarize what's relevant to the current conversation. |
+
+### Kill switches (lore hooks)
+
+- Disable per-repo: `touch .codeindex/hook-disabled`
+- Disable globally: `CODEINDEX_HOOK_DISABLE=1`
+- Both lore hooks are silent on any failure and never block the agent.
+
 ## Hook controls
 
 - Disable per-repo: `touch .codeindex/hook-disabled`
