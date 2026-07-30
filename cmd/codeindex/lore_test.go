@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -906,5 +907,41 @@ func TestRunImpactAppendsRelatedLore(t *testing.T) {
 	// assert the error is not a lore error.
 	if strings.Contains(err.Error(), "lore") {
 		t.Fatalf("lore must not break impact: %v", err)
+	}
+}
+
+func TestLoreRelatedAndBacklinks(t *testing.T) {
+	root := t.TempDir()
+	if err := loreInitScaffold(root, nil, io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	// dec-parent linked-from itm-child via related.
+	mustAdd := func(args ...string) {
+		if err := loreAdd(root, args, io.Discard); err != nil {
+			t.Fatal(err)
+		}
+	}
+	mustAdd("decision", "--title", "Parent Decision")
+	// find its id
+	_, st, _, err := loreReindex(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	all, _ := st.All()
+	st.Close()
+	var parentID string
+	for _, r := range all {
+		if r.Title == "Parent Decision" {
+			parentID = r.ID
+		}
+	}
+	mustAdd("note", "--title", "Child Note", "--related", parentID)
+
+	var out strings.Builder
+	if err := loreRelated(root, []string{parentID, "--depth", "all"}, &out); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out.String(), "Child Note") {
+		t.Fatalf("related/backlinks should reach Child Note:\n%s", out.String())
 	}
 }

@@ -46,7 +46,7 @@ func loreReindex(root string) (lore.Layout, *index.Store, index.Report, error) {
 }
 
 const loreUsage = "usage: codeindex lore <repo-root> " +
-	"<add|show|search|for|backlog|promote|supersede|doctor|init|capture|event|sync|push> ..."
+	"<add|show|related|search|for|backlog|promote|supersede|doctor|init|capture|event|sync|push> ..."
 
 func runLore(root string, args []string, out io.Writer) error {
 	if len(args) == 0 {
@@ -57,6 +57,8 @@ func runLore(root string, args []string, out io.Writer) error {
 		return loreAdd(root, args[1:], out)
 	case "show":
 		return loreShow(root, args[1:], out)
+	case "related":
+		return loreRelated(root, args[1:], out)
 	case "search":
 		return loreSearch(root, args[1:], out)
 	case "for":
@@ -392,6 +394,7 @@ func recordFromFlags(typ lore.Type, args []string) (lore.Record, error) {
 		Date:   time.Now().UTC().Format("2006-01-02"),
 		Body:   body, Priority: stringFlag(args, "--priority"),
 		Tags: multiFlag(args, "--tag"), BlockedBy: multiFlag(args, "--blocked-by"),
+		Related: multiFlag(args, "--related"),
 	}
 	for _, a := range multiFlag(args, "--anchor") {
 		kind, val, ok := strings.Cut(a, ":")
@@ -475,6 +478,10 @@ func loreShow(root string, args []string, out io.Writer) error {
 		return err
 	}
 	defer st.Close()
+	all, err := st.All()
+	if err != nil {
+		return err
+	}
 	r, ok, err := st.Get(args[0])
 	if err != nil {
 		return err
@@ -519,6 +526,49 @@ func loreShow(root string, args []string, out io.Writer) error {
 	}
 	if _, err := out.Write(b); err != nil {
 		return err
+	}
+	bl := index.Backlinks(all, r.ID)
+	if len(bl) > 0 {
+		fmt.Fprintln(out, "\nReferenced by:")
+		for _, b := range bl {
+			fmt.Fprintf(out, "  %s  %s/%s  %s\n", b.ID, b.Type, orDash(b.Status), b.Title)
+		}
+	}
+	return nil
+}
+
+// loreRelated prints out-links and back-links for a record, tracing the record
+// graph to the requested depth (default: full trace).
+func loreRelated(root string, args []string, out io.Writer) error {
+	if len(args) < 1 {
+		return fmt.Errorf("usage: codeindex lore <repo> related <id> [--depth N|all]")
+	}
+	depth := -1 // full trace by default
+	if v := stringFlag(args, "--depth"); v != "" && v != "all" {
+		fmt.Sscanf(v, "%d", &depth)
+	}
+	_, st, _, err := loreReindex(root)
+	if err != nil {
+		return err
+	}
+	defer st.Close()
+	all, err := st.All()
+	if err != nil {
+		return err
+	}
+	id, ok := index.ResolveID(all, args[0])
+	if !ok {
+		return fmt.Errorf("no record %q", args[0])
+	}
+	byID := map[string]index.StoredRecord{}
+	for _, r := range all {
+		byID[r.ID] = r
+	}
+	fmt.Fprintf(out, "%s\n", id)
+	for _, reached := range index.Trace(all, id, index.TraceOpts{Depth: depth}) {
+		r := byID[reached.ID]
+		fmt.Fprintf(out, "  d%d  %-11s  %s/%s  %s\n", reached.Distance, reached.ViaEdge,
+			r.Type, orDash(r.Status), r.Title)
 	}
 	return nil
 }
