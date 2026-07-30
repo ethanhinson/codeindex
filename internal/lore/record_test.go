@@ -1,6 +1,7 @@
 package lore
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -85,5 +86,99 @@ func TestRoundTripBodyWithLeadingNewline(t *testing.T) {
 	}
 	if out.Body != in.Body {
 		t.Fatalf("body round-trip: %q != %q", out.Body, in.Body)
+	}
+}
+
+// TestExtraFieldsRoundTrip verifies that unknown frontmatter keys survive
+// Parse → Marshal → Parse without disturbing known fields.
+func TestExtraFieldsRoundTrip(t *testing.T) {
+	src := "---\nid: dec-01AN4Z07BY79KA1307SR9X4MV3\ntitle: Test extra fields\nstatus: active\ndate: 2026-07-29\nhook: \"future field\"\nclaimed_at: 2026-08-01T00:00:00Z\n---\nBody.\n"
+	r, err := Parse([]byte(src), TypeDecision)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Extra map must capture the unknown keys.
+	if r.Extra == nil {
+		t.Fatal("Extra is nil, expected map with unknown keys")
+	}
+	if got, ok := r.Extra["hook"]; !ok || got != "future field" {
+		t.Fatalf("Extra[hook] = %v, want 'future field'", got)
+	}
+	if _, ok := r.Extra["claimed_at"]; !ok {
+		t.Fatal("Extra[claimed_at] missing")
+	}
+
+	// Known fields must NOT appear in Extra.
+	knownInExtra := []string{"id", "title", "status", "date", "supersedes", "superseded_by",
+		"priority", "blocked_by", "tags", "anchors", "refs"}
+	for _, k := range knownInExtra {
+		if _, found := r.Extra[k]; found {
+			t.Fatalf("known key %q must not appear in Extra", k)
+		}
+	}
+
+	// Marshal then Parse again — both keys must survive byte-level and in Extra.
+	b, err := r.Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+	marshaled := string(b)
+	if !strings.Contains(marshaled, "hook:") {
+		t.Fatalf("hook: not found in marshaled output:\n%s", marshaled)
+	}
+	if !strings.Contains(marshaled, "claimed_at:") {
+		t.Fatalf("claimed_at: not found in marshaled output:\n%s", marshaled)
+	}
+
+	r2, err := Parse(b, TypeDecision)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r2.Extra == nil {
+		t.Fatal("Extra nil after second parse")
+	}
+	if got, ok := r2.Extra["hook"]; !ok || got != "future field" {
+		t.Fatalf("hook after second parse = %v, want 'future field'", got)
+	}
+	if _, ok := r2.Extra["claimed_at"]; !ok {
+		t.Fatal("claimed_at missing after second parse")
+	}
+
+	// Known fields must be unchanged.
+	if r2.ID != "dec-01AN4Z07BY79KA1307SR9X4MV3" || r2.Title != "Test extra fields" ||
+		r2.Status != "active" || r2.Body != "Body.\n" {
+		t.Fatalf("known fields corrupted: %+v", r2)
+	}
+}
+
+// TestNoExtraForKnownKeys verifies that a record with only known frontmatter
+// keys produces a nil Extra (no pollution).
+func TestNoExtraForKnownKeys(t *testing.T) {
+	in := Record{
+		ID: "dec-01AN4Z07BY79KA1307SR9X4MV3", Type: TypeDecision,
+		Title: "Clean record", Status: "active", Date: "2026-07-29",
+		Body: "Rationale.\n",
+	}
+	b, err := in.Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, err := Parse(b, TypeDecision)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(out.Extra) != 0 {
+		t.Fatalf("expected nil/empty Extra for known-only fields, got %v", out.Extra)
+	}
+}
+
+// TestKnownKeysCoversWireFields asserts knownKeys length equals wire struct
+// field count so a future field can't be forgotten.
+func TestKnownKeysCoversWireFields(t *testing.T) {
+	wireType := reflect.TypeOf(wire{})
+	if len(knownKeys) != wireType.NumField() {
+		t.Fatalf("knownKeys has %d entries but wire has %d fields — update knownKeys",
+			len(knownKeys), wireType.NumField())
 	}
 }
