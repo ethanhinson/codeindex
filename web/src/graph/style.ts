@@ -56,27 +56,6 @@ export function stylesheet(): StylesheetCSS[] {
         'border-width': 0,
       },
     },
-    // Compound package clusters.
-    {
-      selector: 'node.group',
-      style: {
-        label: 'data(label)',
-        shape: 'round-rectangle',
-        'background-color': '#4f8ff7',
-        'background-opacity': 0.04,
-        'border-width': 1,
-        'border-color': '#2a3140',
-        'border-style': 'dashed',
-        color: '#8a94a6',
-        'font-size': 13,
-        'min-zoomed-font-size': 0,
-        'text-valign': 'top',
-        'text-halign': 'center',
-        'text-margin-y': -2,
-        padding: 14,
-        'z-compound-depth': 'bottom',
-      },
-    },
     // Collapsed package: a plain node sized by how many symbols it holds.
     {
       selector: 'node[kind = "package"]',

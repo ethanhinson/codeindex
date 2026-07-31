@@ -44,7 +44,7 @@ Unit-tested against fixture graphs (empty, single package, cross-package edges, 
 ### 3. Deterministic, incremental layout
 
 - **Initial placement:** packages seeded on a circle ordered by a stable hash of package name; fcose runs with `randomize: false` to refine from that deterministic start. Same repo → same map every load.
-- **Expansion layout:** all pre-existing nodes are pinned via fcose `fixedNodeConstraint`; only the newly revealed children lay out, seeded around their package's current centroid. The map never jumps under the user.
+- **Expansion layout:** no layout runs on expand at all — newly revealed children are placed on a deterministic phyllotaxis spiral around their package's current position, so every pre-existing node is pinned by construction. The map never jumps under the user.
 - **Viewport:** layouts stay `animate: false`; viewport moves (fit on load, center on select/expand) animate ~300ms. Motion where it orients, none where it costs.
 
 ### 4. Interaction smoothness
