@@ -8,6 +8,8 @@ import (
 
 	"codeindex/internal/engine"
 	"codeindex/internal/graph"
+	"codeindex/internal/lore"
+	loreindex "codeindex/internal/lore/index"
 )
 
 // writeTree writes files under a fresh temp dir and returns the dir.
@@ -75,5 +77,52 @@ func TestSymbolNeighborhood(t *testing.T) {
 	}
 	if !hasCallerEdge || !hasCalleeEdge {
 		t.Errorf("edges wrong: %+v", g.Edges)
+	}
+}
+
+func openLoreStore(t *testing.T) *loreindex.Store {
+	t.Helper()
+	s, err := loreindex.Open(filepath.Join(t.TempDir(), "lore.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { s.Close() })
+	return s
+}
+
+func TestAttachAnchoredLore(t *testing.T) {
+	ls := openLoreStore(t)
+	rec := lore.Record{
+		ID: "dec-A", Type: lore.TypeDecision, Title: "Keep Helper pure",
+		Status: "active", Date: "2026-07-29",
+		Anchors: []lore.Anchor{{Symbol: "Helper"}},
+	}
+	if err := ls.Upsert(rec, "repo", "/repo/.lore/decisions/a.md"); err != nil {
+		t.Fatal(err)
+	}
+	recs, err := ls.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	g := Graph{
+		Focus: "sym:Helper",
+		Nodes: []Node{{ID: "sym:Helper", Kind: NodeSymbol, Label: "Helper"}},
+	}
+	AttachAnchoredLore(&g, recs)
+
+	var hasNode, hasEdge bool
+	for _, n := range g.Nodes {
+		if n.ID == "dec-A" && n.Kind == NodeDecision && n.Label == "Keep Helper pure" {
+			hasNode = true
+		}
+	}
+	for _, e := range g.Edges {
+		if e.Source == "dec-A" && e.Target == "sym:Helper" && e.Kind == EdgeAnchors {
+			hasEdge = true
+		}
+	}
+	if !hasNode || !hasEdge {
+		t.Fatalf("anchored lore not attached: nodes=%+v edges=%+v", g.Nodes, g.Edges)
 	}
 }
