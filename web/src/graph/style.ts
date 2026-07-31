@@ -33,30 +33,35 @@ export const EDGE_STYLES: Record<EdgeKind, 'solid' | 'dashed' | 'dotted'> = {
 }
 
 export function stylesheet(): StylesheetCSS[] {
-  const nodeKinds = Object.keys(NODE_COLORS) as NodeKind[]
   const edgeKinds = Object.keys(EDGE_COLORS) as EdgeKind[]
 
   const base: Array<{ selector: string; style: Record<string, unknown> }> = [
+    // Symbols: quiet dots; labels exist but are invisible until earned.
     {
       selector: 'node',
       style: {
         label: 'data(label)',
         color: '#c5ccd8',
         'font-size': 10,
-        // Labels fade out when zoomed out — legible up close, clean at a distance.
-        'min-zoomed-font-size': 9,
+        'text-opacity': 0,
         'text-valign': 'bottom',
         'text-halign': 'center',
         'text-margin-y': 3,
         'text-wrap': 'ellipsis',
-        'text-max-width': '140px',
-        // Size by degree: hubs are bigger, like Obsidian.
-        width: 'mapData(degree, 0, 40, 10, 46)',
-        height: 'mapData(degree, 0, 40, 10, 46)',
+        'text-max-width': '150px',
+        width: 'mapData(degree, 0, 40, 8, 40)',
+        height: 'mapData(degree, 0, 40, 8, 40)',
         'border-width': 0,
+        'background-color': NODE_COLORS.symbol,
+        shape: 'ellipse',
+        'transition-property': 'text-opacity',
+        'transition-duration': '0.12s',
       },
     },
-    // Collapsed package: a plain node sized by how many symbols it holds.
+    // Earned/hovered/selected labels fade in.
+    { selector: 'node.labeled', style: { 'text-opacity': 1 } },
+    { selector: 'node.hl', style: { 'text-opacity': 1, opacity: 1, 'z-index': 30 } },
+    // Overview package nodes: always-labeled map tiles sized by symbol count.
     {
       selector: 'node[kind = "package"]',
       style: {
@@ -66,46 +71,24 @@ export function stylesheet(): StylesheetCSS[] {
         'border-color': '#3a4a66',
         color: '#aab6c8',
         'font-size': 12,
-        'min-zoomed-font-size': 0,
+        'text-opacity': 1,
         'text-valign': 'center',
         'text-halign': 'center',
-        width: 'mapData(symCount, 1, 120, 30, 110)',
-        height: 'mapData(symCount, 1, 120, 22, 46)',
+        width: 'mapData(symCount, 1, 120, 34, 116)',
+        height: 'mapData(symCount, 1, 120, 24, 48)',
       },
     },
-    // Expanded package: compound parent — translucent container, label on top.
+    // Focus-view satellites: smaller, muted chips on the rim.
     {
-      selector: 'node[kind = "package"]:parent',
+      selector: 'node[role = "satellite"]',
       style: {
-        'background-color': '#4f8ff7',
-        'background-opacity': 0.05,
-        'border-style': 'dashed',
-        'border-color': '#2a3140',
-        'text-valign': 'top',
-        'text-margin-y': -4,
-        padding: 16,
-        'z-compound-depth': 'bottom',
+        'background-color': '#182238',
+        'font-size': 11,
+        width: 'mapData(symCount, 1, 120, 28, 84)',
+        height: 22,
       },
     },
-    // The "+N more" chip.
-    {
-      selector: 'node[kind = "chip"]',
-      style: {
-        shape: 'round-rectangle',
-        'background-color': '#2a3140',
-        'border-width': 1,
-        'border-color': '#4f8ff7',
-        color: '#c5ccd8',
-        'font-size': 10,
-        'min-zoomed-font-size': 0,
-        'text-valign': 'center',
-        'text-halign': 'center',
-        width: 60,
-        height: 18,
-      },
-    },
-    // LOD: elements hidden at far zoom.
-    { selector: '.lod-hide', style: { display: 'none' } },
+    // Generic edge first; feature rules AFTER it (order-precedence, see lore).
     {
       selector: 'edge',
       style: {
@@ -116,9 +99,6 @@ export function stylesheet(): StylesheetCSS[] {
         opacity: 0.7,
       },
     },
-    // Bundled edges: width carries the call count between the two ends.
-    // Must appear AFTER the generic edge rule — cytoscape uses order-precedence,
-    // not specificity; a later matching rule overwrites earlier properties.
     {
       selector: 'edge[?bundled]',
       style: {
@@ -130,38 +110,26 @@ export function stylesheet(): StylesheetCSS[] {
     },
     // Interaction states.
     { selector: '.dim', style: { opacity: 0.15 } },
-    { selector: 'node.hl', style: { opacity: 1, 'z-index': 30 } },
     { selector: 'edge.hl', style: { opacity: 1, width: 2, 'line-color': '#9fb2d6', 'z-index': 30 } },
     {
       selector: 'node.sel',
-      style: {
-        'border-width': 3,
-        'border-color': '#ffffff',
-        'font-size': 13,
-        'min-zoomed-font-size': 0,
-        'z-index': 40,
-      },
+      style: { 'border-width': 3, 'border-color': '#ffffff', 'font-size': 13, 'text-opacity': 1, 'z-index': 40 },
     },
-    { selector: 'node.selhl', style: { 'min-zoomed-font-size': 0 } },
+    { selector: 'node.selhl', style: { 'text-opacity': 1 } },
     { selector: 'edge.selhl', style: { width: 2, opacity: 1, 'line-color': '#9fb2d6', 'z-index': 25 } },
+    // Lore-rail hover-sync target.
+    { selector: 'node.lore-hot', style: { 'border-width': 2.5, 'border-color': '#f2b134' } },
+    // Transition entry state (Task 4 morphs from this).
+    { selector: 'node.entering', style: { opacity: 0.2 } },
+    // LOD: elements hidden at far zoom.
+    { selector: '.lod-hide', style: { display: 'none' } },
   ]
 
-  for (const k of nodeKinds) {
-    base.push({
-      selector: `node[kind = "${k}"]`,
-      style: { 'background-color': NODE_COLORS[k], shape: NODE_SHAPES[k] },
-    })
-  }
   for (const k of edgeKinds) {
-    if (k === 'calls') continue // calls keep the neutral default for density
+    if (k === 'calls') continue // calls keep the neutral defaults for density
     base.push({
       selector: `edge[kind = "${k}"]`,
-      style: {
-        'line-color': EDGE_COLORS[k],
-        'line-style': EDGE_STYLES[k],
-        opacity: 0.9,
-        width: 1.5,
-      },
+      style: { 'line-color': EDGE_COLORS[k], 'line-style': EDGE_STYLES[k], opacity: 0.9, width: 1.5 },
     })
   }
   return base as unknown as StylesheetCSS[]
