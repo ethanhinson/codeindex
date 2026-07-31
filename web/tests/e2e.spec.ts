@@ -1,72 +1,49 @@
 import { test, expect, type Page } from '@playwright/test'
 
-// The graph is canvas-rendered; we assert real content through the exposed
-// cytoscape instance and through DOM proxies (inspector, breadcrumbs).
 function nodeCount(page: Page): Promise<number> {
   return page.evaluate(() => (window as any).__cy?.nodes().length ?? 0)
 }
-function edgeCount(page: Page): Promise<number> {
-  return page.evaluate(() => (window as any).__cy?.edges().length ?? 0)
+function selectedCount(page: Page): Promise<number> {
+  return page.evaluate(() => (window as any).__cy?.$('.sel').length ?? 0)
 }
 
-test('bare landing auto-loads a graph from lore', async ({ page }) => {
+test('landing loads the whole project graph', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByTestId('health')).toContainText('●')
   await expect(page.getByTestId('graph-canvas')).toBeVisible()
   await expect(page.getByTestId('legend')).toBeVisible()
-  // The canvas must not be empty on landing — this is the whole point of seed.
-  await expect.poll(() => nodeCount(page)).toBeGreaterThan(0)
-  await expect(page.getByTestId('inspector-title')).toBeVisible()
-  await expect(page.getByTestId('suggestion').first()).toBeVisible()
+  await expect(page.getByTestId('health')).toContainText('symbols')
+  // The whole graph is thousands of nodes, not a handful.
+  await expect.poll(() => nodeCount(page), { timeout: 15000 }).toBeGreaterThan(500)
 })
 
-test('focus a symbol renders a code+lore neighborhood', async ({ page }) => {
-  await page.goto('/?focus=sym:Neighborhood')
-  await expect(page.getByTestId('inspector-title')).toHaveText('Neighborhood')
-  await expect.poll(() => nodeCount(page)).toBeGreaterThan(1)
-  await expect.poll(() => edgeCount(page)).toBeGreaterThan(0)
-  await expect(page.getByTestId('neighbor').first()).toBeVisible()
-  await expect(page.getByTestId('crumb')).toHaveCount(1)
-  await page.screenshot({ path: 'test-results/focus.png', fullPage: true })
-})
-
-test('dig deeper by expanding a node grows the graph', async ({ page }) => {
-  await page.goto('/?focus=sym:Neighborhood')
-  await expect.poll(() => nodeCount(page)).toBeGreaterThan(1)
-  const before = await nodeCount(page)
-
-  // Simulate a graph node tap on a non-focus node → expand (merge).
-  await page.evaluate(() => {
-    const cy = (window as any).__cy
-    const focusId = cy.$('.focus').id()
-    const target = cy.nodes().filter((n: any) => n.id() !== focusId)[0]
-    target.emit('tap')
-  })
-
-  await expect.poll(() => nodeCount(page)).toBeGreaterThanOrEqual(before)
-  await expect(page.getByTestId('crumb')).toHaveCount(2)
-  await page.screenshot({ path: 'test-results/expand.png', fullPage: true })
-})
-
-test('navigate via an inspector neighbor chip', async ({ page }) => {
-  await page.goto('/?focus=sym:Neighborhood')
-  await expect(page.getByTestId('inspector-title')).toHaveText('Neighborhood')
-
-  const firstNeighbor = page.getByTestId('neighbor').first()
-  const neighborLabel = (await firstNeighbor.locator('.neighbor-label').textContent())?.trim()
-  await firstNeighbor.click()
-
-  await expect.poll(() => nodeCount(page)).toBeGreaterThan(0)
-  if (neighborLabel) {
-    await expect(page.getByTestId('inspector-title')).toHaveText(neighborLabel)
-  }
-  await expect(page.getByTestId('crumb')).toHaveCount(2)
-})
-
-test('command palette sets the focus', async ({ page }) => {
-  await page.goto('/?focus=sym:Neighborhood')
-  await expect(page.getByTestId('inspector-title')).toHaveText('Neighborhood')
-  await page.getByTestId('palette-input').fill('sym:SymbolNeighborhood')
+test('search selects a symbol and inspects it', async ({ page }) => {
+  await page.goto('/')
+  await expect.poll(() => nodeCount(page), { timeout: 15000 }).toBeGreaterThan(500)
+  await page.getByTestId('palette-input').fill('Neighborhood')
   await page.getByTestId('palette-input').press('Enter')
-  await expect(page.getByTestId('inspector-title')).toHaveText('SymbolNeighborhood')
+
+  await expect(page.getByTestId('inspector-title')).toHaveText('Neighborhood')
+  await expect.poll(() => selectedCount(page)).toBe(1)
+  await expect(page.getByTestId('neighbor').first()).toBeVisible()
+  await page.screenshot({ path: 'test-results/selected.png', fullPage: true })
+})
+
+test('deep link ?focus= selects on load', async ({ page }) => {
+  await page.goto('/?focus=SymbolNeighborhood')
+  await expect.poll(() => nodeCount(page), { timeout: 15000 }).toBeGreaterThan(500)
+  await expect(page.getByTestId('inspector-title')).toHaveText('SymbolNeighborhood', { timeout: 15000 })
+  await expect.poll(() => selectedCount(page)).toBe(1)
+})
+
+test('clicking an inspector neighbor changes selection', async ({ page }) => {
+  await page.goto('/?focus=Neighborhood')
+  await expect.poll(() => nodeCount(page), { timeout: 15000 }).toBeGreaterThan(500)
+  await expect(page.getByTestId('inspector-title')).toHaveText('Neighborhood', { timeout: 15000 })
+  const neighbor = page.getByTestId('neighbor').first()
+  const label = (await neighbor.locator('.neighbor-label').textContent())?.trim()
+  await neighbor.click()
+  if (label) {
+    await expect(page.getByTestId('inspector-title')).toHaveText(label)
+  }
+  await expect.poll(() => selectedCount(page)).toBe(1)
 })

@@ -1,36 +1,54 @@
-import { useEffect, useState } from 'react'
-import { getHealth, getSeed } from './api'
+import { useEffect, useMemo, useState } from 'react'
+import { getHealth } from './api'
 import type { Health } from './types'
 import type { Suggestion } from './CommandPalette'
-import { useExploration } from './useExploration'
+import { useFullGraph, resolveFocus } from './useFullGraph'
 import { GraphCanvas } from './graph/GraphCanvas'
 import { CommandPalette } from './CommandPalette'
 import { Inspector } from './Inspector'
 import { EDGE_COLORS, EDGE_STYLES, NODE_COLORS } from './graph/style'
 
 export default function App() {
-  const { nodes, edges, focus, crumbs, loading, error, focusOn, expand } = useExploration()
+  const { nodes, edges, loading, error } = useFullGraph()
   const [health, setHealth] = useState<Health | null>(null)
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+  const [selected, setSelected] = useState<string | null>(null)
 
   useEffect(() => {
     getHealth().then(setHealth).catch(() => setHealth(null))
-    const param = new URLSearchParams(window.location.search).get('focus')
-    if (param) {
-      focusOn(param)
-      return
-    }
-    // No explicit focus: seed the canvas from lore so the landing is never
-    // empty, and offer the rest as suggestions.
-    getSeed()
-      .then((seed) => {
-        setSuggestions(seed.map((s) => ({ id: s.id, label: s.label })))
-        if (seed.length > 0) focusOn(seed[0].id)
-      })
-      .catch(() => setSuggestions([]))
-  }, [focusOn])
+  }, [])
 
-  const selected = focus ? nodes.find((n) => n.id === focus) ?? null : null
+  // Once the graph is in, honor ?focus= (id or label) for deep links.
+  useEffect(() => {
+    if (nodes.length === 0) return
+    const param = new URLSearchParams(window.location.search).get('focus')
+    if (param) setSelected(resolveFocus(nodes, param))
+  }, [nodes])
+
+  const selectedNode = useMemo(
+    () => (selected ? nodes.find((n) => n.id === selected) ?? null : null),
+    [selected, nodes],
+  )
+
+  // Suggestions: the highest-degree symbols — the hubs worth starting from.
+  const suggestions = useMemo<Suggestion[]>(() => {
+    const deg = new Map<string, number>()
+    for (const e of edges) {
+      deg.set(e.source, (deg.get(e.source) ?? 0) + 1)
+      deg.set(e.target, (deg.get(e.target) ?? 0) + 1)
+    }
+    return nodes
+      .filter((n) => n.kind === 'symbol')
+      .sort((a, b) => (deg.get(b.id) ?? 0) - (deg.get(a.id) ?? 0))
+      .slice(0, 4)
+      .map((n) => ({ id: n.id, label: n.label }))
+  }, [nodes, edges])
+
+  const symbolCount = nodes.filter((n) => n.kind === 'symbol').length
+  const loreCount = nodes.length - symbolCount
+
+  function onSearch(query: string) {
+    setSelected(resolveFocus(nodes, query))
+  }
 
   return (
     <div className="app">
@@ -38,41 +56,22 @@ export default function App() {
         <div className="brand">
           codeindex <span className="brand-sub">· lore graph</span>
         </div>
-        <CommandPalette onSubmit={focusOn} suggestions={suggestions} />
+        <CommandPalette onSubmit={onSearch} suggestions={suggestions} />
         <div className="status" data-testid="health">
-          {health ? `● ${health.version}` : '○ offline'}
+          {loading
+            ? 'loading graph…'
+            : `${symbolCount} symbols · ${loreCount} lore${health ? ` · ● ${health.version}` : ''}`}
         </div>
       </header>
-
-      <nav className="breadcrumbs" data-testid="breadcrumbs">
-        {crumbs.length === 0 && <span className="crumb-hint">no path yet</span>}
-        {crumbs.map((c, i) => (
-          <span key={`${c.id}-${i}`} className="crumb-wrap">
-            {i > 0 && <span className="crumb-sep">›</span>}
-            <button
-              className={`crumb ${c.id === focus ? 'active' : ''}`}
-              data-testid="crumb"
-              onClick={() => focusOn(c.id)}
-            >
-              {c.label}
-            </button>
-          </span>
-        ))}
-        {loading && <span className="loading">…</span>}
-      </nav>
 
       <main className="stage">
         <div className="canvas-wrap">
           {error && <div className="error-banner" data-testid="error">{error}</div>}
-          {crumbs.length === 0 && !loading && (
-            <div className="empty-hint" data-testid="empty-hint">
-              Press <kbd>/</kbd> and enter a focus — try a suggestion above.
-            </div>
-          )}
-          <GraphCanvas nodes={nodes} edges={edges} focus={focus} onNodeTap={expand} />
+          {loading && <div className="empty-hint" data-testid="loading-hint">building the graph…</div>}
+          <GraphCanvas nodes={nodes} edges={edges} selected={selected} onSelect={setSelected} />
           <Legend />
         </div>
-        <Inspector node={selected} nodes={nodes} edges={edges} onOpen={focusOn} />
+        <Inspector node={selectedNode} nodes={nodes} edges={edges} onOpen={setSelected} />
       </main>
     </div>
   )

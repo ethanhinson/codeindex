@@ -12,6 +12,7 @@ export interface GraphNode {
   signature?: string
   status?: string
   priority?: string
+  group?: string
 }
 
 export interface GraphEdge {

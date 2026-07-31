@@ -15,15 +15,8 @@ export async function getHealth(): Promise<Health> {
   return (await r.json()) as Health
 }
 
-export interface SeedFocus {
-  id: string
-  label: string
-  kind: string
-}
-
-export async function getSeed(): Promise<SeedFocus[]> {
-  const r = await fetch('/api/seed')
-  if (!r.ok) throw new Error(`seed ${r.status}`)
-  const j = (await r.json()) as { focuses?: SeedFocus[] }
-  return j.focuses ?? []
+export async function getFullGraph(): Promise<Graph> {
+  const r = await fetch('/api/graph/full')
+  if (!r.ok) throw new Error(`full graph ${r.status}`)
+  return (await r.json()) as Graph
 }

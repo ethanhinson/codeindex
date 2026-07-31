@@ -35,13 +35,13 @@ func New(root, version string) http.Handler {
 		writeJSON(w, http.StatusOK, g)
 	})
 
-	mux.HandleFunc("/api/seed", func(w http.ResponseWriter, _ *http.Request) {
-		focuses, err := readmodel.Seed(root, 8)
+	mux.HandleFunc("/api/graph/full", func(w http.ResponseWriter, _ *http.Request) {
+		g, err := readmodel.FullGraph(root)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		writeJSON(w, http.StatusOK, map[string]any{"focuses": focuses})
+		writeJSON(w, http.StatusOK, g)
 	})
 
 	mux.Handle("/", staticHandler())

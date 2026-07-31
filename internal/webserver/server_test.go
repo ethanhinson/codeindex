@@ -96,11 +96,11 @@ func TestGraphEndpoint(t *testing.T) {
 	}
 }
 
-func TestSeedEndpoint(t *testing.T) {
+func TestFullGraphEndpoint(t *testing.T) {
 	srv := httptest.NewServer(New(writeRepo(t), "test"))
 	defer srv.Close()
 
-	resp, err := http.Get(srv.URL + "/api/seed")
+	resp, err := http.Get(srv.URL + "/api/graph/full")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,20 +108,43 @@ func TestSeedEndpoint(t *testing.T) {
 	if resp.StatusCode != 200 {
 		t.Fatalf("status = %d", resp.StatusCode)
 	}
-	var body struct {
-		Focuses []struct {
-			ID, Label, Kind string
-		} `json:"focuses"`
+	var g struct {
+		Nodes []struct {
+			ID, Kind, Label, Group string
+		} `json:"nodes"`
+		Edges []struct {
+			Source, Target, Kind string
+		} `json:"edges"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&g); err != nil {
 		t.Fatal(err)
 	}
-	// The fixture's anchored decision should lead the seed list.
-	if len(body.Focuses) == 0 {
-		t.Fatal("expected at least one seed focus")
+	// The fixture repo defines Helper and A (a calls Helper) plus decision dec-A
+	// anchored to Helper. The full graph must contain the symbols, the lore
+	// node, and the anchors join edge.
+	var hasSymbol, hasLore bool
+	for _, n := range g.Nodes {
+		if n.Kind == "symbol" && n.Label == "Helper" {
+			hasSymbol = true
+		}
+		if n.ID == "dec-A" && n.Kind == "decision" {
+			hasLore = true
+		}
 	}
-	if body.Focuses[0].ID != "dec-A" {
-		t.Fatalf("expected anchored dec-A to lead; got %+v", body.Focuses)
+	if !hasSymbol {
+		t.Errorf("expected a Helper symbol node; nodes=%+v", g.Nodes)
+	}
+	if !hasLore {
+		t.Errorf("expected the dec-A lore node; nodes=%+v", g.Nodes)
+	}
+	var joined bool
+	for _, e := range g.Edges {
+		if e.Source == "dec-A" && e.Kind == "anchors" {
+			joined = true
+		}
+	}
+	if !joined {
+		t.Errorf("expected an anchors edge from dec-A; edges=%+v", g.Edges)
 	}
 }
 

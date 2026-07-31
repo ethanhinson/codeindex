@@ -32,6 +32,7 @@ type Node struct {
 	Signature string   `json:"signature,omitempty"`
 	Status    string   `json:"status,omitempty"`
 	Priority  string   `json:"priority,omitempty"`
+	Group     string   `json:"group,omitempty"` // cluster key (package dir, or "lore")
 }
 
 type Edge struct {
