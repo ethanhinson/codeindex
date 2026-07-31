@@ -85,16 +85,20 @@ export function GraphCanvas({ nodes, edges, selected, onSelect }: Props) {
     cy.on('tap', (evt) => {
       if (evt.target === cy) selectRef.current(null)
     })
-    // Hover: highlight the node and its closed neighborhood, dim the rest.
+    // Hover: emphasize the node and its closed neighborhood, fade the rest —
+    // but keep the package cluster boxes visible for orientation.
     cy.on('mouseover', 'node', (evt) => {
       const n = evt.target
       if (n.data('isGroup')) return
       const hood = n.closedNeighborhood()
-      cy.elements().addClass('dim')
-      hood.removeClass('dim').addClass('hl')
+      cy.batch(() => {
+        cy.elements().addClass('dim')
+        cy.nodes('.group').removeClass('dim')
+        hood.removeClass('dim').addClass('hl')
+      })
     })
     cy.on('mouseout', 'node', () => {
-      cy.elements().removeClass('dim hl')
+      cy.batch(() => cy.elements().removeClass('dim hl'))
     })
     ;(window as unknown as { __cy?: Core }).__cy = cy
     cyRef.current = cy

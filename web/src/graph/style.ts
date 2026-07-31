@@ -88,7 +88,7 @@ export function stylesheet(): StylesheetCSS[] {
       },
     },
     // Interaction states.
-    { selector: '.dim', style: { opacity: 0.08 } },
+    { selector: '.dim', style: { opacity: 0.15 } },
     { selector: 'node.hl', style: { opacity: 1, 'z-index': 30 } },
     { selector: 'edge.hl', style: { opacity: 1, width: 2, 'line-color': '#9fb2d6', 'z-index': 30 } },
     {
