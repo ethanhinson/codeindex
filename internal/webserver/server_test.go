@@ -96,6 +96,35 @@ func TestGraphEndpoint(t *testing.T) {
 	}
 }
 
+func TestSeedEndpoint(t *testing.T) {
+	srv := httptest.NewServer(New(writeRepo(t), "test"))
+	defer srv.Close()
+
+	resp, err := http.Get(srv.URL + "/api/seed")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		t.Fatalf("status = %d", resp.StatusCode)
+	}
+	var body struct {
+		Focuses []struct {
+			ID, Label, Kind string
+		} `json:"focuses"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		t.Fatal(err)
+	}
+	// The fixture's anchored decision should lead the seed list.
+	if len(body.Focuses) == 0 {
+		t.Fatal("expected at least one seed focus")
+	}
+	if body.Focuses[0].ID != "dec-A" {
+		t.Fatalf("expected anchored dec-A to lead; got %+v", body.Focuses)
+	}
+}
+
 func TestStaticIndexServed(t *testing.T) {
 	srv := httptest.NewServer(New(writeRepo(t), "test"))
 	defer srv.Close()

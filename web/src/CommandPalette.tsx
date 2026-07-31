@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 
+export interface Suggestion {
+  id: string
+  label: string
+}
+
 interface Props {
   onSubmit: (focusId: string) => void
-  suggestions?: string[]
+  suggestions?: Suggestion[]
 }
 
 // A search box that sets the graph focus by id (sym:Foo, dec-…, itm-…,
@@ -46,8 +51,14 @@ export function CommandPalette({ onSubmit, suggestions = [] }: Props) {
       {suggestions.length > 0 && (
         <div className="palette-suggestions">
           {suggestions.map((s) => (
-            <button key={s} className="chip" data-testid="suggestion" onClick={() => submit(s)}>
-              {s}
+            <button
+              key={s.id}
+              className="chip"
+              data-testid="suggestion"
+              title={s.id}
+              onClick={() => submit(s.id)}
+            >
+              {s.label}
             </button>
           ))}
         </div>

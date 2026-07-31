@@ -1,22 +1,33 @@
 import { useEffect, useState } from 'react'
-import { getHealth } from './api'
+import { getHealth, getSeed } from './api'
 import type { Health } from './types'
+import type { Suggestion } from './CommandPalette'
 import { useExploration } from './useExploration'
 import { GraphCanvas } from './graph/GraphCanvas'
 import { CommandPalette } from './CommandPalette'
 import { Inspector } from './Inspector'
 import { EDGE_COLORS, EDGE_STYLES, NODE_COLORS } from './graph/style'
 
-const SUGGESTIONS = ['sym:Neighborhood', 'sym:SymbolNeighborhood', 'sym:New']
-
 export default function App() {
   const { nodes, edges, focus, crumbs, loading, error, focusOn, expand } = useExploration()
   const [health, setHealth] = useState<Health | null>(null)
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
 
   useEffect(() => {
     getHealth().then(setHealth).catch(() => setHealth(null))
     const param = new URLSearchParams(window.location.search).get('focus')
-    if (param) focusOn(param)
+    if (param) {
+      focusOn(param)
+      return
+    }
+    // No explicit focus: seed the canvas from lore so the landing is never
+    // empty, and offer the rest as suggestions.
+    getSeed()
+      .then((seed) => {
+        setSuggestions(seed.map((s) => ({ id: s.id, label: s.label })))
+        if (seed.length > 0) focusOn(seed[0].id)
+      })
+      .catch(() => setSuggestions([]))
   }, [focusOn])
 
   const selected = focus ? nodes.find((n) => n.id === focus) ?? null : null
@@ -27,7 +38,7 @@ export default function App() {
         <div className="brand">
           codeindex <span className="brand-sub">· lore graph</span>
         </div>
-        <CommandPalette onSubmit={focusOn} suggestions={SUGGESTIONS} />
+        <CommandPalette onSubmit={focusOn} suggestions={suggestions} />
         <div className="status" data-testid="health">
           {health ? `● ${health.version}` : '○ offline'}
         </div>
