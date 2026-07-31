@@ -60,6 +60,8 @@ Two layers, both subordinate to determinism:
 - **State transitions (~350ms, ease-out):** entering focus, the tapped package's symbols fade+scale in from the package's anchor while the viewport animates to fit; satellites fade in at the rim. Leaving focus reverses (symbols fade out toward the package anchor, overview fades back, viewport fits). Hover labels fade in ~120ms via CSS-like style transition on the `labeled` class.
 - **Perf guardrail:** the oscillation loop must skip frames while cytoscape reports an active user gesture and must be a no-op ≤ 0.5ms/frame at overview scale; if the focus view's node count makes 30fps infeasible, oscillate only labeled/hub nodes there.
 
+Implementation note (2026-07-31): the focus-exit reverse morph and satellite fade-in were cut during implementation — exit is an instant element swap with an animated viewport fit; revisit only if exit feels jarring in use.
+
 ### 6. Error handling
 
 Unchanged foundations: dropped-edge count + one-time warn; aggregation total (no throws). New: focusing a package name that doesn't exist (stale URL) falls back to overview with a console.warn; empty packages render an empty-focus hint instead of a blank canvas.
