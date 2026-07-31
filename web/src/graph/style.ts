@@ -111,16 +111,14 @@ export function stylesheet(): StylesheetCSS[] {
     // Interaction states.
     { selector: '.dim', style: { opacity: 0.15 } },
     { selector: 'edge.hl', style: { opacity: 1, width: 2, 'line-color': '#9fb2d6', 'z-index': 30 } },
+    // Lore-rail hover-sync target (before sel so sel's 3px border wins when both present).
+    { selector: 'node.lore-hot', style: { 'border-width': 2.5, 'border-color': '#f2b134' } },
     {
       selector: 'node.sel',
       style: { 'border-width': 3, 'border-color': '#ffffff', 'font-size': 13, 'text-opacity': 1, 'z-index': 40 },
     },
     { selector: 'node.selhl', style: { 'text-opacity': 1 } },
     { selector: 'edge.selhl', style: { width: 2, opacity: 1, 'line-color': '#9fb2d6', 'z-index': 25 } },
-    // Lore-rail hover-sync target.
-    { selector: 'node.lore-hot', style: { 'border-width': 2.5, 'border-color': '#f2b134' } },
-    // Transition entry state (Task 4 morphs from this).
-    { selector: 'node.entering', style: { opacity: 0.2 } },
     // LOD: elements hidden at far zoom.
     { selector: '.lod-hide', style: { display: 'none' } },
   ]

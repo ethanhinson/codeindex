@@ -267,7 +267,6 @@ export default function App() {
 }
 
 function Legend() {
-  const edgeKinds = Object.keys(EDGE_COLORS) as (keyof typeof EDGE_COLORS)[]
   return (
     <div className="legend" data-testid="legend">
       <div className="legend-group">
@@ -281,15 +280,13 @@ function Legend() {
         </span>
       </div>
       <div className="legend-group">
-        {edgeKinds.map((k) => (
-          <span key={k} className="legend-item">
-            <span
-              className="edge-swatch"
-              style={{ borderBottom: `2px ${EDGE_STYLES[k]} ${EDGE_COLORS[k]}` }}
-            />
-            {k}
-          </span>
-        ))}
+        <span className="legend-item">
+          <span
+            className="edge-swatch"
+            style={{ borderBottom: `2px ${EDGE_STYLES.calls} ${EDGE_COLORS.calls}` }}
+          />
+          calls
+        </span>
       </div>
     </div>
   )

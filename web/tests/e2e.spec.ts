@@ -166,6 +166,27 @@ test('anchors are deterministic across reloads (overview and focus)', async ({ p
   expect(fc2).toEqual(fc1)
 })
 
+test('deep link with motion: anchors settle correctly (transition-race regression)', async ({ page }) => {
+  await page.goto('/?motion=0')
+  await ready(page)
+  const pkg = await biggestPackage(page)
+  await page.goto(`/?pkg=${encodeURIComponent(pkg.label)}`)  // NO motion=0 — real motion path
+  await ready(page)
+  await page.waitForTimeout(500)
+  const offAnchor = await page.evaluate(() => {
+    let worst = 0
+    window.__cy.$('node[kind = "symbol"]').forEach((n: any) => {
+      const p = n.position()
+      const d = Math.hypot(p.x - n.data('ax'), p.y - n.data('ay'))
+      if (d > worst) worst = d
+    })
+    return worst
+  })
+  // Rendered positions may oscillate around anchors by ≤2.5px (+ small epsilon);
+  // a corrupted anchor shows up as a large offset.
+  expect(offAnchor).toBeLessThan(4)
+})
+
 test('motion: anchors still, rendered positions drift', async ({ page }) => {
   await page.goto('/')
   await ready(page)

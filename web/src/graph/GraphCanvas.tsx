@@ -178,6 +178,7 @@ export function GraphCanvas({ vm, view, selected, labeled, hot, onSelect, onFocu
   const lastCentered = useRef<string | null>(null)
   const layoutRestore = useRef<(() => void) | null>(null)
   const busy = useRef(false)
+  const transitionGen = useRef(0)
   const overviewAnchors = useRef<Map<string, { x: number; y: number }> | null>(null)
   const labeledPrev = useRef(new Set<string>())
   const hotPrev = useRef(new Set<string>())
@@ -284,11 +285,16 @@ export function GraphCanvas({ vm, view, selected, labeled, hot, onSelect, onFocu
     const key = viewKey(view)
     if (key === prevKey.current) {
       applyViewModel(cy, vm)
+      if (nearBand.current) cy.batch(() => cy.nodes().addClass('labeled'))
       applyLod(cy)
       return
     }
     const fromKey = prevKey.current
     prevKey.current = key
+    // Kill any running viewport animation from a prior transition so it doesn't
+    // keep animating visually while we start a new one.
+    cy.stop()
+    const gen = ++transitionGen.current
     busy.current = true
     win().__layoutDone = false
 
@@ -297,6 +303,8 @@ export function GraphCanvas({ vm, view, selected, labeled, hot, onSelect, onFocu
     // end (which equals the anchors) instead of re-reading live positions.
     let anchorsPrewritten = false
     const finalize = () => {
+      // Guard: if a newer transition has started, this callback is stale — abort.
+      if (transitionGen.current !== gen) return
       if (anchorsPrewritten) {
         cy.nodes('[kind = "symbol"]').stop(true, true)
       } else {
@@ -308,6 +316,7 @@ export function GraphCanvas({ vm, view, selected, labeled, hot, onSelect, onFocu
         )
       }
       applyLod(cy)
+      if (nearBand.current) cy.batch(() => cy.nodes().addClass('labeled'))
       // Safety net: stop(true, true) can kill animations before their
       // complete callback returns opacity control to the stylesheet.
       cy.nodes().removeStyle('opacity')
@@ -315,6 +324,7 @@ export function GraphCanvas({ vm, view, selected, labeled, hot, onSelect, onFocu
       win().__layoutDone = true
     }
     const fit = () => {
+      if (transitionGen.current !== gen) return
       if (instant) {
         cy.fit(undefined, 50)
         finalize()
@@ -341,6 +351,7 @@ export function GraphCanvas({ vm, view, selected, labeled, hot, onSelect, onFocu
           cy,
           { quality: 'default', animate: false, randomize: false, fit: false, nodeSeparation: 140, idealEdgeLength: 150, nodeRepulsion: 7500, gravity: 0.15, packComponents: false },
           () => {
+            if (transitionGen.current !== gen) return
             layoutRestore.current = null
             fit()
           },
@@ -364,6 +375,7 @@ export function GraphCanvas({ vm, view, selected, labeled, hot, onSelect, onFocu
       cy,
       { quality: 'default', animate: false, randomize: false, fit: false, nodeSeparation: 60, idealEdgeLength: 70, nodeRepulsion: 4500, gravity: 0.25, packComponents: false, fixedNodeConstraint: fixed },
       () => {
+        if (transitionGen.current !== gen) return
         layoutRestore.current = null
         const symbols = cy.nodes('[kind = "symbol"]')
         if (instant || symbols.length > FOCUS_MORPH_MAX || fromKey === null) {
