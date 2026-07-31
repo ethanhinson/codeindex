@@ -104,16 +104,6 @@ export function stylesheet(): StylesheetCSS[] {
         height: 18,
       },
     },
-    // Bundled edges: width carries the call count between the two ends.
-    {
-      selector: 'edge[?bundled]',
-      style: {
-        width: 'mapData(count, 1, 60, 1, 7)',
-        'curve-style': 'straight',
-        'line-color': '#3a4356',
-        opacity: 0.55,
-      },
-    },
     // LOD: elements hidden at far zoom.
     { selector: '.lod-hide', style: { display: 'none' } },
     {
@@ -124,6 +114,18 @@ export function stylesheet(): StylesheetCSS[] {
         'line-color': '#2f3745',
         'target-arrow-shape': 'none',
         opacity: 0.7,
+      },
+    },
+    // Bundled edges: width carries the call count between the two ends.
+    // Must appear AFTER the generic edge rule — cytoscape uses order-precedence,
+    // not specificity; a later matching rule overwrites earlier properties.
+    {
+      selector: 'edge[?bundled]',
+      style: {
+        width: 'mapData(count, 1, 60, 1, 7)',
+        'curve-style': 'straight',
+        'line-color': '#3a4356',
+        opacity: 0.55,
       },
     },
     // Interaction states.

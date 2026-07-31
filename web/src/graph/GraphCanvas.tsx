@@ -48,7 +48,8 @@ function toElement(n: VisNode): ElementDefinition {
 
 // fcose has internal Math.random calls; pin them to a seeded LCG for the
 // duration of the layout so the same input always yields the same map.
-function seededLayout(cy: Core, opts: Record<string, unknown>, onDone: () => void) {
+// Returns the restore function so callers can cancel mid-layout (e.g. on unmount).
+function seededLayout(cy: Core, opts: Record<string, unknown>, onDone: () => void): () => void {
   const orig = Math.random
   let s = 42
   Math.random = () => {
@@ -69,6 +70,7 @@ function seededLayout(cy: Core, opts: Record<string, unknown>, onDone: () => voi
     restore()
     throw err
   }
+  return restore
 }
 
 // Diff the desired view model into the live instance: remove what left,
@@ -78,6 +80,20 @@ function applyViewModel(cy: Core, vm: ViewModel): CollectionReturnValue {
   const wantNodes = new Map(vm.nodes.map((n) => [n.id, n]))
   const wantEdges = new Map(vm.edges.map((e) => [e.id, e]))
   let added = cy.collection()
+
+  // Snapshot parent positions BEFORE any cy.add of children. Once a compound
+  // node gains children its position() becomes child-derived, so reading it
+  // after adding children gives the wrong center for sibling placement.
+  const parentPos = new Map<string, { x: number; y: number }>()
+  for (const n of vm.nodes) {
+    if (n.parent && !cy.$id(n.id).nonempty()) {
+      const pkg = cy.$id(n.parent)
+      if (pkg.nonempty() && !parentPos.has(n.parent)) {
+        parentPos.set(n.parent, { ...pkg.position() })
+      }
+    }
+  }
+
   cy.batch(() => {
     cy.edges().forEach((e) => {
       if (!wantEdges.has(e.id())) e.remove()
@@ -91,7 +107,7 @@ function applyViewModel(cy: Core, vm: ViewModel): CollectionReturnValue {
     for (const n of fresh) {
       const el = cy.add(toElement(n))
       if (n.parent) {
-        const p = cy.$id(n.parent).position()
+        const p = parentPos.get(n.parent) ?? cy.$id(n.parent).position()
         const off = childOffset(n.kind === 'chip' ? 0 : (n.rank ?? 0) + 1)
         el.position({ x: p.x + off.x, y: p.y + off.y })
       }
@@ -130,6 +146,11 @@ export function GraphCanvas({ vm, selected, onSelect, onTogglePackage, onRevealT
   const clearTimer = useRef<number | undefined>(undefined)
   const cb = useRef({ onSelect, onTogglePackage, onRevealTail })
   cb.current = { onSelect, onTogglePackage, onRevealTail }
+  // Track the last selected id that was centered so we don't re-animate on
+  // every vm change while a node stays selected (Fix 3).
+  const lastCentered = useRef<string | null>(null)
+  // Hold the seededLayout restore function so we can cancel it on unmount (Fix 5).
+  const layoutRestore = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     ensureFcose()
@@ -204,6 +225,9 @@ export function GraphCanvas({ vm, selected, onSelect, onTogglePackage, onRevealT
     cyRef.current = cy
     return () => {
       window.clearTimeout(clearTimer.current)
+      // Restore Math.random before destroy in case layout is still running (Fix 5).
+      layoutRestore.current?.()
+      layoutRestore.current = null
       cy.destroy()
       cyRef.current = null
     }
@@ -221,28 +245,39 @@ export function GraphCanvas({ vm, selected, onSelect, onTogglePackage, onRevealT
         applyViewModel(cy, vm)
         for (const [id, p] of seeds) cy.$id(id).position(p)
       })
-      seededLayout(cy, { quality: 'default', animate: false, randomize: false, fit: false, nodeSeparation: 120, idealEdgeLength: 130, nodeRepulsion: 6500, gravity: 0.15, packComponents: false }, () => {
+      layoutRestore.current = seededLayout(cy, { quality: 'default', animate: false, randomize: false, fit: false, nodeSeparation: 120, idealEdgeLength: 130, nodeRepulsion: 6500, gravity: 0.15, packComponents: false }, () => {
+        layoutRestore.current = null
         cy.fit(undefined, 50)
         applyLod(cy)
         ;(window as unknown as { __layoutDone?: boolean }).__layoutDone = true
       })
     } else {
-      const added = applyViewModel(cy, vm)
-      if (added.nonempty()) applyLod(cy)
+      applyViewModel(cy, vm)
+      // Always re-apply LOD after incremental update: collapse produces new
+      // bundled edges that may miss LOD classes at current zoom (Fix 4).
+      applyLod(cy)
     }
   }, [vm])
 
-  // Reflect selection: mark, highlight neighborhood, and center.
+  // Reflect selection: mark and highlight neighborhood unconditionally (vm may
+  // reveal the node), but only animate to center when the selected id changes —
+  // not on every vm change while the same node is already selected (Fix 3).
   useEffect(() => {
     const cy = cyRef.current
     if (!cy) return
     cy.elements().removeClass('sel selhl')
-    if (!selected) return
+    if (!selected) {
+      lastCentered.current = null
+      return
+    }
     const n = cy.$id(selected)
     if (n.empty()) return
     n.addClass('sel')
     n.closedNeighborhood().addClass('selhl')
-    cy.animate({ center: { eles: n }, zoom: Math.max(cy.zoom(), 0.8) }, { duration: 300 })
+    if (selected !== lastCentered.current) {
+      lastCentered.current = selected
+      cy.animate({ center: { eles: n }, zoom: Math.max(cy.zoom(), 0.8) }, { duration: 300 })
+    }
   }, [selected, vm])
 
   return <div ref={containerRef} className="graph-canvas" data-testid="graph-canvas" />

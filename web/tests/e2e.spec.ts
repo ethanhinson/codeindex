@@ -36,6 +36,11 @@ test('landing is an overview: packages + lore, zero symbols', async ({ page }) =
   expect(await count(page, 'node[kind = "symbol"]')).toBe(0)
   // Bundled edges connect the packages.
   expect(await count(page, 'edge[?bundled]')).toBeGreaterThan(5)
+  // The count→width encoding must actually render (style rule order regression guard).
+  const maxBundledWidth = await page.evaluate(() =>
+    Math.max(...window.__cy.$('edge[?bundled]').map((e: any) => e.numericStyle('width'))),
+  )
+  expect(maxBundledWidth).toBeGreaterThan(1)
 })
 
 test('expand shows top-12 + chip; chip reveals the tail; collapse re-bundles', async ({ page }) => {
