@@ -3,24 +3,7 @@ package readmodel
 import (
 	"fmt"
 	"path"
-	"strings"
 )
-
-// generatedDirs are path segments whose contents are compiled/vendored, not
-// authored source — indexing them (e.g. a minified JS bundle) floods the graph
-// with meaningless symbols.
-var generatedDirs = []string{"/dist/", "/node_modules/", "/vendor/", "/build/", "/.next/", "/out/", "/.svelte-kit/"}
-
-// isGenerated reports whether a repo-relative file is compiled/vendored output.
-func isGenerated(file string) bool {
-	p := "/" + file
-	for _, seg := range generatedDirs {
-		if strings.Contains(p, seg) {
-			return true
-		}
-	}
-	return strings.HasSuffix(file, ".min.js") || strings.HasSuffix(file, ".min.css")
-}
 
 // pkgOf derives a cluster key from a file path: its directory, e.g.
 // "internal/graph/store.go" -> "internal/graph". Root files group as "(root)".
@@ -67,9 +50,6 @@ func FullGraph(root string) (Graph, error) {
 	byQName := map[string][]int64{}
 	byName := map[string][]int64{}
 	for _, sy := range syms {
-		if isGenerated(sy.File) {
-			continue // skip compiled/vendored output (minified bundles, etc.)
-		}
 		present[sy.ID] = true
 		qn := sy.Name
 		if sy.Parent != "" {
