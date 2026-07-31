@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react'
 import cytoscape from 'cytoscape'
-import type { CollectionReturnValue, Core, ElementDefinition } from 'cytoscape'
+import type { CollectionReturnValue, Core, NodeSingular } from 'cytoscape'
 import fcose from 'cytoscape-fcose'
-import type { ViewModel, VisNode } from './aggregate'
+import type { ViewModel } from './aggregate'
+import { motionEnabled, startMotion } from './motion'
 import { stylesheet } from './style'
 
 let registered = false
@@ -14,41 +15,26 @@ function ensureFcose() {
 }
 
 const LOD_ZOOM = 0.4
+const LABEL_NEAR_ZOOM = 1.1
 const GOLDEN_ANGLE = 2.399963229728653
+const MORPH_MS = 350
+const FOCUS_MORPH_MAX = 150
 
-// Deterministic seed positions: packages on a circle in sorted-label order
-// (path sort keeps sibling dirs adjacent), lore nodes on an outer ring.
-function seedPositions(vm: ViewModel): Map<string, { x: number; y: number }> {
-  const pos = new Map<string, { x: number; y: number }>()
-  const pkgs = vm.nodes.filter((n) => n.kind === 'package').sort((a, b) => (a.label < b.label ? -1 : 1))
-  const lore = vm.nodes.filter((n) => n.kind !== 'package' && !n.parent).sort((a, b) => (a.id < b.id ? -1 : 1))
-  const r = Math.max(220, (pkgs.length * 95) / (2 * Math.PI))
-  pkgs.forEach((n, i) => {
-    const a = (i / Math.max(1, pkgs.length)) * 2 * Math.PI
-    pos.set(n.id, { x: r * Math.cos(a), y: r * Math.sin(a) })
-  })
-  lore.forEach((n, i) => {
-    const a = (i / Math.max(1, lore.length)) * 2 * Math.PI + 0.13
-    pos.set(n.id, { x: 1.35 * r * Math.cos(a), y: 1.35 * r * Math.sin(a) })
-  })
-  return pos
+export type View = { mode: 'overview' } | { mode: 'focus'; pkg: string }
+
+function viewKey(v: View): string {
+  return v.mode === 'focus' ? `focus:${v.pkg}` : 'overview'
 }
 
-// Children reveal in a phyllotaxis spiral around their package's current
-// position — deterministic, compact, and nothing else on the map moves.
-function childOffset(rank: number): { x: number; y: number } {
-  const a = rank * GOLDEN_ANGLE
-  const r = 24 + 13 * Math.sqrt(rank)
-  return { x: r * Math.cos(a), y: r * Math.sin(a) }
-}
-
-function toElement(n: VisNode): ElementDefinition {
-  return { data: { ...n } }
+// NOTE: no `declare global` here — the e2e spec declares Window.__cy/__layoutDone
+// with different types; a second declaration would conflict if tests ever join
+// the tsc program. Use the local cast helper instead.
+function win(): { __cy?: Core; __layoutDone?: boolean } {
+  return window as unknown as { __cy?: Core; __layoutDone?: boolean }
 }
 
 // fcose has internal Math.random calls; pin them to a seeded LCG for the
 // duration of the layout so the same input always yields the same map.
-// Returns the restore function so callers can cancel mid-layout (e.g. on unmount).
 function seededLayout(cy: Core, opts: Record<string, unknown>, onDone: () => void): () => void {
   const orig = Math.random
   let s = 42
@@ -73,51 +59,82 @@ function seededLayout(cy: Core, opts: Record<string, unknown>, onDone: () => voi
   return restore
 }
 
-// Diff the desired view model into the live instance: remove what left,
-// add what arrived (children positioned around their package), never touch
-// what stayed. Returns the newly added nodes.
+// Anchors are truth: record the current position of every node as its
+// deterministic anchor. Motion renders offsets on top; determinism tests
+// read ax/ay.
+function writeAnchors(cy: Core) {
+  cy.batch(() => {
+    cy.nodes().forEach((n) => {
+      const p = n.position()
+      n.data('ax', p.x)
+      n.data('ay', p.y)
+    })
+  })
+}
+
+// Diff the desired view model into the live instance. Nodes are added
+// without positions (the caller places them); nodes whose id persists
+// across views (satellites ⇄ overview packages) keep position but get
+// their data refreshed (role/degree change between views).
 function applyViewModel(cy: Core, vm: ViewModel): CollectionReturnValue {
   const wantNodes = new Map(vm.nodes.map((n) => [n.id, n]))
   const wantEdges = new Map(vm.edges.map((e) => [e.id, e]))
   let added = cy.collection()
-
-  // Snapshot parent positions BEFORE any cy.add of children. Once a compound
-  // node gains children its position() becomes child-derived, so reading it
-  // after adding children gives the wrong center for sibling placement.
-  const parentPos = new Map<string, { x: number; y: number }>()
-  for (const n of vm.nodes) {
-    if (n.parent && !cy.$id(n.id).nonempty()) {
-      const pkg = cy.$id(n.parent)
-      if (pkg.nonempty() && !parentPos.has(n.parent)) {
-        parentPos.set(n.parent, { ...pkg.position() })
-      }
-    }
-  }
-
   cy.batch(() => {
     cy.edges().forEach((e) => {
       if (!wantEdges.has(e.id())) e.remove()
     })
     cy.nodes().forEach((n) => {
-      if (!wantNodes.has(n.id())) n.remove()
-    })
-    // Parents first so compound membership resolves on add.
-    const fresh = vm.nodes.filter((n) => !cy.$id(n.id).nonempty())
-    fresh.sort((a, b) => Number(!!a.parent) - Number(!!b.parent))
-    for (const n of fresh) {
-      const el = cy.add(toElement(n))
-      if (n.parent) {
-        const p = parentPos.get(n.parent) ?? cy.$id(n.parent).position()
-        const off = childOffset(n.kind === 'chip' ? 0 : (n.rank ?? 0) + 1)
-        el.position({ x: p.x + off.x, y: p.y + off.y })
+      const want = wantNodes.get(n.id())
+      if (!want) {
+        n.remove()
+      } else {
+        n.data({ ...want, ax: n.data('ax'), ay: n.data('ay') })
       }
-      added = added.union(el)
+    })
+    for (const n of vm.nodes) {
+      if (cy.$id(n.id).nonempty()) continue
+      added = added.union(cy.add({ data: { ...n } }))
     }
     for (const e of vm.edges) {
       if (cy.$id(e.id).empty()) cy.add({ data: { ...e } })
     }
   })
   return added
+}
+
+// Deterministic seeds. Overview: packages on a circle in sorted-label order.
+function seedOverview(vm: ViewModel): Map<string, { x: number; y: number }> {
+  const pos = new Map<string, { x: number; y: number }>()
+  const pkgs = vm.nodes.filter((n) => n.kind === 'package').sort((a, b) => (a.label < b.label ? -1 : 1))
+  const r = Math.max(220, (pkgs.length * 110) / (2 * Math.PI))
+  pkgs.forEach((n, i) => {
+    const a = (i / Math.max(1, pkgs.length)) * 2 * Math.PI
+    pos.set(n.id, { x: r * Math.cos(a), y: r * Math.sin(a) })
+  })
+  return pos
+}
+
+// Focus: symbols phyllotaxis around `center` in degree-desc/id-asc order,
+// satellites on an outer rim in sorted-label order.
+function seedFocus(vm: ViewModel, center: { x: number; y: number }) {
+  const symbolPos = new Map<string, { x: number; y: number }>()
+  const rimPos = new Map<string, { x: number; y: number }>()
+  const symbols = vm.nodes
+    .filter((n) => n.kind === 'symbol')
+    .sort((a, b) => b.degree - a.degree || (a.id < b.id ? -1 : 1))
+  symbols.forEach((n, i) => {
+    const a = i * GOLDEN_ANGLE
+    const r = 26 * Math.sqrt(i + 0.5)
+    symbolPos.set(n.id, { x: center.x + r * Math.cos(a), y: center.y + r * Math.sin(a) })
+  })
+  const rim = Math.max(300, 26 * Math.sqrt(symbols.length) * 2.6)
+  const sats = vm.nodes.filter((n) => n.role === 'satellite').sort((a, b) => (a.label < b.label ? -1 : 1))
+  sats.forEach((n, i) => {
+    const a = (i / Math.max(1, sats.length)) * 2 * Math.PI - Math.PI / 2
+    rimPos.set(n.id, { x: center.x + rim * Math.cos(a), y: center.y + rim * Math.sin(a) })
+  })
+  return { symbolPos, rimPos, rim }
 }
 
 function applyLod(cy: Core) {
@@ -129,28 +146,44 @@ function applyLod(cy: Core) {
   })
 }
 
-interface Props {
-  vm: ViewModel
-  selected: string | null
-  onSelect: (id: string | null) => void
-  onTogglePackage: (pkg: string) => void
-  onRevealTail: (pkg: string) => void
+// Toggle a class so exactly `want` has it, touching only the difference.
+function diffClass(cy: Core, cls: string, want: Set<string>, prevRef: { current: Set<string> }) {
+  const prev = prevRef.current
+  cy.batch(() => {
+    for (const id of want) if (!prev.has(id)) cy.$id(id).addClass(cls)
+    for (const id of prev) if (!want.has(id)) cy.$id(id).removeClass(cls)
+  })
+  prevRef.current = new Set(want)
 }
 
-export function GraphCanvas({ vm, selected, onSelect, onTogglePackage, onRevealTail }: Props) {
+interface Props {
+  vm: ViewModel
+  view: View
+  selected: string | null
+  labeled: Set<string>
+  hot: Set<string>
+  onSelect: (id: string | null) => void
+  onFocusPackage: (pkg: string) => void
+  onHoverNode: (id: string | null) => void
+}
+
+export function GraphCanvas({ vm, view, selected, labeled, hot, onSelect, onFocusPackage, onHoverNode }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const cyRef = useRef<Core | null>(null)
-  const laidOut = useRef(false)
+  const prevKey = useRef<string | null>(null)
   const lodFar = useRef(false)
+  const nearBand = useRef(false)
   const hood = useRef<CollectionReturnValue | null>(null)
   const clearTimer = useRef<number | undefined>(undefined)
-  const cb = useRef({ onSelect, onTogglePackage, onRevealTail })
-  cb.current = { onSelect, onTogglePackage, onRevealTail }
-  // Track the last selected id that was centered so we don't re-animate on
-  // every vm change while a node stays selected (Fix 3).
   const lastCentered = useRef<string | null>(null)
-  // Hold the seededLayout restore function so we can cancel it on unmount (Fix 5).
   const layoutRestore = useRef<(() => void) | null>(null)
+  const busy = useRef(false)
+  const overviewAnchors = useRef<Map<string, { x: number; y: number }> | null>(null)
+  const labeledPrev = useRef(new Set<string>())
+  const hotPrev = useRef(new Set<string>())
+  const cb = useRef({ onSelect, onFocusPackage, onHoverNode })
+  cb.current = { onSelect, onFocusPackage, onHoverNode }
+  const instant = !motionEnabled(window.location.search)
 
   useEffect(() => {
     ensureFcose()
@@ -170,27 +203,22 @@ export function GraphCanvas({ vm, selected, onSelect, onTogglePackage, onRevealT
 
     cy.on('tap', 'node', (evt) => {
       const n = evt.target
-      const kind = n.data('kind') as string
-      if (kind === 'package') cb.current.onTogglePackage(n.data('label') as string)
-      else if (kind === 'chip') cb.current.onRevealTail(n.data('pkg') as string)
+      if ((n.data('kind') as string) === 'package') cb.current.onFocusPackage(n.data('label') as string)
       else cb.current.onSelect(n.id())
     })
     cy.on('tap', (evt) => {
       if (evt.target === cy) cb.current.onSelect(null)
     })
 
-    // Hover: toggle classes only on the symmetric difference between the old
-    // and new neighborhoods — never a full-graph class sweep. The clear is
-    // debounced so transiting between adjacent nodes doesn't flash.
+    // Hover: symmetric-difference class toggling with a debounced clear.
     const clearHover = () => {
-      const prev = hood.current
-      if (!prev) return
+      if (!hood.current) return
       hood.current = null
       cy.batch(() => cy.elements().removeClass('dim hl'))
+      cb.current.onHoverNode(null)
     }
     cy.on('mouseover', 'node', (evt) => {
-      const n = evt.target
-      if (n.data('kind') === 'package' && n.isParent()) return
+      const n = evt.target as NodeSingular
       window.clearTimeout(clearTimer.current)
       const next = n.closedNeighborhood()
       const prev = hood.current
@@ -208,6 +236,7 @@ export function GraphCanvas({ vm, selected, onSelect, onTogglePackage, onRevealT
         }
       })
       hood.current = next
+      cb.current.onHoverNode(n.id())
     })
     cy.on('mouseout', 'node', () => {
       window.clearTimeout(clearTimer.current)
@@ -220,12 +249,27 @@ export function GraphCanvas({ vm, selected, onSelect, onTogglePackage, onRevealT
         lodFar.current = far
         applyLod(cy)
       }
+      const near = cy.zoom() >= LABEL_NEAR_ZOOM
+      if (near !== nearBand.current) {
+        nearBand.current = near
+        cy.batch(() => {
+          if (near) cy.nodes().addClass('labeled')
+          else {
+            cy.nodes().removeClass('labeled')
+            for (const id of labeledPrev.current) cy.$id(id).addClass('labeled')
+          }
+        })
+      }
     })
-    ;(window as unknown as { __cy?: Core }).__cy = cy
+
+    win().__cy = cy
     cyRef.current = cy
+    const stopMotion = motionEnabled(window.location.search)
+      ? startMotion(cy, () => busy.current)
+      : () => {}
     return () => {
       window.clearTimeout(clearTimer.current)
-      // Restore Math.random before destroy in case layout is still running (Fix 5).
+      stopMotion()
       layoutRestore.current?.()
       layoutRestore.current = null
       cy.destroy()
@@ -233,35 +277,128 @@ export function GraphCanvas({ vm, selected, onSelect, onTogglePackage, onRevealT
     }
   }, [])
 
-  // Reflect the view model. First non-empty model: seed + fcose refine + fit.
-  // Later models: incremental add/remove only — the map never jumps.
+  // Render the view: full layout on view change, incremental diff otherwise.
   useEffect(() => {
     const cy = cyRef.current
     if (!cy || vm.nodes.length === 0) return
-    if (!laidOut.current) {
-      laidOut.current = true
-      const seeds = seedPositions(vm)
-      cy.batch(() => {
-        applyViewModel(cy, vm)
-        for (const [id, p] of seeds) cy.$id(id).position(p)
-      })
-      layoutRestore.current = seededLayout(cy, { quality: 'default', animate: false, randomize: false, fit: false, nodeSeparation: 120, idealEdgeLength: 130, nodeRepulsion: 6500, gravity: 0.15, packComponents: false }, () => {
-        layoutRestore.current = null
-        cy.fit(undefined, 50)
-        applyLod(cy)
-        ;(window as unknown as { __layoutDone?: boolean }).__layoutDone = true
-      })
-    } else {
+    const key = viewKey(view)
+    if (key === prevKey.current) {
       applyViewModel(cy, vm)
-      // Always re-apply LOD after incremental update: collapse produces new
-      // bundled edges that may miss LOD classes at current zoom (Fix 4).
       applyLod(cy)
+      return
     }
-  }, [vm])
+    const fromKey = prevKey.current
+    prevKey.current = key
+    busy.current = true
+    win().__layoutDone = false
 
-  // Reflect selection: mark and highlight neighborhood unconditionally (vm may
-  // reveal the node), but only animate to center when the selected id changes —
-  // not on every vm change while the same node is already selected (Fix 3).
+    const finalize = () => {
+      writeAnchors(cy)
+      if (view.mode === 'overview') {
+        overviewAnchors.current = new Map(
+          cy.nodes().map((n) => [n.id(), { x: n.data('ax') as number, y: n.data('ay') as number }]),
+        )
+      }
+      applyLod(cy)
+      cy.elements().removeClass('entering')
+      busy.current = false
+      win().__layoutDone = true
+    }
+    const fit = () => {
+      if (instant) {
+        cy.fit(undefined, 50)
+        finalize()
+      } else {
+        cy.animate({ fit: { eles: cy.elements(), padding: 50 } }, { duration: MORPH_MS, complete: finalize })
+      }
+    }
+
+    if (view.mode === 'overview') {
+      applyViewModel(cy, vm)
+      const cached = overviewAnchors.current
+      if (cached && vm.nodes.every((n) => cached.has(n.id))) {
+        // Returning from focus: restore the exact cached map, no relayout.
+        cy.batch(() => {
+          for (const n of vm.nodes) cy.$id(n.id).position(cached.get(n.id) as { x: number; y: number })
+        })
+        fit()
+      } else {
+        const seeds = seedOverview(vm)
+        cy.batch(() => {
+          for (const [id, p] of seeds) cy.$id(id).position(p)
+        })
+        layoutRestore.current = seededLayout(
+          cy,
+          { quality: 'default', animate: false, randomize: false, fit: false, nodeSeparation: 140, idealEdgeLength: 150, nodeRepulsion: 7500, gravity: 0.15, packComponents: false },
+          () => {
+            layoutRestore.current = null
+            fit()
+          },
+        )
+      }
+      return
+    }
+
+    // Entering focus. Morph origin: the tapped package's current position if
+    // it is on canvas (coming from overview), else the canvas origin.
+    const pkgNode = cy.$id(`pkg:${view.pkg}`)
+    const origin = fromKey === 'overview' && pkgNode.nonempty() ? { ...pkgNode.position() } : { x: 0, y: 0 }
+    applyViewModel(cy, vm)
+    const { symbolPos, rimPos } = seedFocus(vm, origin)
+    cy.batch(() => {
+      for (const [id, p] of symbolPos) cy.$id(id).position(p)
+      for (const [id, p] of rimPos) cy.$id(id).position(p)
+    })
+    const fixed = [...rimPos.entries()].map(([nodeId, position]) => ({ nodeId, position }))
+    layoutRestore.current = seededLayout(
+      cy,
+      { quality: 'default', animate: false, randomize: false, fit: false, nodeSeparation: 60, idealEdgeLength: 70, nodeRepulsion: 4500, gravity: 0.25, packComponents: false, fixedNodeConstraint: fixed },
+      () => {
+        layoutRestore.current = null
+        const symbols = cy.nodes('[kind = "symbol"]')
+        if (instant || symbols.length > FOCUS_MORPH_MAX || fromKey === null) {
+          fit()
+          return
+        }
+        // Morph: snap symbols back to the origin, then animate to targets.
+        const targets = new Map(symbols.map((n) => [n.id(), { ...n.position() }]))
+        cy.batch(() => {
+          symbols.forEach((n) => {
+            n.position(origin)
+            n.addClass('entering')
+          })
+        })
+        symbols.forEach((n) => {
+          n.animate(
+            { position: targets.get(n.id()) as { x: number; y: number } },
+            { duration: MORPH_MS, easing: 'ease-out' },
+          )
+          n.removeClass('entering')
+        })
+        fit()
+      },
+    )
+  }, [vm, view, instant])
+
+  // Earned labels: diff the base set; near-band overrides with all-labeled.
+  useEffect(() => {
+    const cy = cyRef.current
+    if (!cy) return
+    if (nearBand.current) {
+      labeledPrev.current = new Set(labeled)
+      return
+    }
+    diffClass(cy, 'labeled', labeled, labeledPrev)
+  }, [labeled, vm])
+
+  // Lore-rail hover-sync highlight.
+  useEffect(() => {
+    const cy = cyRef.current
+    if (!cy) return
+    diffClass(cy, 'lore-hot', hot, hotPrev)
+  }, [hot, vm])
+
+  // Selection: classes unconditionally; center only when the id changes.
   useEffect(() => {
     const cy = cyRef.current
     if (!cy) return
@@ -276,9 +413,9 @@ export function GraphCanvas({ vm, selected, onSelect, onTogglePackage, onRevealT
     n.closedNeighborhood().addClass('selhl')
     if (selected !== lastCentered.current) {
       lastCentered.current = selected
-      cy.animate({ center: { eles: n }, zoom: Math.max(cy.zoom(), 0.8) }, { duration: 300 })
+      cy.animate({ center: { eles: n }, zoom: Math.max(cy.zoom(), 0.8) }, { duration: instant ? 0 : 300 })
     }
-  }, [selected, vm])
+  }, [selected, vm, instant])
 
   return <div ref={containerRef} className="graph-canvas" data-testid="graph-canvas" />
 }
