@@ -35,6 +35,8 @@ func New(root, version string) http.Handler {
 		writeJSON(w, http.StatusOK, g)
 	})
 
+	mux.Handle("/", staticHandler())
+
 	return mux
 }
 

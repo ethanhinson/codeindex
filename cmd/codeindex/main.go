@@ -28,7 +28,7 @@ const version = "0.2.0"
 func main() {
 	if len(os.Args) < 3 {
 		fmt.Fprintln(os.Stderr,
-			"usage: codeindex <build|refresh|status|callers|callees|impact|dependents|deps|find|grep|tree|depmap|attach|export|import|enclosing|lore|mcp|bench> <repo-root> ...")
+			"usage: codeindex <build|refresh|status|callers|callees|impact|dependents|deps|find|grep|tree|depmap|attach|export|import|enclosing|lore|serve|mcp|bench> <repo-root> ...")
 		os.Exit(2)
 	}
 	cmd, root := os.Args[1], os.Args[2]
@@ -198,6 +198,17 @@ func main() {
 			fatal(err)
 		}
 		fmt.Print(out)
+	case "serve":
+		addr := "127.0.0.1:7676"
+		rest := os.Args[3:]
+		for i, a := range rest {
+			if a == "--addr" && i+1 < len(rest) {
+				addr = rest[i+1]
+			}
+		}
+		if err := runServe(root, addr); err != nil {
+			fatal(err)
+		}
 	case "mcp":
 		if err := mcpserver.Run(context.Background(), root, version); err != nil {
 			fatal(err)

@@ -3,10 +3,12 @@ package webserver
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"codeindex/internal/lore"
@@ -91,6 +93,26 @@ func TestGraphEndpoint(t *testing.T) {
 	}
 	if !joined {
 		t.Fatalf("expected code+lore join edge; edges=%+v", g.Edges)
+	}
+}
+
+func TestStaticIndexServed(t *testing.T) {
+	srv := httptest.NewServer(New(writeRepo(t), "test"))
+	defer srv.Close()
+	resp, err := http.Get(srv.URL + "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		t.Fatalf("status = %d", resp.StatusCode)
+	}
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(b), "codeindex graph UI") {
+		t.Fatalf("index body unexpected: %q", string(b))
 	}
 }
 
