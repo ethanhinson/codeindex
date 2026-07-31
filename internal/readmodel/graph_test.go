@@ -126,3 +126,51 @@ func TestAttachAnchoredLore(t *testing.T) {
 		t.Fatalf("anchored lore not attached: nodes=%+v edges=%+v", g.Nodes, g.Edges)
 	}
 }
+
+func TestRecordNeighborhood(t *testing.T) {
+	st := buildStore(t, map[string]string{
+		"a.go": "package p\nfunc Helper(x int) int { return x + 1 }\n",
+	})
+	blocker := loreindex.StoredRecord{Record: lore.Record{
+		ID: "itm-BLOCK", Type: lore.TypeItem, Title: "prereq", Status: "open",
+	}}
+	focus := loreindex.StoredRecord{Record: lore.Record{
+		ID: "itm-FOCUS", Type: lore.TypeItem, Title: "do the thing", Status: "open",
+		Anchors:   []lore.Anchor{{Symbol: "Helper"}, {Path: "a.go"}},
+		BlockedBy: []string{"itm-BLOCK"},
+	}}
+	all := []loreindex.StoredRecord{focus, blocker}
+
+	g, err := RecordNeighborhood(focus, all, st)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g.Focus != "itm-FOCUS" {
+		t.Fatalf("focus = %q", g.Focus)
+	}
+	ids := map[string]NodeKind{}
+	for _, n := range g.Nodes {
+		ids[n.ID] = n.Kind
+	}
+	if ids["sym:Helper"] != NodeSymbol {
+		t.Errorf("missing anchored symbol node; got %v", ids)
+	}
+	if ids["path:a.go"] != NodePath {
+		t.Errorf("missing anchored path node; got %v", ids)
+	}
+	if ids["itm-BLOCK"] != NodeItem {
+		t.Errorf("missing blocker node; got %v", ids)
+	}
+	var anchorEdge, blockEdge bool
+	for _, e := range g.Edges {
+		if e.Source == "itm-FOCUS" && e.Target == "sym:Helper" && e.Kind == EdgeAnchors {
+			anchorEdge = true
+		}
+		if e.Source == "itm-FOCUS" && e.Target == "itm-BLOCK" && e.Kind == EdgeBlockedBy {
+			blockEdge = true
+		}
+	}
+	if !anchorEdge || !blockEdge {
+		t.Errorf("edges wrong: %+v", g.Edges)
+	}
+}
