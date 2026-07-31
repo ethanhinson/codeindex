@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getHealth } from './api'
 import type { Health } from './types'
 import type { Suggestion } from './CommandPalette'
 import { useFullGraph, resolveFocus } from './useFullGraph'
+import { buildIndex, viewModel } from './graph/aggregate'
 import { GraphCanvas } from './graph/GraphCanvas'
 import { CommandPalette } from './CommandPalette'
 import { Inspector } from './Inspector'
@@ -12,17 +13,79 @@ export default function App() {
   const { nodes, edges, loading, error } = useFullGraph()
   const [health, setHealth] = useState<Health | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
+  const [tails, setTails] = useState<Set<string>>(new Set())
+  const [extras, setExtras] = useState<Set<string>>(new Set())
+
+  const index = useMemo(() => buildIndex({ focus: '', nodes, edges }), [nodes, edges])
+  const vm = useMemo(
+    () => viewModel(index, { expanded, tails, extras }),
+    [index, expanded, tails, extras],
+  )
 
   useEffect(() => {
     getHealth().then(setHealth).catch(() => setHealth(null))
+  }, [])
+
+  // Surface data oddities once: edges referencing unknown node ids are
+  // dropped by buildIndex, not rendered.
+  useEffect(() => {
+    if (index.dropped > 0) {
+      console.warn(`graph: dropped ${index.dropped} edge(s) with unknown endpoints`)
+    }
+  }, [index])
+
+  // Selecting a symbol always reveals it: expand its package and force it
+  // past the top-N cutoff if it lives in the long tail.
+  const selectNode = useCallback(
+    (id: string | null) => {
+      if (id) {
+        const pkg = index.pkgOf.get(id)
+        if (pkg) {
+          setExpanded((prev) => (prev.has(pkg) ? prev : new Set(prev).add(pkg)))
+          setExtras((prev) => (prev.has(id) ? prev : new Set(prev).add(id)))
+        }
+      }
+      setSelected(id)
+    },
+    [index],
+  )
+
+  const togglePackage = useCallback(
+    (pkg: string) => {
+      setExpanded((prev) => {
+        const next = new Set(prev)
+        if (next.has(pkg)) {
+          next.delete(pkg)
+          setTails((t) => {
+            const nt = new Set(t)
+            nt.delete(pkg)
+            return nt
+          })
+          setExtras((x) => {
+            const nx = new Set([...x].filter((id) => index.pkgOf.get(id) !== pkg))
+            return nx.size === x.size ? x : nx
+          })
+          setSelected((s) => (s && index.pkgOf.get(s) === pkg ? null : s))
+        } else {
+          next.add(pkg)
+        }
+        return next
+      })
+    },
+    [index],
+  )
+
+  const revealTail = useCallback((pkg: string) => {
+    setTails((prev) => (prev.has(pkg) ? prev : new Set(prev).add(pkg)))
   }, [])
 
   // Once the graph is in, honor ?focus= (id or label) for deep links.
   useEffect(() => {
     if (nodes.length === 0) return
     const param = new URLSearchParams(window.location.search).get('focus')
-    if (param) setSelected(resolveFocus(nodes, param))
-  }, [nodes])
+    if (param) selectNode(resolveFocus(nodes, param))
+  }, [nodes, selectNode])
 
   const selectedNode = useMemo(
     () => (selected ? nodes.find((n) => n.id === selected) ?? null : null),
@@ -30,24 +93,21 @@ export default function App() {
   )
 
   // Suggestions: the highest-degree symbols — the hubs worth starting from.
-  const suggestions = useMemo<Suggestion[]>(() => {
-    const deg = new Map<string, number>()
-    for (const e of edges) {
-      deg.set(e.source, (deg.get(e.source) ?? 0) + 1)
-      deg.set(e.target, (deg.get(e.target) ?? 0) + 1)
-    }
-    return nodes
-      .filter((n) => n.kind === 'symbol')
-      .sort((a, b) => (deg.get(b.id) ?? 0) - (deg.get(a.id) ?? 0))
-      .slice(0, 4)
-      .map((n) => ({ id: n.id, label: n.label }))
-  }, [nodes, edges])
+  const suggestions = useMemo<Suggestion[]>(
+    () =>
+      nodes
+        .filter((n) => n.kind === 'symbol')
+        .sort((a, b) => (index.degree.get(b.id) ?? 0) - (index.degree.get(a.id) ?? 0))
+        .slice(0, 4)
+        .map((n) => ({ id: n.id, label: n.label })),
+    [nodes, index],
+  )
 
   const symbolCount = nodes.filter((n) => n.kind === 'symbol').length
   const loreCount = nodes.length - symbolCount
 
   function onSearch(query: string) {
-    setSelected(resolveFocus(nodes, query))
+    selectNode(resolveFocus(nodes, query))
   }
 
   return (
@@ -60,7 +120,7 @@ export default function App() {
         <div className="status" data-testid="health">
           {loading
             ? 'loading graph…'
-            : `${symbolCount} symbols · ${loreCount} lore${health ? ` · ● ${health.version}` : ''}`}
+            : `${index.packages.size} packages · ${symbolCount} symbols · ${loreCount} lore${health ? ` · ● ${health.version}` : ''}`}
         </div>
       </header>
 
@@ -68,10 +128,16 @@ export default function App() {
         <div className="canvas-wrap">
           {error && <div className="error-banner" data-testid="error">{error}</div>}
           {loading && <div className="empty-hint" data-testid="loading-hint">building the graph…</div>}
-          <GraphCanvas nodes={nodes} edges={edges} selected={selected} onSelect={setSelected} />
+          <GraphCanvas
+            vm={vm}
+            selected={selected}
+            onSelect={selectNode}
+            onTogglePackage={togglePackage}
+            onRevealTail={revealTail}
+          />
           <Legend />
         </div>
-        <Inspector node={selectedNode} nodes={nodes} edges={edges} onOpen={setSelected} />
+        <Inspector node={selectedNode} nodes={nodes} edges={edges} onOpen={selectNode} />
       </main>
     </div>
   )
