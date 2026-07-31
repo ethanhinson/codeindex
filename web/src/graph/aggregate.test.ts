@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import {
-  buildIndex, pkgId, UNGROUPED, LABEL_TOP,
+  buildIndex, UNGROUPED, LABEL_TOP,
   overviewVM, focusVM, earnedLabels, loreRailModel,
 } from './aggregate'
 import type { Graph, GraphEdge, GraphNode } from '../types'
