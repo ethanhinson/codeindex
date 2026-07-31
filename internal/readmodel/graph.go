@@ -2,7 +2,12 @@
 package readmodel
 
 import (
+	"fmt"
+	"path/filepath"
+	"strings"
+
 	"codeindex/internal/graph"
+	"codeindex/internal/lore"
 	loreindex "codeindex/internal/lore/index"
 	"codeindex/internal/query"
 )
@@ -110,6 +115,58 @@ func RecordNeighborhood(rec loreindex.StoredRecord, all []loreindex.StoredRecord
 	}
 
 	sortGraph(&g)
+	return g, nil
+}
+
+func openGraph(root string) (*graph.Store, error) {
+	if _, err := query.Fresh(root); err != nil {
+		return nil, err
+	}
+	return graph.Open(filepath.Join(root, ".codeindex", "graph.db"))
+}
+
+func openLore(root string) ([]loreindex.StoredRecord, error) {
+	l, err := lore.NewLayout(root)
+	if err != nil {
+		return nil, err
+	}
+	st, _, err := loreindex.Reindex(l, filepath.Join(root, ".codeindex", "lore.db"))
+	if err != nil {
+		return nil, err
+	}
+	defer st.Close()
+	return st.All()
+}
+
+// Neighborhood resolves focusID to a symbol or lore record and returns its
+// 1-hop neighborhood, joining code and lore.
+func Neighborhood(root, focusID string) (Graph, error) {
+	st, err := openGraph(root)
+	if err != nil {
+		return Graph{}, err
+	}
+	defer st.Close()
+	recs, err := openLore(root)
+	if err != nil {
+		return Graph{}, err
+	}
+
+	if strings.HasPrefix(focusID, "dec-") || strings.HasPrefix(focusID, "itm-") || strings.HasPrefix(focusID, "note-") {
+		for _, r := range recs {
+			if r.ID == focusID {
+				return RecordNeighborhood(r, recs, st)
+			}
+		}
+		return Graph{}, fmt.Errorf("record not found: %s", focusID)
+	}
+
+	anchor := strings.TrimPrefix(focusID, "sym:")
+	name, parent := query.SplitAnchor(anchor)
+	g, err := SymbolNeighborhood(st, name, parent)
+	if err != nil {
+		return Graph{}, err
+	}
+	AttachAnchoredLore(&g, recs)
 	return g, nil
 }
 

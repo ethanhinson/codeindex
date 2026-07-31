@@ -127,6 +127,60 @@ func TestAttachAnchoredLore(t *testing.T) {
 	}
 }
 
+// writeRepo creates a temp repo with both code files and .lore records.
+func writeRepo(t *testing.T) string {
+	t.Helper()
+	t.Setenv("CODEINDEX_HOME", t.TempDir())
+	root := writeTree(t, map[string]string{
+		"a.go": "package p\nfunc Helper(x int) int { return x + 1 }\nfunc A() int { return Helper(1) }\n",
+	})
+	rec := lore.Record{
+		ID: "dec-A", Type: lore.TypeDecision, Title: "Keep Helper pure",
+		Status: "active", Date: "2026-07-29",
+		Anchors: []lore.Anchor{{Symbol: "Helper"}},
+	}
+	b, err := rec.Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+	dir := filepath.Join(root, ".lore", "decisions")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "a.md"), b, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return root
+}
+
+func TestNeighborhoodSymbolFocusJoinsLore(t *testing.T) {
+	root := writeRepo(t)
+	g, err := Neighborhood(root, "sym:Helper")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var hasLore bool
+	for _, e := range g.Edges {
+		if e.Source == "dec-A" && e.Target == "sym:Helper" && e.Kind == EdgeAnchors {
+			hasLore = true
+		}
+	}
+	if !hasLore {
+		t.Fatalf("expected anchored decision joined to symbol; edges=%+v", g.Edges)
+	}
+}
+
+func TestNeighborhoodRecordFocus(t *testing.T) {
+	root := writeRepo(t)
+	g, err := Neighborhood(root, "dec-A")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g.Focus != "dec-A" {
+		t.Fatalf("focus = %q", g.Focus)
+	}
+}
+
 func TestRecordNeighborhood(t *testing.T) {
 	st := buildStore(t, map[string]string{
 		"a.go": "package p\nfunc Helper(x int) int { return x + 1 }\n",
