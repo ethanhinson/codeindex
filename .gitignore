@@ -16,3 +16,9 @@ bench/agent_ab/results/runs*.jsonl
 bench/agent_ab/results/graded*.jsonl
 bench/agent_ab/results/transcripts/
 .superpowers/
+
+# frontend
+web/node_modules/
+web/test-results/
+web/playwright-report/
+web/.vite/

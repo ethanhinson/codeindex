@@ -111,7 +111,8 @@ func TestStaticIndexServed(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(b), "codeindex graph UI") {
+	// The embedded SPA shell always mounts into <div id="root">.
+	if !strings.Contains(string(b), `id="root"`) {
 		t.Fatalf("index body unexpected: %q", string(b))
 	}
 }
