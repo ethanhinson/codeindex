@@ -98,6 +98,10 @@ export function visibleSymbols(index: GraphIndex, state: ViewState): Set<string>
 
 export function viewModel(index: GraphIndex, state: ViewState): ViewModel {
   const vis = visibleSymbols(index, state)
+  const rankOf = new Map<string, number>()
+  for (const ids of index.packages.values()) {
+    ids.forEach((id, rank) => rankOf.set(id, rank))
+  }
   const nodes: VisNode[] = []
   for (const [pkg, ids] of index.packages) {
     nodes.push({ id: pkgId(pkg), kind: 'package', label: pkg, degree: 0, symCount: ids.length })
@@ -106,7 +110,7 @@ export function viewModel(index: GraphIndex, state: ViewState): ViewModel {
     if (n.kind === 'symbol') {
       if (!vis.has(n.id)) continue
       const pkg = index.pkgOf.get(n.id) as string
-      const rank = (index.packages.get(pkg) ?? []).indexOf(n.id)
+      const rank = rankOf.get(n.id) ?? -1
       nodes.push({
         id: n.id,
         kind: n.kind,
@@ -139,7 +143,8 @@ export function viewModel(index: GraphIndex, state: ViewState): ViewModel {
   // is), else its package node. Same-representative edges vanish (collapsed
   // intra-package calls); everything else groups by (src, tgt, kind, form).
   const rep = (id: string): string => {
-    const n = index.nodeById.get(id) as GraphNode
+    const n = index.nodeById.get(id)
+    if (!n) return id
     if (n.kind !== 'symbol' || vis.has(id)) return id
     return pkgId(index.pkgOf.get(id) as string)
   }
