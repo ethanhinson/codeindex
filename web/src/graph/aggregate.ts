@@ -213,7 +213,7 @@ export function loreRailModel(index: GraphIndex): LoreRailGroups {
     if (!rec) continue
     if (e.kind === 'blocked_by' && byId.has(e.target)) {
       rec.blockedBy.push(e.target)
-    } else {
+    } else if (e.kind === 'anchors') {
       const pkg = index.pkgOf.get(e.target)
       if (pkg && !rec.pkgs.includes(pkg)) rec.pkgs.push(pkg)
     }
