@@ -51,3 +51,117 @@ export function buildIndex(g: Graph): GraphIndex {
   }
   return { nodes: g.nodes, edges, nodeById, degree, packages, pkgOf, dropped }
 }
+
+export interface ViewState {
+  expanded: Set<string>
+  tails: Set<string>
+  extras: Set<string>
+}
+
+export interface VisNode {
+  id: string
+  kind: string
+  label: string
+  parent?: string
+  degree: number
+  symCount?: number
+  pkg?: string
+  rank?: number
+}
+
+export interface VisEdge {
+  id: string
+  source: string
+  target: string
+  kind: string
+  count: number
+  bundled: boolean
+  conf?: string
+}
+
+export interface ViewModel {
+  nodes: VisNode[]
+  edges: VisEdge[]
+}
+
+export function visibleSymbols(index: GraphIndex, state: ViewState): Set<string> {
+  const vis = new Set<string>()
+  for (const pkg of state.expanded) {
+    const ids = index.packages.get(pkg) ?? []
+    const all = state.tails.has(pkg)
+    ids.forEach((id, rank) => {
+      if (all || rank < TOP_N || state.extras.has(id)) vis.add(id)
+    })
+  }
+  return vis
+}
+
+export function viewModel(index: GraphIndex, state: ViewState): ViewModel {
+  const vis = visibleSymbols(index, state)
+  const nodes: VisNode[] = []
+  for (const [pkg, ids] of index.packages) {
+    nodes.push({ id: pkgId(pkg), kind: 'package', label: pkg, degree: 0, symCount: ids.length })
+  }
+  for (const n of index.nodes) {
+    if (n.kind === 'symbol') {
+      if (!vis.has(n.id)) continue
+      const pkg = index.pkgOf.get(n.id) as string
+      const rank = (index.packages.get(pkg) ?? []).indexOf(n.id)
+      nodes.push({
+        id: n.id,
+        kind: n.kind,
+        label: n.label,
+        parent: pkgId(pkg),
+        pkg,
+        rank,
+        degree: index.degree.get(n.id) ?? 0,
+      })
+    } else {
+      nodes.push({ id: n.id, kind: n.kind, label: n.label, degree: index.degree.get(n.id) ?? 0 })
+    }
+  }
+  for (const pkg of state.expanded) {
+    const ids = index.packages.get(pkg) ?? []
+    const hidden = ids.filter((id) => !vis.has(id)).length
+    if (hidden > 0) {
+      nodes.push({
+        id: chipId(pkg),
+        kind: 'chip',
+        label: `+${hidden} more`,
+        parent: pkgId(pkg),
+        pkg,
+        degree: 0,
+      })
+    }
+  }
+
+  // Each endpoint maps to its representative: itself if visible (lore always
+  // is), else its package node. Same-representative edges vanish (collapsed
+  // intra-package calls); everything else groups by (src, tgt, kind, form).
+  const rep = (id: string): string => {
+    const n = index.nodeById.get(id) as GraphNode
+    if (n.kind !== 'symbol' || vis.has(id)) return id
+    return pkgId(index.pkgOf.get(id) as string)
+  }
+  const acc = new Map<string, VisEdge>()
+  for (const e of index.edges) {
+    const s = rep(e.source)
+    const t = rep(e.target)
+    if (s === t) continue
+    const bundled = s !== e.source || t !== e.target
+    const key = `${s}|${t}|${e.kind}|${bundled ? 'b' : 'c'}`
+    const cur = acc.get(key)
+    if (cur) cur.count++
+    else
+      acc.set(key, {
+        id: (bundled ? 'b:' : 'e:') + key,
+        source: s,
+        target: t,
+        kind: e.kind,
+        count: 1,
+        bundled,
+        conf: bundled ? undefined : e.conf,
+      })
+  }
+  return { nodes, edges: [...acc.values()] }
+}
