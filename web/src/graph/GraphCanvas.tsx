@@ -55,12 +55,20 @@ function seededLayout(cy: Core, opts: Record<string, unknown>, onDone: () => voi
     s = (s * 1664525 + 1013904223) >>> 0
     return s / 4294967296
   }
-  const layout = cy.layout({ name: 'fcose', ...opts } as never)
-  layout.one('layoutstop', () => {
+  const restore = () => {
     Math.random = orig
-    onDone()
-  })
-  layout.run()
+  }
+  try {
+    const layout = cy.layout({ name: 'fcose', ...opts } as never)
+    layout.one('layoutstop', () => {
+      restore()
+      onDone()
+    })
+    layout.run()
+  } catch (err) {
+    restore()
+    throw err
+  }
 }
 
 // Diff the desired view model into the live instance: remove what left,
