@@ -19,3 +19,9 @@ bench/agent_ab/results/transcripts/
 
 # Local agent worktrees (nested repos) — never track
 .claude/worktrees/
+
+# frontend
+web/node_modules/
+web/test-results/
+web/playwright-report/
+web/.vite/

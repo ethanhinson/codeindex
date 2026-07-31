@@ -20,6 +20,17 @@ type Config struct {
 	// php) — the VS Code files.associations model. Basename match; patterns
 	// containing '/' match the repo-relative path.
 	Associations map[string]string `json:"associations"`
+
+	// Exclude lists repo-relative paths/globs to skip when indexing, in
+	// addition to the built-in defaults (vendored/compiled dirs). A pattern
+	// with no wildcard is a path prefix ("internal/webserver/dist" skips that
+	// whole subtree); a pattern with '*'/'**'/'?' is a glob matched against the
+	// repo-relative path ('**' spans directory separators).
+	Exclude []string `json:"exclude"`
+
+	// Include lists paths/globs to index even when a default or an Exclude
+	// entry would skip them. Include always wins.
+	Include []string `json:"include"`
 }
 
 // Load reads root's config. A missing file is an empty config; a malformed

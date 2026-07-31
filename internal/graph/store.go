@@ -600,6 +600,62 @@ func (s *Store) ProjectSymbols() ([]Symbol, error) {
 	return out, rows.Err()
 }
 
+// GraphNode is a project symbol carrying its stable DB id, for whole-graph views.
+type GraphNode struct {
+	ID        int64
+	File      string
+	Name      string
+	Parent    string
+	Kind      SymbolKind
+	Signature string
+	StartLine int
+}
+
+// GraphNodes returns every tier-0 (project) symbol with its id.
+func (s *Store) GraphNodes() ([]GraphNode, error) {
+	rows, err := s.db.Query(
+		`SELECT id, file, name, parent, kind, signature, start_line
+		 FROM symbols WHERE tier=0 ORDER BY id`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []GraphNode
+	for rows.Next() {
+		var n GraphNode
+		var kind string
+		if err := rows.Scan(&n.ID, &n.File, &n.Name, &n.Parent, &kind, &n.Signature, &n.StartLine); err != nil {
+			return nil, err
+		}
+		n.Kind = SymbolKind(kind)
+		out = append(out, n)
+	}
+	return out, rows.Err()
+}
+
+// IDEdge is a resolved edge between two symbol ids.
+type IDEdge struct{ Src, Dst int64 }
+
+// GraphCallEdges returns all resolved call edges (both endpoints known).
+func (s *Store) GraphCallEdges() ([]IDEdge, error) {
+	rows, err := s.db.Query(
+		`SELECT src_symbol_id, dst_symbol_id FROM edges
+		 WHERE kind='calls' AND dst_symbol_id != 0`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []IDEdge
+	for rows.Next() {
+		var e IDEdge
+		if err := rows.Scan(&e.Src, &e.Dst); err != nil {
+			return nil, err
+		}
+		out = append(out, e)
+	}
+	return out, rows.Err()
+}
+
 // Definitions returns the symbols defined with the given name; a non-empty
 // parent filters to that owner type (qualified anchor).
 func (s *Store) Definitions(name, parent string) ([]Symbol, error) {

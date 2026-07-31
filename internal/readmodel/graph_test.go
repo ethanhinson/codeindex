@@ -1,0 +1,230 @@
+// internal/readmodel/graph_test.go
+package readmodel
+
+import (
+	"os"
+	"path/filepath"
+	"testing"
+
+	"codeindex/internal/engine"
+	"codeindex/internal/graph"
+	"codeindex/internal/lore"
+	loreindex "codeindex/internal/lore/index"
+)
+
+// writeTree writes files under a fresh temp dir and returns the dir.
+func writeTree(t *testing.T, files map[string]string) string {
+	t.Helper()
+	dir := t.TempDir()
+	for name, body := range files {
+		p := filepath.Join(dir, name)
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return dir
+}
+
+func buildStore(t *testing.T, files map[string]string) *graph.Store {
+	t.Helper()
+	dir := writeTree(t, files)
+	db := filepath.Join(dir, "g.db")
+	if _, err := engine.Build(dir, db); err != nil {
+		t.Fatal(err)
+	}
+	st, err := graph.Open(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { st.Close() })
+	return st
+}
+
+func TestSymbolNeighborhood(t *testing.T) {
+	st := buildStore(t, map[string]string{
+		"a.go": "package p\nfunc Helper(x int) int { return x + 1 }\nfunc A() int { return Helper(1) }\n",
+		"b.go": "package p\nfunc B() int { return A() }\n",
+	})
+	g, err := SymbolNeighborhood(st, "A", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g.Focus != "sym:A" {
+		t.Fatalf("focus = %q, want sym:A", g.Focus)
+	}
+	// Expect nodes: A (focus), Helper (callee), B (caller).
+	ids := map[string]bool{}
+	for _, n := range g.Nodes {
+		ids[n.ID] = true
+	}
+	for _, want := range []string{"sym:A", "sym:Helper", "sym:B"} {
+		if !ids[want] {
+			t.Errorf("missing node %q; got %v", want, ids)
+		}
+	}
+	// Expect edges: B->A (calls), A->Helper (calls).
+	var hasCallerEdge, hasCalleeEdge bool
+	for _, e := range g.Edges {
+		if e.Source == "sym:B" && e.Target == "sym:A" && e.Kind == EdgeCalls {
+			hasCallerEdge = true
+		}
+		if e.Source == "sym:A" && e.Target == "sym:Helper" && e.Kind == EdgeCalls {
+			hasCalleeEdge = true
+		}
+	}
+	if !hasCallerEdge || !hasCalleeEdge {
+		t.Errorf("edges wrong: %+v", g.Edges)
+	}
+}
+
+func openLoreStore(t *testing.T) *loreindex.Store {
+	t.Helper()
+	s, err := loreindex.Open(filepath.Join(t.TempDir(), "lore.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { s.Close() })
+	return s
+}
+
+func TestAttachAnchoredLore(t *testing.T) {
+	ls := openLoreStore(t)
+	rec := lore.Record{
+		ID: "dec-A", Type: lore.TypeDecision, Title: "Keep Helper pure",
+		Status: "active", Date: "2026-07-29",
+		Anchors: []lore.Anchor{{Symbol: "Helper"}},
+	}
+	if err := ls.Upsert(rec, "repo", "/repo/.lore/decisions/a.md"); err != nil {
+		t.Fatal(err)
+	}
+	recs, err := ls.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	g := Graph{
+		Focus: "sym:Helper",
+		Nodes: []Node{{ID: "sym:Helper", Kind: NodeSymbol, Label: "Helper"}},
+	}
+	AttachAnchoredLore(&g, recs)
+
+	var hasNode, hasEdge bool
+	for _, n := range g.Nodes {
+		if n.ID == "dec-A" && n.Kind == NodeDecision && n.Label == "Keep Helper pure" {
+			hasNode = true
+		}
+	}
+	for _, e := range g.Edges {
+		if e.Source == "dec-A" && e.Target == "sym:Helper" && e.Kind == EdgeAnchors {
+			hasEdge = true
+		}
+	}
+	if !hasNode || !hasEdge {
+		t.Fatalf("anchored lore not attached: nodes=%+v edges=%+v", g.Nodes, g.Edges)
+	}
+}
+
+// writeRepo creates a temp repo with both code files and .lore records.
+func writeRepo(t *testing.T) string {
+	t.Helper()
+	t.Setenv("CODEINDEX_HOME", t.TempDir())
+	root := writeTree(t, map[string]string{
+		"a.go": "package p\nfunc Helper(x int) int { return x + 1 }\nfunc A() int { return Helper(1) }\n",
+	})
+	rec := lore.Record{
+		ID: "dec-A", Type: lore.TypeDecision, Title: "Keep Helper pure",
+		Status: "active", Date: "2026-07-29",
+		Anchors: []lore.Anchor{{Symbol: "Helper"}},
+	}
+	b, err := rec.Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+	dir := filepath.Join(root, ".lore", "decisions")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "a.md"), b, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return root
+}
+
+func TestNeighborhoodSymbolFocusJoinsLore(t *testing.T) {
+	root := writeRepo(t)
+	g, err := Neighborhood(root, "sym:Helper")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var hasLore bool
+	for _, e := range g.Edges {
+		if e.Source == "dec-A" && e.Target == "sym:Helper" && e.Kind == EdgeAnchors {
+			hasLore = true
+		}
+	}
+	if !hasLore {
+		t.Fatalf("expected anchored decision joined to symbol; edges=%+v", g.Edges)
+	}
+}
+
+func TestNeighborhoodRecordFocus(t *testing.T) {
+	root := writeRepo(t)
+	g, err := Neighborhood(root, "dec-A")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g.Focus != "dec-A" {
+		t.Fatalf("focus = %q", g.Focus)
+	}
+}
+
+func TestRecordNeighborhood(t *testing.T) {
+	st := buildStore(t, map[string]string{
+		"a.go": "package p\nfunc Helper(x int) int { return x + 1 }\n",
+	})
+	blocker := loreindex.StoredRecord{Record: lore.Record{
+		ID: "itm-BLOCK", Type: lore.TypeItem, Title: "prereq", Status: "open",
+	}}
+	focus := loreindex.StoredRecord{Record: lore.Record{
+		ID: "itm-FOCUS", Type: lore.TypeItem, Title: "do the thing", Status: "open",
+		Anchors:   []lore.Anchor{{Symbol: "Helper"}, {Path: "a.go"}},
+		BlockedBy: []string{"itm-BLOCK"},
+	}}
+	all := []loreindex.StoredRecord{focus, blocker}
+
+	g, err := RecordNeighborhood(focus, all, st)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g.Focus != "itm-FOCUS" {
+		t.Fatalf("focus = %q", g.Focus)
+	}
+	ids := map[string]NodeKind{}
+	for _, n := range g.Nodes {
+		ids[n.ID] = n.Kind
+	}
+	if ids["sym:Helper"] != NodeSymbol {
+		t.Errorf("missing anchored symbol node; got %v", ids)
+	}
+	if ids["path:a.go"] != NodePath {
+		t.Errorf("missing anchored path node; got %v", ids)
+	}
+	if ids["itm-BLOCK"] != NodeItem {
+		t.Errorf("missing blocker node; got %v", ids)
+	}
+	var anchorEdge, blockEdge bool
+	for _, e := range g.Edges {
+		if e.Source == "itm-FOCUS" && e.Target == "sym:Helper" && e.Kind == EdgeAnchors {
+			anchorEdge = true
+		}
+		if e.Source == "itm-FOCUS" && e.Target == "itm-BLOCK" && e.Kind == EdgeBlockedBy {
+			blockEdge = true
+		}
+	}
+	if !anchorEdge || !blockEdge {
+		t.Errorf("edges wrong: %+v", g.Edges)
+	}
+}

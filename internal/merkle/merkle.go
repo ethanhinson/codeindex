@@ -11,21 +11,15 @@ import (
 	"path/filepath"
 
 	"codeindex/internal/adapter"
+	"codeindex/internal/config"
 	"codeindex/internal/graph"
 )
 
-// skipDir reports directories excluded from the walk (vendored/generated/VCS).
-func skipDir(name string) bool {
-	switch name {
-	case ".git", "vendor", "node_modules", "testdata", ".codeindex":
-		return true
-	}
-	return false
-}
-
 // Walk returns repo-relative paths of source files under root whose extension
 // has a registered language adapter (the registry is the single source of
-// truth — adding a language never touches the walk).
+// truth — adding a language never touches the walk). Files under vendored/
+// compiled/VCS directories are skipped per the repo's Filter (built-in
+// defaults plus .codeindex.json exclude/include).
 func Walk(root string) ([]string, error) { return WalkWith(root, nil) }
 
 // WalkWith additionally admits files the extra callback claims — the
@@ -33,20 +27,27 @@ func Walk(root string) ([]string, error) { return WalkWith(root, nil) }
 // .inc, .module, anything). extra runs only for files the registry does not
 // already cover.
 func WalkWith(root string, extra func(rel string, d fs.DirEntry) bool) ([]string, error) {
+	filter, err := config.LoadFilter(root)
+	if err != nil {
+		return nil, err
+	}
 	var out []string
-	err := filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
+	err = filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
-		}
-		if d.IsDir() {
-			if skipDir(d.Name()) {
-				return filepath.SkipDir
-			}
-			return nil
 		}
 		rel, err := filepath.Rel(root, p)
 		if err != nil {
 			return err
+		}
+		if d.IsDir() {
+			if rel != "." && filter.SkipDir(rel, d.Name()) {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if filter.SkipFile(rel) {
+			return nil
 		}
 		if adapter.Indexable(rel) || (extra != nil && extra(rel, d)) {
 			out = append(out, rel)
