@@ -77,6 +77,66 @@ export function stylesheet(): StylesheetCSS[] {
         'z-compound-depth': 'bottom',
       },
     },
+    // Collapsed package: a plain node sized by how many symbols it holds.
+    {
+      selector: 'node[kind = "package"]',
+      style: {
+        shape: 'round-rectangle',
+        'background-color': '#22304a',
+        'border-width': 1.5,
+        'border-color': '#3a4a66',
+        color: '#aab6c8',
+        'font-size': 12,
+        'min-zoomed-font-size': 0,
+        'text-valign': 'center',
+        'text-halign': 'center',
+        width: 'mapData(symCount, 1, 120, 30, 110)',
+        height: 'mapData(symCount, 1, 120, 22, 46)',
+      },
+    },
+    // Expanded package: compound parent — translucent container, label on top.
+    {
+      selector: 'node[kind = "package"]:parent',
+      style: {
+        'background-color': '#4f8ff7',
+        'background-opacity': 0.05,
+        'border-style': 'dashed',
+        'border-color': '#2a3140',
+        'text-valign': 'top',
+        'text-margin-y': -4,
+        padding: 16,
+        'z-compound-depth': 'bottom',
+      },
+    },
+    // The "+N more" chip.
+    {
+      selector: 'node[kind = "chip"]',
+      style: {
+        shape: 'round-rectangle',
+        'background-color': '#2a3140',
+        'border-width': 1,
+        'border-color': '#4f8ff7',
+        color: '#c5ccd8',
+        'font-size': 10,
+        'min-zoomed-font-size': 0,
+        'text-valign': 'center',
+        'text-halign': 'center',
+        width: 60,
+        height: 18,
+      },
+    },
+    // Bundled edges: width carries the call count between the two ends.
+    {
+      selector: 'edge[?bundled]',
+      style: {
+        width: 'mapData(count, 1, 60, 1, 7)',
+        'curve-style': 'straight',
+        'line-color': '#3a4356',
+        opacity: 0.55,
+      },
+    },
+    // LOD: elements hidden at far zoom.
+    { selector: '.lod-hide', style: { display: 'none' } },
     {
       selector: 'edge',
       style: {
