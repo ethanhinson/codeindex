@@ -292,15 +292,25 @@ export function GraphCanvas({ vm, view, selected, labeled, hot, onSelect, onFocu
     busy.current = true
     win().__layoutDone = false
 
+    // Set true by the focus-morph branch once anchors are captured pre-snap;
+    // finalize must then jump any still-running position animations to their
+    // end (which equals the anchors) instead of re-reading live positions.
+    let anchorsPrewritten = false
     const finalize = () => {
-      writeAnchors(cy)
+      if (anchorsPrewritten) {
+        cy.nodes('[kind = "symbol"]').stop(true, true)
+      } else {
+        writeAnchors(cy)
+      }
       if (view.mode === 'overview') {
         overviewAnchors.current = new Map(
           cy.nodes().map((n) => [n.id(), { x: n.data('ax') as number, y: n.data('ay') as number }]),
         )
       }
       applyLod(cy)
-      cy.elements().removeClass('entering')
+      // Safety net: stop(true, true) can kill animations before their
+      // complete callback returns opacity control to the stylesheet.
+      cy.nodes().removeStyle('opacity')
       busy.current = false
       win().__layoutDone = true
     }
@@ -361,19 +371,23 @@ export function GraphCanvas({ vm, view, selected, labeled, hot, onSelect, onFocu
           return
         }
         // Morph: snap symbols back to the origin, then animate to targets.
+        // Positions at this instant ARE the final layout targets — write
+        // anchors now, before the snap, so mid-flight animations can never
+        // leak into ax/ay (finalize jumps stragglers to these anchors).
         const targets = new Map(symbols.map((n) => [n.id(), { ...n.position() }]))
+        writeAnchors(cy)
+        anchorsPrewritten = true
         cy.batch(() => {
           symbols.forEach((n) => {
             n.position(origin)
-            n.addClass('entering')
+            n.style('opacity', 0.2)
           })
         })
         symbols.forEach((n) => {
           n.animate(
-            { position: targets.get(n.id()) as { x: number; y: number } },
-            { duration: MORPH_MS, easing: 'ease-out' },
+            { position: targets.get(n.id()) as { x: number; y: number }, style: { opacity: 1 } },
+            { duration: MORPH_MS, easing: 'ease-out', complete: () => n.removeStyle('opacity') },
           )
-          n.removeClass('entering')
         })
         fit()
       },
