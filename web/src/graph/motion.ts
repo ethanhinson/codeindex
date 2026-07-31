@@ -1,7 +1,7 @@
 // Idle motion: a small, hash-seeded Lissajous drift rendered on top of each
 // node's deterministic anchor (data ax/ay). Anchors are truth — this module
 // never writes them, so layouts, diffs, and determinism tests are unaffected.
-import type { Core } from 'cytoscape'
+import type { Core, EventObject } from 'cytoscape'
 
 const MAX_AMP = 2.5
 const MIN_AMP = 1.5
@@ -51,12 +51,15 @@ export function startMotion(cy: Core, isBusy: () => boolean): () => void {
   cy.on('pan zoom', onGesture)
 
   // A user drag moves a node away from its anchor deliberately: adopt the
-  // new position as the anchor so motion doesn't snap it back.
-  const onDragFree = (evt: { target: { position: () => { x: number; y: number }; data: (k: string, v?: unknown) => unknown } }) => {
+  // new position as the anchor so motion doesn't snap it back. The rendered
+  // position still includes the last frame's oscillation offset, so subtract
+  // it — periods are ≥5s, so ≤33ms of staleness is negligible (<0.01px).
+  const onDragFree = (evt: EventObject) => {
     const n = evt.target
     const p = n.position()
-    n.data('ax', p.x)
-    n.data('ay', p.y)
+    const off = oscOffset(n.id(), performance.now())
+    n.data('ax', p.x - off.x)
+    n.data('ay', p.y - off.y)
   }
   cy.on('dragfree', 'node', onDragFree)
 
@@ -80,6 +83,6 @@ export function startMotion(cy: Core, isBusy: () => boolean): () => void {
     stopped = true
     cancelAnimationFrame(raf)
     cy.off('pan zoom', onGesture)
-    cy.off('dragfree', 'node', onDragFree as never)
+    cy.off('dragfree', 'node', onDragFree)
   }
 }
