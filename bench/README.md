@@ -46,3 +46,49 @@ Per-repo, per-query-type medians: savings ratio (naive & smart baselines),
 Results are written as JSON and printed as a table.
 
 See `FINDINGS.md` for the first run's results and interpretation.
+
+## impact_bench.py — blast-radius accuracy
+
+Measures codeindex's impact/blast-radius recall (did it find every real
+dependent?) and precision (false positives), per-language and aggregate, with a
+separately broken-out `[ambiguous]`-flag subset score.
+
+Uses a **hybrid oracle**: for Go/TypeScript, compiles real repos under renamed
+symbols (`go build` / `tsc --noEmit`); compilation failures are ground truth.
+For JavaScript/Python/PHP and to validate ambiguous cases, uses authored
+fixtures under `bench/impact_fixtures/<lang>/manifest.json`. Ambiguity (same-name
+collisions) lives only in authored fixtures.
+
+**Pre-registered bar**: aggregate recall ≥ 0.95, per-language recall ≥ 0.90;
+precision is reported but not gated (v1).
+
+### Run
+
+```
+# Fixtures only (all languages)
+python3 impact_bench.py --binary <codeindex> --lang go,ts,py,js,php
+
+# With a real Go repo (sample 30 symbols, seed 99)
+python3 impact_bench.py --binary <codeindex> --repo <clone> --repo-lang go \
+    --sample 30 --seed 99
+```
+
+Flags: `--binary` (required), `--repo` (real repo clone for CompileOracle),
+`--repo-lang` (go|ts), `--sample` (symbols per run), `--seed`, `--lang` (comma-separated),
+`--fixtures` (path to `impact_fixtures/`), `--out` (results JSON path).
+
+### Output
+
+- `bench/results/impact.json`: machine-readable per-language and aggregate scores,
+  bar pass/fail verdicts, and per-symbol status.
+- `bench/impact-FINDINGS.md`: human-readable summary table and pass/fail verdict.
+
+**Behavior note**: a missing toolchain (no `go` / `tsc` in PATH) records that
+language as `"not_run": true` — never a silent pass.
+
+### First run findings
+
+Overall blast-radius recall 1.000 on authored fixtures (10 symbols graded, all
+languages). The `[ambiguous]` subset revealed a difference: codeindex omits the
+flag on same-name collisions for Go/JS/Py/TS (amb recall 0.000) but flags them
+correctly for PHP (1.000).
