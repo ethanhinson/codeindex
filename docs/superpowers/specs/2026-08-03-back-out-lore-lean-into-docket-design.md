@@ -1,5 +1,5 @@
 <!-- docket:backlink:start (generated — do not hand-edit) -->
-> ↩ **[Change 0001 — Migrate keeper lore decisions to docket ADRs](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/active/0001-migrate-keeper-lore-decisions-to-adrs.md)**
+> ↩ **[Change 0001 — Migrate keeper lore decisions to docket ADRs](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/archive/2026-08-04-0001-migrate-keeper-lore-decisions-to-adrs.md)**
 <!-- docket:backlink:end -->
 
 # Back out lore, lean into docket — design
