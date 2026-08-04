@@ -1,12 +1,12 @@
 # Backlog
 
-**4 changes** — 🟢 1 in progress · ✅ 3 done
+**4 changes** — 🔵 1 implemented · ✅ 3 done
 
-## 🟢 In progress (1)
+## 🔵 Implemented — awaiting merge (1)
 
-| # | Title | Priority | Type | Spec | Branch |
-|---|-------|----------|------|------|--------|
-| [0004](active/0004-cleanup-delete-lore-rewrite-readme.md) | Cleanup — delete .lore/, drop lore config, rewrite README | `medium` | `chore` | [spec](../superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md) | `feat/cleanup-delete-lore-rewrite-readme` |
+| # | Title | Priority | Type | PR | Readiness |
+|---|-------|----------|------|----|-----------|
+| [0004](active/0004-cleanup-delete-lore-rewrite-readme.md) | Cleanup — delete .lore/, drop lore config, rewrite README | `medium` | `chore` | [#6](https://github.com/ethanhinson/codeindex/pull/6) |  |
 
 ```mermaid
 graph TD
