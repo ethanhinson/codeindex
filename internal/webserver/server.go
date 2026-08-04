@@ -1,6 +1,7 @@
 // internal/webserver/server.go
-// Package webserver serves the codeindex read model over HTTP and hosts the
-// embedded SPA. Read-only; bind to loopback only.
+// Package webserver serves the codeindex symbol read model over HTTP as a
+// headless, versioned JSON API. Read-only; bind to loopback only. No static
+// content is hosted.
 package webserver
 
 import (
@@ -11,7 +12,18 @@ import (
 	"codeindex/internal/readmodel"
 )
 
-// New returns the HTTP handler for the read-only graph API and static SPA.
+// graphResponse wraps a symbol graph with the top-level schemaVersion pinned on
+// every graph API response.
+type graphResponse struct {
+	SchemaVersion string `json:"schemaVersion"`
+	readmodel.Graph
+}
+
+func newGraphResponse(g readmodel.Graph) graphResponse {
+	return graphResponse{SchemaVersion: readmodel.SchemaVersion, Graph: g}
+}
+
+// New returns the HTTP handler for the read-only headless graph API.
 func New(root, version string) http.Handler {
 	mux := http.NewServeMux()
 
@@ -22,17 +34,24 @@ func New(root, version string) http.Handler {
 	})
 
 	mux.HandleFunc("/api/graph", func(w http.ResponseWriter, r *http.Request) {
-		focus := r.URL.Query().Get("focus")
-		if focus == "" {
-			http.Error(w, "missing required query param: focus", http.StatusBadRequest)
+		symbol := r.URL.Query().Get("symbol")
+		if symbol == "" {
+			http.Error(w, "missing required query param: symbol", http.StatusBadRequest)
 			return
 		}
-		g, err := readmodel.Neighborhood(root, focus)
+		parent := r.URL.Query().Get("parent")
+		st, err := openGraph(root)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		writeJSON(w, http.StatusOK, g)
+		defer st.Close()
+		g, err := readmodel.SymbolNeighborhood(st, symbol, parent)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		writeJSON(w, http.StatusOK, newGraphResponse(g))
 	})
 
 	mux.HandleFunc("/api/graph/full", func(w http.ResponseWriter, _ *http.Request) {
@@ -41,10 +60,8 @@ func New(root, version string) http.Handler {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		writeJSON(w, http.StatusOK, g)
+		writeJSON(w, http.StatusOK, newGraphResponse(g))
 	})
-
-	mux.Handle("/", staticHandler())
 
 	return mux
 }
