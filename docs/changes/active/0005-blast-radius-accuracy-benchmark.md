@@ -11,7 +11,7 @@ depends_on: []
 related: [6]
 discovered_from: []
 adrs: []
-spec:
+spec: docs/superpowers/specs/2026-08-04-blast-radius-accuracy-benchmark-design.md
 plan:
 results:
 trivial: false
@@ -25,6 +25,9 @@ reconciled: false
 ## Artifacts
 
 <!-- docket:artifacts:start (generated — do not hand-edit) -->
+| Artifact | Link |
+|---|---|
+| Spec | [2026-08-04-blast-radius-accuracy-benchmark-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-04-blast-radius-accuracy-benchmark-design.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
@@ -35,21 +38,24 @@ Idea surfaced while mining the LLM-research vault: the recent coding-agent and s
 
 ## What changes
 
-Add a benchmark that, for a corpus of repos across the supported languages:
-- Picks a symbol, mutates or removes it, and derives a ground-truth impact set from what actually breaks (compile errors / failing tests).
-- Runs codeindex's blast-radius query for that symbol and scores the returned set on **recall** (did it find every real dependent?) and **false-positive rate** (how much noise?).
-- Reports per-language and aggregate scores, and specifically breaks out accuracy on `[ambiguous]`-flagged results so we can quantify how trustworthy the ambiguity signal is.
+Add `bench/impact_bench.py` (mirroring the existing `token_bench.py` / `recall_bench.py` shape) that scores codeindex's impact/blast-radius answers against a ground truth, across all five supported languages:
+- For a symbol S, compares codeindex's impact set against ground truth on **recall** (did it find every real dependent?) and **precision** (noise), per-language and aggregate, with a broken-out score for `[ambiguous]`-flagged results.
+- **Hybrid oracle:** compile-break on real repos for Go/TS (rename the declaration, run `go build` / `tsc`, the sites that fail to resolve are the truth); authored known-truth fixtures for JS/Python/PHP (which have no static break signal), where the manifest declares each symbol's true dependents.
+- **Ambiguity lives only in fixtures:** real-repo sampling is restricted to uniquely-named symbols (so the compiler oracle stays clean); same-name/shadowing/re-export cases are authored into fixtures where the truth is known.
+- Pre-registered bar (fixed before running): aggregate recall ≥ 0.95, per-language recall ≥ 0.90; precision reported but ungated in v1.
+
+Design detail — oracle interfaces, scoring normalization, outputs, error handling — is in the linked spec.
 
 ## Out of scope
 
-- Semantic/embedding-based retrieval — this measures the existing deterministic resolver, it does not change it.
-- Fixing any accuracy gaps the benchmark reveals (those become their own changes).
+- Changing the deterministic resolver — this measures it, it does not alter it.
+- Fixing any accuracy gaps the benchmark reveals (each becomes its own change).
+- Real-repo runs for JS/Python/PHP under a test-break oracle (a later change once the fixture number is trusted).
+- Semantic/embedding-based retrieval.
 
 ## Open questions
 
-- How to source the ground-truth oracle cheaply — compile-break vs. test-break vs. an independent LSP/analyzer as a second opinion?
-- Corpus selection: reuse the existing `bench/` repos or add purpose-built fixtures with known call structure?
-- Is this one benchmark parameterized by language, or per-language harnesses sharing a scorer?
+_Resolved during grooming (2026-08-04) — see the linked spec: hybrid compile-break + fixture oracle; all five languages; ambiguity confined to authored fixtures._
 
 ## Reconcile log
 
