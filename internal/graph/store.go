@@ -576,7 +576,6 @@ func (s *Store) AllDstNames() (map[string]struct{}, error) {
 	return out, rows.Err()
 }
 
-
 // GraphNode is a project symbol carrying its stable DB id, for whole-graph views.
 type GraphNode struct {
 	ID        int64
