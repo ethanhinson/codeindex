@@ -1,0 +1,15 @@
+# Architecture Decision Records
+
+Immutable, numbered record of *why*. ADRs are never archived or rewritten; once `Accepted`, only the `status:` line changes (on supersession/reversal). This index is generated — do not hand-edit.
+
+## Active
+
+- [ADR-0001](0001-parsing-via-tree-sitter-with-edge-resolver.md) — Parsing via tree-sitter with our own edge resolver (Accepted) ← change #1
+
+## Superseded / Reversed
+
+_None._
+
+## Deprecated
+
+_None._
