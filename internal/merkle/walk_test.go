@@ -26,10 +26,10 @@ func writeFiles(t *testing.T, root string, files map[string]string) {
 func TestWalkExcludesCompiledAndVendored(t *testing.T) {
 	root := t.TempDir()
 	writeFiles(t, root, map[string]string{
-		"internal/graph/store.go":               "package graph\n",
-		"internal/webserver/dist/assets/app.js": "var x=1\n",
-		"web/node_modules/react/index.js":       "module.exports={}\n",
-		"static/vendor.min.js":                  "var y=2\n",
+		"internal/graph/store.go":              "package graph\n",
+		"pkg/dist/assets/app.js":               "var x=1\n",
+		"external/node_modules/react/index.js": "module.exports={}\n",
+		"static/vendor.min.js":                 "var y=2\n",
 	})
 
 	got, err := Walk(root)
@@ -40,8 +40,8 @@ func TestWalkExcludesCompiledAndVendored(t *testing.T) {
 		t.Errorf("expected store.go indexed; got %v", got)
 	}
 	for _, bad := range []string{
-		"internal/webserver/dist/assets/app.js",
-		"web/node_modules/react/index.js",
+		"pkg/dist/assets/app.js",
+		"external/node_modules/react/index.js",
 		"static/vendor.min.js",
 	} {
 		if slices.Contains(got, bad) {
@@ -53,19 +53,19 @@ func TestWalkExcludesCompiledAndVendored(t *testing.T) {
 func TestWalkIncludeReadmitsExcludedFile(t *testing.T) {
 	root := t.TempDir()
 	writeFiles(t, root, map[string]string{
-		"internal/webserver/dist/assets/app.js": "var x=1\n",
-		"internal/webserver/dist/keep.js":       "export const keep=1\n",
-		".codeindex.json":                       `{"include":["internal/webserver/dist/keep.js"]}`,
+		"pkg/dist/assets/app.js": "var x=1\n",
+		"pkg/dist/keep.js":       "export const keep=1\n",
+		".codeindex.json":        `{"include":["pkg/dist/keep.js"]}`,
 	})
 
 	got, err := Walk(root)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !slices.Contains(got, "internal/webserver/dist/keep.js") {
+	if !slices.Contains(got, "pkg/dist/keep.js") {
 		t.Errorf("expected included keep.js indexed; got %v", got)
 	}
-	if slices.Contains(got, "internal/webserver/dist/assets/app.js") {
+	if slices.Contains(got, "pkg/dist/assets/app.js") {
 		t.Errorf("expected non-included dist sibling excluded; got %v", got)
 	}
 }

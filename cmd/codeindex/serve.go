@@ -6,7 +6,7 @@ import (
 	"codeindex/internal/webserver"
 )
 
-// runServe freshens the index, then serves the read-only graph API and SPA.
+// runServe freshens the index, then serves the read-only headless JSON graph API.
 func runServe(root, addr string) error {
 	if _, err := query.Fresh(root); err != nil {
 		return err

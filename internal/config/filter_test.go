@@ -6,8 +6,8 @@ func TestFilterDefaults(t *testing.T) {
 	f := NewFilter(Config{})
 
 	skipDirs := [][2]string{
-		{"internal/webserver/dist", "dist"},
-		{"web/node_modules", "node_modules"},
+		{"pkg/dist", "dist"},
+		{"external/node_modules", "node_modules"},
 		{"pkg/vendor", "vendor"},
 		{".git", ".git"},
 	}
@@ -43,22 +43,22 @@ func TestFilterUserExclude(t *testing.T) {
 }
 
 func TestFilterIncludeOverrides(t *testing.T) {
-	f := NewFilter(Config{Include: []string{"internal/webserver/dist/keep.js"}})
+	f := NewFilter(Config{Include: []string{"pkg/dist/keep.js"}})
 
 	// The included file survives the default dist exclusion...
-	if f.SkipFile("internal/webserver/dist/keep.js") {
+	if f.SkipFile("pkg/dist/keep.js") {
 		t.Error("included keep.js should not be skipped")
 	}
 	// ...its directory is descended (not pruned) so the walk can reach it...
-	if f.SkipDir("internal/webserver/dist", "dist") {
+	if f.SkipDir("pkg/dist", "dist") {
 		t.Error("dist must be descended when an Include is under it")
 	}
 	// ...but its non-included siblings are still skipped.
-	if !f.SkipFile("internal/webserver/dist/bundle.js") {
+	if !f.SkipFile("pkg/dist/bundle.js") {
 		t.Error("non-included dist sibling should still be skipped")
 	}
 	// An unrelated default dir stays pruned.
-	if !f.SkipDir("web/node_modules", "node_modules") {
+	if !f.SkipDir("external/node_modules", "node_modules") {
 		t.Error("unrelated node_modules should still be pruned")
 	}
 }

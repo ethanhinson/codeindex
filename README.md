@@ -69,98 +69,36 @@ codeindex deps <repo> <anchor>            what this file or package depends on
 codeindex find <repo> <query>             symbol search (--kind, --path, --limit)
 codeindex grep <repo> <pattern>           pattern search over indexed symbols
 codeindex enclosing <repo> <file> <a>:<b> which symbol encloses these lines
-codeindex tree <repo>                     interactive tree explorer (static print when piped)
 
 codeindex export <repo> <out.db>          compact index artifact for sharing
 codeindex import <repo> <artifact.db>     install an artifact, then patch local drift
 
 codeindex mcp <repo>                      serve the index over MCP (stdio)
+codeindex serve <repo> [--addr host:port] headless JSON graph API (default 127.0.0.1:7676)
 codeindex bench <repo> [out.json]         throughput benchmark and incremental-vs-full check
 ```
 
 Most query commands take `--limit N` (default 50).
 
-## Lore: decisions, work items, and notes
+## Graph API: query the symbol graph over HTTP
 
-`codeindex lore` keeps project knowledge in the repo — decisions (with
-rationale and rejected alternatives), a backlog of work items, and notes —
-as Markdown records in `.lore/`, versioned and reviewed like code, plus a
-private per-user overlay. Records anchor to files and symbols in the index,
-so `lore for <path|symbol>` answers "what do we know about the code I am
-about to change", and anchors go detectably stale when the code moves on.
-
-```
-codeindex lore <repo> init                      scaffold .lore/
-codeindex lore <repo> add <type> --title ...    record a decision/item/note (--private for the overlay)
-codeindex lore <repo> search <query>            ranked search across layers
-codeindex lore <repo> for <path|symbol>         records anchored to this code
-codeindex lore <repo> backlog [--for anchor]    open items, priority-ordered
-codeindex lore <repo> promote <id>              private record -> committed .lore/
-codeindex lore <repo> supersede <id> --title .. replace a decision, back-linked
-codeindex lore <repo> doctor                    stale anchors, dangling refs, parse errors
-```
-
-### Host setup
-
-After running `lore init`, register the behavioral contract with your AI coding host so it always sees the lore context:
+`codeindex serve <repo>` exposes the project's symbol call graph as a headless,
+read-only JSON API over loopback HTTP — no static hosting, just data other tools
+can consume. It freshens the index on start and binds to `127.0.0.1:7676` by
+default (`--addr host:port` to change it). Every graph response carries a
+top-level `schemaVersion` so external consumers are insulated from internal
+shape changes.
 
 ```sh
-codeindex lore <repo> init --host cursor   # writes .cursor/rules/lore.mdc (alwaysApply)
-codeindex lore <repo> init --host codex    # writes managed block in AGENTS.md (idempotent)
-codeindex lore <repo> init --host claude   # prints pointer to plugin/README.md
-codeindex lore <repo> init --host all      # cursor + codex + claude pointer
+codeindex serve /path/to/your/repo
+# GET /api/health            -> { "status": "ok", "version": "<build>", "root": "<repo>" }
+# GET /api/graph?symbol=Foo  -> Foo's neighborhood: focus + direct callers + callees
+# GET /api/graph/full        -> the whole symbol graph (nodes grouped by package dir)
 ```
 
-**Cursor** — after running `--host cursor`, add the MCP server so lore tools are available to the agent. In `.cursor/mcp.json` (repo) or `~/.cursor/mcp.json` (global):
-
-```json
-{
-  "mcpServers": {
-    "codeindex": {
-      "command": "codeindex",
-      "args": ["mcp", "."]
-    }
-  }
-}
-```
-
-**Codex** — after running `--host codex`, add the MCP server. In `~/.codex/config.toml`:
-
-```toml
-[mcp_servers.codeindex]
-command = "codeindex"
-args = ["mcp", "."]
-```
-
-**Claude Code** — the plugin ships the hooks; `lore init --host claude` prints a pointer to `plugin/README.md`. Install the plugin once and all lore-enabled repos get the always-visible note automatically.
-
-### Third-party sync
-
-Lore items can be linked to GitHub issues via a `gh-issue` ref. Once linked, `lore sync github` reconciles status from GitHub and `lore push` creates a new issue from an item.
-
-**Push an item to GitHub Issues** (creates the issue, appends the ref):
-
-```sh
-codeindex lore <repo> push itm-<id>
-# → pushed itm-<id> https://github.com/owner/repo/issues/42
-```
-
-**Sync closed issues back to lore** (flips open items to done when the GitHub issue is closed):
-
-```sh
-codeindex lore <repo> sync github
-# → synced itm-<id> done (issue owner/repo#42 closed)
-```
-
-Sync uses the `gh` CLI — run `gh auth login` first. Sync errors are real errors, not fail-open: they are surfaced immediately so auth problems are not silently ignored.
-
-**Zero-integration tier** — teams whose agents file tickets via their own tracker tools can record `gh-issue` refs directly on lore items without using `lore push`:
-
-```sh
-codeindex lore <repo> add item --title "..." --ref gh-issue:owner/repo#N
-```
-
-The `lore init --host` skills instruct agents to record refs on lore items when they create issues via host tools, so the link is captured even without an explicit `lore push`.
+The full request/response contract — node and edge shapes, the `parent`
+disambiguator, and the versioning policy — is documented in
+[docs/graph-api.md](docs/graph-api.md).
 
 ## Using it with Claude Code
 
@@ -227,15 +165,16 @@ Associations beat extensions, and extensions beat content sniffing. An unknown l
 
 ## Dependencies
 
-Calls into vendored or installed dependencies can be resolved too:
+Calls into vendored or installed dependencies can be resolved by building a
+dependency map and indexing it:
 
 ```sh
-codeindex attach /path/to/your/repo --auto
+codeindex depmap /path/to/dep --namespace <ns> --version <v> -o dep-map.db
 ```
 
-This picks up Go vendor directories and Composer packages automatically. Resolved dependency symbols show `[dep namespace@version]` provenance, and locally modified dependency files overlay the attached map and are marked `modified`.
-
-You can also generate a dependency map yourself with `codeindex depmap` and attach it with an explicit prefix.
+Resolved dependency symbols show `[dep namespace@version]` provenance, and
+locally modified dependency files overlay the attached map and are marked
+`modified`.
 
 ## Teams and CI
 
@@ -257,11 +196,12 @@ internal/graph       SQLite store, data model, name resolution
 internal/merkle      file walking, content hashing, change detection
 internal/engine      build and incremental patch orchestration
 internal/query       query layer (auto-build and patch-on-query)
+internal/readmodel   symbol read model behind the graph API
+internal/webserver   headless JSON graph API (codeindex serve)
 internal/mcpserver   MCP server
-internal/depmap      dependency map generation and attach
+internal/depmap      dependency map generation
 plugin/              Claude Code plugin (hooks and /impact command)
 editors/vscode       VS Code integration
 bench/               benchmarks and A/B experiment findings
-docs/                CI setup and design docs
-.lore/               decisions, work items, and notes (the spec-driven workflow)
+docs/                CI setup, the graph API contract, and design docs
 ```
