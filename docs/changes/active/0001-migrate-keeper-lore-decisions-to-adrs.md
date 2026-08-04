@@ -2,11 +2,11 @@
 id: 1
 slug: migrate-keeper-lore-decisions-to-adrs
 title: Migrate keeper lore decisions to docket ADRs
-status: proposed
+status: in-progress
 priority: high
 type: docs
 created: 2026-08-03
-updated: 2026-08-03
+updated: 2026-08-04
 depends_on: []
 related: [4]
 discovered_from: []
@@ -16,7 +16,8 @@ plan:
 results:
 trivial: false
 auto_groomable:
-branch:
+branch: feat/migrate-keeper-lore-decisions-to-adrs
+claimed_at: 2026-08-04T03:42:50Z
 pr:
 blocked_by:
 reconciled: false
