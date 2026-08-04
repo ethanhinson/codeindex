@@ -2,7 +2,7 @@
 id: 5
 slug: blast-radius-accuracy-benchmark
 title: Blast-radius accuracy benchmark — impact-set recall vs. false positives
-status: in-progress
+status: implemented
 priority: high
 type: feat
 created: 2026-08-04
@@ -13,12 +13,12 @@ discovered_from: []
 adrs: [10]
 spec: docs/superpowers/specs/2026-08-04-blast-radius-accuracy-benchmark-design.md
 plan: docs/superpowers/plans/2026-08-04-blast-radius-accuracy-benchmark.md
-results:
+results: docs/results/2026-08-04-blast-radius-accuracy-benchmark-results.md
 trivial: false
 auto_groomable:
 branch: feat/blast-radius-accuracy-benchmark
-pr:
-claimed_at: 2026-08-04T19:36:01Z
+pr: https://github.com/ethanhinson/codeindex/pull/7
+claimed_at: 2026-08-04T20:41:33Z
 blocked_by:
 reconciled: true
 ---
@@ -30,6 +30,8 @@ reconciled: true
 |---|---|
 | Spec | [2026-08-04-blast-radius-accuracy-benchmark-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-04-blast-radius-accuracy-benchmark-design.md) |
 | Plan | [2026-08-04-blast-radius-accuracy-benchmark.md](https://github.com/ethanhinson/codeindex/blob/feat/blast-radius-accuracy-benchmark/docs/superpowers/plans/2026-08-04-blast-radius-accuracy-benchmark.md) |
+| Results | [2026-08-04-blast-radius-accuracy-benchmark-results.md](https://github.com/ethanhinson/codeindex/blob/feat/blast-radius-accuracy-benchmark/docs/results/2026-08-04-blast-radius-accuracy-benchmark-results.md) |
+| PR | [#7](https://github.com/ethanhinson/codeindex/pull/7) |
 | ADRs | [ADR-0010](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0010-ambiguous-subset-scored-against-authored-expectation.md) |
 <!-- docket:artifacts:end -->
 
