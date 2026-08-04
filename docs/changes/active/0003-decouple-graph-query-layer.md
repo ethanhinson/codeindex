@@ -19,8 +19,8 @@ auto_groomable:
 branch: feat/decouple-graph-query-layer
 pr:
 blocked_by:
-reconciled: false
-claimed_at: 2026-08-04T07:03:42Z
+reconciled: true
+claimed_at: 2026-08-04T07:12:01Z
 ---
 
 ## Artifacts
@@ -41,22 +41,37 @@ Phase 2 of the pivot.
 ## What changes
 
 - Delete the entire `web/` app (including the galaxy retheme) and the webserver's
-  static-file handler + `internal/webserver/dist`.
+  static-file handler (`internal/webserver/static.go`) + `internal/webserver/dist`.
 - Strip the lore overlay from `internal/readmodel`: remove the `FullGraph` lore
-  branch, `RecordNeighborhood`, and `loreNode`; keep `SymbolNeighborhood` and a
+  branch, `RecordNeighborhood`, and `loreNode` — and the lore-coupled helpers that
+  fall dead with them (`Neighborhood`, `openLore`, `AttachAnchoredLore`); reduce
+  `model.go` to the symbol-only `Node`/`Edge`/`Graph` shape (drop the lore
+  `NodeKind`s, `EdgeAnchors`/`EdgeBlockedBy`, and the `Status`/`Priority` node
+  fields). Keep `SymbolNeighborhood`, `openGraph`, `pkgOf`, `symNodeID`, and a
   symbol-only `FullGraph`.
 - `serve` becomes a **headless JSON graph API** (no static hosting):
   `GET /api/health`, `GET /api/graph?symbol=…&parent=…`, `GET /api/graph/full`.
+  `/api/graph` moves from the old `?focus=` + `Neighborhood` wiring to
+  `?symbol=&parent=` + `SymbolNeighborhood`; the root `/` handler (static SPA) is
+  removed so unknown paths 404.
 - Pin a top-level `schemaVersion` on responses (Node = symbol-only:
   `{ID, Kind:"symbol", Label, File, Line, Signature, Group}`); document the contract
   in `docs/graph-api.md`.
 - Update `internal/webserver/server_test.go` to assert the symbol-only shape,
   `schemaVersion`, and that static hosting is gone (root path 404s).
+- CARRYOVER FROM 0002: delete the entire remaining `internal/lore/**` tree (root
+  `layout.go`/`record.go`, `gitinfo/`, `index/`) now that readmodel/webserver no
+  longer import it; strip any remaining lore imports across the codebase.
+- CARRYOVER FROM 0002: remove the now-orphaned `internal/tui/tree` package (its sole
+  consumer, the `tree` CLI command, was deleted in 0002; `internal/tui` has no other
+  live consumers, so the whole `internal/tui` subtree goes).
 
 ## Out of scope
 
-- Lore engine/CLI/MCP removal (change 0002, prerequisite).
-- `.lore/` deletion, config excludes, README rewrite (change 0004).
+- Lore engine/CLI/MCP removal (change 0002, prerequisite — now merged).
+- `.lore/` deletion, config indexing excludes (incl. the cosmetic
+  `internal/webserver/dist` doc-comment example in `internal/config/config.go`),
+  `lore.db` handling, and README rewrite (all change 0004).
 - Building any new viewer against the API.
 
 ## Open questions
@@ -65,3 +80,38 @@ Phase 2 of the pivot.
   consumer needs it; document the current whole-graph behavior.
 
 ## Reconcile log
+
+### 2026-08-04 — reconcile (docket-implement-next)
+
+Reconciled against `origin/main` (the feature-branch base), the spec, and the
+current code. Dependency 0002 is merged (`done`); confirmed on `origin/main`:
+`internal/lore/**` still carries `layout.go`/`record.go`/`gitinfo/`/`index/` (0002
+already removed `ghsync/` + `capture.go`), and `internal/tui/tree` still exists with
+the `tree` command already gone — both carryovers are accurate and folded into scope.
+
+Scope refinements discovered (change body updated above):
+- **readmodel is more lore-coupled than the original body listed.** Beyond the
+  `FullGraph` lore branch / `RecordNeighborhood` / `loreNode`, the helpers
+  `Neighborhood`, `openLore`, and `AttachAnchoredLore` (in `graph.go`) also import
+  and depend on `internal/lore` + `internal/lore/index`; they must be removed or
+  they leave dangling lore imports. `model.go` also carries lore-only `NodeKind`s
+  (`decision`/`item`/`note`/`path`), `EdgeAnchors`/`EdgeBlockedBy`, and the
+  `Status`/`Priority` node fields — all reduced to the symbol-only shape.
+- **`/api/graph` contract change is a real behavior change**, not just a rename:
+  today `/api/graph?focus=sym:…` calls `readmodel.Neighborhood`; the contract is
+  `/api/graph?symbol=…&parent=…` calling `SymbolNeighborhood`. `server_test.go`'s
+  existing `TestGraphEndpoint`/`TestGraphEndpointMissingFocus`/`TestFullGraphEndpoint`
+  all assert the lore-join shape and must be rewritten to the symbol-only contract;
+  `TestStaticIndexServed` is deleted and replaced by a root-404 assertion.
+- **`readmodel/graph_test.go`** contains lore-dependent tests
+  (`TestAttachAnchoredLore`, `TestNeighborhood*`, `TestRecordNeighborhood`) that go
+  with their subjects; `TestSymbolNeighborhood` stays.
+- **`serve.go` (cmd)** needs no structural change — it still calls `webserver.Run`.
+- **schemaVersion**: introduce a top-level `schemaVersion` on API responses (a small
+  wrapper over `Graph`, or a field on `Graph` emitted by the HTTP layer).
+
+Out-of-scope confirmations: the `internal/config/config.go:26` doc comment that uses
+`internal/webserver/dist` as a prefix-match *example* is cosmetic (not a functional
+web exclude) and belongs to change 0004's config-excludes work — left untouched here.
+`.lore/` data dir and README are 0004. `AUTO_CAPTURE_ENABLED=false`, so no stubs
+minted; no adjacent follow-up work surfaced that would warrant one anyway.
