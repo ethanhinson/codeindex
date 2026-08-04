@@ -12,7 +12,7 @@ related: [2, 4]
 discovered_from: []
 adrs: []
 spec: docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md
-plan:
+plan: docs/superpowers/plans/2026-08-04-decouple-graph-query-layer-plan.md
 results:
 trivial: false
 auto_groomable:
@@ -29,6 +29,7 @@ claimed_at: 2026-08-04T07:12:01Z
 | Artifact | Link |
 |---|---|
 | Spec | [2026-08-03-back-out-lore-lean-into-docket-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md) |
+| Plan | [2026-08-04-decouple-graph-query-layer-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/decouple-graph-query-layer/docs/superpowers/plans/2026-08-04-decouple-graph-query-layer-plan.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
