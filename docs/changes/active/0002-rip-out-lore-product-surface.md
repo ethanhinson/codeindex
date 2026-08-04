@@ -2,7 +2,7 @@
 id: 2
 slug: rip-out-lore-product-surface
 title: Rip out the lore product surface (engine, CLI, MCP, plugin skills)
-status: in-progress
+status: implemented
 priority: high
 type: refactor
 created: 2026-08-03
@@ -13,12 +13,12 @@ discovered_from: []
 adrs: []
 spec: docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md
 plan: docs/superpowers/plans/2026-08-04-rip-out-lore-product-surface-plan.md
-results:
+results: docs/results/2026-08-04-rip-out-lore-product-surface-results.md
 trivial: false
 auto_groomable:
 branch: feat/rip-out-lore-product-surface
-pr:
-claimed_at: 2026-08-04T05:29:16Z
+pr: https://github.com/ethanhinson/codeindex/pull/4
+claimed_at: 2026-08-04T06:44:41Z
 blocked_by:
 reconciled: true
 ---
@@ -30,6 +30,8 @@ reconciled: true
 |---|---|
 | Spec | [2026-08-03-back-out-lore-lean-into-docket-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md) |
 | Plan | [2026-08-04-rip-out-lore-product-surface-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/rip-out-lore-product-surface/docs/superpowers/plans/2026-08-04-rip-out-lore-product-surface-plan.md) |
+| Results | [2026-08-04-rip-out-lore-product-surface-results.md](https://github.com/ethanhinson/codeindex/blob/feat/rip-out-lore-product-surface/docs/results/2026-08-04-rip-out-lore-product-surface-results.md) |
+| PR | [#4](https://github.com/ethanhinson/codeindex/pull/4) |
 <!-- docket:artifacts:end -->
 
 ## Why
