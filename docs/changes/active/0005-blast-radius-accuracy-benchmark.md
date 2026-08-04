@@ -10,7 +10,7 @@ updated: 2026-08-04
 depends_on: []
 related: [6]
 discovered_from: []
-adrs: []
+adrs: [10]
 spec: docs/superpowers/specs/2026-08-04-blast-radius-accuracy-benchmark-design.md
 plan: docs/superpowers/plans/2026-08-04-blast-radius-accuracy-benchmark.md
 results:
@@ -30,6 +30,7 @@ reconciled: true
 |---|---|
 | Spec | [2026-08-04-blast-radius-accuracy-benchmark-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-04-blast-radius-accuracy-benchmark-design.md) |
 | Plan | [2026-08-04-blast-radius-accuracy-benchmark.md](https://github.com/ethanhinson/codeindex/blob/feat/blast-radius-accuracy-benchmark/docs/superpowers/plans/2026-08-04-blast-radius-accuracy-benchmark.md) |
+| ADRs | [ADR-0010](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0010-ambiguous-subset-scored-against-authored-expectation.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
