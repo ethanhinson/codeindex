@@ -11,6 +11,7 @@ Immutable, numbered record of *why*. ADRs are never archived or rewritten; once 
 - [ADR-0005](0005-freshness-on-demand-build-lazy-per-query-recheck.md) — Freshness is on-demand build + lazy per-query re-check, no daemon (Accepted) ← change #1
 - [ADR-0006](0006-change-detection-flat-per-file-hashes-not-merkle-tree.md) — Change detection uses flat per-file content hashes, not a Merkle tree (Accepted) ← change #1
 - [ADR-0007](0007-output-contract-references-only-not-source.md) — Output contract: references only (path:line + signature), never source (Accepted) ← change #1
+- [ADR-0008](0008-docket-replaces-lore.md) — Docket replaces lore (openspec → lore → docket lineage) (Accepted) ← change #1
 
 ## Superseded / Reversed
 
