@@ -7,6 +7,7 @@ Immutable, numbered record of *why*. ADRs are never archived or rewritten; once 
 - [ADR-0001](0001-parsing-via-tree-sitter-with-edge-resolver.md) — Parsing via tree-sitter with our own edge resolver (Accepted) ← change #1
 - [ADR-0002](0002-storage-sqlite-graph-db-transactional-incremental.md) — Storage is SQLite (.codeindex/graph.db), transactional incremental updates (Accepted) ← change #1
 - [ADR-0003](0003-engine-language-go-single-static-binary.md) — Engine implementation language is Go (single static binary) (Accepted) ← change #1
+- [ADR-0004](0004-config-driven-index-include-exclude-defaults.md) — Config-driven index include/exclude with built-in vendor defaults (Accepted) ← change #1
 
 ## Superseded / Reversed
 
