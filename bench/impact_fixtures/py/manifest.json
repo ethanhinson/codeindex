@@ -1,0 +1,15 @@
+{
+  "lang": "py",
+  "symbols": [
+    {
+      "symbol": "shared_helper",
+      "ambiguous": false,
+      "dependents": [["app.py", "run"], ["worker.py", "process"]]
+    },
+    {
+      "symbol": "collide",
+      "ambiguous": true,
+      "dependents": [["mod_a.py", "use_a"], ["mod_b.py", "use_b"]]
+    }
+  ]
+}

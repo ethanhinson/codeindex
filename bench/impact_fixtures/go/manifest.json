@@ -1,0 +1,15 @@
+{
+  "lang": "go",
+  "symbols": [
+    {
+      "symbol": "SharedHelper",
+      "ambiguous": false,
+      "dependents": [["app.go", "Run"], ["worker.go", "Process"]]
+    },
+    {
+      "symbol": "Collide",
+      "ambiguous": true,
+      "dependents": [["pkga/pkga.go", "UseA"], ["pkgb/pkgb.go", "UseB"]]
+    }
+  ]
+}
