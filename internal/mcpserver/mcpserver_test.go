@@ -60,15 +60,9 @@ func TestHandshakeListAndCall(t *testing.T) {
 	}
 	names := map[string]bool{}
 	branchOut := map[string]bool{"impact": true, "callers": true, "callees": true, "dependents": true}
-	// lore_* tools use a different trust model (committed files, not a derived
-	// code-graph index) — they carry loreTrust, not the "COMPLETE" graph trust.
-	loreTools := map[string]bool{
-		"lore_search": true, "lore_for_symbol": true, "lore_backlog": true,
-		"lore_show": true, "lore_add": true,
-	}
 	for _, tl := range tools.Tools {
 		names[tl.Name] = true
-		if !loreTools[tl.Name] && !strings.Contains(tl.Description, "COMPLETE") {
+		if !strings.Contains(tl.Description, "COMPLETE") {
 			t.Errorf("tool %s description missing trust language", tl.Name)
 		}
 		// Branch-out tools carry the anchor rule; locate tools (find/grep)
@@ -77,8 +71,7 @@ func TestHandshakeListAndCall(t *testing.T) {
 			t.Errorf("tool %s description missing anchor language", tl.Name)
 		}
 	}
-	for _, want := range []string{"impact", "callers", "callees", "dependents", "find", "grep",
-		"lore_search", "lore_for_symbol", "lore_backlog", "lore_show", "lore_add"} {
+	for _, want := range []string{"impact", "callers", "callees", "dependents", "find", "grep"} {
 		if !names[want] {
 			t.Errorf("missing tool %q; got %v", want, names)
 		}
