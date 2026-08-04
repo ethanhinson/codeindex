@@ -2,7 +2,7 @@
 id: 3
 slug: decouple-graph-query-layer
 title: Decouple the symbol-graph query layer (headless JSON API + CLI)
-status: implemented
+status: done
 priority: high
 type: refactor
 created: 2026-08-03
@@ -20,7 +20,7 @@ branch: feat/decouple-graph-query-layer
 pr: https://github.com/ethanhinson/codeindex/pull/5
 blocked_by:
 reconciled: true
-claimed_at: 2026-08-04T17:22:49Z
+claimed_at: 
 ---
 
 ## Artifacts
