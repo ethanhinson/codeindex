@@ -9,22 +9,21 @@ Deterministic, seeded, pre-registered (mirrors token_bench.py / recall_bench.py)
   aggregate recall >= 0.95, per-language recall >= 0.90; precision reported, ungated.
 
 Usage:
-  python3 impact_bench.py --binary <codeindex> [--repo <clone>] [--sample N]
-      [--seed S] [--lang go,ts,js,py,php] [--out results/impact.json]
+  python3 impact_bench.py --binary <codeindex> [--repo <clone>] [--repo-lang go|ts]
+      [--sample N] [--seed S] [--lang go,ts,js,py,php] [--out results/impact.json]
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import os
 import random
 import re
 import shutil
 import sqlite3
 import subprocess
 import tempfile
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 # (file, enclosing-symbol) — the identity every set comparison uses.
@@ -125,7 +124,7 @@ class FixtureOracle:
 
     def __init__(self, fixtures_dir: str, langs: list | None = None):
         self.root = Path(fixtures_dir)
-        self.langs = langs
+        self.langs = langs  # accepted for signature-compat; not used for filtering
 
     def repo_dir(self, lang: str) -> str:
         return str(self.root / lang)
