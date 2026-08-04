@@ -18,9 +18,9 @@ trivial: false
 auto_groomable:
 branch: feat/blast-radius-accuracy-benchmark
 pr:
-claimed_at: 2026-08-04T19:34:20Z
+claimed_at: 2026-08-04T19:36:01Z
 blocked_by:
-reconciled: false
+reconciled: true
 ---
 
 ## Artifacts
@@ -61,3 +61,13 @@ _Resolved during grooming (2026-08-04) — see the linked spec: hybrid compile-b
 ## Reconcile log
 
 <!-- Appended by docket-implement-next's reconcile pass: dated entries of what changed. -->
+
+### 2026-08-04 — reconcile (docket-implement-next)
+
+Reconciled against current `origin/main`. No scope changes; the spec holds unchanged.
+
+- **CLI surface verified present and matching the spec.** `codeindex impact <root> <symbol> [--limit N]` and `codeindex callers <root> <symbol>` both exist (`cmd/codeindex/main.go`); `internal/query/query.go` emits the parseable format the runner needs — a `callers (N):` header followed by `  <file>:<line>  <QName>[  [ambiguous]]` lines, where `QName()` yields the enclosing-symbol identity the scorer normalizes to. The `[ambiguous]` flag is driven by `graph.ConfAmbiguous`.
+- **ADR-0007 (references-only output contract, `[ambiguous]` flag) is Accepted and current** — the spec's premise is intact. No new ADRs since supersede it.
+- **`depends_on: []` satisfied.** Related change 6 (`delta-impact-query-mode`) is still needs-brainstorm and independent — no coupling. Recently-archived changes 0001–0004 (lore removal, graph-query decouple, README rewrite) do not touch `bench/` or the impact surface.
+- **Additive only.** All work lands under `bench/` (mirroring `token_bench.py` / `recall_bench.py`); the deterministic resolver is measured, not altered (spec Out-of-scope).
+- Auto-capture disabled (`AUTO_CAPTURE_ENABLED=false`); no stubs minted.
