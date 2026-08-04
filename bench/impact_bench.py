@@ -272,3 +272,147 @@ def sample_unique_symbols(db_path: str, lang: str, n: int, seed: int) -> list:
     rng = random.Random(seed)
     rng.shuffle(rows)
     return [{"symbol": r[0], "file": r[1], "line": r[2]} for r in rows[:n]]
+
+
+# --- Aggregation + reporting -------------------------------------------------
+
+AGG_BAR = 0.95
+LANG_BAR = 0.90
+
+
+def aggregate(per_symbol: list) -> dict:
+    langs = {}
+    for rec in per_symbol:
+        L = langs.setdefault(rec["lang"], {"tp": 0, "fn": 0, "fp": 0,
+                                           "atp": 0, "afn": 0, "afp": 0,
+                                           "graded": 0, "not_run_any": False})
+        if rec.get("status") == "not_run":
+            L["not_run_any"] = True
+            continue
+        if not rec.get("graded"):
+            continue
+        s, a = rec["score"], rec["amb_score"]
+        L["tp"] += s.tp; L["fn"] += s.fn; L["fp"] += s.fp
+        L["atp"] += a.tp; L["afn"] += a.fn; L["afp"] += a.fp
+        L["graded"] += 1
+
+    def _r(tp, fn): return 1.0 if tp + fn == 0 else tp / (tp + fn)
+    def _p(tp, fp): return 1.0 if tp + fp == 0 else tp / (tp + fp)
+
+    per_language, gtp = {}, {"tp": 0, "fn": 0, "fp": 0, "graded": 0}
+    per_lang_pass = {}
+    for lang, L in sorted(langs.items()):
+        graded_any = L["graded"] > 0
+        rec = {
+            "recall": _r(L["tp"], L["fn"]) if graded_any else None,
+            "precision": _p(L["tp"], L["fp"]) if graded_any else None,
+            "amb_recall": _r(L["atp"], L["afn"]) if graded_any else None,
+            "amb_precision": _p(L["atp"], L["afp"]) if graded_any else None,
+            "graded": L["graded"],
+            "not_run": L["not_run_any"] and not graded_any,
+        }
+        per_language[lang] = rec
+        if graded_any:
+            gtp["tp"] += L["tp"]; gtp["fn"] += L["fn"]; gtp["fp"] += L["fp"]
+            gtp["graded"] += L["graded"]
+            per_lang_pass[lang] = rec["recall"] >= LANG_BAR
+    agg_recall = _r(gtp["tp"], gtp["fn"])
+    return {
+        "per_language": per_language,
+        "aggregate": {"recall": agg_recall, "precision": _p(gtp["tp"], gtp["fp"]),
+                      "graded": gtp["graded"]},
+        "bar": {"AGG_BAR": AGG_BAR, "LANG_BAR": LANG_BAR,
+                "agg_pass": agg_recall >= AGG_BAR,
+                "per_lang_pass": per_lang_pass},
+    }
+
+
+def write_findings(report: dict, path: str) -> None:
+    lines = ["# Blast-radius accuracy — FINDINGS", "",
+             f"Pre-registered bar: aggregate recall >= {AGG_BAR}, "
+             f"per-language recall >= {LANG_BAR}. Precision reported, not gated (v1).", "",
+             "| lang | recall | precision | amb recall | amb precision | graded | status |",
+             "|---|---|---|---|---|---|---|"]
+    for lang, r in report["per_language"].items():
+        if r["not_run"]:
+            lines.append(f"| {lang} | — | — | — | — | 0 | not run (toolchain absent) |")
+        else:
+            lines.append(
+                f"| {lang} | {r['recall']:.3f} | {r['precision']:.3f} | "
+                f"{r['amb_recall']:.3f} | {r['amb_precision']:.3f} | {r['graded']} | "
+                f"{'PASS' if report['bar']['per_lang_pass'].get(lang) else 'MISS'} |")
+    agg = report["aggregate"]
+    lines += ["",
+              f"**Aggregate recall = {agg['recall']:.3f}** "
+              f"(precision {agg['precision']:.3f}, {agg['graded']} graded) — "
+              f"{'PASS' if report['bar']['agg_pass'] else 'MISS'} vs bar {AGG_BAR}."]
+    Path(path).write_text("\n".join(lines) + "\n")
+
+
+# --- CLI ---------------------------------------------------------------------
+
+def _run_symbol(binary, repo, sym, truth, is_ambiguous):
+    impact, ambiguous = run_impact(binary, repo, sym)
+    overall, amb = score_with_ambiguous(truth, impact, ambiguous)
+    return {"score": overall, "amb_score": amb, "graded": True, "status": "graded"}
+
+
+def main():
+    ap = argparse.ArgumentParser(description="codeindex blast-radius accuracy benchmark")
+    ap.add_argument("--binary", required=True)
+    ap.add_argument("--repo", default=None, help="real repo clone (Go/TS) for CompileOracle")
+    ap.add_argument("--repo-lang", default=None, choices=["go", "ts"])
+    ap.add_argument("--sample", type=int, default=30)
+    ap.add_argument("--seed", type=int, default=99)
+    ap.add_argument("--lang", default="go,ts,js,py,php")
+    ap.add_argument("--fixtures", default=str(Path(__file__).parent / "impact_fixtures"))
+    ap.add_argument("--out", default=str(Path(__file__).parent / "results" / "impact.json"))
+    args = ap.parse_args()
+    langs = args.lang.split(",")
+
+    per_symbol = []
+    fix = FixtureOracle(args.fixtures)
+    for lang in langs:
+        for entry in fix.symbols(lang):
+            rec = _run_symbol(args.binary, fix.repo_dir(lang), entry["symbol"],
+                              entry["truth"], entry["ambiguous"])
+            rec.update(lang=lang, symbol=entry["symbol"])
+            per_symbol.append(rec)
+
+    # Real-repo CompileOracle pass (Go/TS), only if a repo + toolchain are present.
+    if args.repo and args.repo_lang:
+        lang = args.repo_lang
+        if not toolchain_available(lang):
+            per_symbol.append({"lang": lang, "symbol": "(real-repo)", "graded": False,
+                               "status": "not_run", "score": Score(), "amb_score": Score()})
+        else:
+            db = str(Path(args.repo) / ".codeindex" / "graph.db")
+            oracle = CompileOracle(lang)
+            for s in sample_unique_symbols(db, lang, args.sample, args.seed):
+                G = oracle.truth_for(args.repo, s["symbol"], s["file"], s["line"])
+                if G is None:
+                    per_symbol.append({"lang": lang, "symbol": s["symbol"],
+                                       "graded": False, "status": "excluded_empty_truth",
+                                       "score": Score(), "amb_score": Score()})
+                    continue
+                rec = _run_symbol(args.binary, args.repo, s["symbol"], G, False)
+                rec.update(lang=lang, symbol=s["symbol"])
+                per_symbol.append(rec)
+
+    report = aggregate(per_symbol)
+    report["symbols"] = [
+        {"lang": r["lang"], "symbol": r.get("symbol"), "status": r["status"],
+         "recall": (r["score"].recall if r["graded"] else None),
+         "precision": (r["score"].precision if r["graded"] else None)}
+        for r in per_symbol
+    ]
+    out_path = Path(args.out)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(report, indent=2, default=lambda o: o.__dict__))
+    write_findings(report, str(Path(__file__).parent / "impact-FINDINGS.md"))
+    print(f"aggregate recall={report['aggregate']['recall']:.3f} "
+          f"agg_pass={report['bar']['agg_pass']}")
+
+
+if __name__ == "__main__":
+    main()

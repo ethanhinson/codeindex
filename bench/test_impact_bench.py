@@ -188,6 +188,27 @@ def test_sample_unique_symbols_excludes_duplicates_and_is_deterministic(tmp_path
     assert [s["symbol"] for s in got1] == [s["symbol"] for s in got2]  # deterministic
 
 
+def test_aggregate_micro_averages_and_applies_bar():
+    per_symbol = [
+        {"lang": "py", "symbol": "a", "graded": True, "status": "graded",
+         "score": impact_bench.Score(tp=9, fn=1, fp=0),
+         "amb_score": impact_bench.Score(tp=0, fn=0, fp=0)},
+        {"lang": "py", "symbol": "b", "graded": True, "status": "graded",
+         "score": impact_bench.Score(tp=10, fn=0, fp=1),
+         "amb_score": impact_bench.Score(tp=2, fn=0, fp=0)},
+        {"lang": "go", "symbol": "c", "graded": False, "status": "not_run",
+         "score": impact_bench.Score(), "amb_score": impact_bench.Score()},
+    ]
+    rep = impact_bench.aggregate(per_symbol)
+    # py micro recall = (9+10)/(9+1+10+0) = 19/20 = 0.95
+    assert abs(rep["per_language"]["py"]["recall"] - 0.95) < 1e-9
+    assert rep["per_language"]["go"]["not_run"] is True
+    # aggregate recall over graded only = 19/20 = 0.95 -> passes agg bar
+    assert abs(rep["aggregate"]["recall"] - 0.95) < 1e-9
+    assert rep["bar"]["agg_pass"] is True
+    assert rep["bar"]["per_lang_pass"]["py"] is True  # 0.95 >= 0.90
+
+
 if __name__ == "__main__":
     import sys
     import tempfile

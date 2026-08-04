@@ -1,0 +1,133 @@
+{
+  "per_language": {
+    "go": {
+      "recall": 1.0,
+      "precision": 1.0,
+      "amb_recall": 1.0,
+      "amb_precision": 1.0,
+      "graded": 2,
+      "not_run": false
+    },
+    "js": {
+      "recall": 1.0,
+      "precision": 1.0,
+      "amb_recall": 1.0,
+      "amb_precision": 1.0,
+      "graded": 2,
+      "not_run": false
+    },
+    "php": {
+      "recall": 1.0,
+      "precision": 1.0,
+      "amb_recall": 1.0,
+      "amb_precision": 1.0,
+      "graded": 2,
+      "not_run": false
+    },
+    "py": {
+      "recall": 1.0,
+      "precision": 1.0,
+      "amb_recall": 1.0,
+      "amb_precision": 1.0,
+      "graded": 2,
+      "not_run": false
+    },
+    "ts": {
+      "recall": 1.0,
+      "precision": 1.0,
+      "amb_recall": 1.0,
+      "amb_precision": 1.0,
+      "graded": 2,
+      "not_run": false
+    }
+  },
+  "aggregate": {
+    "recall": 1.0,
+    "precision": 1.0,
+    "graded": 10
+  },
+  "bar": {
+    "AGG_BAR": 0.95,
+    "LANG_BAR": 0.9,
+    "agg_pass": true,
+    "per_lang_pass": {
+      "go": true,
+      "js": true,
+      "php": true,
+      "py": true,
+      "ts": true
+    }
+  },
+  "symbols": [
+    {
+      "lang": "go",
+      "symbol": "SharedHelper",
+      "status": "graded",
+      "recall": 1.0,
+      "precision": 1.0
+    },
+    {
+      "lang": "go",
+      "symbol": "Collide",
+      "status": "graded",
+      "recall": 1.0,
+      "precision": 1.0
+    },
+    {
+      "lang": "ts",
+      "symbol": "sharedHelper",
+      "status": "graded",
+      "recall": 1.0,
+      "precision": 1.0
+    },
+    {
+      "lang": "ts",
+      "symbol": "collide",
+      "status": "graded",
+      "recall": 1.0,
+      "precision": 1.0
+    },
+    {
+      "lang": "py",
+      "symbol": "shared_helper",
+      "status": "graded",
+      "recall": 1.0,
+      "precision": 1.0
+    },
+    {
+      "lang": "py",
+      "symbol": "collide",
+      "status": "graded",
+      "recall": 1.0,
+      "precision": 1.0
+    },
+    {
+      "lang": "js",
+      "symbol": "sharedHelper",
+      "status": "graded",
+      "recall": 1.0,
+      "precision": 1.0
+    },
+    {
+      "lang": "js",
+      "symbol": "collide",
+      "status": "graded",
+      "recall": 1.0,
+      "precision": 1.0
+    },
+    {
+      "lang": "php",
+      "symbol": "shared_helper",
+      "status": "graded",
+      "recall": 1.0,
+      "precision": 1.0
+    },
+    {
+      "lang": "php",
+      "symbol": "collide",
+      "status": "graded",
+      "recall": 1.0,
+      "precision": 1.0
+    }
+  ]
+}
