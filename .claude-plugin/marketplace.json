@@ -1,14 +1,14 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "codeindex",
-  "description": "codeindex: blast-radius code navigation and lore decision history for AI agents.",
+  "description": "codeindex: blast-radius code navigation for AI agents.",
   "owner": {
     "name": "Ethan Hinson"
   },
   "plugins": [
     {
       "name": "codeindex",
-      "description": "Blast-radius navigation for refactoring: who calls a symbol, what it calls, and what breaks if it changes — plus lore decision history and work-item tracking. Not a search tool; use grep to find things.",
+      "description": "Blast-radius navigation for refactoring: who calls a symbol, what it calls, and what breaks if it changes. Not a search tool; use grep to find things.",
       "source": "./plugin",
       "category": "productivity"
     }
