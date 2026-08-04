@@ -53,6 +53,33 @@ def test_score_with_ambiguous_breaks_out_flagged_subset():
     assert amb.recall == 1.0 and amb.precision == 1.0
 
 
+def test_parse_callers_output_extracts_edges_and_ambiguous():
+    raw = (
+        "def  pkg.Foo  a.go:10  func Foo()\n"
+        "callers (3):\n"
+        "  b.go:20  B.callSite\n"
+        "  c.go:30  C.other  [ambiguous]\n"
+        "  d.go:40  topLevelFn\n"
+        "referenced in 3 file(s): b.go c.go d.go\n"
+    )
+    edges, ambiguous = impact_bench.parse_callers_output(raw)
+    assert edges == {("b.go", "B.callSite"), ("c.go", "C.other"), ("d.go", "topLevelFn")}
+    assert ambiguous == {("c.go", "C.other")}
+
+
+def test_parse_callers_output_empty_callers():
+    raw = "def  pkg.Foo  a.go:10  func Foo()\ncallers (0):\nreferenced in 0 file(s):\n"
+    edges, ambiguous = impact_bench.parse_callers_output(raw)
+    assert edges == set()
+    assert ambiguous == set()
+
+
+def test_parse_callers_output_strips_repo_root():
+    raw = "callers (1):\n  /tmp/repo/b.go:20  B.callSite\n"
+    edges, _ = impact_bench.parse_callers_output(raw, repo_root="/tmp/repo")
+    assert edges == {("b.go", "B.callSite")}
+
+
 if __name__ == "__main__":
     import sys
     fns = [v for k, v in sorted(globals().items())

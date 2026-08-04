@@ -73,3 +73,44 @@ def score_with_ambiguous(truth: set, predicted: set, ambiguous: set):
     amb_truth = truth & ambiguous
     amb = score_sets(amb_truth, amb_predicted)
     return overall, amb
+
+
+# --- Impact runner -----------------------------------------------------------
+
+_CALLER_LINE = re.compile(
+    r"^\s+(?P<file>[^\s].*?):(?P<line>\d+)\s+(?P<qname>\S.*?)(?P<amb>\s+\[ambiguous\])?\s*$"
+)
+
+
+def parse_callers_output(text: str, repo_root: str | None = None):
+    """Return (impact_edges, ambiguous_edges) from `codeindex callers` stdout."""
+    edges: set = set()
+    ambiguous: set = set()
+    for line in text.splitlines():
+        if line.startswith("def ") or line.startswith("callers ") or \
+           line.startswith("referenced in") or line.strip().startswith("..."):
+            continue
+        m = _CALLER_LINE.match(line)
+        if not m:
+            continue
+        f = normalize_file(m.group("file"), repo_root)
+        qname = m.group("qname").strip()
+        edge = (f, qname)
+        edges.add(edge)
+        if m.group("amb"):
+            ambiguous.add(edge)
+    return edges, ambiguous
+
+
+def run_impact(binary: str, repo: str, symbol: str, limit: int = 500):
+    """Query codeindex for callers of `symbol`; return (impact, ambiguous) edge sets."""
+    try:
+        r = subprocess.run(
+            [binary, "callers", repo, symbol, "--limit", str(limit)],
+            capture_output=True, text=True, timeout=120,
+        )
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return set(), set()
+    if r.returncode != 0 or not r.stdout.strip():
+        return set(), set()
+    return parse_callers_output(r.stdout, repo)
