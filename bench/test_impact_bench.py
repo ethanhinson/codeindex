@@ -125,11 +125,59 @@ def test_fixture_oracle_missing_lang_returns_empty():
     assert oracle.symbols("rust") == []
 
 
+def test_parse_go_diagnostics_extracts_sites():
+    stderr = (
+        "# impactfix\n"
+        "./app.go:6:9: undefined: SharedHelper\n"
+        "./worker.go:5:9: undefined: SharedHelper\n"
+    )
+    sites = impact_bench.parse_go_diagnostics(stderr, "/tmp/repo")
+    assert ("app.go", 6) in sites
+    assert ("worker.go", 5) in sites
+
+
+def test_parse_tsc_diagnostics_extracts_sites():
+    stdout = (
+        "app.ts(4,10): error TS2304: Cannot find name 'sharedHelper'.\n"
+        "worker.ts(3,10): error TS2304: Cannot find name 'sharedHelper'.\n"
+    )
+    sites = impact_bench.parse_tsc_diagnostics(stdout, "/tmp/repo")
+    assert ("app.ts", 4) in sites
+    assert ("worker.ts", 3) in sites
+
+
+def test_map_site_to_enclosing_go(tmp_path):
+    f = tmp_path / "app.go"
+    f.write_text("package main\n\nfunc Run() int {\n    return SharedHelper()\n}\n")
+    name = impact_bench.map_site_to_enclosing(str(f), 4, str(tmp_path))
+    assert name == "Run"
+
+
 if __name__ == "__main__":
     import sys
+    import tempfile
     fns = [v for k, v in sorted(globals().items())
            if k.startswith("test_") and callable(v)]
+    passed = 0
     for fn in fns:
-        fn()
-        print(f"ok {fn.__name__}")
-    print(f"\n{len(fns)} passed")
+        import inspect
+        params = list(inspect.signature(fn).parameters)
+        if params:
+            # provide tmp_path manually
+            if "tmp_path" in params:
+                try:
+                    fn(_Path(tempfile.mkdtemp()))
+                    print(f"ok {fn.__name__}")
+                    passed += 1
+                except Exception as e:
+                    print(f"FAIL {fn.__name__}: {e}")
+            else:
+                print(f"skip {fn.__name__} (unknown params)")
+        else:
+            try:
+                fn()
+                print(f"ok {fn.__name__}")
+                passed += 1
+            except Exception as e:
+                print(f"FAIL {fn.__name__}: {e}")
+    print(f"\n{passed} passed")

@@ -142,3 +142,94 @@ class FixtureOracle:
                 "truth": truth,
             })
         return out
+
+
+# --- CompileOracle -----------------------------------------------------------
+
+def toolchain_available(lang: str) -> bool:
+    return bool(shutil.which({"go": "go", "ts": "tsc"}.get(lang, "")))
+
+
+_GO_DIAG = re.compile(r"^\.?/?(?P<file>[^\s:]+\.go):(?P<line>\d+):\d+:\s+undefined:")
+_TS_DIAG = re.compile(r"^(?P<file>[^\s(]+\.ts)\((?P<line>\d+),\d+\):\s+error TS2304:")
+
+
+def parse_go_diagnostics(stderr: str, repo_root: str):
+    out = []
+    for line in stderr.splitlines():
+        m = _GO_DIAG.match(line.strip())
+        if m:
+            out.append((normalize_file(m.group("file"), repo_root), int(m.group("line"))))
+    return out
+
+
+def parse_tsc_diagnostics(stdout: str, repo_root: str):
+    out = []
+    for line in stdout.splitlines():
+        m = _TS_DIAG.match(line.strip())
+        if m:
+            out.append((normalize_file(m.group("file"), repo_root), int(m.group("line"))))
+    return out
+
+
+_GO_METHOD = re.compile(r"^\s*func\s+\((?:\w+\s+)?\*?(?P<recv>\w+)\)\s+(?P<name>\w+)\s*\(")
+_GO_FUNC = re.compile(r"^\s*func\s+(?P<name>\w+)\s*\(")
+_TS_FUNC = re.compile(r"^\s*(?:export\s+)?(?:async\s+)?function\s+(?P<name>\w+)\s*\(")
+_TS_METHOD = re.compile(r"^\s*(?:public|private|protected\s+)?(?P<name>\w+)\s*\([^)]*\)\s*[:{]")
+
+
+def map_site_to_enclosing(file: str, line: int, repo_root: str):
+    try:
+        lines = Path(file).read_text().splitlines()
+    except OSError:
+        return None
+    for i in range(min(line, len(lines)) - 1, -1, -1):
+        text = lines[i]
+        m = _GO_METHOD.match(text)
+        if m:
+            return f"{m.group('recv')}.{m.group('name')}"
+        for pat in (_GO_FUNC, _TS_FUNC):
+            m = pat.match(text)
+            if m:
+                return m.group("name")
+        m = _TS_METHOD.match(text)
+        if m and m.group("name") not in ("if", "for", "while", "switch", "catch"):
+            return m.group("name")
+    return None
+
+
+class CompileOracle:
+    def __init__(self, lang: str):
+        self.lang = lang
+
+    def truth_for(self, repo_root: str, symbol: str, decl_file: str, decl_line: int):
+        if not toolchain_available(self.lang):
+            return None
+        work = tempfile.mkdtemp(prefix="impactoracle_")
+        try:
+            dst = Path(work) / "repo"
+            shutil.copytree(repo_root, dst)
+            target = dst / decl_file
+            src_lines = target.read_text().splitlines()
+            nonce = symbol + "_zzq"
+            # rename only the declaration line's identifier occurrence
+            src_lines[decl_line - 1] = re.sub(
+                rf"\b{re.escape(symbol)}\b", nonce, src_lines[decl_line - 1], count=1
+            )
+            target.write_text("\n".join(src_lines) + "\n")
+            if self.lang == "go":
+                r = subprocess.run(["go", "build", "./..."], cwd=dst,
+                                   capture_output=True, text=True, timeout=180)
+                sites = parse_go_diagnostics(r.stderr, str(dst))
+            else:
+                r = subprocess.run(["tsc", "--noEmit"], cwd=dst,
+                                   capture_output=True, text=True, timeout=180)
+                sites = parse_tsc_diagnostics(r.stdout, str(dst))
+            edges = set()
+            for f, ln in sites:
+                enc = map_site_to_enclosing(str(dst / f), ln, str(dst))
+                if enc:
+                    edges.add((normalize_file(f, str(dst)), enc))
+            return edges or None
+        finally:
+            shutil.rmtree(work, ignore_errors=True)
