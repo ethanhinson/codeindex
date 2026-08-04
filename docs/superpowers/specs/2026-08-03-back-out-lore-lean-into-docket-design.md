@@ -1,5 +1,5 @@
 <!-- docket:backlink:start (generated — do not hand-edit) -->
-> ↩ **[Change 0002 — Rip out the lore product surface (engine, CLI, MCP, plugin skills)](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/archive/2026-08-04-0002-rip-out-lore-product-surface.md)**
+> ↩ **[Change 0003 — Decouple the symbol-graph query layer (headless JSON API + CLI)](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/archive/2026-08-04-0003-decouple-graph-query-layer.md)**
 <!-- docket:backlink:end -->
 
 # Back out lore, lean into docket — design
