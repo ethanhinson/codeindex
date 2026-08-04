@@ -1,3 +1,7 @@
+<!-- docket:backlink:start (generated — do not hand-edit) -->
+> ↩ **[Change 0001 — Migrate keeper lore decisions to docket ADRs](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/active/0001-migrate-keeper-lore-decisions-to-adrs.md)**
+<!-- docket:backlink:end -->
+
 # Migrate keeper lore decisions to docket ADRs — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
