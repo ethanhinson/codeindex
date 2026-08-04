@@ -1,3 +1,7 @@
+<!-- docket:backlink:start (generated — do not hand-edit) -->
+> ↩ **[Change 0005 — Blast-radius accuracy benchmark — impact-set recall vs. false positives](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/active/0005-blast-radius-accuracy-benchmark.md)**
+<!-- docket:backlink:end -->
+
 # Blast-radius accuracy benchmark Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
