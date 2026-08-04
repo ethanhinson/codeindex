@@ -18,8 +18,10 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import random
 import re
 import shutil
+import sqlite3
 import subprocess
 import tempfile
 from dataclasses import dataclass, field
@@ -233,3 +235,40 @@ class CompileOracle:
             return edges or None
         finally:
             shutil.rmtree(work, ignore_errors=True)
+
+
+# --- Real-repo sampler -------------------------------------------------------
+
+def sample_unique_symbols(db_path: str, lang: str, n: int, seed: int) -> list:
+    """Select unique-named function/method symbols with ≥1 caller from the graph DB.
+
+    'Unique-named' means exactly one symbol row has that name in the entire index.
+    Uses the real codeindex schema: symbols(id, name, file, start_line, kind, tier)
+    and edges(dst_symbol_id).  tier=0 = project-tier (own code).
+
+    The `lang` parameter is accepted for signature compatibility; it does not filter
+    (the DB is one repo of one language).
+
+    Returns up to `n` dicts {"symbol": name, "file": decl_file, "line": decl_line},
+    deterministically shuffled with random.Random(seed).
+    """
+    con = sqlite3.connect(db_path)
+    try:
+        rows = con.execute(
+            """
+            SELECT s.name, s.file, s.start_line
+            FROM symbols s
+            JOIN (
+                SELECT name FROM symbols
+                GROUP BY name HAVING COUNT(*) = 1
+            ) u ON u.name = s.name
+            WHERE s.kind IN ('func', 'function', 'method')
+              AND s.tier = 0
+              AND s.id IN (SELECT dst_symbol_id FROM edges)
+            """
+        ).fetchall()
+    finally:
+        con.close()
+    rng = random.Random(seed)
+    rng.shuffle(rows)
+    return [{"symbol": r[0], "file": r[1], "line": r[2]} for r in rows[:n]]

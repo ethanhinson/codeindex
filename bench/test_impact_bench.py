@@ -153,6 +153,41 @@ def test_map_site_to_enclosing_go(tmp_path):
     assert name == "Run"
 
 
+import sqlite3 as _sqlite3
+
+
+def _make_db(path):
+    con = _sqlite3.connect(path)
+    # Schema mirrors the real codeindex views: symbols(id, name, file, start_line, kind, tier)
+    # and edges(dst_symbol_id).  tier=0 = project-tier.
+    con.executescript(
+        """
+        CREATE TABLE symbols (id INTEGER PRIMARY KEY, name TEXT, file TEXT,
+                              start_line INTEGER, kind TEXT, tier INTEGER DEFAULT 0);
+        CREATE TABLE edges (id INTEGER PRIMARY KEY, dst_symbol_id INTEGER);
+        INSERT INTO symbols (id, name, file, start_line, kind, tier) VALUES
+          (1, 'UniqueA', 'a.go', 10, 'func',   0),
+          (2, 'UniqueB', 'b.go', 20, 'func',   0),
+          (3, 'Dup',     'c.go', 30, 'func',   0),
+          (4, 'Dup',     'd.go', 40, 'func',   0);
+        INSERT INTO edges (dst_symbol_id) VALUES (1),(1),(2),(3);
+        """
+    )
+    con.commit()
+    con.close()
+
+
+def test_sample_unique_symbols_excludes_duplicates_and_is_deterministic(tmp_path):
+    db = str(tmp_path / "graph.db")
+    _make_db(db)
+    got1 = impact_bench.sample_unique_symbols(db, "go", n=10, seed=7)
+    names = {s["symbol"] for s in got1}
+    assert "Dup" not in names           # duplicate name excluded
+    assert names == {"UniqueA", "UniqueB"}
+    got2 = impact_bench.sample_unique_symbols(db, "go", n=10, seed=7)
+    assert [s["symbol"] for s in got1] == [s["symbol"] for s in got2]  # deterministic
+
+
 if __name__ == "__main__":
     import sys
     import tempfile
