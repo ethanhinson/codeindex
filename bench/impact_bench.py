@@ -353,7 +353,13 @@ def write_findings(report: dict, path: str) -> None:
 
 def _run_symbol(binary, repo, sym, truth, is_ambiguous):
     impact, ambiguous = run_impact(binary, repo, sym)
-    overall, amb = score_with_ambiguous(truth, impact, ambiguous)
+    overall = score_sets(truth, impact)
+    # Ambiguous-subset metric: score tool's flagged edges vs the AUTHORED expectation.
+    # For a symbol the fixture marks ambiguous=True, ALL true edges should be flagged;
+    # for ambiguous=False, NONE should be flagged.  This measures flag-coverage fidelity,
+    # not vacuously comparing two empty sets when the tool emits no flags.
+    expected_ambiguous = truth if is_ambiguous else set()
+    amb = score_sets(expected_ambiguous, ambiguous)
     return {"score": overall, "amb_score": amb, "graded": True, "status": "graded"}
 
 
@@ -408,7 +414,7 @@ def main():
     ]
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(report, indent=2, default=lambda o: o.__dict__))
+    out_path.write_text(json.dumps(report, indent=2, default=lambda o: o.__dict__) + "\n")
     write_findings(report, str(Path(__file__).parent / "impact-FINDINGS.md"))
     print(f"aggregate recall={report['aggregate']['recall']:.3f} "
           f"agg_pass={report['bar']['agg_pass']}")

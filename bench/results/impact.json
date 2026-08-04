@@ -3,7 +3,7 @@
     "go": {
       "recall": 1.0,
       "precision": 1.0,
-      "amb_recall": 1.0,
+      "amb_recall": 0.0,
       "amb_precision": 1.0,
       "graded": 2,
       "not_run": false
@@ -11,7 +11,7 @@
     "js": {
       "recall": 1.0,
       "precision": 1.0,
-      "amb_recall": 1.0,
+      "amb_recall": 0.0,
       "amb_precision": 1.0,
       "graded": 2,
       "not_run": false
@@ -27,7 +27,7 @@
     "py": {
       "recall": 1.0,
       "precision": 1.0,
-      "amb_recall": 1.0,
+      "amb_recall": 0.0,
       "amb_precision": 1.0,
       "graded": 2,
       "not_run": false
@@ -35,7 +35,7 @@
     "ts": {
       "recall": 1.0,
       "precision": 1.0,
-      "amb_recall": 1.0,
+      "amb_recall": 0.0,
       "amb_precision": 1.0,
       "graded": 2,
       "not_run": false

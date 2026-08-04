@@ -209,6 +209,31 @@ def test_aggregate_micro_averages_and_applies_bar():
     assert rep["bar"]["per_lang_pass"]["py"] is True  # 0.95 >= 0.90
 
 
+def test_ambiguous_subset_surfaces_missing_flags_for_authored_ambiguous():
+    # An authored-ambiguous symbol whose true edges the tool finds but NEVER flags
+    # [ambiguous] should yield amb_recall < 1.0 (the gap is surfaced, not masked).
+    truth = {("a.go", "A.f"), ("b.go", "B.g")}
+    # Tool finds both edges but flags none as [ambiguous].
+    tool_impact = truth.copy()
+    tool_flagged = set()  # tool omits [ambiguous] entirely
+    # Authored expectation: since is_ambiguous=True, expected_ambiguous = truth
+    expected_ambiguous = truth  # same logic as _run_symbol with is_ambiguous=True
+    amb = impact_bench.score_sets(expected_ambiguous, tool_flagged)
+    # tool missed all expected flags -> fn = 2, tp = 0 -> recall = 0.0
+    assert amb.tp == 0 and amb.fn == 2
+    assert amb.recall < 1.0, "miss of [ambiguous] flag should lower amb recall"
+
+
+def test_ambiguous_subset_non_ambiguous_with_no_flags_scores_perfect():
+    # An authored-non-ambiguous symbol: expected_ambiguous = set().
+    # Tool also emits no flags: score_sets(set(), set()) = recall 1.0 precision 1.0.
+    truth = {("a.go", "A.f"), ("b.go", "B.g")}
+    tool_flagged = set()
+    expected_ambiguous = set()  # is_ambiguous=False -> expected_ambiguous = set()
+    amb = impact_bench.score_sets(expected_ambiguous, tool_flagged)
+    assert amb.recall == 1.0 and amb.precision == 1.0
+
+
 if __name__ == "__main__":
     import sys
     import tempfile
