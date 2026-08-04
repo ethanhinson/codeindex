@@ -114,3 +114,31 @@ def run_impact(binary: str, repo: str, symbol: str, limit: int = 500):
     if r.returncode != 0 or not r.stdout.strip():
         return set(), set()
     return parse_callers_output(r.stdout, repo)
+
+
+# --- FixtureOracle -----------------------------------------------------------
+
+class FixtureOracle:
+    """Ground truth for authored fixtures: G = the authored (file, symbol) edges."""
+
+    def __init__(self, fixtures_dir: str, langs: list | None = None):
+        self.root = Path(fixtures_dir)
+        self.langs = langs
+
+    def repo_dir(self, lang: str) -> str:
+        return str(self.root / lang)
+
+    def symbols(self, lang: str) -> list:
+        manifest = self.root / lang / "manifest.json"
+        if not manifest.exists():
+            return []
+        data = json.loads(manifest.read_text())
+        out = []
+        for entry in data.get("symbols", []):
+            truth = {(normalize_file(f), s) for f, s in entry["dependents"]}
+            out.append({
+                "symbol": entry["symbol"],
+                "ambiguous": bool(entry.get("ambiguous", False)),
+                "truth": truth,
+            })
+        return out

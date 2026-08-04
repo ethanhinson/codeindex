@@ -1,0 +1,15 @@
+{
+  "lang": "php",
+  "symbols": [
+    {
+      "symbol": "shared_helper",
+      "ambiguous": false,
+      "dependents": [["App.php", "run"], ["Worker.php", "process"]]
+    },
+    {
+      "symbol": "collide",
+      "ambiguous": true,
+      "dependents": [["ModA.php", "use_a"], ["ModB.php", "use_b"]]
+    }
+  ]
+}

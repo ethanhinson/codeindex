@@ -80,6 +80,51 @@ def test_parse_callers_output_strips_repo_root():
     assert edges == {("b.go", "B.callSite")}
 
 
+from pathlib import Path as _Path
+_FIX = _Path(__file__).parent / "impact_fixtures"
+
+
+def test_fixture_oracle_reads_python_manifest():
+    oracle = impact_bench.FixtureOracle(str(_FIX), langs=["py"])
+    syms = oracle.symbols("py")
+    by_name = {s["symbol"]: s for s in syms}
+    assert by_name["shared_helper"]["truth"] == {("app.py", "run"), ("worker.py", "process")}
+    assert by_name["shared_helper"]["ambiguous"] is False
+    assert by_name["collide"]["ambiguous"] is True
+    assert by_name["collide"]["truth"] == {("mod_a.py", "use_a"), ("mod_b.py", "use_b")}
+    assert oracle.repo_dir("py").endswith("impact_fixtures/py")
+
+
+def test_fixture_oracle_repo_dir_returns_lang_subdir():
+    oracle = impact_bench.FixtureOracle(str(_FIX))
+    for lang in ("py", "js", "php", "go", "ts"):
+        assert oracle.repo_dir(lang).endswith(f"impact_fixtures/{lang}")
+
+
+def test_fixture_oracle_all_langs_have_two_symbols():
+    oracle = impact_bench.FixtureOracle(str(_FIX))
+    for lang in ("py", "js", "php", "go", "ts"):
+        syms = oracle.symbols(lang)
+        assert len(syms) == 2, f"{lang}: expected 2 symbols, got {len(syms)}"
+
+
+def test_fixture_oracle_each_lang_has_one_clean_one_ambiguous():
+    oracle = impact_bench.FixtureOracle(str(_FIX))
+    for lang in ("py", "js", "php", "go", "ts"):
+        syms = oracle.symbols(lang)
+        ambiguous = [s for s in syms if s["ambiguous"]]
+        clean = [s for s in syms if not s["ambiguous"]]
+        assert len(ambiguous) == 1, f"{lang}: expected 1 ambiguous symbol"
+        assert len(clean) == 1, f"{lang}: expected 1 clean symbol"
+        # clean symbol must have exactly 2 dependents
+        assert len(clean[0]["truth"]) == 2, f"{lang}: clean symbol should have 2 dependents"
+
+
+def test_fixture_oracle_missing_lang_returns_empty():
+    oracle = impact_bench.FixtureOracle(str(_FIX))
+    assert oracle.symbols("rust") == []
+
+
 if __name__ == "__main__":
     import sys
     fns = [v for k, v in sorted(globals().items())

@@ -1,0 +1,15 @@
+{
+  "lang": "ts",
+  "symbols": [
+    {
+      "symbol": "sharedHelper",
+      "ambiguous": false,
+      "dependents": [["app.ts", "run"], ["worker.ts", "process"]]
+    },
+    {
+      "symbol": "collide",
+      "ambiguous": true,
+      "dependents": [["modA.ts", "useA"], ["modB.ts", "useB"]]
+    }
+  ]
+}

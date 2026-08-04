@@ -1,0 +1,15 @@
+{
+  "lang": "js",
+  "symbols": [
+    {
+      "symbol": "sharedHelper",
+      "ambiguous": false,
+      "dependents": [["app.js", "run"], ["worker.js", "process"]]
+    },
+    {
+      "symbol": "collide",
+      "ambiguous": true,
+      "dependents": [["mod_a.js", "useA"], ["mod_b.js", "useB"]]
+    }
+  ]
+}
