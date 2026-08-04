@@ -2,7 +2,7 @@
 id: 4
 slug: cleanup-delete-lore-rewrite-readme
 title: Cleanup — delete .lore/, drop lore config, rewrite README
-status: implemented
+status: done
 priority: medium
 type: chore
 created: 2026-08-03
@@ -20,7 +20,7 @@ branch: feat/cleanup-delete-lore-rewrite-readme
 pr: https://github.com/ethanhinson/codeindex/pull/6
 blocked_by:
 reconciled: true
-claimed_at: 2026-08-04T18:16:09Z
+claimed_at: 
 ---
 
 ## Artifacts
