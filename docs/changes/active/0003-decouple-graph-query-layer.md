@@ -2,7 +2,7 @@
 id: 3
 slug: decouple-graph-query-layer
 title: Decouple the symbol-graph query layer (headless JSON API + CLI)
-status: in-progress
+status: implemented
 priority: high
 type: refactor
 created: 2026-08-03
@@ -13,14 +13,14 @@ discovered_from: []
 adrs: [9]
 spec: docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md
 plan: docs/superpowers/plans/2026-08-04-decouple-graph-query-layer-plan.md
-results:
+results: docs/results/2026-08-04-decouple-graph-query-layer-results.md
 trivial: false
 auto_groomable:
 branch: feat/decouple-graph-query-layer
-pr:
+pr: https://github.com/ethanhinson/codeindex/pull/5
 blocked_by:
 reconciled: true
-claimed_at: 2026-08-04T07:12:01Z
+claimed_at: 2026-08-04T17:22:49Z
 ---
 
 ## Artifacts
@@ -30,6 +30,8 @@ claimed_at: 2026-08-04T07:12:01Z
 |---|---|
 | Spec | [2026-08-03-back-out-lore-lean-into-docket-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md) |
 | Plan | [2026-08-04-decouple-graph-query-layer-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/decouple-graph-query-layer/docs/superpowers/plans/2026-08-04-decouple-graph-query-layer-plan.md) |
+| Results | [2026-08-04-decouple-graph-query-layer-results.md](https://github.com/ethanhinson/codeindex/blob/feat/decouple-graph-query-layer/docs/results/2026-08-04-decouple-graph-query-layer-results.md) |
+| PR | [#5](https://github.com/ethanhinson/codeindex/pull/5) |
 | ADRs | [ADR-0009](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0009-graph-api-schema-version-contract.md) |
 <!-- docket:artifacts:end -->
 
