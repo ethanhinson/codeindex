@@ -1,18 +1,18 @@
 # Backlog
 
-**4 changes** — 🟢 1 in progress · 🟡 1 proposed · ✅ 2 done
-
-## 🟢 In progress (1)
-
-| # | Title | Priority | Type | Spec | Branch |
-|---|-------|----------|------|------|--------|
-| [0003](active/0003-decouple-graph-query-layer.md) | Decouple the symbol-graph query layer (headless JSON API + CLI) | `high` | `refactor` | [spec](../superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md) | `feat/decouple-graph-query-layer` |
+**4 changes** — 🟡 1 proposed · 🔵 1 implemented · ✅ 2 done
 
 ## 🟡 Proposed (1)
 
 | # | Title | Priority | Type | Readiness |
 |---|-------|----------|------|-----------|
-| [0004](active/0004-cleanup-delete-lore-rewrite-readme.md) | Cleanup — delete .lore/, drop lore config, rewrite README | `medium` | `chore` | ⏳ waiting on #3 — not yet built |
+| [0004](active/0004-cleanup-delete-lore-rewrite-readme.md) | Cleanup — delete .lore/, drop lore config, rewrite README | `medium` | `chore` | ⏳ waiting on #3 — needs your merge |
+
+## 🔵 Implemented — awaiting merge (1)
+
+| # | Title | Priority | Type | PR | Readiness |
+|---|-------|----------|------|----|-----------|
+| [0003](active/0003-decouple-graph-query-layer.md) | Decouple the symbol-graph query layer (headless JSON API + CLI) | `high` | `refactor` | [#5](https://github.com/ethanhinson/codeindex/pull/5) |  |
 
 ```mermaid
 graph TD
