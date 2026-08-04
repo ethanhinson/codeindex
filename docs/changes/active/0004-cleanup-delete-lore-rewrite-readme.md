@@ -2,11 +2,11 @@
 id: 4
 slug: cleanup-delete-lore-rewrite-readme
 title: Cleanup — delete .lore/, drop lore config, rewrite README
-status: proposed
+status: in-progress
 priority: medium
 type: chore
 created: 2026-08-03
-updated: 2026-08-03
+updated: 2026-08-04
 depends_on: [1, 3]
 related: [1, 2, 3]
 discovered_from: []
@@ -16,10 +16,11 @@ plan:
 results:
 trivial: false
 auto_groomable:
-branch:
+branch: feat/cleanup-delete-lore-rewrite-readme
 pr:
 blocked_by:
 reconciled: false
+claimed_at: 2026-08-04T17:29:14Z
 ---
 
 ## Artifacts
