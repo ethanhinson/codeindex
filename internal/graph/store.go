@@ -576,30 +576,6 @@ func (s *Store) AllDstNames() (map[string]struct{}, error) {
 	return out, rows.Err()
 }
 
-// ProjectSymbols returns every project (tier-0) symbol ordered by file then
-// start line — the load query for the tree explorer.
-func (s *Store) ProjectSymbols() ([]Symbol, error) {
-	rows, err := s.db.Query(
-		`SELECT file, name, parent, kind, signature, start_line, end_line
-		 FROM symbols WHERE tier=0 ORDER BY file, start_line, id`)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var out []Symbol
-	for rows.Next() {
-		var sy Symbol
-		var kind string
-		if err := rows.Scan(&sy.File, &sy.Name, &sy.Parent, &kind,
-			&sy.Signature, &sy.StartLine, &sy.EndLine); err != nil {
-			return nil, err
-		}
-		sy.Kind = SymbolKind(kind)
-		out = append(out, sy)
-	}
-	return out, rows.Err()
-}
-
 // GraphNode is a project symbol carrying its stable DB id, for whole-graph views.
 type GraphNode struct {
 	ID        int64
