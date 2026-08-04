@@ -2,7 +2,7 @@
 id: 2
 slug: rip-out-lore-product-surface
 title: Rip out the lore product surface (engine, CLI, MCP, plugin skills)
-status: implemented
+status: done
 priority: high
 type: refactor
 created: 2026-08-03
@@ -18,7 +18,7 @@ trivial: false
 auto_groomable:
 branch: feat/rip-out-lore-product-surface
 pr: https://github.com/ethanhinson/codeindex/pull/4
-claimed_at: 2026-08-04T06:44:41Z
+claimed_at: 
 blocked_by:
 reconciled: true
 ---
