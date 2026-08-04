@@ -10,7 +10,7 @@ updated: 2026-08-04
 depends_on: [2]
 related: [2, 4]
 discovered_from: []
-adrs: []
+adrs: [9]
 spec: docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md
 plan: docs/superpowers/plans/2026-08-04-decouple-graph-query-layer-plan.md
 results:
@@ -30,6 +30,7 @@ claimed_at: 2026-08-04T07:12:01Z
 |---|---|
 | Spec | [2026-08-03-back-out-lore-lean-into-docket-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md) |
 | Plan | [2026-08-04-decouple-graph-query-layer-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/decouple-graph-query-layer/docs/superpowers/plans/2026-08-04-decouple-graph-query-layer-plan.md) |
+| ADRs | [ADR-0009](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0009-graph-api-schema-version-contract.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
