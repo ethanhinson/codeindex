@@ -12,13 +12,13 @@ related: [1, 3, 4]
 discovered_from: []
 adrs: []
 spec: docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md
-plan:
+plan: docs/superpowers/plans/2026-08-04-rip-out-lore-product-surface-plan.md
 results:
 trivial: false
 auto_groomable:
 branch: feat/rip-out-lore-product-surface
 pr:
-claimed_at: 2026-08-04T05:17:40Z
+claimed_at: 2026-08-04T05:29:16Z
 blocked_by:
 reconciled: true
 ---
@@ -29,6 +29,7 @@ reconciled: true
 | Artifact | Link |
 |---|---|
 | Spec | [2026-08-03-back-out-lore-lean-into-docket-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md) |
+| Plan | [2026-08-04-rip-out-lore-product-surface-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/rip-out-lore-product-surface/docs/superpowers/plans/2026-08-04-rip-out-lore-product-surface-plan.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
