@@ -10,14 +10,14 @@ updated: 2026-08-04
 depends_on: []
 related: [4]
 discovered_from: []
-adrs: []
+adrs: [1, 2, 3, 4, 5, 6, 7, 8]
 spec: docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md
 plan: docs/superpowers/plans/2026-08-04-migrate-keeper-lore-decisions-to-adrs-plan.md
 results:
 trivial: false
 auto_groomable:
 branch: feat/migrate-keeper-lore-decisions-to-adrs
-claimed_at: 2026-08-04T03:43:30Z
+claimed_at: 2026-08-04T04:05:00Z
 pr:
 blocked_by:
 reconciled: true
@@ -30,6 +30,7 @@ reconciled: true
 |---|---|
 | Spec | [2026-08-03-back-out-lore-lean-into-docket-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md) |
 | Plan | [2026-08-04-migrate-keeper-lore-decisions-to-adrs-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/migrate-keeper-lore-decisions-to-adrs/docs/superpowers/plans/2026-08-04-migrate-keeper-lore-decisions-to-adrs-plan.md) |
+| ADRs | [ADR-0001](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0001-parsing-via-tree-sitter-with-edge-resolver.md), [ADR-0002](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0002-storage-sqlite-graph-db-transactional-incremental.md), [ADR-0003](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0003-engine-language-go-single-static-binary.md), [ADR-0004](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0004-config-driven-index-include-exclude-defaults.md), [ADR-0005](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0005-freshness-on-demand-build-lazy-per-query-recheck.md), [ADR-0006](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0006-change-detection-flat-per-file-hashes-not-merkle-tree.md), [ADR-0007](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0007-output-contract-references-only-not-source.md), [ADR-0008](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0008-docket-replaces-lore.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
