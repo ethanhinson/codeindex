@@ -12,7 +12,7 @@ related: [1, 2, 3]
 discovered_from: []
 adrs: []
 spec: docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md
-plan:
+plan: docs/superpowers/plans/2026-08-04-cleanup-delete-lore-rewrite-readme-plan.md
 results:
 trivial: false
 auto_groomable:
@@ -20,7 +20,7 @@ branch: feat/cleanup-delete-lore-rewrite-readme
 pr:
 blocked_by:
 reconciled: true
-claimed_at: 2026-08-04T17:29:14Z
+claimed_at: 2026-08-04T17:36:16Z
 ---
 
 ## Artifacts
@@ -29,6 +29,7 @@ claimed_at: 2026-08-04T17:29:14Z
 | Artifact | Link |
 |---|---|
 | Spec | [2026-08-03-back-out-lore-lean-into-docket-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md) |
+| Plan | [2026-08-04-cleanup-delete-lore-rewrite-readme-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/cleanup-delete-lore-rewrite-readme/docs/superpowers/plans/2026-08-04-cleanup-delete-lore-rewrite-readme-plan.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
