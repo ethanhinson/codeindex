@@ -1,12 +1,6 @@
 # Backlog
 
-**8 changes** — 🟢 1 in progress · 🟡 3 proposed · ✅ 4 done
-
-## 🟢 In progress (1)
-
-| # | Title | Priority | Type | Spec | Branch |
-|---|-------|----------|------|------|--------|
-| [0005](active/0005-blast-radius-accuracy-benchmark.md) | Blast-radius accuracy benchmark — impact-set recall vs. false positives | `high` | `feat` | [spec](../superpowers/specs/2026-08-04-blast-radius-accuracy-benchmark-design.md) | `feat/blast-radius-accuracy-benchmark` |
+**8 changes** — 🟡 3 proposed · 🔵 1 implemented · ✅ 4 done
 
 ## 🟡 Proposed (3)
 
@@ -15,6 +9,12 @@
 | [0006](active/0006-delta-impact-query-mode.md) | Delta impact query mode — what changed in the blast radius since X | `high` | `feat` | needs-brainstorm |
 | [0007](active/0007-session-stable-query-cache.md) | Session-stable query cache keyed by index version | `medium` | `perf` | needs-brainstorm |
 | [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-brainstorm |
+
+## 🔵 Implemented — awaiting merge (1)
+
+| # | Title | Priority | Type | PR | Readiness |
+|---|-------|----------|------|----|-----------|
+| [0005](active/0005-blast-radius-accuracy-benchmark.md) | Blast-radius accuracy benchmark — impact-set recall vs. false positives | `high` | `feat` | [#7](https://github.com/ethanhinson/codeindex/pull/7) |  |
 
 ```mermaid
 graph TD
