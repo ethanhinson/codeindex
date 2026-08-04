@@ -29,7 +29,7 @@ claimed_at:
 | Artifact | Link |
 |---|---|
 | Spec | [2026-08-03-back-out-lore-lean-into-docket-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md) |
-| Plan | [2026-08-04-cleanup-delete-lore-rewrite-readme-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/cleanup-delete-lore-rewrite-readme/docs/superpowers/plans/2026-08-04-cleanup-delete-lore-rewrite-readme-plan.md) |
+| Plan | [2026-08-04-cleanup-delete-lore-rewrite-readme-plan.md](https://github.com/ethanhinson/codeindex/blob/main/docs/superpowers/plans/2026-08-04-cleanup-delete-lore-rewrite-readme-plan.md) |
 | PR | [#6](https://github.com/ethanhinson/codeindex/pull/6) |
 <!-- docket:artifacts:end -->
 

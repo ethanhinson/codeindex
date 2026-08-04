@@ -1,5 +1,5 @@
 <!-- docket:backlink:start (generated — do not hand-edit) -->
-> ↩ **[Change 0003 — Decouple the symbol-graph query layer (headless JSON API + CLI)](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/archive/2026-08-04-0003-decouple-graph-query-layer.md)**
+> ↩ **[Change 0004 — Cleanup — delete .lore/, drop lore config, rewrite README](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/archive/2026-08-04-0004-cleanup-delete-lore-rewrite-readme.md)**
 <!-- docket:backlink:end -->
 
 # Back out lore, lean into docket — design
