@@ -2,7 +2,7 @@
 id: 4
 slug: cleanup-delete-lore-rewrite-readme
 title: Cleanup — delete .lore/, drop lore config, rewrite README
-status: in-progress
+status: implemented
 priority: medium
 type: chore
 created: 2026-08-03
@@ -17,10 +17,10 @@ results:
 trivial: false
 auto_groomable:
 branch: feat/cleanup-delete-lore-rewrite-readme
-pr:
+pr: https://github.com/ethanhinson/codeindex/pull/6
 blocked_by:
 reconciled: true
-claimed_at: 2026-08-04T17:36:16Z
+claimed_at: 2026-08-04T18:16:09Z
 ---
 
 ## Artifacts
@@ -30,6 +30,7 @@ claimed_at: 2026-08-04T17:36:16Z
 |---|---|
 | Spec | [2026-08-03-back-out-lore-lean-into-docket-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md) |
 | Plan | [2026-08-04-cleanup-delete-lore-rewrite-readme-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/cleanup-delete-lore-rewrite-readme/docs/superpowers/plans/2026-08-04-cleanup-delete-lore-rewrite-readme-plan.md) |
+| PR | [#6](https://github.com/ethanhinson/codeindex/pull/6) |
 <!-- docket:artifacts:end -->
 
 ## Why
