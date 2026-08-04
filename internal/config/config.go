@@ -23,7 +23,7 @@ type Config struct {
 
 	// Exclude lists repo-relative paths/globs to skip when indexing, in
 	// addition to the built-in defaults (vendored/compiled dirs). A pattern
-	// with no wildcard is a path prefix ("internal/webserver/dist" skips that
+	// with no wildcard is a path prefix ("docs/generated" skips that
 	// whole subtree); a pattern with '*'/'**'/'?' is a glob matched against the
 	// repo-relative path ('**' spans directory separators).
 	Exclude []string `json:"exclude"`
