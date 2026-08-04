@@ -17,7 +17,6 @@ import (
 	"codeindex/internal/depmap"
 	"codeindex/internal/engine"
 	"codeindex/internal/graph"
-	"codeindex/internal/lore/index"
 	"codeindex/internal/mcpserver"
 	"codeindex/internal/merkle"
 	"codeindex/internal/progress"
@@ -29,7 +28,7 @@ const version = "0.2.0"
 func main() {
 	if len(os.Args) < 3 {
 		fmt.Fprintln(os.Stderr,
-			"usage: codeindex <build|refresh|status|callers|callees|impact|dependents|deps|find|grep|tree|depmap|attach|export|import|enclosing|lore|serve|mcp|bench> <repo-root> ...")
+			"usage: codeindex <build|refresh|status|callers|callees|impact|dependents|deps|find|grep|depmap|export|import|enclosing|serve|mcp|bench> <repo-root> ...")
 		os.Exit(2)
 	}
 	cmd, root := os.Args[1], os.Args[2]
@@ -89,23 +88,15 @@ func main() {
 		}
 	case "impact":
 		if len(os.Args) < 4 {
-			fatal(fmt.Errorf("usage: codeindex impact <repo-root> <symbol> [--limit N] [--related-depth N|all]"))
+			fatal(fmt.Errorf("usage: codeindex impact <repo-root> <symbol> [--limit N]"))
 		}
 		limit := 50
-		relatedDepth := 2
 		for i := 4; i < len(os.Args)-1; i++ {
-			switch os.Args[i] {
-			case "--limit":
+			if os.Args[i] == "--limit" {
 				fmt.Sscanf(os.Args[i+1], "%d", &limit)
-			case "--related-depth":
-				if os.Args[i+1] == "all" {
-					relatedDepth = -1
-				} else {
-					fmt.Sscanf(os.Args[i+1], "%d", &relatedDepth)
-				}
 			}
 		}
-		if err := runImpact(root, os.Args[3], limit, relatedDepth); err != nil {
+		if err := runImpact(root, os.Args[3], limit); err != nil {
 			fatal(err)
 		}
 	case "dependents", "deps":
@@ -148,33 +139,6 @@ func main() {
 			fatal(err)
 		}
 		fmt.Printf("depmap %s@%s: %d files, %d symbols -> %s\n", ns, ver, nf, nsym, out)
-	case "attach":
-		// codeindex attach <repo> <map.db> --prefix <dir> | codeindex attach <repo> --auto
-		if _, err := query.Fresh(root); err != nil {
-			fatal(err)
-		}
-		if len(os.Args) > 3 && os.Args[3] == "--auto" {
-			n, syms, err := depmap.AutoAttach(root, dbPath(root))
-			if err != nil {
-				fatal(err)
-			}
-			fmt.Printf("attached %d dependency maps (%d dep symbols total)\n", n, syms)
-		} else {
-			if len(os.Args) < 4 {
-				fatal(fmt.Errorf("usage: codeindex attach <repo> <map.db> [--prefix <dir>] | --auto"))
-			}
-			prefix := ""
-			for i := 4; i < len(os.Args)-1; i++ {
-				if os.Args[i] == "--prefix" {
-					prefix = os.Args[i+1]
-				}
-			}
-			ns, ver, err := depmap.Attach(dbPath(root), os.Args[3], prefix)
-			if err != nil {
-				fatal(err)
-			}
-			fmt.Printf("attached %s@%s\n", ns, ver)
-		}
 	case "find":
 		if len(os.Args) < 4 {
 			fatal(fmt.Errorf("usage: codeindex find <repo-root> <query> [--kind k] [--path p] [--limit N]"))
@@ -233,14 +197,6 @@ func main() {
 			fmt.Sscanf(os.Args[5], "%d", &limit)
 		}
 		if err := runCallees(root, os.Args[3], limit); err != nil {
-			fatal(err)
-		}
-	case "tree":
-		if err := runTree(root); err != nil {
-			fatal(err)
-		}
-	case "lore":
-		if err := runLore(root, os.Args[3:], os.Stdout); err != nil {
 			fatal(err)
 		}
 	case "enclosing":
@@ -594,30 +550,14 @@ func runCallees(root, name string, limit int) error {
 	return nil
 }
 
-// runImpact prints the counts-first blast-radius summary, then any related
-// lore. Lore must never break navigation: a lore failure drops the block.
-func runImpact(root, name string, limit, relatedDepth int) error {
+// runImpact prints the counts-first blast-radius summary for a symbol.
+func runImpact(root, name string, limit int) error {
 	out, err := query.ImpactText(root, name, limit)
 	if err != nil {
 		return err
 	}
 	fmt.Print(out)
-	fmt.Print(relatedLoreForImpact(root, name, relatedDepth))
 	return nil
-}
-
-// relatedLoreForImpact returns the related-lore block or "" on any error.
-func relatedLoreForImpact(root, symbol string, depth int) string {
-	_, st, _, err := loreReindex(root)
-	if err != nil {
-		return ""
-	}
-	defer st.Close()
-	all, err := st.All()
-	if err != nil {
-		return ""
-	}
-	return index.RelatedLoreBlock(all, symbol, depth)
 }
 
 // runEnclosing prints the symbols overlapping a line range with caller counts —
