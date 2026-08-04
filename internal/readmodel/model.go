@@ -1,27 +1,21 @@
 // internal/readmodel/model.go
-// Package readmodel converts the codeindex call graph and lore records into a
-// single JSON-serializable node/edge graph shared by the web API and CLI.
+// Package readmodel converts the codeindex call graph into a single
+// JSON-serializable node/edge graph consumed by the headless graph API and CLI.
 package readmodel
 
 import "sort"
 
+// SchemaVersion is the top-level version pinned on every graph API response so
+// external consumers are insulated from internal shape changes.
+const SchemaVersion = "1"
+
 type NodeKind string
 
-const (
-	NodeSymbol   NodeKind = "symbol"
-	NodeDecision NodeKind = "decision"
-	NodeItem     NodeKind = "item"
-	NodeNote     NodeKind = "note"
-	NodePath     NodeKind = "path"
-)
+const NodeSymbol NodeKind = "symbol"
 
 type EdgeKind string
 
-const (
-	EdgeCalls     EdgeKind = "calls"
-	EdgeAnchors   EdgeKind = "anchors"
-	EdgeBlockedBy EdgeKind = "blocked_by"
-)
+const EdgeCalls EdgeKind = "calls"
 
 type Node struct {
 	ID        string   `json:"id"`
@@ -30,9 +24,7 @@ type Node struct {
 	File      string   `json:"file,omitempty"`
 	Line      int      `json:"line,omitempty"`
 	Signature string   `json:"signature,omitempty"`
-	Status    string   `json:"status,omitempty"`
-	Priority  string   `json:"priority,omitempty"`
-	Group     string   `json:"group,omitempty"` // cluster key (package dir, or "lore")
+	Group     string   `json:"group,omitempty"` // cluster key (package dir)
 }
 
 type Edge struct {

@@ -17,10 +17,10 @@ func pkgOf(file string) string {
 
 func symNodeID(id int64) string { return fmt.Sprintf("sym#%d", id) }
 
-// FullGraph returns the entire project symbol graph (all tier-0 symbols and
-// resolved call edges) with the lore layer overlaid: lore records as nodes,
-// anchors edges to the symbols they reference, and blocked_by edges between
-// records. Symbol nodes carry a Group (package dir) for clustering.
+// FullGraph returns the entire project symbol graph: all tier-0 symbols that
+// participate in a resolved call edge, plus those call edges. Symbol nodes carry
+// a Group (package dir) for clustering. Isolated leaf symbols (no resolved call)
+// are omitted so the call structure is not buried.
 func FullGraph(root string) (Graph, error) {
 	st, err := openGraph(root)
 	if err != nil {
@@ -36,19 +36,9 @@ func FullGraph(root string) (Graph, error) {
 	if err != nil {
 		return Graph{}, err
 	}
-	recs, err := openLore(root)
-	if err != nil {
-		return Graph{}, err
-	}
 
-	// Index all symbols by id and by name, but do not emit nodes yet: we only
-	// keep symbols that participate in the graph (a resolved call or a lore
-	// anchor). Thousands of isolated leaf symbols would otherwise bury the
-	// actual call structure.
 	present := make(map[int64]bool, len(syms))
 	symByID := make(map[int64]graphSym, len(syms))
-	byQName := map[string][]int64{}
-	byName := map[string][]int64{}
 	for _, sy := range syms {
 		present[sy.ID] = true
 		qn := sy.Name
@@ -56,8 +46,6 @@ func FullGraph(root string) (Graph, error) {
 			qn = sy.Parent + "." + sy.Name
 		}
 		symByID[sy.ID] = graphSym{qn: qn, file: sy.File, line: sy.StartLine, sig: sy.Signature}
-		byQName[qn] = append(byQName[qn], sy.ID)
-		byName[sy.Name] = append(byName[sy.Name], sy.ID)
 	}
 
 	g := Graph{}
@@ -68,34 +56,6 @@ func FullGraph(root string) (Graph, error) {
 			g.Edges = append(g.Edges, Edge{Source: symNodeID(e.Src), Target: symNodeID(e.Dst), Kind: EdgeCalls})
 			used[e.Src] = true
 			used[e.Dst] = true
-		}
-	}
-
-	recPresent := make(map[string]bool, len(recs))
-	for _, r := range recs {
-		recPresent[r.ID] = true
-		ln := loreNode(r)
-		ln.Group = "lore"
-		g.Nodes = append(g.Nodes, ln)
-	}
-	for _, r := range recs {
-		for _, a := range r.Anchors {
-			if a.Symbol == "" {
-				continue
-			}
-			targets := byQName[a.Symbol]
-			if len(targets) == 0 {
-				targets = byName[a.Symbol]
-			}
-			for _, id := range targets {
-				g.Edges = append(g.Edges, Edge{Source: r.ID, Target: symNodeID(id), Kind: EdgeAnchors})
-				used[id] = true
-			}
-		}
-		for _, b := range r.BlockedBy {
-			if recPresent[b] {
-				g.Edges = append(g.Edges, Edge{Source: r.ID, Target: b, Kind: EdgeBlockedBy})
-			}
 		}
 	}
 
