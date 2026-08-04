@@ -2,11 +2,11 @@
 id: 3
 slug: decouple-graph-query-layer
 title: Decouple the symbol-graph query layer (headless JSON API + CLI)
-status: proposed
+status: in-progress
 priority: high
 type: refactor
 created: 2026-08-03
-updated: 2026-08-03
+updated: 2026-08-04
 depends_on: [2]
 related: [2, 4]
 discovered_from: []
@@ -16,10 +16,11 @@ plan:
 results:
 trivial: false
 auto_groomable:
-branch:
+branch: feat/decouple-graph-query-layer
 pr:
 blocked_by:
 reconciled: false
+claimed_at: 2026-08-04T07:03:42Z
 ---
 
 ## Artifacts
