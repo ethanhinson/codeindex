@@ -2,7 +2,7 @@
 id: 5
 slug: blast-radius-accuracy-benchmark
 title: Blast-radius accuracy benchmark — impact-set recall vs. false positives
-status: proposed
+status: in-progress
 priority: high
 type: feat
 created: 2026-08-04
@@ -16,8 +16,9 @@ plan:
 results:
 trivial: false
 auto_groomable:
-branch:
+branch: feat/blast-radius-accuracy-benchmark
 pr:
+claimed_at: 2026-08-04T19:34:20Z
 blocked_by:
 reconciled: false
 ---
