@@ -47,13 +47,26 @@ Per-protocol (2 tainted arm-A rows excluded, 94 rows):
 | type | n A/B | cost Δ (B vs A) | turns A→B | success A→B | Go baseline (cost) |
 | --- | --- | --- | --- | --- | --- |
 | **occurrences** | 12/12 | **+62%** | 9→2 | 67%→92% | +70% ✅ |
-| **edit_impact** | 10/12 | **+56%** | 14→4 | 70%→**50%** | +26% ⚠ |
+| **edit_impact** | 10/12 | **+56%** | 14→4 | 70%→50% † | +26% ⚠ |
 | **vague_find** | 12/12 | **+14%** | 6→4 | 42%→58% | +45% ✅ |
 | **comprehension** | 12/12 | **−2%** | 4→2 | 100%→83% | −21% ✅ |
 | **OVERALL** | | **+33%** | | 70%→71% (+1.3pp) | |
 
 ITT (all 96 rows incl. leaks): +37% overall, +2.1pp success — leaks *understate* the
 true B-vs-A gap (they hand arm A the index), so per-protocol is the conservative read.
+
+† **edit_impact re-run at n=30/arm (2026-08-14, CODEINDEX_DISABLED guard, 0 leaks)
+supersedes the small-n row above.** The 50% arm-B success was noise. At 30 samples/arm:
+
+| edit_impact (n=30/30) | arm A | arm B | delta |
+| --- | --- | --- | --- |
+| cost | $0.134 | $0.053 | **+60% cheaper** |
+| turns | 12 | 4 | **3× fewer** |
+| success | 77% | **90%** | **+13.3pp** |
+| f1 (mean) | 0.77 | 0.89 | +0.12 |
+
+So edit_impact is a **clean win**, not a tradeoff: the index makes PHP edit-impact
+agents cheaper, faster, AND more correct. See tasks_eimp.json / runs_eimp.jsonl.
 
 ## The findings
 
@@ -64,13 +77,15 @@ true B-vs-A gap (they hand arm A the index), so per-protocol is the conservative
    the repo or the language. This is the evidence a Navigator policy would learn navigation,
    not layouts — and that Tier-1 synthetic data from arbitrary repos should transfer.
 
-2. **edit_impact is where PHP ambiguity bites — the trust-vs-verify signal, made visible.**
-   Arm B is 56% cheaper and 3× fewer turns, but arm B success *drops* to 50% (below arm A's
-   70%). PHP's `[ambiguous]` edges mean the fast structural blast-radius answer is sometimes
-   wrong, and the agent trusts it instead of verifying. This is not a defect to hide — it is
-   the single most valuable case for a future Navigator: the policy must learn to VERIFY on
-   ambiguous structural output rather than trust it. Go, which resolves cleanly, cannot teach
-   this. (Caveat: n=10 arm-A after leak exclusion; the success drop wants more reps to confirm.)
+2. **edit_impact is a clean win too — the "trust-vs-verify tradeoff" was a small-n
+   artifact.** The initial run showed arm B success *dropping* to 50% (vs A 70%) at
+   n=10/12, which suggested PHP `[ambiguous]` edges made the fast structural answer
+   unreliable — a tempting "Navigator must learn to verify" story. A dedicated n=30/arm
+   re-run (guard-isolated, 0 leaks) **refutes it**: arm B is +60% cheaper, 3× fewer turns,
+   AND +13.3pp MORE successful (77%→90%). The 50% was 2–3 unlucky arm-B runs. Lesson:
+   do not build a mechanism narrative on a 12-row cell. All four PHP task types now point
+   the same direction as Go, and on the two hardest buckets (edit_impact +13pp, occurrences
+   +25pp) the index improves *correctness*, not just cost.
 
 3. **"PHP is unmeasurable" was a scaffolding gap, not a product limit.** codeindex extracts
    PHP richly (symbols, callers, occurrences). The benchmark's ground-truth generator
@@ -82,13 +97,20 @@ true B-vs-A gap (they hand arm A the index), so per-protocol is the conservative
 - `token_bench.py`: added `php` and `python` entries to `LANG_DEFS` (symbol-def regexes).
 - `build_tasks.py`: `comprehension_tasks` made language-aware (was hardcoded Go symbol
   extraction + `_test.go` filter); added `_is_test_file(path, lang)` helper.
-- `run_ab.py`: arm-A PATH shim (`arm_a_shim_dir`) to shadow a globally-installed codeindex.
-  NOTE: shim is ~96% effective; the reliable isolation is moving the global binary aside.
-  A proper fix (env-var guard the binary itself honors) remains TODO.
+- `run_ab.py`: arm-A PATH shim (`arm_a_shim_dir`) to shadow a globally-installed codeindex,
+  PLUS `CODEINDEX_DISABLED=1` in the arm-A env.
+- `cmd/codeindex/main.go`: honors `CODEINDEX_DISABLED` — if set, the binary exits 127
+  before doing anything, so the control arm cannot invoke the index by ANY route (PATH,
+  absolute path, alias). Off by default; zero product impact. This is the reliable
+  isolation; the shim is now belt-and-suspenders. Verified 0 real leaks in the n=30 re-run.
 
-## Open threads
+## Open threads (updated 2026-08-14)
 
-- edit_impact success regression: add reps to confirm signal vs. n=10 noise.
-- Residual 2/48 arm-A leak: close with a binary-level `CODEINDEX_DISABLED` guard.
-- Cross-language coverage: vague_find/occurrences/comprehension proven Go+PHP; a fresh
-  TS/Python held-out repo would complete the language matrix.
+- ~~edit_impact success regression~~ — RESOLVED: noise. n=30 re-run shows +13.3pp (finding 2).
+- ~~Residual arm-A leak~~ — RESOLVED: `CODEINDEX_DISABLED` binary guard (0 leaks at n=30).
+- Leak-audit script has a batched-tool-call pairing bug (attributes a grep result to a
+  preceding codeindex call); cosmetic, but fix before trusting its counts.
+- Cross-language coverage: all 4 task types now proven Go+PHP; a fresh TS/Python held-out
+  repo would complete the language matrix.
+- Forward: Tier-1 synthetic (graph → optimal-primitive) data generator — the
+  overfitting-immune Navigator training data this validation was clearing the way for.

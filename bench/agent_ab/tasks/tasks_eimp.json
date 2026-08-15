@@ -1,0 +1,295 @@
+{
+  "header": {
+    "generated_seed": 4242,
+    "repo_pins": {
+      "laravel-framework": {
+        "slug": "laravel/framework",
+        "commit": "v11.38.0"
+      }
+    },
+    "thresholds": {
+      "metric": "median paired reduction in total_cost_usd",
+      "green": "savings >= 30% AND success_delta >= -5pp AND adoption >= 70%",
+      "yellow": "savings 10-30%, OR adoption 40-70% with per-protocol savings >= 30%",
+      "red": "savings < 10% (ITT), OR success_delta < -5pp, OR adoption < 40% with per-protocol savings < 30%"
+    },
+    "v3_gate": null,
+    "v6_gate": null,
+    "n_tasks": 10,
+    "by_type": {
+      "comprehension": 0,
+      "localization": 0,
+      "caller_attribution": 0,
+      "edit_impact": 10,
+      "vague_find": 0,
+      "occurrences": 0
+    },
+    "note": "Prompts contain the literal {REPO_PATH}; the runner substitutes the resolved absolute clone path. Ground truth is arm-neutral (ripgrep / merged-PR files)."
+  },
+  "tasks": [
+    {
+      "id": "editimp-laravel-framework-getQualifiedKeyName",
+      "type": "edit_impact",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'getQualifiedKeyName': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'getQualifiedKeyName' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "chunkById\tsrc/Illuminate/Database/Eloquent/Relations/HasOneOrManyThrough.php",
+          "chunkByIdDesc\tsrc/Illuminate/Database/Eloquent/Relations/HasOneOrManyThrough.php",
+          "eachById\tsrc/Illuminate/Database/Eloquent/Relations/HasOneOrManyThrough.php",
+          "enforceOrderBy\tsrc/Illuminate/Database/Eloquent/Builder.php",
+          "find\tsrc/Illuminate/Database/Eloquent/Relations/BelongsToMany.php",
+          "find\tsrc/Illuminate/Database/Eloquent/Relations/HasOneOrManyThrough.php",
+          "findMany\tsrc/Illuminate/Database/Eloquent/Relations/HasOneOrManyThrough.php",
+          "getQualifiedParentKeyName\tsrc/Illuminate/Database/Eloquent/Relations/Relation.php",
+          "lazyById\tsrc/Illuminate/Database/Eloquent/Relations/HasOneOrManyThrough.php",
+          "lazyByIdDesc\tsrc/Illuminate/Database/Eloquent/Relations/HasOneOrManyThrough.php",
+          "testWhereKeyMethodWithArray\ttests/Database/DatabaseEloquentBuilderTest.php",
+          "testWhereKeyMethodWithCollection\ttests/Database/DatabaseEloquentBuilderTest.php",
+          "testWhereKeyMethodWithInt\ttests/Database/DatabaseEloquentBuilderTest.php",
+          "testWhereKeyMethodWithModel\ttests/Database/DatabaseEloquentBuilderTest.php",
+          "testWhereKeyMethodWithStringNull\ttests/Database/DatabaseEloquentBuilderTest.php",
+          "testWhereKeyMethodWithStringZero\ttests/Database/DatabaseEloquentBuilderTest.php",
+          "testWhereKeyNotMethodWithArray\ttests/Database/DatabaseEloquentBuilderTest.php",
+          "testWhereKeyNotMethodWithCollection\ttests/Database/DatabaseEloquentBuilderTest.php",
+          "testWhereKeyNotMethodWithInt\ttests/Database/DatabaseEloquentBuilderTest.php",
+          "testWhereKeyNotMethodWithModel\ttests/Database/DatabaseEloquentBuilderTest.php",
+          "testWhereKeyNotMethodWithStringNull\ttests/Database/DatabaseEloquentBuilderTest.php",
+          "testWhereKeyNotMethodWithStringZero\ttests/Database/DatabaseEloquentBuilderTest.php",
+          "whereKey\tsrc/Illuminate/Database/Eloquent/Builder.php",
+          "whereKeyNot\tsrc/Illuminate/Database/Eloquent/Builder.php"
+        ]
+      },
+      "meta": {
+        "symbol": "getQualifiedKeyName",
+        "n_callers": 24
+      }
+    },
+    {
+      "id": "editimp-laravel-framework-assertSentTo",
+      "type": "edit_impact",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'assertSentTo': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'assertSentTo' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "assertSentOnDemand\tsrc/Illuminate/Support/Testing/Fakes/NotificationFake.php",
+          "assertSentTo\tsrc/Illuminate/Support/Testing/Fakes/NotificationFake.php",
+          "testAssertItCanSerializeAndRestoreNotifications\ttests/Support/SupportTestingNotificationFakeTest.php",
+          "testAssertSentTo\ttests/Support/SupportTestingNotificationFakeTest.php",
+          "testAssertSentToClosure\ttests/Support/SupportTestingNotificationFakeTest.php",
+          "testAssertSentToFailsForEmptyArray\ttests/Support/SupportTestingNotificationFakeTest.php",
+          "testAssertSentToFailsForEmptyCollection\ttests/Support/SupportTestingNotificationFakeTest.php",
+          "testAssertSentToWhenNotifiableHasPreferredLocale\ttests/Support/SupportTestingNotificationFakeTest.php",
+          "testFaking\ttests/Integration/Notifications/SendingNotificationsViaAnonymousNotifiableTest.php",
+          "testItCanSendForgotPasswordEmail\ttests/Integration/Auth/ForgotPasswordTest.php",
+          "testItCanSendForgotPasswordEmailViaCreateUrlUsing\ttests/Integration/Auth/ForgotPasswordTest.php",
+          "testItCanSendForgotPasswordEmailViaCreateUrlUsing\ttests/Integration/Auth/ForgotPasswordWithoutDefaultRoutesTest.php",
+          "testItCanSendForgotPasswordEmailViaToMailUsing\ttests/Integration/Auth/ForgotPasswordTest.php",
+          "testItCanSendForgotPasswordEmailViaToMailUsing\ttests/Integration/Auth/ForgotPasswordWithoutDefaultRoutesTest.php",
+          "testItCannotSendForgotPasswordEmail\ttests/Integration/Auth/ForgotPasswordWithoutDefaultRoutesTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "assertSentTo",
+        "n_callers": 15
+      }
+    },
+    {
+      "id": "editimp-laravel-framework-optional",
+      "type": "edit_impact",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'optional': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'optional' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "getCurrentOwner\tsrc/Illuminate/Cache/DatabaseLock.php",
+          "setRequest\tsrc/Illuminate/Routing/UrlGenerator.php",
+          "testOptional\ttests/Support/SupportHelpersTest.php",
+          "testOptionalAllowToUnsetKey\ttests/Support/SupportHelpersTest.php",
+          "testOptionalAllowsToSetKey\ttests/Support/SupportHelpersTest.php",
+          "testOptionalDeterminesWhetherKeyIsSet\ttests/Support/SupportHelpersTest.php",
+          "testOptionalIsMacroable\ttests/Support/SupportHelpersTest.php",
+          "testOptionalReturnsObjectPropertyOrNull\ttests/Support/SupportHelpersTest.php",
+          "testOptionalWithArray\ttests/Support/SupportHelpersTest.php",
+          "testOptionalWithCallback\ttests/Support/SupportHelpersTest.php",
+          "toResponse\tsrc/Illuminate/Http/Resources/Json/PaginatedResourceResponse.php"
+        ]
+      },
+      "meta": {
+        "symbol": "optional",
+        "n_callers": 11
+      }
+    },
+    {
+      "id": "editimp-laravel-framework-expectsChoice",
+      "type": "edit_impact",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'expectsChoice': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'expectsChoice' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "expectsSearch\tsrc/Illuminate/Testing/PendingCommand.php",
+          "testAlternativeAssertionForSelectPromptWithAnAssociativeArray\ttests/Integration/Console/PromptsAssertionTest.php",
+          "testAssertionForOptionalMultiselectPrompt\ttests/Integration/Console/PromptsAssertionTest.php",
+          "testAssertionForRequiredMultiselectPrompt\ttests/Integration/Console/PromptsAssertionTest.php",
+          "testAssertionForSelectPromptFollowedByMultisearchPrompt\ttests/Integration/Console/PromptsAssertionTest.php",
+          "testAssertionForSelectPromptWithAList\ttests/Integration/Console/PromptsAssertionTest.php",
+          "testAssertionForSelectPromptWithAnAssociativeArray\ttests/Integration/Console/PromptsAssertionTest.php",
+          "testAssertionForSuggestPrompt\ttests/Integration/Console/PromptsAssertionTest.php",
+          "testRunUsingChoices\ttests/Integration/Console/Scheduling/ScheduleTestCommandTest.php",
+          "test_console_command_that_fails_if_doesnt_expect_output_but__there_is_interactions\ttests/Integration/Testing/ArtisanCommandTest.php",
+          "test_console_command_that_passes_if_expects_output_and_there_is_interactions\ttests/Integration/Testing/ArtisanCommandTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "expectsChoice",
+        "n_callers": 11
+      }
+    },
+    {
+      "id": "editimp-laravel-framework-allowFailures",
+      "type": "edit_impact",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'allowFailures': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'allowFailures' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "createTestBatch\ttests/Bus/BusBatchTest.php",
+          "testChainBatchFailureAllowed\ttests/Integration/Queue/JobChainingTest.php",
+          "testChainBatchFailureNotAllowed\ttests/Integration/Queue/JobChainingTest.php",
+          "testItCanHandleTimeoutJob\ttests/Integration/Database/Queue/BatchableTransactionTest.php",
+          "test_pending_batch_may_be_configured_and_dispatched\ttests/Bus/BusPendingBatchTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "allowFailures",
+        "n_callers": 5
+      }
+    },
+    {
+      "id": "editimp-laravel-framework-assertSleptTimes",
+      "type": "edit_impact",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'assertSleptTimes': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'assertSleptTimes' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "assertNeverSlept\tsrc/Illuminate/Support/Sleep.php",
+          "assertSequence\tsrc/Illuminate/Support/Sleep.php",
+          "testItCanAssertSleepCount\ttests/Support/SleepTest.php",
+          "testRequestsWillBeWaitingSleepMillisecondsReceivedBeforeRetry\ttests/Http/HttpClientTest.php",
+          "testRequestsWillBeWaitingSleepMillisecondsReceivedInBackoffArray\ttests/Http/HttpClientTest.php",
+          "testRetry\ttests/Support/SupportHelpersTest.php",
+          "testRetryWithAThrowableBase\ttests/Support/SupportHelpersTest.php",
+          "testRetryWithBackoff\ttests/Support/SupportHelpersTest.php",
+          "testRetryWithPassingSleepCallback\ttests/Support/SupportHelpersTest.php",
+          "testRetryWithPassingWhenCallback\ttests/Support/SupportHelpersTest.php",
+          "test_it_runs_multiple_sub_minute_callbacks\ttests/Integration/Console/Scheduling/SubMinuteSchedulingTest.php",
+          "test_it_runs_sub_minute_callbacks\ttests/Integration/Console/Scheduling/SubMinuteSchedulingTest.php",
+          "test_sub_minute_events_can_be_run_in_maintenance_mode\ttests/Integration/Console/Scheduling/SubMinuteSchedulingTest.php",
+          "test_sub_minute_events_stop_for_the_rest_of_the_minute_once_maintenance_mode_is_enabled\ttests/Integration/Console/Scheduling/SubMinuteSchedulingTest.php",
+          "test_sub_minute_scheduling_can_be_interrupted\ttests/Integration/Console/Scheduling/SubMinuteSchedulingTest.php",
+          "test_sub_minute_scheduling_can_run_on_one_server\ttests/Integration/Console/Scheduling/SubMinuteSchedulingTest.php",
+          "test_sub_minute_scheduling_respects_filters\ttests/Integration/Console/Scheduling/SubMinuteSchedulingTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "assertSleptTimes",
+        "n_callers": 17
+      }
+    },
+    {
+      "id": "editimp-laravel-framework-splice",
+      "type": "edit_impact",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'splice': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'splice' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "$i\tsrc/Illuminate/Foundation/resources/exceptions/renderer/dist/scripts.js",
+          "Ju\tsrc/Illuminate/Foundation/resources/exceptions/renderer/dist/scripts.js",
+          "Lu\tsrc/Illuminate/Foundation/resources/exceptions/renderer/dist/scripts.js",
+          "U\tsrc/Illuminate/Foundation/resources/exceptions/renderer/dist/scripts.js",
+          "before\tsrc/Illuminate/Foundation/resources/exceptions/renderer/dist/scripts.js",
+          "exec\tsrc/Illuminate/Foundation/resources/exceptions/renderer/dist/scripts.js",
+          "ju\tsrc/Illuminate/Foundation/resources/exceptions/renderer/dist/scripts.js",
+          "registerConfiguredProviders\tsrc/Illuminate/Foundation/Application.php",
+          "testSplice\ttests/Support/SupportCollectionTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "splice",
+        "n_callers": 9
+      }
+    },
+    {
+      "id": "editimp-laravel-framework-collation",
+      "type": "edit_impact",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'collation': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'collation' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "testBasicCreateTable\ttests/Database/DatabasePostgresSchemaGrammarTest.php",
+          "testChangingColumnWithCollationWorks\ttests/Integration/Database/Sqlite/DatabaseSchemaBlueprintTest.php",
+          "testCharsetCollationCreateTable\ttests/Database/DatabaseMariaDbSchemaGrammarTest.php",
+          "testCharsetCollationCreateTable\ttests/Database/DatabaseMySqlSchemaGrammarTest.php",
+          "testCreateTableWithAutoIncrementStartingValue\ttests/Database/DatabasePostgresSchemaGrammarTest.php",
+          "testNativeColumnModifyingOnMySql\ttests/Integration/Database/Sqlite/DatabaseSchemaBlueprintTest.php",
+          "testNativeColumnModifyingOnPostgreSql\ttests/Integration/Database/Sqlite/DatabaseSchemaBlueprintTest.php",
+          "testNativeColumnModifyingOnSqlServer\ttests/Integration/Database/Sqlite/DatabaseSchemaBlueprintTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "collation",
+        "n_callers": 8
+      }
+    },
+    {
+      "id": "editimp-laravel-framework-perMinute",
+      "type": "edit_impact",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'perMinute': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'perMinute' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "testConstructors\ttests/Cache/LimitTest.php",
+          "testItCanCombineRateLimitsWithoutSpecifyingUniqueKeys\ttests/Integration/Http/ThrottleRequestsTest.php",
+          "testItCanLimitPerMinute\ttests/Integration/Queue/RateLimitedTest.php",
+          "testItCanThrottlePerMinute\ttests/Integration/Http/ThrottleRequestsTest.php",
+          "testJobsCanHaveConditionalRateLimits\ttests/Integration/Queue/RateLimitedWithRedisTest.php",
+          "testRateLimitedJobsAreNotExecutedOnLimitReached\ttests/Integration/Queue/RateLimitedWithRedisTest.php",
+          "testRateLimitedJobsCanBeSkippedOnLimitReached\ttests/Integration/Queue/RateLimitedWithRedisTest.php",
+          "testRegisterNamedRateLimiter\ttests/Cache/RateLimiterTest.php",
+          "testShouldUseOriginKeyAsPrefixWhenMultipleLimiterWithSameKey\ttests/Cache/RateLimiterTest.php",
+          "throttle\ttests/Foundation/FoundationExceptionsHandlerTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "perMinute",
+        "n_callers": 10
+      }
+    },
+    {
+      "id": "editimp-laravel-framework-php_binary",
+      "type": "edit_impact",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'php_binary': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'php_binary' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "handle\tsrc/Illuminate/Foundation/Console/ApiInstallCommand.php",
+          "installReverb\tsrc/Illuminate/Foundation/Console/BroadcastingInstallCommand.php",
+          "installSanctum\tsrc/Illuminate/Foundation/Console/ApiInstallCommand.php",
+          "phpBinary\tsrc/Illuminate/Console/Application.php",
+          "phpBinary\tsrc/Illuminate/Foundation/Console/InteractsWithComposerPackages.php",
+          "phpBinary\tsrc/Illuminate/Queue/Listener.php",
+          "phpBinary\tsrc/Illuminate/Support/Composer.php",
+          "serverCommand\tsrc/Illuminate/Foundation/Console/ServeCommand.php",
+          "testBuildCommandInBackgroundUsingUnix\ttests/Console/Scheduling/EventTest.php",
+          "testBuildCommandInBackgroundUsingWindows\ttests/Console/Scheduling/EventTest.php",
+          "testDumpAutoloadRunsTheCorrectCommandWhenCustomComposerPharIsPresent\ttests/Support/SupportComposerTest.php",
+          "testMakeProcessCorrectlyFormatsCommandLine\ttests/Queue/QueueListenerTest.php",
+          "testMakeProcessCorrectlyFormatsCommandLineWhenTheConnectionIsNotSpecified\ttests/Queue/QueueListenerTest.php",
+          "testMakeProcessCorrectlyFormatsCommandLineWithAnEnvironmentSpecified\ttests/Queue/QueueListenerTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "php_binary",
+        "n_callers": 14
+      }
+    }
+  ]
+}

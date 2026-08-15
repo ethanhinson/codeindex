@@ -26,6 +26,14 @@ import (
 const version = "0.2.0"
 
 func main() {
+	// Test/benchmark isolation escape hatch: when CODEINDEX_DISABLED is set,
+	// refuse to run regardless of how the binary was reached (PATH, absolute
+	// path, alias). Off by default — no effect on normal use. Used by the A/B
+	// harness to guarantee the control arm cannot invoke the index.
+	if os.Getenv("CODEINDEX_DISABLED") != "" {
+		fmt.Fprintln(os.Stderr, "codeindex: disabled via CODEINDEX_DISABLED")
+		os.Exit(127)
+	}
 	if len(os.Args) < 3 {
 		fmt.Fprintln(os.Stderr,
 			"usage: codeindex <build|refresh|status|callers|callees|impact|dependents|deps|find|grep|depmap|export|import|enclosing|serve|mcp|bench> <repo-root> ...")

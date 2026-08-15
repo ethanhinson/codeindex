@@ -152,8 +152,11 @@ def run_one(task: dict, arm: str, rep: int, repo: Path, model: str,
         # (e.g. /opt/homebrew/bin/codeindex) otherwise leaks into arm A via the
         # inherited PATH, contaminating the A-vs-B contrast. Prepend a shim dir
         # whose `codeindex` fails, shadowing any real one while leaving claude/
-        # grep/etc. resolvable. Also drop the env hint.
+        # grep/etc. resolvable. Also drop the env hint. Belt-and-suspenders:
+        # CODEINDEX_DISABLED makes the real binary itself refuse if reached by
+        # any route the shim misses (absolute path, alias, PATH-ordering gap).
         env.pop("CODEINDEX_BIN", None)
+        env["CODEINDEX_DISABLED"] = "1"
         env["PATH"] = f"{arm_a_shim_dir()}{os.pathsep}{env.get('PATH', '')}"
     if arm == "B":
         if plugin_arm:
