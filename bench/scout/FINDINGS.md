@@ -121,3 +121,36 @@ model effort should go.
 - Tier-1's single-hop, graph-derivable slice is the easy floor. Hard cases
   (trust-vs-verify on ambiguous edges, multi-hop stop decisions) need a
   teacher-trajectory tier that does not exist yet.
+
+## End-to-end: classifier through the A/B harness — the real seam (2026-08-15)
+
+Ran the classifier as ARM C: classifier routes -> codeindex runs -> raw tool
+output IS the answer, NO agent. Graded by the harness's own grader on gin+
+prometheus (tasks_v6, n=20). See `arm_c.py`.
+
+| type | arm C success | why |
+| --- | --- | --- |
+| vague_find | 100% | raw `find` output matches the grader's expected shape |
+| comprehension | 50% | partial format overlap |
+| caller/occurrence | 0% | answer data PRESENT but wrong FORMAT |
+| OVERALL | 55% | |
+
+The 0% buckets are NOT routing or retrieval failures — the correct callers are
+in the raw output (`context.go:208 Context.AbortWithStatus`), but the grader
+wants `AbortWithStatus\tcontext.go`. A trivial reformatter recovers it.
+
+**Finding that reframes the whole arc:** routing is solved by a classifier (90%),
+retrieval by codeindex (data always present) — the remaining gap is OUTPUT
+NORMALIZATION, the agent's hidden second job. Removing the agent exposed it.
+
+Corrected Scout architecture:
+    task -> [classifier: route, 90% ~1ms] -> [codeindex: retrieve, complete]
+         -> [formatter: normalize]  <- the real open problem -> answer
+
+The distillation target, if any, is the FORMATTER, not the router — and it may
+not even need a model (deterministic per-tool parsers likely suffice).
+
+Caveat: also surfaced a taxonomy clash — the harness's "occurrences" type is
+semantically caller-attribution (prompt says "functions that CALL X", gt is
+caller_pairs), while the generator's "occurrences" means literal token refs.
+Reconcile before further cross-use.
