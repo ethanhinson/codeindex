@@ -24,7 +24,7 @@ sys.path.insert(0, str(HERE.parent / "agent_ab"))
 import grade as G  # harness grader
 from measure_ceiling import PARA, make_task  # calibrated templates (unused here but keeps parity)
 from clf_baseline import embed, build_split_by_template
-from formatters import format_answer
+from formatters import format_answer, route_answer
 from sklearn.linear_model import LogisticRegression
 
 # --- train the router classifier on the gin Tier-1 corpus (all of it) ---
@@ -60,6 +60,9 @@ def main():
     ap.add_argument("--repos-root", default="../repos")
     ap.add_argument("--binary", default="/opt/homebrew/bin/codeindex")
     ap.add_argument("--out", default="arm_c_results.jsonl")
+    ap.add_argument("--forced-tools", action="store_true",
+                    help="legacy mode: pick the tool from the harness task type "
+                         "(a FORMATTER ceiling test, not end-to-end — caveat 1)")
     args = ap.parse_args()
 
     print("training router (local embeddings)...", file=sys.stderr)
@@ -77,20 +80,30 @@ def main():
         sym, prompt = parse_task(t)
         repo = str((HERE / args.repos_root / t["repo"]).resolve())
         tp = t["type"]
-        # Router picks the retrieval tool; the FORMATTER (deterministic) turns
-        # raw tool output into the grader-shaped answer. For caller/occurrence
-        # the answer needs callers; for comprehension it needs a def + files
-        # (find for the def, grep for referencing files).
-        if tp in ("caller_attribution", "occurrences", "edit_impact"):
-            raw = run_tool("callers", repo, sym, args.binary)
-            answer = format_answer(tp, "callers", raw)
-        elif tp == "comprehension":
-            raw_find = run_tool("find", repo, sym, args.binary)
-            raw_grep = run_tool("grep", repo, sym, args.binary)
-            answer = format_answer(tp, "find", raw_find, raw_grep)
-        else:  # vague_find
-            raw = run_tool("find", repo, sym, args.binary)
-            answer = format_answer(tp, "find", raw)
+        if args.forced_tools:
+            # Legacy: tool forced by harness type — tests the formatter, not
+            # the router (caveat 1). Kept as the formatter-ceiling reference.
+            if tp in ("caller_attribution", "occurrences", "edit_impact"):
+                raw = run_tool("callers", repo, sym, args.binary)
+                answer = format_answer(tp, "callers", raw)
+            elif tp == "comprehension":
+                raw_find = run_tool("find", repo, sym, args.binary)
+                raw_grep = run_tool("grep", repo, sym, args.binary)
+                answer = format_answer(tp, "find", raw_find, raw_grep)
+            else:  # vague_find
+                raw = run_tool("find", repo, sym, args.binary)
+                answer = format_answer(tp, "find", raw)
+        else:
+            # Honest end-to-end: the CLASSIFIER's route alone picks retrieval
+            # AND answer shape; the harness type is only used for grading.
+            route = str(tool)
+            if route == "find":
+                raw = run_tool("find", repo, sym, args.binary)
+                raw_aux = run_tool("grep", repo, sym, args.binary)
+                answer = route_answer(route, raw, raw_aux)
+            else:
+                raw = run_tool(route, repo, sym, args.binary)
+                answer = route_answer(route, raw)
         prefix = repo.rstrip("/") + "/"
         gt = t["ground_truth"]
         tp = t["type"]
