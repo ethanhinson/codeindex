@@ -257,3 +257,20 @@ union answer scores 0.85-0.93, and (b) the v10 A/B, where an agent WITHOUT
 the index independently converged to the same caller answers. Residual F1
 gap on comprehension is index scope, not wrongness: gt counts references in
 CHANGELOG.md/README.md/config files the call-graph index does not cover.
+
+## Taxonomy reconciled: "occurrences" is two different things no more (2026-08-15 evening)
+
+The clash (caveat 3) is resolved by renaming the GENERATOR's class and
+freezing the harness's:
+- `gen_tier1.py` now emits `token_refs` ("which functions reference the
+  literal token X" -> grep) — the class formerly called "occurrences" there.
+  Router training is unaffected (it trains on `gold_trajectory[0].tool`, not
+  the type string); old gin_tier1.jsonl corpora still load.
+- The A/B harness keeps its frozen `occurrences` type name (recorded runs
+  reference it) but `build_tasks.py` now documents at the source that it is
+  semantically caller-attribution (prompt "functions that CALL X", gt
+  caller_pairs, candidates reused from caller_attribution verbatim).
+- `rule_baseline.py`/`measure_ceiling.py` template keys renamed to match.
+
+Rule going forward: "occurrences" appearing in harness artifacts = caller
+attribution; literal token references are always `token_refs`.

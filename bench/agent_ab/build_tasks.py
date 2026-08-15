@@ -321,6 +321,12 @@ OCCUR_PROMPT = (
 
 
 def occurrences_tasks(name: str, rp: Path, n: int, rng: random.Random) -> list[dict]:
+    # Taxonomy note: despite the name, this type is semantically
+    # CALLER-ATTRIBUTION — the prompt asks for "functions that CALL X" and gt
+    # is caller_pairs (it reuses caller_attribution candidates verbatim). The
+    # name is frozen because recorded runs (tasks_v6/lphp/nest, FINDINGS v10,
+    # bench/scout) reference it. Literal-token-reference tasks live in
+    # bench/scout/gen_tier1.py under the class "token_refs".
     base = caller_attribution_tasks(name, rp, n * 2, rng)
     out = []
     for t in base[:n]:

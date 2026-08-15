@@ -49,7 +49,7 @@ PARA = {
         "List the call sites of {S}.",
         "Before I rename {S}, what calls it?",
     ],
-    "occurrences": [
+    "token_refs": [
         "Where does the string '{S}' show up in the code?",
         "Every function that uses {S}.",
         "Find all references to {S}.",

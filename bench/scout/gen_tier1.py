@@ -37,7 +37,7 @@ import local_llm  # noqa: E402  (local Qwen via LM Studio; no external calls)
 # NOT naming the tool, so the rewrite can't telegraph the answer.
 INTENT = {
     "caller_attribution": "find every place that calls/invokes/depends on the symbol",
-    "occurrences": "find every place in the code that references or mentions the token",
+    "token_refs": "find every place in the code that references or mentions the token",
     "vague_find": "locate a symbol by a rough description of what it does or its name",
 }
 
@@ -148,12 +148,16 @@ def generate(repo, lang, binary, sample, seed):
                 "ambiguous": amb, "answer_n": len(callers),
             })
 
-        # --- occurrences (grep, attributed) ---
+        # --- token_refs (grep, attributed) ---
+        # Taxonomy note: this class was called "occurrences" and clashed with
+        # the A/B harness, whose "occurrences" type is semantically
+        # caller-attribution (prompt says "functions that CALL X", gt is
+        # caller_pairs). Renamed: token_refs = literal token references.
         gout = run(binary, "grep", repo, qname)
         gsyms = parse_grep_symbols(gout)
         if len(gsyms) >= 2:
             rows.append({
-                "repo": Path(repo).name, "lang": lang, "type": "occurrences",
+                "repo": Path(repo).name, "lang": lang, "type": "token_refs",
                 "symbol": qname,
                 "task": f"Which functions reference the literal token '{qname}'?",
                 "gold_trajectory": [{"tool": "grep", "args": {"pattern": qname}}, {"tool": "done"}],
@@ -185,7 +189,7 @@ def generate(repo, lang, binary, sample, seed):
 # lead the gold trajectory). This is the non-circular oracle.
 ROUTING = {
     "caller_attribution": "callers",
-    "occurrences": "grep",
+    "token_refs": "grep",
     "vague_find": "find",
 }
 

@@ -31,7 +31,7 @@ PARA = {
         "Show me the call sites of {S}.",
         "What would break if I changed {S}?",
     ],
-    "occurrences": [
+    "token_refs": [
         "Everywhere the token {S} appears in the code.",
         "Which functions mention {S}?",
         "Show all occurrences of {S}.",
