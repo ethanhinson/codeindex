@@ -3,11 +3,11 @@
 **Read this + `FINDINGS.md` before touching anything in `bench/scout/`.**
 Last updated 2026-08-15 (night). The 9-step plan is COMPLETE (`5123707` →
 `999c46c`), and the post-plan "sensible next moves" list below has been
-worked: items 1 (`codeindex nav` verb + MCP tool) and 2 (`grep -w`, recipes
-re-measured at 1.00) are DONE this session; item 5 is prepared but needs a
-human hand (agents are permission-blocked from writing settings.local.json —
-correctly, twice now); items 3 (nest sibling-family degeneracy) and 4
-(kubernetes-scale embed budget) remain open.
+worked: items 1 (`codeindex nav` verb + MCP tool), 2 (`grep -w`, recipes
+re-measured at 1.00), and 5 (settings merge committed with Ethan's approval,
+stash@{0} dropped — no stashes remain) are DONE; items 3 (nest
+sibling-family degeneracy) and 4 (kubernetes-scale embed budget) remain
+open.
 
 ## What happened this session (all committed to main)
 
@@ -83,11 +83,10 @@ now has nine more data points.
    construction (block-top extraction already fixed one layer of this).
 4. kubernetes-scale embed budget (laravel 5min → k8s ~30min extrapolated,
    over the 2-min bar): parallel llama contexts is the known lever.
-5. settings.local.json stash merge: PREPARED, needs the human. The union
-   merge (123 stash-only allow entries + current 137 = 260; every other
-   stash file verified subsumed by main) sits in the session scratchpad as
-   `settings.local.merged.json` — copy it over settings.local.json, then
-   `git stash drop`. Agents are (correctly) blocked from this write.
+5. ~~settings.local.json stash merge~~ **DONE** (commit `5ed8eda`, with
+   Ethan approving the write): 123 stash-only allow entries + current 137 =
+   260, every other stash file verified subsumed by main, stash@{0}
+   dropped. The stash list is empty — the WIP-stash saga is fully closed.
 6. NEW candidates surfaced by this session: consider `nav` with `-w` grep —
    but ONLY behind a re-run of the union arm (the 100%/0.95 was measured
    with substring grep); and a plugin prompt-note mention of `nav` — but
