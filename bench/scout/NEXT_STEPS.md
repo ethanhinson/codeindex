@@ -79,8 +79,15 @@ now has nine more data points.
    recipes.py post-filter deleted in favor of `_word_grep`; re-measured
    1.00/1.00/1.00 on tasks_v6/lphp/nest. JSON gains `"word":true` only when
    set (goldens untouched). MCP grep gained the optional `word` arg.
-3. nest concept quality: attack the sibling-family degeneracy in card
-   construction (block-top extraction already fixed one layer of this).
+3. ~~nest concept quality~~ **WORKED 2026-08-15 (late night)** — the stale
+   "sibling-family" framing was wrong: contrast cards already fixed that
+   layer; the real residuals were buckets 3+1 of the diffusion-contrast
+   backlog. Shipped: file-class penalty extended to sample corpora and
+   moved outside the compression envelope (zero regression; nest
+   mechanical 55→60). Withheld: entry-point roles (nest curated
+   65.4→76.9 gated behind CODEINDEX_ROLE_BOOST=1; gin/flask regressed —
+   named cause: unbounded user-side votes; registered follow-up: vote
+   saturation, fresh budget). See bench/engine/FINDINGS-residuals-roles.md.
 4. kubernetes-scale embed budget (laravel 5min → k8s ~30min extrapolated,
    over the 2-min bar): parallel llama contexts is the known lever.
 5. ~~settings.local.json stash merge~~ **DONE** (commit `5ed8eda`, with

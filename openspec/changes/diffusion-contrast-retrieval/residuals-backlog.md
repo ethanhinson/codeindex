@@ -8,17 +8,28 @@ measurement.
 
 ## Bucket 1 — entry-point preference (≈11 of 24 misses; dominant on nest)
 
-The pipeline lands in the right call-graph region but ranks internal
-plumbing above the public API entry (`RoutePathFactory.getVersionPrefix`
-over `enableVersioning`; `Module.addProvider` over `Injectable`;
-`ApplicationConfig.addGlobalRequestGuard` over `UseGuards`). Diffusion
-finds the neighborhood; nothing tells it which member is the *surface*.
+**MEASURED 2026-08-15, WITHHELD from defaults** (full account:
+`bench/engine/FINDINGS-residuals-roles.md`; artifacts
+`bench/results/curated-ROLES-*.json`). Structural roles from the diffusion
+subgraph's directed edges — user-side caller files (the filePenalty class)
+vote for their callees as surface. nest 65.4→76.9 (bar ≥75 MET; every flip
+is this bucket's thesis: Injectable, UseInterceptors, Injector) but gin
+−3.9 / flask −4.0 broke the no-regression conjunction: hyper-generic
+surface APIs with dozens of test-file votes (`Context.Status`) edge out
+on-topic answers at the rank-5 boundary. Two-iteration budget spent
+(iteration 1, foreign-dir counting, flooded flat repos). Ships as
+experimental behind `CODEINDEX_ROLE_BOOST=1`.
 
-- Candidate mechanism: structural roles from edge shape (entry/registered
-  vs internal), fed into ranking — the deferred roles change, now with a
-  measured residual justifying it.
-- Falsifiable prediction to register there: nest curated ≥ 75% (+9.6pts)
-  with no tuning-repo regression.
+The diagnosis was sharpened en route: the missed public APIs have GOOD
+cards (`Injectable`'s doc literally matches its query) but neither lane's
+top-50 retrieves them — only diffusion does — so ranking the union is the
+right layer.
+
+- Registered follow-up (NEW change, fresh 2-iteration budget): **vote
+  saturation** — cap/squash distinct-voter counts so "demonstrated by user
+  code at all" dominates and "demonstrated 40 times" adds little.
+- Bars unchanged: nest curated ≥ 75%, no tuning-repo regression
+  (gin 88.5 / flask 76.0 / laravel 76.9), mechanical + find classes hold.
 
 ## Bucket 2 — generic-name APIs (≈8 of 24; gin Set/Get, flask run, laravel hasMany)
 
@@ -34,14 +45,17 @@ terse docs. No amount of family contrast helps a card that says only
 
 ## Bucket 3 — sample/demo corpus noise (≈5 of 24; nest AA/BB, flask test fixtures)
 
-`sample/`, `integration/`, fixture apps outrank core implementations
-(`AppModule.onApplicationBootstrap` over `NestApplication`).
-
-- Candidate mechanism: extend the existing test-file ranking penalty to
-  demo/sample/integration path segments (one deterministic list, applied
-  in `boosts`) — smallest change on this list.
-- Falsifiable prediction: nest "bootstrap" and flask "test client"
-  questions flip; no regression elsewhere.
+**MEASURED 2026-08-15, SHIPPED** (full account:
+`bench/engine/FINDINGS-residuals-roles.md`). The penalty list was extended
+(sample/example/demo/benchmark/fixture/integration segments + `.spec.`)
+AND — the part that mattered — moved outside the boostGamma compression
+envelope, where 0.7 had been decaying to ≈0.88 (the compressed first cut
+measured 0.0 change everywhere). Result: zero regression on every gate,
+fixture symbols ranked below core across the board, and nest mechanical
+strict rose 55.0→60.0. The registered flip predictions did NOT come true:
+those questions' blockers are retrieval (bucket 1's territory), not
+fixture noise — recorded as a partially-failed prediction, kept for the
+ordering quality and the mechanical gain.
 
 ## Bucket 4 — bug-symptom queries (added 2026-07-12; v2 GT + controls same day)
 

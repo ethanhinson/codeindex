@@ -138,8 +138,19 @@ func matchQuality(name, qLower string, qStems []string) (float64, string) {
 	return 0, ""
 }
 
-// boosts multiplies graph signals into the score (D3).
+// boosts multiplies graph signals into the score (D3). Composition of the
+// compressed-envelope graph boost and the categorical file-class penalty —
+// find's ladder applies both at full strength.
 func boosts(s *graph.Symbol, callers int) float64 {
+	return graphBoost(s, callers) * filePenalty(s.File)
+}
+
+// graphBoost is the usage/tier/kind signal. Semantic search compresses THIS
+// with boostGamma (its raw range is ~0.4–3.9×); the file-class penalty must
+// stay outside that envelope — compressed, a 0.7 test penalty becomes a
+// meaningless 0.88 (measured: the compressed sample-dir penalty moved
+// fixture noise by ~1 rank and flipped nothing).
+func graphBoost(s *graph.Symbol, callers int) float64 {
 	b := 1 + math.Log10(1+float64(callers))
 	if s.Tier != 0 {
 		b *= 0.6 // dep tier below project
@@ -148,11 +159,36 @@ func boosts(s *graph.Symbol, callers int) float64 {
 	case graph.KindMethod:
 		b *= 0.9
 	}
-	if strings.Contains(s.File, "_test.") || strings.Contains(s.File, "/test") ||
-		strings.Contains(s.File, "tests/") {
-		b *= 0.7
-	}
 	return b
+}
+
+// filePenalty is the categorical file-class signal: test files and
+// demo/fixture corpora (residuals bucket 3 — sample apps and e2e fixtures
+// answer no "where is X implemented" question).
+func filePenalty(file string) float64 {
+	if strings.Contains(file, "_test.") || strings.Contains(file, "/test") ||
+		strings.Contains(file, "tests/") || strings.Contains(file, ".spec.") ||
+		inSampleDir(file) {
+		return 0.7
+	}
+	return 1
+}
+
+// sampleDirs are matched by exact path segment so core files merely
+// containing these words are untouched.
+var sampleDirs = map[string]bool{
+	"sample": true, "samples": true, "example": true, "examples": true,
+	"demo": true, "demos": true, "benchmark": true, "benchmarks": true,
+	"fixture": true, "fixtures": true, "integration": true,
+}
+
+func inSampleDir(file string) bool {
+	for _, seg := range strings.Split(file, "/") {
+		if sampleDirs[seg] {
+			return true
+		}
+	}
+	return false
 }
 
 func isSubsequence(needle, hay string) bool {

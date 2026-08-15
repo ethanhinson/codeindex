@@ -1,0 +1,396 @@
+{
+ "repo": "nest",
+ "split": "tuning",
+ "fixture_commit": "d0fb875e23e3e6baae8537efd41d54709acade0c",
+ "binary_sha256_16": "24e28cf0b46fe795",
+ "params": null,
+ "n": 26,
+ "hits": 19,
+ "hit5_pct": 73.1,
+ "results": [
+  {
+   "q": "mark a class as a provider that can be injected",
+   "hit": false,
+   "top": [
+    "Module.isCustomProvider",
+    "Module.addProvider",
+    "Module.addCustomProvider",
+    "Module.isCustomClass",
+    "Module.addExportedProvider"
+   ],
+   "accept": [
+    "Injectable"
+   ]
+  },
+  {
+   "q": "mark a class as an http request controller",
+   "hit": true,
+   "top": [
+    "Controller",
+    "HttpCode",
+    "RouterResponseController.setHeaders",
+    "HttpController",
+    "RouterResponseController.apply"
+   ],
+   "accept": [
+    "Controller"
+   ]
+  },
+  {
+   "q": "declare a route method that handles get requests",
+   "hit": false,
+   "top": [
+    "RouterExecutionContext.create",
+    "isRequestMethodAll",
+    "RouterExplorer.createRequestScopedHandler",
+    "RouterExecutionContext.getMetadata",
+    "RoutePathFactory.create"
+   ],
+   "accept": [
+    "createMappingDecorator",
+    "RequestMapping"
+   ]
+  },
+  {
+   "q": "read a path parameter inside a handler",
+   "hit": true,
+   "top": [
+    "Param",
+    "ExecutionContextHost.getHandler",
+    "Body",
+    "HostParam",
+    "handler"
+   ],
+   "accept": [
+    "Param"
+   ]
+  },
+  {
+   "q": "read the parsed request body in a handler",
+   "hit": true,
+   "top": [
+    "Body",
+    "MessageBody",
+    "getBodyParserOptions",
+    "Param",
+    "rawBodyParser"
+   ],
+   "accept": [
+    "Body"
+   ]
+  },
+  {
+   "q": "group providers and controllers into a unit",
+   "hit": true,
+   "top": [
+    "Module.isCustomProvider",
+    "Module.assignControllerUniqueId",
+    "Module.addCustomProvider",
+    "InternalCoreModule.register",
+    "InstanceLoader.createInstancesOfControllers"
+   ],
+   "accept": [
+    "Module"
+   ]
+  },
+  {
+   "q": "throw an error meaning the resource was not found",
+   "hit": true,
+   "top": [
+    "NotFoundException",
+    "BadRequestException",
+    "ExceptionHandler.handle",
+    "ErrorsController.throwError",
+    "StreamableFile.errorHandler"
+   ],
+   "accept": [
+    "NotFoundException"
+   ]
+  },
+  {
+   "q": "the base class all http errors derive from",
+   "hit": true,
+   "top": [
+    "HttpException",
+    "BadRequestException",
+    "MisdirectedException",
+    "InternalServerErrorException",
+    "NotFoundException"
+   ],
+   "accept": [
+    "HttpException"
+   ]
+  },
+  {
+   "q": "decide whether a request is allowed to proceed",
+   "hit": false,
+   "top": [
+    "HttpCode",
+    "RequestTimeoutException",
+    "RouterExecutionContext.createHandleResponseFn",
+    "isRequestMethodAll",
+    "ApplicationConfig.addGlobalRequestGuard"
+   ],
+   "accept": [
+    "UseGuards",
+    "GuardsConsumer",
+    "GuardsContextCreator"
+   ]
+  },
+  {
+   "q": "wrap handler execution to run logic before and after",
+   "hit": true,
+   "top": [
+    "ExecutionContextHost.getHandler",
+    "MixinInterceptor.intercept",
+    "MixinInterceptor.intercept",
+    "UseGuards",
+    "UseInterceptors"
+   ],
+   "accept": [
+    "UseInterceptors",
+    "InterceptorsConsumer",
+    "InterceptorsContextCreator"
+   ]
+  },
+  {
+   "q": "transform and validate handler arguments",
+   "hit": true,
+   "top": [
+    "Param",
+    "ValidationPipe.transform",
+    "validateEach",
+    "ValidationPipe.transformPrimitive",
+    "handler"
+   ],
+   "accept": [
+    "UsePipes",
+    "ValidationPipe",
+    "PipesConsumer"
+   ]
+  },
+  {
+   "q": "catch thrown exceptions and shape the error response",
+   "hit": true,
+   "top": [
+    "ExceptionsHandler.next",
+    "Catch",
+    "ExceptionHandler.handle",
+    "BaseExceptionFilter.handleUnknownError",
+    "BaseExceptionFilter.catch"
+   ],
+   "accept": [
+    "ExceptionFilter",
+    "Catch",
+    "UseFilters",
+    "BaseExceptionFilter",
+    "ExceptionsHandler"
+   ]
+  },
+  {
+   "q": "bootstrap and start the application",
+   "hit": false,
+   "top": [
+    "callModuleBootstrapHook",
+    "NestApplicationContext.callBootstrapHook",
+    "BB.onApplicationBootstrap",
+    "bootstrap",
+    "AA.onApplicationBootstrap"
+   ],
+   "accept": [
+    "NestFactoryStatic",
+    "NestApplication"
+   ]
+  },
+  {
+   "q": "resolve a provider's dependencies and construct it",
+   "hit": true,
+   "top": [
+    "Module.isCustomProvider",
+    "DependenciesScanner.isCustomProvider",
+    "Module.addCustomProvider",
+    "Module.addProvider",
+    "Injector.resolveSingleParam"
+   ],
+   "accept": [
+    "Injector",
+    "NestContainer",
+    "InstanceLoader",
+    "InstanceWrapper"
+   ]
+  },
+  {
+   "q": "build your own decorator that extracts data from the request",
+   "hit": false,
+   "top": [
+    "Header",
+    "Body",
+    "Param",
+    "RequestMapping",
+    "Query"
+   ],
+   "accept": [
+    "createParamDecorator"
+   ]
+  },
+  {
+   "q": "handle a microservice message by pattern",
+   "hit": true,
+   "top": [
+    "MessagePattern",
+    "ServerMqtt.getHandlerByPattern",
+    "ServerRMQ.handleMessage",
+    "Server.getHandlerByPattern",
+    "Server.addHandler"
+   ],
+   "accept": [
+    "MessagePattern",
+    "EventPattern"
+   ]
+  },
+  {
+   "q": "receive websocket messages in a gateway class",
+   "hit": true,
+   "top": [
+    "WebSocketsController.subscribeToServerEvents",
+    "SocketModule.connectAllGateways",
+    "WebSocketsController.connectGatewayToServer",
+    "WebSocketGateway",
+    "SocketModule.connectGatewayToServer"
+   ],
+   "accept": [
+    "WebSocketGateway",
+    "SubscribeMessage"
+   ]
+  },
+  {
+   "q": "apply middleware to selected routes of a module",
+   "hit": true,
+   "top": [
+    "MiddlewareBuilder.forRoutes",
+    "MiddlewareModule.registerRouteMiddleware",
+    "MiddlewareBuilder.getRoutesFlatList",
+    "RoutesMapper.getModulePath",
+    "RouteInfoPathExtractor.constructor"
+   ],
+   "accept": [
+    "MiddlewareModule"
+   ]
+  },
+  {
+   "q": "run code when a module finishes initializing",
+   "hit": true,
+   "top": [
+    "callModuleInitHook",
+    "callModuleDestroyHook",
+    "BB.onModuleInit",
+    "ModuleCompiler.compile",
+    "BB.onModuleDestroy"
+   ],
+   "accept": [
+    "callModuleInitHook"
+   ]
+  },
+  {
+   "q": "prefix every route in the app with a base path",
+   "hit": false,
+   "top": [
+    "RoutePathFactory.appendToAllIfDefined",
+    "flattenRoutePaths",
+    "concatPaths",
+    "RouteInfoPathExtractor.extractNonWildcardPathsFrom",
+    "RoutePathFactory.isExcludedFromGlobalPrefix"
+   ],
+   "accept": [
+    "setGlobalPrefix"
+   ]
+  },
+  {
+   "q": "read custom metadata attached by decorators",
+   "hit": true,
+   "top": [
+    "SetMetadata",
+    "decoratorFn",
+    "ExternalContextCreator.getMetadata",
+    "decoratorFactory",
+    "InstanceWrapper.getPropertiesMetadata"
+   ],
+   "accept": [
+    "Reflector",
+    "SetMetadata"
+   ]
+  },
+  {
+   "q": "return a specific http status code from a handler",
+   "hit": true,
+   "top": [
+    "HttpCode",
+    "HttpException.getStatus",
+    "HttpException.getResponse",
+    "RouterExecutionContext.createHandleResponseFn",
+    "RouterExecutionContext.reflectHttpStatusCode"
+   ],
+   "accept": [
+    "HttpCode"
+   ]
+  },
+  {
+   "q": "stream a file back as the response",
+   "hit": true,
+   "top": [
+    "StreamableFile.errorHandler",
+    "NonFile.pipe",
+    "StreamableFile.setErrorHandler",
+    "StreamableFile.getHeaders",
+    "StreamableFile"
+   ],
+   "accept": [
+    "StreamableFile"
+   ]
+  },
+  {
+   "q": "expose multiple versions of the same route",
+   "hit": false,
+   "top": [
+    "RoutePathFactory.isExcludedFromGlobalPrefix",
+    "RoutePathFactory.truncateVersionPrefixFromPath",
+    "RoutePathFactory.getVersionPrefix",
+    "RoutePathFactory.appendToAllIfDefined",
+    "RouteInfoPathExtractor.extractVersionPathFrom"
+   ],
+   "accept": [
+    "enableVersioning",
+    "RouterModule"
+   ]
+  },
+  {
+   "q": "load a module lazily at runtime",
+   "hit": true,
+   "top": [
+    "LazyModuleLoader.load",
+    "LazyModuleLoader",
+    "lazyModuleLoaderFactory",
+    "LazyModuleLoader.createLazyModulesContainer",
+    "LazyModuleLoader.getTargetModuleRef"
+   ],
+   "accept": [
+    "LazyModuleLoader"
+   ]
+  },
+  {
+   "q": "scan module imports to build the dependency graph",
+   "hit": true,
+   "top": [
+    "DependenciesScanner.scanForModules",
+    "DependenciesScanner.scanModulesForDependencies",
+    "DependenciesScanner.scan",
+    "GraphInspector.inspectModules",
+    "DependenciesScanner.reflectImports"
+   ],
+   "accept": [
+    "DependenciesScanner",
+    "scanForModules"
+   ]
+  }
+ ]
+}

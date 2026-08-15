@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -55,6 +56,13 @@ const (
 	// outrank the semantically-right answer (measured on the gin concept
 	// class: raw boosts inverted the vector lane's top ranks).
 	boostGamma = 0.35
+
+	// roleGamma compresses the structural-role signal (residuals bucket 1):
+	// among graph peers the public surface is the member whose in-edges
+	// arrive from many foreign directories; plumbing is called from within
+	// its own. Compressed so role shades rank among near-ties instead of
+	// flooding retrieval evidence.
+	roleGamma = 0.25
 )
 
 // Semantic runs the hybrid pipeline: lexical lane (find ladder over query +
@@ -192,7 +200,10 @@ func Semantic(st *graph.Store, prov embed.Provider, query string, opts SemanticO
 			score += lit.conf / float64(litK+r)
 			lanes = append(lanes, "lit")
 		}
-		score *= math.Pow(boosts(s, callers[id])*heatBoost(id), boostGamma)
+		// Graph signals compressed (usage shades rank, never floods it);
+		// the categorical file-class penalty applies at full strength —
+		// inside the envelope it decays to ~0.88 and flips nothing.
+		score *= math.Pow(graphBoost(s, callers[id])*heatBoost(id), boostGamma) * filePenalty(s.File)
 		fusedScore[id] = score
 		lanesOf[id] = strings.Join(lanes, "+")
 	}
@@ -294,6 +305,43 @@ func Semantic(st *graph.Store, prov embed.Provider, query string, opts SemanticO
 		}
 		final[id] += diffusionLambda * d / maxDiff
 	}
+	// Structural roles (residuals bucket 1) — WITHHELD from defaults,
+	// experimental behind CODEINDEX_ROLE_BOOST=1 (same precedent as the
+	// literal lane). The subgraph's directed edges reveal which member of a
+	// neighborhood is the public SURFACE: user-side corpora (tests, samples,
+	// e2e fixtures — exactly the filePenalty class) exist to demonstrate
+	// the public API, so each distinct user-side caller file votes for the
+	// callee as surface; fixtures don't vote for fixtures. Measured
+	// (2026-08-15, curated tuning sets): nest 65.4→76.9 — the three flips
+	// are precisely the bucket's entry-point thesis (Injectable,
+	// UseInterceptors, Injector) — but gin 88.5→84.6 / flask 76.0→72.0:
+	// UNBOUNDED vote counts let hyper-generic surface APIs (Context.Status,
+	// dozens of test callers) edge out on-topic answers at the top-5
+	// boundary. Iteration budget spent; the registered follow-up is vote
+	// saturation. (Iteration 1, foreign-caller-dir counting, flooded flat
+	// repos: gin render helpers outranked the API.)
+	if os.Getenv("CODEINDEX_ROLE_BOOST") == "1" {
+		userVotes := map[int64]map[string]bool{}
+		for _, p := range pairs {
+			src, dst := byID[p.a], byID[p.b]
+			if src == nil || dst == nil {
+				continue
+			}
+			if filePenalty(src.File) == 1 || filePenalty(dst.File) < 1 {
+				continue
+			}
+			m := userVotes[p.b]
+			if m == nil {
+				m = map[string]bool{}
+				userVotes[p.b] = m
+			}
+			m[src.File] = true
+		}
+		for id := range final {
+			final[id] *= math.Pow(1+float64(len(userVotes[id])), roleGamma)
+		}
+	}
+
 	// Exactness ladder, applied above the blend: exact symbol name (rung 1)
 	// beats a verbatim phrase-in-span match (rung 2) beats everything fused.
 	for _, id := range lit.pins {
