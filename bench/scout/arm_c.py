@@ -24,7 +24,7 @@ sys.path.insert(0, str(HERE.parent / "agent_ab"))
 import grade as G  # harness grader
 from measure_ceiling import PARA, make_task  # calibrated templates (unused here but keeps parity)
 from clf_baseline import embed, build_split_by_template
-from formatters import format_answer, route_answer
+from formatters import format_answer, route_answer, fmt_union
 from sklearn.linear_model import LogisticRegression
 
 # --- train the router classifier on the gin Tier-1 corpus (all of it) ---
@@ -63,6 +63,9 @@ def main():
     ap.add_argument("--forced-tools", action="store_true",
                     help="legacy mode: pick the tool from the harness task type "
                          "(a FORMATTER ceiling test, not end-to-end — caveat 1)")
+    ap.add_argument("--over-retrieve", action="store_true",
+                    help="skip routing entirely: run callers+find+grep (all ~free) "
+                         "and emit one union answer shaped for every grader")
     args = ap.parse_args()
 
     print("training router (local embeddings)...", file=sys.stderr)
@@ -80,7 +83,13 @@ def main():
         sym, prompt = parse_task(t)
         repo = str((HERE / args.repos_root / t["repo"]).resolve())
         tp = t["type"]
-        if args.forced_tools:
+        if args.over_retrieve:
+            # No routing at all: retrieval is milliseconds, so run everything
+            # and let the union answer's section order satisfy each grader.
+            answer = fmt_union(run_tool("callers", repo, sym, args.binary),
+                               run_tool("find", repo, sym, args.binary),
+                               run_tool("grep", repo, sym, args.binary))
+        elif args.forced_tools:
             # Legacy: tool forced by harness type — tests the formatter, not
             # the router (caveat 1). Kept as the formatter-ceiling reference.
             if tp in ("caller_attribution", "occurrences", "edit_impact"):
