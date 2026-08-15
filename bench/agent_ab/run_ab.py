@@ -37,6 +37,29 @@ sys.path.insert(0, str(HERE.parent))
 from build_tasks import repo_path, load_repos  # noqa: E402
 
 
+# Control-arm (A) shim: a directory prepended to PATH holding a `codeindex`
+# that always fails, so a globally-installed binary can't leak into the control
+# arm. We shadow the tool rather than delete PATH dirs (those also hold `claude`,
+# `grep`, etc., which arm A still needs). Created once, reused for every A run.
+_ARM_A_SHIM: Path | None = None
+
+
+def arm_a_shim_dir() -> Path:
+    global _ARM_A_SHIM
+    if _ARM_A_SHIM is None:
+        d = HERE / ".arm_a_shim"
+        d.mkdir(exist_ok=True)
+        stub = d / "codeindex"
+        stub.write_text(
+            "#!/bin/sh\n"
+            "echo 'codeindex: not available in control arm' >&2\n"
+            "exit 127\n"
+        )
+        stub.chmod(0o755)
+        _ARM_A_SHIM = d
+    return _ARM_A_SHIM
+
+
 def claude_version() -> str:
     try:
         return subprocess.run(["claude", "--version"], capture_output=True,
@@ -124,6 +147,14 @@ def run_one(task: dict, arm: str, rep: int, repo: Path, model: str,
     key = f"{task['id']}_{arm}_r{rep}"
     env = dict(os.environ)
     hook_log = None
+    if arm == "A":
+        # CONTROL arm must NOT reach codeindex. A globally-installed binary
+        # (e.g. /opt/homebrew/bin/codeindex) otherwise leaks into arm A via the
+        # inherited PATH, contaminating the A-vs-B contrast. Prepend a shim dir
+        # whose `codeindex` fails, shadowing any real one while leaving claude/
+        # grep/etc. resolvable. Also drop the env hint.
+        env.pop("CODEINDEX_BIN", None)
+        env["PATH"] = f"{arm_a_shim_dir()}{os.pathsep}{env.get('PATH', '')}"
     if arm == "B":
         if plugin_arm:
             # v3: the REAL packaged plugin — skill, commands, hook. Binary is

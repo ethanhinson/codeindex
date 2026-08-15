@@ -1,0 +1,685 @@
+{
+  "header": {
+    "generated_seed": 1729,
+    "repo_pins": {
+      "laravel-framework": {
+        "slug": "laravel/framework",
+        "commit": "v11.38.0"
+      }
+    },
+    "thresholds": {
+      "metric": "median paired reduction in total_cost_usd",
+      "green": "savings >= 30% AND success_delta >= -5pp AND adoption >= 70%",
+      "yellow": "savings 10-30%, OR adoption 40-70% with per-protocol savings >= 30%",
+      "red": "savings < 10% (ITT), OR success_delta < -5pp, OR adoption < 40% with per-protocol savings < 30%"
+    },
+    "v3_gate": null,
+    "v6_gate": null,
+    "n_tasks": 24,
+    "by_type": {
+      "comprehension": 6,
+      "localization": 0,
+      "caller_attribution": 0,
+      "edit_impact": 6,
+      "vague_find": 6,
+      "occurrences": 6
+    },
+    "note": "Prompts contain the literal {REPO_PATH}; the runner substitutes the resolved absolute clone path. Ground truth is arm-neutral (ripgrep / merged-PR files)."
+  },
+  "tasks": [
+    {
+      "id": "comp-laravel-framework-assertHasReplyTo",
+      "type": "comprehension",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, where is 'assertHasReplyTo' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'assertHasReplyTo'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "src/Illuminate/Mail/Mailable.php:1313"
+        ],
+        "files": [
+          "src/Illuminate/Mail/Mailable.php",
+          "tests/Mail/MailMailableTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "assertHasReplyTo",
+        "n_defs": 1,
+        "n_files": 2,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-laravel-framework-flashInput",
+      "type": "comprehension",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, where is 'flashInput' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'flashInput'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "src/Illuminate/Session/Store.php:537"
+        ],
+        "files": [
+          "src/Illuminate/Http/Concerns/InteractsWithFlashData.php",
+          "src/Illuminate/Http/RedirectResponse.php",
+          "src/Illuminate/Session/Store.php",
+          "src/Illuminate/Support/Facades/Session.php",
+          "tests/Http/HttpRedirectResponseTest.php",
+          "tests/Http/HttpRequestTest.php",
+          "tests/Http/HttpResponseTest.php",
+          "tests/Session/SessionStoreTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "flashInput",
+        "n_defs": 1,
+        "n_files": 8,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-laravel-framework-resource",
+      "type": "comprehension",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, where is 'resource' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'resource'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "src/Illuminate/Routing/RouteRegistrar.php:147",
+          "src/Illuminate/Routing/Router.php:334"
+        ],
+        "files": [
+          "CHANGELOG.md",
+          "config/cors.php",
+          "src/Illuminate/Auth/Access/Gate.php",
+          "src/Illuminate/Contracts/Auth/Access/Gate.php",
+          "src/Illuminate/Contracts/Filesystem/Filesystem.php",
+          "src/Illuminate/Contracts/Routing/Registrar.php",
+          "src/Illuminate/Database/Eloquent/JsonEncodingException.php",
+          "src/Illuminate/Database/Query/Grammars/Grammar.php",
+          "src/Illuminate/Filesystem/FilesystemAdapter.php",
+          "src/Illuminate/Filesystem/LockableFile.php",
+          "src/Illuminate/Foundation/Auth/Access/AuthorizesRequests.php",
+          "src/Illuminate/Foundation/Console/ModelMakeCommand.php",
+          "src/Illuminate/Foundation/Console/ResourceMakeCommand.php",
+          "src/Illuminate/Foundation/Console/StubPublishCommand.php",
+          "src/Illuminate/Foundation/Console/stubs/resource-collection.stub",
+          "src/Illuminate/Foundation/Console/stubs/resource.stub",
+          "src/Illuminate/Http/Client/PendingRequest.php",
+          "src/Illuminate/Http/Client/Response.php",
+          "src/Illuminate/Http/Resources/CollectsResources.php",
+          "src/Illuminate/Http/Resources/ConditionallyLoadsAttributes.php",
+          "src/Illuminate/Http/Resources/DelegatesToResource.php",
+          "src/Illuminate/Http/Resources/Json/AnonymousResourceCollection.php",
+          "src/Illuminate/Http/Resources/Json/JsonResource.php",
+          "src/Illuminate/Http/Resources/Json/PaginatedResourceResponse.php",
+          "src/Illuminate/Http/Resources/Json/ResourceCollection.php",
+          "src/Illuminate/Http/Resources/Json/ResourceResponse.php",
+          "src/Illuminate/Http/Testing/File.php",
+          "src/Illuminate/Http/Testing/FileFactory.php",
+          "src/Illuminate/Mail/Message.php",
+          "src/Illuminate/Mail/TextMessage.php",
+          "src/Illuminate/Pagination/AbstractCursorPaginator.php",
+          "src/Illuminate/Process/PendingProcess.php",
+          "src/Illuminate/Routing/Console/ControllerMakeCommand.php",
+          "src/Illuminate/Routing/Console/stubs/controller.api.stub",
+          "src/Illuminate/Routing/Console/stubs/controller.model.api.stub",
+          "src/Illuminate/Routing/Console/stubs/controller.model.stub",
+          "src/Illuminate/Routing/Console/stubs/controller.nested.api.stub",
+          "src/Illuminate/Routing/Console/stubs/controller.nested.singleton.api.stub",
+          "src/Illuminate/Routing/Console/stubs/controller.nested.singleton.stub",
+          "src/Illuminate/Routing/Console/stubs/controller.nested.stub",
+          "src/Illuminate/Routing/Console/stubs/controller.singleton.api.stub",
+          "src/Illuminate/Routing/Console/stubs/controller.singleton.stub",
+          "src/Illuminate/Routing/Console/stubs/controller.stub",
+          "src/Illuminate/Routing/PendingResourceRegistration.php",
+          "src/Illuminate/Routing/PendingSingletonResourceRegistration.php",
+          "src/Illuminate/Routing/ResourceRegistrar.php",
+          "src/Illuminate/Routing/RouteRegistrar.php",
+          "src/Illuminate/Routing/Router.php",
+          "src/Illuminate/Support/Facades/Gate.php",
+          "src/Illuminate/Support/Facades/Http.php",
+          "src/Illuminate/Support/Facades/Process.php",
+          "src/Illuminate/Support/Facades/Request.php",
+          "src/Illuminate/Support/Facades/Route.php",
+          "src/Illuminate/Support/Facades/Storage.php",
+          "src/Illuminate/Support/Str.php",
+          "tests/Auth/AuthAccessGateTest.php",
+          "tests/Http/HttpClientTest.php",
+          "tests/Http/HttpJsonResponseTest.php",
+          "tests/Http/JsonResourceTest.php",
+          "tests/Integration/Cache/DynamoDbStoreTest.php",
+          "tests/Integration/Generators/ResourceMakeCommandTest.php",
+          "tests/Integration/Http/Fixtures/AnonymousResourceCollectionWithPaginationInformation.php",
+          "tests/Integration/Http/Fixtures/JsonSerializableResource.php",
+          "tests/Integration/Http/Fixtures/PostCollectionResourceWithPaginationInformation.php",
+          "tests/Integration/Http/Fixtures/PostResourceWithAnonymousResourceCollectionWithPaginationInformation.php",
+          "tests/Integration/Http/Fixtures/PostResourceWithJsonOptionsAndTypeHints.php",
+          "tests/Integration/Http/Fixtures/ResourceWithPreservedKeys.php",
+          "tests/Integration/Http/ResourceTest.php",
+          "tests/Routing/RouteRegistrarTest.php",
+          "tests/Routing/RoutingRouteTest.php",
+          "tests/Routing/fixtures/controller.php",
+          "tests/Routing/fixtures/except_controller.php",
+          "tests/Routing/fixtures/only_controller.php",
+          "tests/Testing/TestResponseTest.php",
+          "tests/Validation/ValidationValidatorTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "resource",
+        "n_defs": 2,
+        "n_files": 75,
+        "bucket": "hot"
+      }
+    },
+    {
+      "id": "comp-laravel-framework-addConnection",
+      "type": "comprehension",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, where is 'addConnection' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'addConnection'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "src/Illuminate/Queue/Capsule/Manager.php:149"
+        ],
+        "files": [
+          "src/Illuminate/Database/Capsule/Manager.php",
+          "src/Illuminate/Database/ConnectionResolver.php",
+          "src/Illuminate/Database/README.md",
+          "src/Illuminate/Queue/Capsule/Manager.php",
+          "src/Illuminate/Queue/README.md",
+          "tests/Bus/BusBatchTest.php",
+          "tests/Conditionable/ConditionableTest.php",
+          "tests/Database/DatabaseConnectionFactoryTest.php",
+          "tests/Database/DatabaseEloquentBelongsToManyAggregateTest.php",
+          "tests/Database/DatabaseEloquentBelongsToManyChunkByIdTest.php",
+          "tests/Database/DatabaseEloquentBelongsToManyEachByIdTest.php",
+          "tests/Database/DatabaseEloquentBelongsToManyExpressionTest.php",
+          "tests/Database/DatabaseEloquentBelongsToManyLazyByIdTest.php",
+          "tests/Database/DatabaseEloquentBelongsToManySyncReturnValueTypeTest.php",
+          "tests/Database/DatabaseEloquentBelongsToManySyncTouchesParentTest.php",
+          "tests/Database/DatabaseEloquentCollectionTest.php",
+          "tests/Database/DatabaseEloquentFactoryTest.php",
+          "tests/Database/DatabaseEloquentGlobalScopesTest.php",
+          "tests/Database/DatabaseEloquentHasManyThroughIntegrationTest.php",
+          "tests/Database/DatabaseEloquentHasOneOfManyTest.php",
+          "tests/Database/DatabaseEloquentHasOneThroughIntegrationTest.php",
+          "tests/Database/DatabaseEloquentIntegrationTest.php",
+          "tests/Database/DatabaseEloquentIntegrationWithTablePrefixTest.php",
+          "tests/Database/DatabaseEloquentInverseRelationHasManyTest.php",
+          "tests/Database/DatabaseEloquentInverseRelationHasOneTest.php",
+          "tests/Database/DatabaseEloquentInverseRelationMorphManyTest.php",
+          "tests/Database/DatabaseEloquentInverseRelationMorphOneTest.php",
+          "tests/Database/DatabaseEloquentIrregularPluralTest.php",
+          "tests/Database/DatabaseEloquentLocalScopesTest.php",
+          "tests/Database/DatabaseEloquentMorphOneOfManyTest.php",
+          "tests/Database/DatabaseEloquentPolymorphicIntegrationTest.php",
+          "tests/Database/DatabaseEloquentPolymorphicRelationsIntegrationTest.php",
+          "tests/Database/DatabaseEloquentSoftDeletesIntegrationTest.php",
+          "tests/Database/DatabaseEloquentTimestampsTest.php",
+          "tests/Database/DatabaseEloquentWithCastsTest.php",
+          "tests/Database/DatabaseIntegrationTest.php",
+          "tests/Database/DatabaseMigratorIntegrationTest.php",
+          "tests/Database/DatabaseSQLiteSchemaGrammarTest.php",
+          "tests/Database/DatabaseSchemaBuilderIntegrationTest.php",
+          "tests/Database/DatabaseTransactionsTest.php",
+          "tests/Database/EloquentModelCustomCastingTest.php",
+          "tests/Database/PruneCommandTest.php",
+          "tests/Queue/DatabaseFailedJobProviderTest.php",
+          "tests/Queue/DatabaseUuidFailedJobProviderTest.php",
+          "tests/Queue/QueueDatabaseQueueIntegrationTest.php",
+          "tests/Validation/ValidationExistsRuleTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "addConnection",
+        "n_defs": 1,
+        "n_files": 46,
+        "bucket": "hot"
+      }
+    },
+    {
+      "id": "comp-laravel-framework-FailedTableCommand",
+      "type": "comprehension",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, where is 'FailedTableCommand' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'FailedTableCommand'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "src/Illuminate/Queue/Console/FailedTableCommand.php:11"
+        ],
+        "files": [
+          "src/Illuminate/Foundation/Providers/ArtisanServiceProvider.php",
+          "src/Illuminate/Queue/Console/FailedTableCommand.php",
+          "tests/Integration/Generators/QueueFailedTableCommandTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "FailedTableCommand",
+        "n_defs": 1,
+        "n_files": 3,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-laravel-framework-getRawListeners",
+      "type": "comprehension",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, where is 'getRawListeners' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'getRawListeners'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "src/Illuminate/Events/Dispatcher.php:774"
+        ],
+        "files": [
+          "src/Illuminate/Database/Eloquent/ModelInspector.php",
+          "src/Illuminate/Events/Dispatcher.php",
+          "src/Illuminate/Foundation/Console/EventListCommand.php",
+          "src/Illuminate/Support/Facades/Event.php"
+        ]
+      },
+      "meta": {
+        "symbol": "getRawListeners",
+        "n_defs": 1,
+        "n_files": 4,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "vague-laravel-framework-isControllerAction",
+      "type": "vague_find",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"controller is\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "isControllerAction",
+        "definition": "src/Illuminate/Routing/Route.php:226"
+      },
+      "meta": {
+        "symbol": "isControllerAction",
+        "hint": "controller is"
+      }
+    },
+    {
+      "id": "vague-laravel-framework-firstClosureParameterTypes",
+      "type": "vague_find",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"first closure parameter\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "firstClosureParameterTypes",
+        "definition": "src/Illuminate/Support/Traits/ReflectsClosures.php:46"
+      },
+      "meta": {
+        "symbol": "firstClosureParameterTypes",
+        "hint": "first closure parameter"
+      }
+    },
+    {
+      "id": "vague-laravel-framework-getFacadeAccessor",
+      "type": "vague_find",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"accessor get\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "getFacadeAccessor",
+        "definition": "src/Illuminate/Support/Facades/Facade.php:220"
+      },
+      "meta": {
+        "symbol": "getFacadeAccessor",
+        "hint": "accessor get"
+      }
+    },
+    {
+      "id": "vague-laravel-framework-ageFlashData",
+      "type": "vague_find",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"data flash\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "ageFlashData",
+        "definition": "src/Illuminate/Session/Store.php:221"
+      },
+      "meta": {
+        "symbol": "ageFlashData",
+        "hint": "data flash"
+      }
+    },
+    {
+      "id": "vague-laravel-framework-getSymfonyTransport",
+      "type": "vague_find",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"transport symfony\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "getSymfonyTransport",
+        "definition": "src/Illuminate/Mail/Mailer.php:628"
+      },
+      "meta": {
+        "symbol": "getSymfonyTransport",
+        "hint": "transport symfony"
+      }
+    },
+    {
+      "id": "vague-laravel-framework-prepareNestedBatches",
+      "type": "vague_find",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"nested prepare\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "prepareNestedBatches",
+        "definition": "src/Illuminate/Bus/ChainedBatch.php:58"
+      },
+      "meta": {
+        "symbol": "prepareNestedBatches",
+        "hint": "nested prepare"
+      }
+    },
+    {
+      "id": "occur-laravel-framework-throwBadMethodCallException",
+      "type": "occurrences",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'throwBadMethodCallException' (exact name; not similarly-named functions, not the definition itself). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "__call\tsrc/Illuminate/Database/Eloquent/Factories/Factory.php",
+          "__call\tsrc/Illuminate/Database/Query/Builder.php",
+          "__call\tsrc/Illuminate/Http/RedirectResponse.php",
+          "__call\tsrc/Illuminate/Mail/Mailable.php",
+          "__callStatic\tsrc/Illuminate/Database/Eloquent/Builder.php",
+          "forwardCallTo\tsrc/Illuminate/Support/Traits/ForwardsCalls.php",
+          "throwTestException\ttests/Support/ForwardsCallsTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "throwBadMethodCallException",
+        "n_callers": 7
+      }
+    },
+    {
+      "id": "occur-laravel-framework-flashInput",
+      "type": "occurrences",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'flashInput' (exact name; not similarly-named functions, not the definition itself). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "flash\tsrc/Illuminate/Http/Concerns/InteractsWithFlashData.php",
+          "flashExcept\tsrc/Illuminate/Http/Concerns/InteractsWithFlashData.php",
+          "flashOnly\tsrc/Illuminate/Http/Concerns/InteractsWithFlashData.php",
+          "flush\tsrc/Illuminate/Http/Concerns/InteractsWithFlashData.php",
+          "testHasOldInputWithoutKey\ttests/Session/SessionStoreTest.php",
+          "testOldInputFlashing\ttests/Session/SessionStoreTest.php",
+          "withInput\tsrc/Illuminate/Http/RedirectResponse.php"
+        ]
+      },
+      "meta": {
+        "symbol": "flashInput",
+        "n_callers": 7
+      }
+    },
+    {
+      "id": "occur-laravel-framework-whereIntegerInRaw",
+      "type": "occurrences",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'whereIntegerInRaw' (exact name; not similarly-named functions, not the definition itself). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "orWhereIntegerInRaw\tsrc/Illuminate/Database/Query/Builder.php",
+          "testEmptyWhereIntegerInRaw\ttests/Database/DatabaseQueryBuilderTest.php",
+          "testWhereIntegerInRaw\ttests/Database/DatabaseQueryBuilderTest.php",
+          "testWhereIntegerInRaw\ttests/Integration/Database/EloquentWhereTest.php",
+          "whereIntegerNotInRaw\tsrc/Illuminate/Database/Query/Builder.php",
+          "whereKey\tsrc/Illuminate/Database/Eloquent/Builder.php"
+        ]
+      },
+      "meta": {
+        "symbol": "whereIntegerInRaw",
+        "n_callers": 6
+      }
+    },
+    {
+      "id": "occur-laravel-framework-shift",
+      "type": "occurrences",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'shift' (exact name; not similarly-named functions, not the definition itself). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "Gn\tsrc/Illuminate/Foundation/resources/exceptions/renderer/dist/scripts.js",
+          "Vu\tsrc/Illuminate/Foundation/resources/exceptions/renderer/dist/scripts.js",
+          "chain\tsrc/Illuminate/Bus/Dispatcher.php",
+          "chain\tsrc/Illuminate/Support/Testing/Fakes/BusFake.php",
+          "duplicates\tsrc/Illuminate/Collections/Collection.php",
+          "n\tsrc/Illuminate/Foundation/resources/exceptions/renderer/dist/scripts.js",
+          "qs\tsrc/Illuminate/Foundation/resources/exceptions/renderer/dist/scripts.js",
+          "testShiftReturnsAndRemovesFirstItemInCollection\ttests/Support/SupportCollectionTest.php",
+          "testShiftReturnsAndRemovesFirstXItemsInCollection\ttests/Support/SupportCollectionTest.php",
+          "testShiftReturnsNullOnEmptyCollection\ttests/Support/SupportCollectionTest.php",
+          "xc\tsrc/Illuminate/Foundation/resources/exceptions/renderer/dist/scripts.js"
+        ]
+      },
+      "meta": {
+        "symbol": "shift",
+        "n_callers": 11
+      }
+    },
+    {
+      "id": "occur-laravel-framework-zadd",
+      "type": "occurrences",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'zadd' (exact name; not similarly-named functions, not the definition itself). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "addEntry\tsrc/Illuminate/Cache/RedisTagSet.php",
+          "laterRaw\tsrc/Illuminate/Queue/RedisQueue.php",
+          "testItAddsMembersToSortedSet\ttests/Redis/RedisConnectionTest.php",
+          "testItCalculatesIntersectionOfSortedSetsAndStores\ttests/Redis/RedisConnectionTest.php",
+          "testItCalculatesUnionOfSortedSetsAndStores\ttests/Redis/RedisConnectionTest.php",
+          "testItCountsMembersInSortedSet\ttests/Redis/RedisConnectionTest.php",
+          "testItIncrementsScoreOfSortedSet\ttests/Redis/RedisConnectionTest.php",
+          "testItRemovesMembersByRankInSortedSet\ttests/Redis/RedisConnectionTest.php",
+          "testItRemovesMembersByScoreInSortedSet\ttests/Redis/RedisConnectionTest.php",
+          "testItRemovesMembersInSortedSet\ttests/Redis/RedisConnectionTest.php",
+          "testItReturnsRangeByScoreInSortedSet\ttests/Redis/RedisConnectionTest.php",
+          "testItReturnsRangeInSortedSet\ttests/Redis/RedisConnectionTest.php",
+          "testItReturnsRankInSortedSet\ttests/Redis/RedisConnectionTest.php",
+          "testItReturnsRevRangeByScoreInSortedSet\ttests/Redis/RedisConnectionTest.php",
+          "testItReturnsRevRangeInSortedSet\ttests/Redis/RedisConnectionTest.php",
+          "testItReturnsScoreInSortedSet\ttests/Redis/RedisConnectionTest.php",
+          "testItZscansForKeys\ttests/Redis/RedisConnectionTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "zadd",
+        "n_callers": 17
+      }
+    },
+    {
+      "id": "occur-laravel-framework-resolveView",
+      "type": "occurrences",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'resolveView' (exact name; not similarly-named functions, not the definition itself). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "component\tsrc/Illuminate/Foundation/Testing/Concerns/InteractsWithViews.php",
+          "render\tsrc/Illuminate/View/Compilers/BladeCompiler.php",
+          "renderComponent\tsrc/Illuminate/View/Compilers/BladeCompiler.php",
+          "testBladeViewCacheWithInlineViewComponent\ttests/View/ComponentTest.php",
+          "testBladeViewCacheWithInlineViewComponentWhereRenderDependsOnProps\ttests/View/ComponentTest.php",
+          "testBladeViewCacheWithRegularViewNameViewComponent\ttests/View/ComponentTest.php",
+          "testHtmlableGetReturned\ttests/View/ComponentTest.php",
+          "testInlineViewsGetCreated\ttests/View/ComponentTest.php",
+          "testRegularViewNamesGetReturned\ttests/View/ComponentTest.php",
+          "testRegularViewsGetReturnedUsingViewHelper\ttests/View/ComponentTest.php",
+          "testRegularViewsGetReturnedUsingViewMethod\ttests/View/ComponentTest.php",
+          "testRenderingStringClosureFromComponent\ttests/View/ComponentTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "resolveView",
+        "n_callers": 12
+      }
+    },
+    {
+      "id": "editimp-laravel-framework-createMock",
+      "type": "edit_impact",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'createMock': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'createMock' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "createFreshMockInstance\tsrc/Illuminate/Support/Facades/Facade.php",
+          "mockFilesystem\ttests/Cache/CacheFileStoreTest.php",
+          "testAttemptDoesntRehashPasswordWhenDisabled\ttests/Auth/AuthGuardTest.php",
+          "testAttemptRehashesPasswordWhenRequired\ttests/Auth/AuthGuardTest.php",
+          "testAttemptReturnsUserInterface\ttests/Auth/AuthGuardTest.php",
+          "testBeganTransactionFiresEventsIfSet\ttests/Database/DatabaseConnectionTest.php",
+          "testBeginTransactionMethodNeverRetriesIfWithinTransaction\ttests/Database/DatabaseConnectionTest.php",
+          "testBeginTransactionMethodReconnectsMissingConnection\ttests/Database/DatabaseConnectionTest.php",
+          "testBeginTransactionMethodRetriesOnFailure\ttests/Database/DatabaseConnectionTest.php",
+          "testCommittedFiresEventsIfSet\ttests/Database/DatabaseConnectionTest.php",
+          "testCommittingFiresEventsIfSet\ttests/Database/DatabaseConnectionTest.php",
+          "testConnectionString\ttests/Database/DatabaseMariaDbSchemaStateTest.php",
+          "testConnectionString\ttests/Database/DatabaseMySqlSchemaStateTest.php",
+          "testExecuteDumpProcessForDepth\ttests/Database/DatabaseMySqlSchemaStateTest.php",
+          "testGetRawQueryLog\ttests/Database/DatabaseConnectionTest.php",
+          "testInsertGetIdProcessing\ttests/Database/DatabaseProcessorTest.php",
+          "testMySqlUpdateWrappingJson\ttests/Database/DatabaseQueryBuilderTest.php",
+          "testMySqlUpdateWrappingJsonArray\ttests/Database/DatabaseQueryBuilderTest.php",
+          "testMySqlUpdateWrappingJsonPathArrayIndex\ttests/Database/DatabaseQueryBuilderTest.php",
+          "testMySqlUpdateWrappingNestedJson\ttests/Database/DatabaseQueryBuilderTest.php",
+          "testQueueIsSetByGetConnectionDynamically\ttests/Events/QueuedEventsTest.php",
+          "testRedundantRollBackFiresNoEvent\ttests/Database/DatabaseConnectionTest.php",
+          "testRegisterNamedRateLimiter\ttests/Cache/RateLimiterTest.php",
+          "testRollBackedFiresEventsIfSet\ttests/Database/DatabaseConnectionTest.php",
+          "testRunMethodRetriesOnFailure\ttests/Database/DatabaseConnectionTest.php",
+          "testSesLocalConfiguration\ttests/Mail/MailSesTransportTest.php",
+          "testSesV2LocalConfiguration\ttests/Mail/MailSesV2TransportTest.php",
+          "testSwapPDOWithOpenTransactionResetsTransactionLevel\ttests/Database/DatabaseConnectionTest.php",
+          "testTransactionLevelNotIncrementedOnTransactionException\ttests/Database/DatabaseConnectionTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "createMock",
+        "n_callers": 29
+      }
+    },
+    {
+      "id": "editimp-laravel-framework-insertUsing",
+      "type": "edit_impact",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'insertUsing': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'insertUsing' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "test\ttypes/Database/Query/Builder.php",
+          "testInsertUsingInvalidSubquery\ttests/Database/DatabaseQueryBuilderTest.php",
+          "testInsertUsingMethod\ttests/Database/DatabaseQueryBuilderTest.php",
+          "testInsertUsingWithEmptyColumns\ttests/Database/DatabaseQueryBuilderTest.php",
+          "testPreservedAreAppliedByInsertUsing\ttests/Database/DatabaseQueryBuilderTest.php",
+          "testQueryPassThru\ttests/Database/DatabaseEloquentBuilderTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "insertUsing",
+        "n_callers": 6
+      }
+    },
+    {
+      "id": "editimp-laravel-framework-withMime",
+      "type": "edit_impact",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'withMime': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'withMime' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "attachments\ttests/Mail/MailMailableTest.php",
+          "fromStorageDisk\tsrc/Illuminate/Mail/Attachment.php",
+          "testItCanAttachFromStorage\ttests/Integration/Mail/AttachingFromStorageTest.php",
+          "testItCanCheckForAttachableBasedAttachments\ttests/Mail/MailMailableTest.php",
+          "testItCanCheckForAttachmentBasedAttachments\ttests/Mail/MailMailableTest.php",
+          "testItCanCheckForDataBasedAttachments\ttests/Mail/MailMailableTest.php",
+          "testItCanCheckForPathBasedAttachments\ttests/Mail/MailMailableTest.php",
+          "toMailAttachment\ttests/Mail/AttachableTest.php",
+          "toMailAttachment\ttests/Mail/MailMailableTest.php",
+          "toMailAttachment\ttests/Mail/MailMessageTest.php",
+          "toMailAttachment\ttests/Notifications/NotificationMailMessageTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "withMime",
+        "n_callers": 11
+      }
+    },
+    {
+      "id": "editimp-laravel-framework-begin",
+      "type": "edit_impact",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'begin': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'begin' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "beginTransaction\tsrc/Illuminate/Database/Concerns/ManagesTransactions.php",
+          "testBeginningTransactions\ttests/Database/DatabaseTransactionsManagerTest.php",
+          "testCallbacksAreAddedToTheCurrentTransaction\ttests/Database/DatabaseTransactionsManagerTest.php",
+          "testCommittingDoesNotRemoveTheBasePendingTransaction\ttests/Foundation/Testing/DatabaseTransactionsManagerTest.php",
+          "testCommittingExecutesOnlyCallbacksOfTheConnection\ttests/Database/DatabaseTransactionsManagerTest.php",
+          "testCommittingTransactions\ttests/Database/DatabaseTransactionsManagerTest.php",
+          "testCommittingTransactionsExecutesCallbacks\ttests/Database/DatabaseTransactionsManagerTest.php",
+          "testItExecutesCallbacksForTheSecondTransaction\ttests/Foundation/Testing/DatabaseTransactionsManagerTest.php",
+          "testItExecutesCallbacksImmediatelyIfThereIsOnlyOneTransaction\ttests/Foundation/Testing/DatabaseTransactionsManagerTest.php",
+          "testItIgnoresTheBaseTransactionForCallbackApplicableTransactions\ttests/Foundation/Testing/DatabaseTransactionsManagerTest.php",
+          "testRollingBackTransactions\ttests/Database/DatabaseTransactionsManagerTest.php",
+          "testRollingBackTransactionsAllTheWay\ttests/Database/DatabaseTransactionsManagerTest.php",
+          "testSkipsTheNumberOfConnectionsTransacting\ttests/Foundation/Testing/DatabaseTransactionsManagerTest.php",
+          "testStageTransactions\ttests/Database/DatabaseTransactionsManagerTest.php",
+          "testStageTransactionsOnlyStagesTheTransactionsAtOrAboveTheGivenLevel\ttests/Database/DatabaseTransactionsManagerTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "begin",
+        "n_callers": 15
+      }
+    },
+    {
+      "id": "editimp-laravel-framework-timestampTz",
+      "type": "edit_impact",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'timestampTz': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'timestampTz' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "softDeletesTz\tsrc/Illuminate/Database/Schema/Blueprint.php",
+          "testAddingTimeStampTzWithDefault\ttests/Database/DatabaseMariaDbSchemaGrammarTest.php",
+          "testAddingTimeStampTzWithDefault\ttests/Database/DatabaseMySqlSchemaGrammarTest.php",
+          "testAddingTimestampTz\ttests/Database/DatabaseMariaDbSchemaGrammarTest.php",
+          "testAddingTimestampTz\ttests/Database/DatabaseMySqlSchemaGrammarTest.php",
+          "testAddingTimestampTz\ttests/Database/DatabasePostgresSchemaGrammarTest.php",
+          "testAddingTimestampTz\ttests/Database/DatabaseSQLiteSchemaGrammarTest.php",
+          "testAddingTimestampTz\ttests/Database/DatabaseSqlServerSchemaGrammarTest.php",
+          "testAddingTimestampTzWithNullPrecision\ttests/Database/DatabasePostgresSchemaGrammarTest.php",
+          "testAddingTimestampTzWithPrecision\ttests/Database/DatabaseMariaDbSchemaGrammarTest.php",
+          "testAddingTimestampTzWithPrecision\ttests/Database/DatabaseMySqlSchemaGrammarTest.php",
+          "testAddingTimestampTzWithPrecision\ttests/Database/DatabasePostgresSchemaGrammarTest.php",
+          "testAddingTimestampTzWithPrecision\ttests/Database/DatabaseSQLiteSchemaGrammarTest.php",
+          "testAddingTimestampTzWithPrecision\ttests/Database/DatabaseSqlServerSchemaGrammarTest.php",
+          "timestampsTz\tsrc/Illuminate/Database/Schema/Blueprint.php"
+        ]
+      },
+      "meta": {
+        "symbol": "timestampTz",
+        "n_callers": 15
+      }
+    },
+    {
+      "id": "editimp-laravel-framework-tearDownRedis",
+      "type": "edit_impact",
+      "repo": "laravel-framework",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'tearDownRedis': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'tearDownRedis' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "ifRedisAvailable\tsrc/Illuminate/Foundation/Testing/Concerns/InteractsWithRedis.php",
+          "tearDown\ttests/Cache/RedisCacheIntegrationTest.php",
+          "tearDown\ttests/Integration/Cache/PhpRedisCacheLockTest.php",
+          "tearDown\ttests/Integration/Cache/Psr6RedisTest.php",
+          "tearDown\ttests/Integration/Cache/RedisCacheLockTest.php",
+          "tearDown\ttests/Integration/Cache/RedisStoreTest.php",
+          "tearDown\ttests/Integration/Queue/RedisQueueTest.php",
+          "tearDown\ttests/Integration/Queue/ThrottlesExceptionsWithRedisTest.php",
+          "tearDown\ttests/Redis/ConcurrentLimiterTest.php",
+          "tearDown\ttests/Redis/DurationLimiterTest.php",
+          "tearDown\ttests/Redis/RedisConnectionTest.php",
+          "tearDown\ttests/Redis/RedisConnectorTest.php",
+          "testBlockingPop\ttests/Integration/Queue/RedisQueueTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "tearDownRedis",
+        "n_callers": 13
+      }
+    }
+  ]
+}

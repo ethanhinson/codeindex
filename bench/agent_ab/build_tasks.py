@@ -93,8 +93,23 @@ def referencing_files(rp: Path, name: str) -> list[str]:
     return sorted(set(tb.rg_lines(["-w", "-l", "-F", name], rp)))
 
 
-def comprehension_tasks(name: str, rp: Path, n: int, rng: random.Random) -> list[dict]:
-    symbols = tb.extract_symbols(rp, "go")
+# test-file heuristics per language — a def in one of these is excluded from
+# comprehension targets (we want production symbols, not fixtures)
+def _is_test_file(path: str, lang: str) -> bool:
+    if lang == "go":
+        return path.endswith("_test.go")
+    if lang == "ts":
+        return any(s in path for s in (".test.", ".spec.", "__tests__/", "/test/"))
+    if lang == "php":
+        return "/tests/" in path or "/Tests/" in path or path.endswith("Test.php")
+    if lang == "python":
+        return "/tests/" in path or "/test/" in path or "test_" in path.rsplit("/", 1)[-1] or path.endswith("_test.py")
+    return False
+
+
+def comprehension_tasks(name: str, rp: Path, n: int, rng: random.Random,
+                        lang: str = "go") -> list[dict]:
+    symbols = tb.extract_symbols(rp, lang)
     by_name: dict[str, list] = {}
     for s in symbols:
         by_name.setdefault(s.name, []).append(s)
@@ -103,7 +118,7 @@ def comprehension_tasks(name: str, rp: Path, n: int, rng: random.Random) -> list
     for sym, defs in by_name.items():
         if len(sym) < 4:
             continue
-        if not any(not d.file.endswith("_test.go") for d in defs):
+        if not any(not _is_test_file(d.file, lang) for d in defs):
             continue  # must be defined in non-test code
         files = referencing_files(rp, sym)
         if not files:
@@ -470,7 +485,8 @@ def main():
         pins[name] = {"slug": info["slug"], "commit": info["commit"]}
         counts = {}
         if "comprehension" in types:
-            t = comprehension_tasks(name, rp, args.comprehension_per_repo, rng)
+            t = comprehension_tasks(name, rp, args.comprehension_per_repo, rng,
+                                    lang=info["lang"])
             all_tasks.extend(t); counts["comprehension"] = len(t)
         if "caller_attribution" in types:
             t = caller_attribution_tasks(name, rp, args.caller_attribution_per_repo, rng)

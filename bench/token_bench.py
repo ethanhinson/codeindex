@@ -243,6 +243,23 @@ LANG_DEFS = {
         ],
         "rg_def": r"^\s*(export\s+)?(default\s+)?(async\s+)?(abstract\s+)?(function|class)\s",
     },
+    "php": {
+        "types": ["-tphp"],
+        "patterns": [
+            # methods and free functions: [visibility/modifiers] function name(
+            re.compile(r"^\s*(?:(?:public|protected|private|static|final|abstract)\s+)*function\s+(?P<name>[A-Za-z_]\w*)\s*\("),
+            re.compile(r"^\s*(?:(?:final|abstract)\s+)*(?:class|interface|trait|enum)\s+(?P<name>[A-Za-z_]\w*)"),
+        ],
+        "rg_def": r"^\s*((public|protected|private|static|final|abstract)\s+)*(function|class|interface|trait|enum)\s",
+    },
+    "python": {
+        "types": ["-tpy"],
+        "patterns": [
+            re.compile(r"^\s*(?:async\s+)?def\s+(?P<name>[A-Za-z_]\w*)\s*\("),
+            re.compile(r"^\s*class\s+(?P<name>[A-Za-z_]\w*)\s*[\(:]"),
+        ],
+        "rg_def": r"^\s*((async\s+)?def|class)\s",
+    },
 }
 
 

@@ -40,3 +40,4 @@ web/.vite/
 .codex/agents/docket-*.toml
 .cursor/rules/docket-dispatch.mdc
 # docket:end
+bench/agent_ab/.arm_a_shim/
