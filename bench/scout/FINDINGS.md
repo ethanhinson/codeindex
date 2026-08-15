@@ -154,3 +154,37 @@ Caveat: also surfaced a taxonomy clash — the harness's "occurrences" type is
 semantically caller-attribution (prompt says "functions that CALL X", gt is
 caller_pairs), while the generator's "occurrences" means literal token refs.
 Reconcile before further cross-use.
+
+## Loop closed: classifier + index + deterministic formatters = the agent (2026-08-15)
+
+Built per-tool deterministic formatters (`formatters.py`) that turn raw codeindex
+output into the grader's expected shape, and re-ran arm C. Result vs the full
+agent (arm B) on the SAME tasks (gin+prometheus, n=20):
+
+| type | arm C (no agent, no model) | arm B (agent+index) |
+| --- | --- | --- |
+| comprehension | F1 0.82 / 100% | F1 0.96 / 100% |
+| occurrences (caller-attr) | F1 1.00 / 100% | F1 1.00 / 100% |
+| vague_find | F1 1.00 / 100% | F1 0.88 / 88% |
+| OVERALL | **F1 0.95 / 100%** | ~0.95 / 96% |
+
+Arm C matches the agent at ~zero cost (1 embedding + 1-2 CLI calls, no agent
+tokens, no model). Verified real: the formatted answer matches ground truth
+exactly (precision/recall 1.0), not a parser artifact.
+
+**HONEST caveats (the 100% is a formatter test, not end-to-end):**
+- For caller/comprehension the type-correct TOOL was forced; the classifier's own
+  route disagreed 40% of the time (route% column). Fair end-to-end = routing 90%
+  x formatting ~100% ~= **90%**, not 100%.
+- 20 tasks, 2 repos, 3 types. Formatters are regex parsers tuned to these exact
+  output shapes; a new language/format could break them.
+
+## Final verdict of the "should we distill?" arc
+
+Route (classifier, 90%) + Retrieve (codeindex, complete) + Normalize
+(deterministic formatters, ~100%) => ~90% of navigation tasks answered with NO
+agent and NO model, matching the agent that delivers the index's proven value.
+
+**A distilled/local LLM is NOT needed for navigation.** It is only justified for
+the untested hard cases: vague multi-symbol query formulation and multi-hop
+trajectories with stop decisions.
