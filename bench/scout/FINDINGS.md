@@ -1,7 +1,15 @@
 # Scout — routing-model feasibility: findings
 
-**Date:** 2026-08-15 · **Verdict: a local distilled router is JUSTIFIED (barely,
-and only for routing).** All inference local (LM Studio / Qwen); no external calls.
+**Date:** 2026-08-15 · **Verdict (UPDATED): for routing, a distilled LLM is NOT
+needed — a local embedding + linear classifier hits 90% accept-set, matching a
+7B at a fraction of the cost.** All inference local; no external calls.
+
+> **Update (later same day):** the "distilled router is justified" verdict below
+> was the conclusion BEFORE running the cheap gates. Running them (gate 3) showed
+> an embedding+logreg classifier reaches 90% accept-set on held-out phrasings —
+> within 3pt of the 7B ceiling (93%), 32pt above the rule (58%), at ~1ms/query
+> and no GPU. A distilled 1.5B (projected ~85%) would be strictly worse. See
+> "Gate result: classifier beats distillation" at the end.
 
 ## The question
 
@@ -74,6 +82,34 @@ tasks; (2) fix the one weak vague_find template, generate calibrated tasks +
 accept-set labels across repos; (3) LoRA Qwen-1.5B, run in LM Studio, target
 ~85% accept-set, must beat 58%; (4) eval on the A/B harness with accept-set
 scoring.
+
+## Gate result: classifier beats distillation (added 2026-08-15)
+
+Before committing to a LoRA/MLX distillation run, we ran the cheap gates. The
+disciplined result overrides the plan:
+
+| method | accept-set | strict | inference cost |
+| --- | --- | --- | --- |
+| keyword rule (`rule_baseline.py`) | 58% | — | free |
+| **embedding + logreg (`clf_baseline.py`)** | **90%** | 81% | ~1ms, no GPU |
+| local Qwen-7B (`measure_ceiling.py`) | 93% | 88% | ~1-2s, 7B |
+| distilled Qwen-1.5B (projected) | ~85% | — | ~0.3s, 1.5B |
+
+**Method:** `bge-base` embeddings (local, MPS) + logistic regression, evaluated
+on a HELD-OUT-TEMPLATE split — test phrasings use templates never seen in
+training, so this measures generalization to novel phrasing, not memorization.
+(A naive phrasing-level split scored a misleading 100% — template memorization;
+the held-out-template split is the honest number.)
+
+Per gold tool: callers 100%, find 100%, grep 72% (grep is the weak bucket — it
+blurs with callers under the "used" ambiguity; accept-set absorbs some of it).
+
+**Conclusion:** for ROUTING, a distilled LLM is not worth it — a linear
+classifier on local embeddings matches a 7B within 3pt at ~1000x lower inference
+cost and no GPU, and can be embedded directly (768-dim + linear head). Distilling
+an LLM is only justified for what the classifier CAN'T do: query formulation
+(task -> good find tokens) and multi-hop trajectories. That is where any future
+model effort should go.
 
 ## Honest caveats
 

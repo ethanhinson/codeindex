@@ -44,3 +44,4 @@ bench/agent_ab/.arm_a_shim/
 bench/scout/*.jsonl
 bench/scout/judge_sample*.json
 bench/scout/__pycache__/
+bench/scout/.venv/
