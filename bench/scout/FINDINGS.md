@@ -274,3 +274,38 @@ freezing the harness's:
 
 Rule going forward: "occurrences" appearing in harness artifacts = caller
 attribution; literal token references are always `token_refs`.
+
+## Multi-hop as deterministic recipes: no policy needed for the common four (2026-08-15 evening)
+
+`recipes.py` expresses the four common multi-hop trajectories as fixed
+compositions of graph ops over the JSON contract — impact (= the existing
+`codeindex impact`), where-tested (callers ∩ test-files + grep test sites),
+rename-radius (defs ∪ exact-owners ∪ call sites ∪ token sites ∪ dep flags),
+dead-code (no callers AND no word-references outside the def file, verdict
+explicitly labeled evidence-not-certainty). `measure_recipes.py` grades the
+file-level answer against a plain text scan of the repo (non-circular gt),
+on the caller-task symbols of tasks_v6/lphp/nest.
+
+Two deterministic fixes surfaced by measurement, neither a model:
+1. CLI display limits silently truncated high-fanout symbols (recall as low
+   as 0.24 on nest's createTestingModule) — recipes now pass --limit 2000.
+   Lesson for any recipe consumer: the CLI defaults are for humans.
+2. codeindex grep is SUBSTRING-based ('Decode' hits 'NewDecoder'); rename &
+   where-tested semantics are word-based. A one-file-read word-boundary
+   post-filter on grep-derived claims fixed precision (was 0.19-0.69 on
+   short names like begin/shift/Decode).
+
+Result after both: P=R=F1=1.00 on all three languages (n=6/12/11).
+
+Honesty about that 1.00 (the too-clean rule): the grep leg's precision is
+1.00 BY CONSTRUCTION (the post-filter applies the gt's own criterion), so at
+FILE level this measurement proves (a) index file coverage misses nothing a
+full text scan finds (recall leg — real), (b) caller-edge files always spell
+the symbol (real, weak), and (c) plain word-scan would tie the recipes on
+this metric. What the file-level gt CANNOT grade is the recipes' actual
+value-add — symbol attribution, call-site lines, def locations, the
+dead-code verdict — because the only gt for those is the index itself
+(circular). Verdict for the model question: the four common trajectories are
+pure structure + cheap glue; nothing here justifies a learned policy. The
+residual is unchanged: trust-vs-verify on ambiguous edges, and attribution-
+level gt would need human labels or PR-derived truth to grade non-circularly.
