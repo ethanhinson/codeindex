@@ -137,9 +137,55 @@ func TestEnclosingText(t *testing.T) {
 	}
 }
 
+func TestNavTextGolden(t *testing.T) {
+	root := fixtureRepo(t)
+	got, err := NavText(root, "Target", 50)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := `nav Target: 1 definition(s), 3 caller(s), 2 referencing file(s)
+def  Target  a.go:3  func Target()
+matches:
+  Target  func  a.go:3  callers=3  [exact]
+callers (3):
+  a.go:6  CallerOne
+  b.go:4  CallerTwo
+  b.go:5  CallerTwo
+referenced in 2 file(s): a.go b.go
+`
+	if got != want {
+		t.Errorf("nav text drifted from the published contract\ngot:\n%s\nwant:\n%s", got, want)
+	}
+}
+
+func TestNavGrepStandIn(t *testing.T) {
+	// A symbol with zero call edges but content references: grep attribution
+	// stands in for callers (the measured callers/grep blur).
+	root := fixtureRepo(t)
+	if err := os.WriteFile(filepath.Join(root, "c.go"), []byte(`package p
+
+// unrelated mentions Lonely in a comment: Lonely
+func unrelated() {}
+
+func Lonely() {}
+`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	a, err := Nav(root, "Lonely", 50)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !a.CallersFromGrep {
+		t.Fatalf("expected grep stand-in for a call-edge-less symbol: %+v", a)
+	}
+	if len(a.Definitions) == 0 || a.Definitions[0].File != "c.go" {
+		t.Errorf("nav should still carry the definition: %+v", a.Definitions)
+	}
+}
+
 func TestGrepTextAndJSON(t *testing.T) {
 	root := fixtureRepo(t)
-	a, err := Grep(root, "Target", 30)
+	a, err := Grep(root, "Target", 30, false)
 	if err != nil {
 		t.Fatal(err)
 	}

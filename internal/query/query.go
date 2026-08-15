@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -260,18 +261,19 @@ func FindText(root, q string, kind, path string, limit int) (string, error) {
 }
 
 // Grep is enriched grep: content hits attributed to enclosing symbols,
-// deduped with counts, defs-first.
-func Grep(root, pattern string, limit int) (*GrepAnswer, error) {
+// deduped with counts, defs-first. word restricts matches to word
+// boundaries (rg -w semantics), so `Handler` doesn't match `HandlerFunc`.
+func Grep(root, pattern string, limit int, word bool) (*GrepAnswer, error) {
 	st, err := open(root)
 	if err != nil {
 		return nil, err
 	}
 	defer st.Close()
-	groups, raw, backend, err := search.Grep(st, root, pattern, limit)
+	groups, raw, backend, err := search.Grep(st, root, pattern, limit, word)
 	if err != nil {
 		return nil, err
 	}
-	a := &GrepAnswer{Pattern: pattern, RawHits: raw, Backend: backend, Groups: make([]GrepRef, 0, len(groups))}
+	a := &GrepAnswer{Pattern: pattern, Word: word, RawHits: raw, Backend: backend, Groups: make([]GrepRef, 0, len(groups))}
 	for _, g := range groups {
 		qname := ""
 		if g.Sym != nil {
@@ -285,8 +287,127 @@ func Grep(root, pattern string, limit int) (*GrepAnswer, error) {
 }
 
 // GrepText renders Grep in the stable text format.
-func GrepText(root, pattern string, limit int) (string, error) {
-	a, err := Grep(root, pattern, limit)
+func GrepText(root, pattern string, limit int, word bool) (string, error) {
+	a, err := Grep(root, pattern, limit, word)
+	if err != nil {
+		return "", err
+	}
+	return a.Text(), nil
+}
+
+// Nav is the over-retrieval union: callers + find + grep in one pass, one
+// answer serving every navigation-shaped question about the anchor (where
+// defined, who calls, which files reference). Retrieval is ~ms per op, so
+// running all three always beats deciding which one to run — measured
+// (bench/scout FINDINGS): the union matches the per-tool formatter ceiling
+// with zero routing. Grep is substring here, exactly as measured; when the
+// graph has no call edges for the anchor, grep's enclosing-symbol
+// attribution stands in for callers.
+func Nav(root, anchor string, limit int) (*NavAnswer, error) {
+	name, parent := SplitAnchor(anchor)
+	st, err := open(root)
+	if err != nil {
+		return nil, err
+	}
+	defer st.Close()
+
+	defs, err := st.Definitions(name, parent)
+	if err != nil {
+		return nil, err
+	}
+	callers, err := st.Callers(name, parent)
+	if err != nil {
+		return nil, err
+	}
+	finds, err := search.Find(st, anchor, search.Opts{Limit: limit})
+	if err != nil {
+		return nil, err
+	}
+	groups, _, _, err := search.Grep(st, root, regexp.QuoteMeta(name), 0, false)
+	if err != nil {
+		return nil, err
+	}
+
+	a := &NavAnswer{Anchor: anchor, Definitions: defRefs(defs),
+		Matches: make([]FindRef, 0, len(finds)),
+		Callers: make([]CallerRef, 0), Files: make([]string, 0)}
+	for _, r := range finds {
+		dep, modified := "", false
+		if r.Sym.Tier == 1 {
+			dep, modified = depInfo(st, r.Sym.File)
+		}
+		a.Matches = append(a.Matches, FindRef{
+			QName: r.Sym.QName(), Kind: string(r.Sym.Kind),
+			File: r.Sym.File, Line: r.Sym.StartLine,
+			Callers: r.Callers, Dep: dep, DepModified: modified, Match: r.Match,
+		})
+	}
+	// Definitions fallback: every exact-name owner from find (the measured
+	// POLICY: "where is X defined" wants ALL owners of the bare name).
+	if len(a.Definitions) == 0 {
+		for _, r := range a.Matches {
+			if r.Match == "exact" {
+				a.Definitions = append(a.Definitions, DefRef{
+					Name: name, QName: r.QName, Kind: r.Kind, File: r.File, Line: r.Line,
+				})
+			}
+		}
+	}
+
+	a.CallersTotal = len(callers)
+	for i, c := range callers {
+		if i >= limit {
+			break
+		}
+		a.Callers = append(a.Callers, CallerRef{
+			Name: c.Name, Parent: c.Parent, QName: c.QName(),
+			File: c.File, Line: c.Line, Ambiguous: c.Conf == graph.ConfAmbiguous,
+		})
+	}
+	if len(callers) == 0 && len(groups) > 0 {
+		a.CallersFromGrep = true
+		a.CallersTotal = len(groups)
+		for i, g := range groups {
+			if i >= limit {
+				break
+			}
+			qname := "<outside any symbol>"
+			nm := qname
+			if g.Sym != nil {
+				qname, nm = g.Sym.QName(), g.Sym.Name
+			}
+			a.Callers = append(a.Callers, CallerRef{
+				Name: nm, QName: qname, File: g.File, Line: g.First.Line,
+			})
+		}
+	}
+
+	// Files: find hits, then grep hits — deduped, order preserved.
+	seen := map[string]bool{}
+	var files []string
+	for _, r := range a.Matches {
+		if !seen[r.File] {
+			seen[r.File] = true
+			files = append(files, r.File)
+		}
+	}
+	for _, g := range groups {
+		if !seen[g.File] {
+			seen[g.File] = true
+			files = append(files, g.File)
+		}
+	}
+	a.FilesTotal = len(files)
+	if len(files) > limit {
+		files = files[:limit]
+	}
+	a.Files = files
+	return a, nil
+}
+
+// NavText renders Nav in the stable text format.
+func NavText(root, anchor string, limit int) (string, error) {
+	a, err := Nav(root, anchor, limit)
 	if err != nil {
 		return "", err
 	}

@@ -55,7 +55,7 @@ net-negative — ~3.1k-token footprint — so v4 deliberately ships without them
 
 ## MCP server (IDEs)
 
-`codeindex mcp <repo-root>` serves `impact`, `callers`, `callees`,
+`codeindex mcp <repo-root>` serves `impact`, `nav`, `callers`, `callees`,
 `dependents`, `find`, `grep`, and `search` over stdio to any MCP client, plus
 an `explore-feature` prompt (search → entry point → impact). Tool
 descriptions carry the measured anchor rule, the trust instruction, and the

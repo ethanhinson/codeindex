@@ -69,10 +69,11 @@ codeindex status <repo>                   index stats (add --json for machine ou
 
 codeindex callers <repo> <symbol>         who calls this symbol
 codeindex impact <repo> <symbol>          blast radius: callers plus callees, counts first
+codeindex nav <repo> <symbol>             one-shot orientation: definitions + callers + referencing files
 codeindex dependents <repo> <anchor>      what depends on this file or package
 codeindex deps <repo> <anchor>            what this file or package depends on
 codeindex find <repo> <query>             symbol search (--kind, --path, --limit)
-codeindex grep <repo> <pattern>           pattern search over indexed symbols
+codeindex grep <repo> <pattern>           pattern search over indexed symbols (-w: whole words only)
 codeindex search <repo> "<concept>"       semantic concept search (--hints, --flat, --limit)
 codeindex model <pull|use|status>         manage embedding models (bundled default works offline)
 codeindex enclosing <repo> <file> <a>:<b> which symbol encloses these lines
@@ -86,7 +87,7 @@ codeindex bench <repo> [out.json]         throughput benchmark and incremental-v
 ```
 
 Most query commands take `--limit N` (default 50). All query commands
-(`callers`, `callees`, `impact`, `dependents`, `deps`, `find`, `grep`,
+(`callers`, `callees`, `impact`, `nav`, `dependents`, `deps`, `find`, `grep`,
 `enclosing`) also take `--json` for structured machine output: the same answer
 as the text format, with full-count fields (`callers_total` vs the limited
 list) and explicit `ambiguous` flags, so downstream tools parse a schema
@@ -176,7 +177,7 @@ See `plugin/README.md` for details and the measurement history behind the design
 
 ## Using it with Cursor, VS Code, or Claude Desktop
 
-`codeindex mcp <repo>` serves `impact`, `callers`, `callees`, `dependents`, `find`, `grep`, and `search` to any MCP client over stdio, plus an `explore-feature` prompt that chains search → entry point → impact. The tool descriptions carry the usage guidance, so IDE agents pick up the discipline automatically. For clients that under-surface MCP prompts, copy the rules snippet from `docs/editor-rules-snippet.md` into `.cursor/rules`, `.github/copilot-instructions.md`, or `AGENTS.md`.
+`codeindex mcp <repo>` serves `impact`, `nav`, `callers`, `callees`, `dependents`, `find`, `grep`, and `search` to any MCP client over stdio, plus an `explore-feature` prompt that chains search → entry point → impact. The tool descriptions carry the usage guidance, so IDE agents pick up the discipline automatically. For clients that under-surface MCP prompts, copy the rules snippet from `docs/editor-rules-snippet.md` into `.cursor/rules`, `.github/copilot-instructions.md`, or `AGENTS.md`.
 
 Cursor (`.cursor/mcp.json` in the repo, or `~/.cursor/mcp.json` globally):
 

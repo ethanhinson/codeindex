@@ -186,6 +186,7 @@ func (a *FindAnswer) Text() string {
 // GrepAnswer is content hits attributed to enclosing symbols.
 type GrepAnswer struct {
 	Pattern string    `json:"pattern"`
+	Word    bool      `json:"word,omitempty"`
 	RawHits int       `json:"raw_hits"`
 	Backend string    `json:"backend"`
 	Groups  []GrepRef `json:"groups"`
@@ -206,6 +207,59 @@ func (a *GrepAnswer) Text() string {
 		}
 		fmt.Fprintf(&b, "  %s  %s:%d  hits=%d%s\n", name, g.File, g.Line, g.Hits, def)
 	}
+	return b.String()
+}
+
+// NavAnswer is the one-shot navigation union for an anchor: definitions,
+// ranked name matches, callers, and every referencing file, from a single
+// over-retrieval pass (callers + find + grep). Measured (bench/scout): the
+// union answer matches the per-tool formatter ceiling with zero routing.
+type NavAnswer struct {
+	Anchor          string      `json:"anchor"`
+	Definitions     []DefRef    `json:"definitions"`
+	Matches         []FindRef   `json:"matches"`
+	CallersTotal    int         `json:"callers_total"`
+	Callers         []CallerRef `json:"callers"`
+	CallersFromGrep bool        `json:"callers_from_grep,omitempty"`
+	FilesTotal      int         `json:"files_total"`
+	Files           []string    `json:"files"`
+}
+
+func (a *NavAnswer) Text() string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "nav %s: %d definition(s), %d caller(s), %d referencing file(s)\n",
+		a.Anchor, len(a.Definitions), a.CallersTotal, a.FilesTotal)
+	writeDefs(&b, a.Anchor, a.Definitions)
+	if len(a.Matches) > 0 {
+		fmt.Fprintf(&b, "matches:\n")
+		for _, r := range a.Matches {
+			callers := ""
+			if r.Callers > 0 {
+				callers = fmt.Sprintf("  callers=%d", r.Callers)
+			}
+			fmt.Fprintf(&b, "  %s  %s  %s:%d%s%s  [%s]\n",
+				r.QName, r.Kind, r.File, r.Line, callers, depTag(r.Dep, r.DepModified), r.Match)
+		}
+	}
+	if a.CallersFromGrep {
+		fmt.Fprintf(&b, "callers (%d, via grep attribution — no call edges in the graph):\n", a.CallersTotal)
+	} else {
+		fmt.Fprintf(&b, "callers (%d):\n", a.CallersTotal)
+	}
+	for _, c := range a.Callers {
+		fmt.Fprintf(&b, "  %s:%d  %s%s\n", c.File, c.Line, c.QName, ambigTag(c.Ambiguous))
+	}
+	if a.CallersTotal > len(a.Callers) {
+		fmt.Fprintf(&b, "  ... (+%d more; raise limit)\n", a.CallersTotal-len(a.Callers))
+	}
+	fmt.Fprintf(&b, "referenced in %d file(s):", a.FilesTotal)
+	for _, f := range a.Files {
+		fmt.Fprintf(&b, " %s", f)
+	}
+	if a.FilesTotal > len(a.Files) {
+		fmt.Fprintf(&b, " ... (+%d more)", a.FilesTotal-len(a.Files))
+	}
+	fmt.Fprintf(&b, "\n")
 	return b.String()
 }
 

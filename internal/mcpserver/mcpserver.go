@@ -75,6 +75,22 @@ func New(repo, version string) *mcp.Server {
 	})
 
 	mcp.AddTool(s, &mcp.Tool{
+		Name: "nav",
+		Description: "One-shot navigation for a symbol name (Go, TS/JS, Python, " +
+			"PHP): where it is defined (every same-name owner), who calls it, " +
+			"and every file referencing it — callers + ranked name search + " +
+			"content grep, unioned in one answer. Use when you have a symbol " +
+			"name and want to orient (where defined / who calls / what " +
+			"references) without choosing between the narrower tools. " + trust,
+	}, func(ctx context.Context, req *mcp.CallToolRequest, in symbolArgs) (*mcp.CallToolResult, any, error) {
+		out, err := query.NavText(repo, in.Symbol, limitOr(in.Limit))
+		if err != nil {
+			return nil, nil, fmt.Errorf("nav %q: %w", in.Symbol, err)
+		}
+		return text(out), nil, nil
+	})
+
+	mcp.AddTool(s, &mcp.Tool{
 		Name: "callers",
 		Description: "Who calls a KNOWN symbol (Go, TS/JS, Python, PHP): its definition(s) plus every " +
 			"call site as path:line references with the calling function's name. " +
@@ -193,6 +209,7 @@ func New(repo, version string) *mcp.Server {
 
 	type grepArgs struct {
 		Pattern string `json:"pattern" jsonschema:"regex/text pattern to search file contents for"`
+		Word    bool   `json:"word,omitempty" jsonschema:"match whole words only (rg -w semantics), so Handler does not also match HandlerFunc"`
 		Limit   int    `json:"limit,omitempty"`
 	}
 	mcp.AddTool(s, &mcp.Tool{
@@ -207,7 +224,7 @@ func New(repo, version string) *mcp.Server {
 		if limit <= 0 {
 			limit = 30
 		}
-		out, err := query.GrepText(repo, in.Pattern, limit)
+		out, err := query.GrepText(repo, in.Pattern, limit, in.Word)
 		if err != nil {
 			return nil, nil, fmt.Errorf("grep %q: %w", in.Pattern, err)
 		}

@@ -37,7 +37,7 @@ func main() {
 	}
 	if len(os.Args) < 3 {
 		fmt.Fprintln(os.Stderr,
-			"usage: codeindex <build|refresh|status|callers|callees|impact|dependents|deps|find|grep|search|model|ingest|depmap|export|import|enclosing|serve|mcp|bench> <repo-root> ...")
+			"usage: codeindex <build|refresh|status|callers|callees|impact|dependents|deps|nav|find|grep|search|model|ingest|depmap|export|import|enclosing|serve|mcp|bench> <repo-root> ...")
 		os.Exit(2)
 	}
 	cmd, root := os.Args[1], os.Args[2]
@@ -148,11 +148,20 @@ func main() {
 			fatal(err)
 		}
 		emit(a, hasFlag("--json"))
+	case "nav":
+		if len(os.Args) < 4 {
+			fatal(fmt.Errorf("usage: codeindex nav <repo-root> <anchor> [--limit N] [--json]"))
+		}
+		a, err := query.Nav(root, os.Args[3], intFlag("--limit", 50))
+		if err != nil {
+			fatal(err)
+		}
+		emit(a, hasFlag("--json"))
 	case "grep":
 		if len(os.Args) < 4 {
-			fatal(fmt.Errorf("usage: codeindex grep <repo-root> <pattern> [--limit N] [--json]"))
+			fatal(fmt.Errorf("usage: codeindex grep <repo-root> <pattern> [-w] [--limit N] [--json]"))
 		}
-		a, err := query.Grep(root, os.Args[3], intFlag("--limit", 30))
+		a, err := query.Grep(root, os.Args[3], intFlag("--limit", 30), hasFlag("-w") || hasFlag("--word"))
 		if err != nil {
 			fatal(err)
 		}
