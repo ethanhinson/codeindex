@@ -137,7 +137,7 @@ func buildLiteralLane(st *graph.Store, root, query, errorText string, symbols in
 	rawTotal := 0
 	order := 0
 	for _, w := range words {
-		groups, raw, _, err := Grep(st, root, regexp.QuoteMeta(w), litWordGrep)
+		groups, raw, _, err := Grep(st, root, regexp.QuoteMeta(w), litWordGrep, false)
 		if err != nil {
 			continue
 		}
@@ -220,7 +220,7 @@ func buildLiteralLane(st *graph.Store, root, query, errorText string, symbols in
 
 	// Exactness rung 2 (D4): verbatim phrase inside a symbol span.
 	if phrase != "" && len(phrase) >= 8 {
-		if groups, _, _, err := Grep(st, root, "(?i)"+regexp.QuoteMeta(phrase), phraseCap+2); err == nil {
+		if groups, _, _, err := Grep(st, root, "(?i)"+regexp.QuoteMeta(phrase), phraseCap+2, false); err == nil {
 			for _, g := range groups {
 				if g.Sym != nil && g.Sym.Tier == 0 && !g.IsTest && len(lane.pins) < phraseCap {
 					lane.pins = append(lane.pins, g.Sym.ID)

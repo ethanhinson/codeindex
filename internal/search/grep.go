@@ -34,9 +34,10 @@ type GrepGroup struct {
 }
 
 // Grep searches file contents (ripgrep when available, internal scan
-// otherwise) and attributes/dedups hits by enclosing symbol.
-func Grep(st *graph.Store, root, pattern string, limit int) (groups []GrepGroup, rawHits int, backend string, err error) {
-	hits, backend, err := rawGrep(root, pattern)
+// otherwise) and attributes/dedups hits by enclosing symbol. word restricts
+// matches to word boundaries (rg -w semantics).
+func Grep(st *graph.Store, root, pattern string, limit int, word bool) (groups []GrepGroup, rawHits int, backend string, err error) {
+	hits, backend, err := rawGrep(root, pattern, word)
 	if err != nil {
 		return nil, 0, backend, err
 	}
@@ -117,16 +118,21 @@ func enclosingByLine(spans []graph.Symbol, line int) *graph.Symbol {
 
 // rawGrep runs ripgrep when available, else an internal Go-regexp scan over
 // the indexed file set (correct; slower — surfaced via backend).
-func rawGrep(root, pattern string) ([]GrepHit, string, error) {
+func rawGrep(root, pattern string, word bool) ([]GrepHit, string, error) {
 	if rg, err := exec.LookPath("rg"); err == nil {
-		cmd := exec.Command(rg, "--no-heading", "-n", "-e", pattern, ".")
+		args := []string{"--no-heading", "-n"}
+		if word {
+			args = append(args, "-w")
+		}
+		args = append(args, "-e", pattern, ".")
+		cmd := exec.Command(rg, args...)
 		cmd.Dir = root
 		out, err := cmd.Output()
 		if err == nil || len(out) > 0 { // rg exits 1 on no matches
 			return parseRgOutput(out), "ripgrep", nil
 		}
 	}
-	hits, err := internalScan(root, pattern)
+	hits, err := internalScan(root, pattern, word)
 	return hits, "internal", err
 }
 
@@ -151,7 +157,10 @@ func parseRgOutput(out []byte) []GrepHit {
 	return hits
 }
 
-func internalScan(root, pattern string) ([]GrepHit, error) {
+func internalScan(root, pattern string, word bool) ([]GrepHit, error) {
+	if word {
+		pattern = `\b(?:` + pattern + `)\b`
+	}
 	re, err := regexp.Compile(pattern)
 	if err != nil {
 		return nil, fmt.Errorf("bad pattern: %w", err)

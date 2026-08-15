@@ -94,7 +94,7 @@ func TestGrepAttribution(t *testing.T) {
 	st := buildFixture(t)
 	// LoadConfig occurrences: 1 def line + 3 call sites across 2 funcs.
 	root := fixtureRoot
-	groups, raw, _, err := search.Grep(st, root, "LoadConfig", 10)
+	groups, raw, _, err := search.Grep(st, root, "LoadConfig", 10, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,6 +117,41 @@ func TestGrepAttribution(t *testing.T) {
 	}
 	if !foundFetch {
 		t.Error("fetchAll group missing")
+	}
+}
+
+func TestGrepWordBoundary(t *testing.T) {
+	st := buildFixture(t)
+	root := fixtureRoot
+	// substring mode: "Config" hits LoadConfig/ParseConfig/TestLoadConfig
+	groups, _, _, err := search.Grep(st, root, "Config", 10, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(groups) == 0 {
+		t.Fatal("substring grep found nothing")
+	}
+	// word mode: "Config" alone never appears as a whole word in the fixture
+	wgroups, wraw, _, err := search.Grep(st, root, "Config", 10, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if wraw != 0 || len(wgroups) != 0 {
+		t.Errorf("word grep should match nothing; got %d raw hits %+v", wraw, wgroups)
+	}
+	// word mode still matches the exact identifier
+	wgroups, wraw, _, err = search.Grep(st, root, "LoadConfig", 10, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if wraw < 4 {
+		t.Errorf("word grep of LoadConfig should keep all exact hits; got %d", wraw)
+	}
+	// ...but drops the mid-identifier hit inside TestLoadConfig
+	for _, g := range wgroups {
+		if g.Sym != nil && g.Sym.Name == "TestLoadConfig" && g.IsDef {
+			t.Errorf("word grep should not match LoadConfig inside TestLoadConfig")
+		}
 	}
 }
 
