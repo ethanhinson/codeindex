@@ -41,3 +41,6 @@ web/.vite/
 .cursor/rules/docket-dispatch.mdc
 # docket:end
 bench/agent_ab/.arm_a_shim/
+bench/scout/*.jsonl
+bench/scout/judge_sample*.json
+bench/scout/__pycache__/
