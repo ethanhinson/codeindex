@@ -1,0 +1,927 @@
+{
+ "repo": "laravel-framework",
+ "split": "tuning",
+ "fixture_commit": "5d964a15efc8fffcb175aed3976796c0420bcf99",
+ "binary_sha256_16": "f24fddce4873e4b9",
+ "params": null,
+ "n": 53,
+ "hits": 44,
+ "hit5_pct": 83.0,
+ "results": [
+  {
+   "q": "roll back the last batch of database migrations",
+   "hit": true,
+   "top": [
+    "Migrator.rollback",
+    "Migrator.rollbackMigrations",
+    "RollbackCommand.handle",
+    "RefreshCommand.runRollback",
+    "Migrator.reset"
+   ],
+   "accept": [
+    "rollback",
+    "rollbackMigrations",
+    "RollbackCommand",
+    "Migrator.rollback"
+   ]
+  },
+  {
+   "q": "run the pending database migrations",
+   "hit": true,
+   "top": [
+    "Migration",
+    "MigrateCommand.runMigrations",
+    "Migrator.run",
+    "MigrationServiceProvider.registerMigrateFreshCommand",
+    "DatabaseMigrations.runDatabaseMigrations"
+   ],
+   "accept": [
+    "Migrator.run",
+    "runPending",
+    "MigrateCommand",
+    "runUp"
+   ]
+  },
+  {
+   "q": "define the columns of a new database table",
+   "hit": true,
+   "top": [
+    "Blueprint.addColumnDefinition",
+    "ForeignIdColumnDefinition",
+    "TableCommand.columns",
+    "Builder.createDatabase",
+    "Builder.dropColumns"
+   ],
+   "accept": [
+    "Blueprint",
+    "Builder.create",
+    "Blueprint.build"
+   ]
+  },
+  {
+   "q": "add a where condition to a database query",
+   "hit": true,
+   "top": [
+    "Builder.whereAny",
+    "Builder.whereRowValues",
+    "Builder.where",
+    "Builder.addNestedWhereQuery",
+    "Builder.whereNested"
+   ],
+   "accept": [
+    "Builder.where",
+    "Builder.orWhere"
+   ]
+  },
+  {
+   "q": "persist a model instance to the database",
+   "hit": true,
+   "top": [
+    "HasOneOrMany.save",
+    "HasOneOrMany.saveMany",
+    "Model.saveOrFail",
+    "HasOneOrMany.saveQuietly",
+    "HasOneOrMany.saveManyQuietly"
+   ],
+   "accept": [
+    "Model.save",
+    "performInsert",
+    "performUpdate",
+    "Model.saveOrFail"
+   ]
+  },
+  {
+   "q": "declare that a model has many related child models",
+   "hit": false,
+   "top": [
+    "HasOne.newRelatedInstanceFor",
+    "SupportsDefaultModels.newRelatedInstanceFor",
+    "HasOneThrough.newRelatedInstanceFor",
+    "MorphOne.newRelatedInstanceFor",
+    "BelongsTo.dissociate"
+   ],
+   "accept": [
+    "hasMany",
+    "HasMany",
+    "HasOneOrMany",
+    "newHasMany"
+   ]
+  },
+  {
+   "q": "declare the inverse relation where a model belongs to a parent",
+   "hit": false,
+   "top": [
+    "SupportsInverseRelations.applyInverseRelationToModel",
+    "SupportsInverseRelations.inverse",
+    "SupportsInverseRelations.getPossibleInverseRelations",
+    "MorphOneOrMany.getPossibleInverseRelations",
+    "SupportsInverseRelations.applyInverseRelationToCollection"
+   ],
+   "accept": [
+    "belongsTo",
+    "BelongsTo",
+    "newBelongsTo"
+   ]
+  },
+  {
+   "q": "push a job onto the queue for background processing",
+   "hit": true,
+   "top": [
+    "Queue.push",
+    "SyncQueue.push",
+    "QueueFake.push",
+    "Queue.pushOn",
+    "PendingBatch.onQueue"
+   ],
+   "accept": [
+    "dispatch",
+    "PendingDispatch",
+    "Queue.push",
+    "Dispatcher.dispatch",
+    "dispatchToQueue"
+   ]
+  },
+  {
+   "q": "retry jobs that previously failed",
+   "hit": true,
+   "top": [
+    "RetryCommand.retryJob",
+    "Job.retryUntil",
+    "Job.retryUntil",
+    "RetryCommand.getJobIds",
+    "JobRetryRequested"
+   ],
+   "accept": [
+    "RetryCommand",
+    "retryJob",
+    "FailedJobProviderInterface"
+   ]
+  },
+  {
+   "q": "fire an event and notify its listeners",
+   "hit": true,
+   "top": [
+    "Dispatcher.hasListeners",
+    "Dispatcher.listen",
+    "EventFake.hasListeners",
+    "EventGenerateCommand.makeEventAndListeners",
+    "Dispatcher.listen"
+   ],
+   "accept": [
+    "Dispatcher.dispatch",
+    "Dispatcher.listen",
+    "invokeListeners",
+    "Dispatcher.until"
+   ]
+  },
+  {
+   "q": "validate incoming request data against rules",
+   "hit": true,
+   "top": [
+    "ValidatesRequests.validate",
+    "HostValidator.matches",
+    "ValidatorInterface.matches",
+    "MethodValidator.matches",
+    "ValidatesRequests.validateWith"
+   ],
+   "accept": [
+    "Validator",
+    "validate",
+    "ValidatesRequests",
+    "FormRequest",
+    "Validator.passes",
+    "Validator.fails"
+   ]
+  },
+  {
+   "q": "hash a user password for storage",
+   "hit": false,
+   "top": [
+    "Recaller.hash",
+    "AuthenticateSession.storePasswordHashInSession",
+    "Str.password",
+    "DatabaseUserProvider.rehashPasswordIfRequired",
+    "Password.letters"
+   ],
+   "accept": [
+    "BcryptHasher",
+    "HashManager",
+    "BcryptHasher.make",
+    "Argon2IdHasher",
+    "AbstractHasher"
+   ]
+  },
+  {
+   "q": "encrypt a value and decrypt it later",
+   "hit": true,
+   "top": [
+    "Encrypter.decrypt",
+    "Encrypter.encrypt",
+    "Encrypter.previousKeys",
+    "Encrypter.decrypt",
+    "StringEncrypter.decryptString"
+   ],
+   "accept": [
+    "Encrypter",
+    "Encrypter.encrypt",
+    "Encrypter.decrypt",
+    "encryptString",
+    "decryptString"
+   ]
+  },
+  {
+   "q": "register a route with the router",
+   "hit": true,
+   "top": [
+    "RouteRegistrar.registerRoute",
+    "Router",
+    "RouteRegistrar.__construct",
+    "RoutingServiceProvider.registerRouter",
+    "Router.addRoute"
+   ],
+   "accept": [
+    "Router.get",
+    "Router.post",
+    "Router.addRoute",
+    "RouteRegistrar",
+    "Router.match"
+   ]
+  },
+  {
+   "q": "resolve a model instance from a route parameter automatically",
+   "hit": true,
+   "top": [
+    "Model.resolveRouteBindingQuery",
+    "Model.resolveSoftDeletableRouteBinding",
+    "Route.withTrashed",
+    "Model.resolveRouteBinding",
+    "UrlRoutable.getRouteKey"
+   ],
+   "accept": [
+    "ImplicitRouteBinding",
+    "substituteImplicitBindings",
+    "resolveRouteBinding"
+   ]
+  },
+  {
+   "q": "pass the request through the middleware chain",
+   "hit": false,
+   "top": [
+    "PendingRequest.withRequestMiddleware",
+    "PendingRequest.withMiddleware",
+    "Factory.globalRequestMiddleware",
+    "RequirePassword.handle",
+    "PendingRequest.withResponseMiddleware"
+   ],
+   "accept": [
+    "Pipeline",
+    "Pipeline.then",
+    "sendRequestThroughRouter",
+    "Pipeline.through"
+   ]
+  },
+  {
+   "q": "send an email message",
+   "hit": true,
+   "top": [
+    "SentMessage",
+    "Mailer.sendSymfonyMessage",
+    "Message.getSymfonyMessage",
+    "Mailable.send",
+    "Mailer.createMessage"
+   ],
+   "accept": [
+    "Mailer.send",
+    "Mailable",
+    "Mailer",
+    "Mailable.send",
+    "SendQueuedMailable"
+   ]
+  },
+  {
+   "q": "cache a computed value and reuse it until it expires",
+   "hit": false,
+   "top": [
+    "DatabaseStore.forgetIfExpired",
+    "DatabaseStore.forgetManyIfExpired",
+    "ArrayStore.calculateExpiration",
+    "MemcachedStore.calculateExpiration",
+    "RedisTaggedCache.forever"
+   ],
+   "accept": [
+    "remember",
+    "Repository.remember",
+    "rememberForever",
+    "Repository.get"
+   ]
+  },
+  {
+   "q": "schedule recurring console tasks like cron",
+   "hit": true,
+   "top": [
+    "ScheduleRunCommand.repeatEvents",
+    "ScheduleInterruptCommand.handle",
+    "Schedule.job",
+    "ScheduleListCommand.listEvent",
+    "ScheduleWorkCommand.handle"
+   ],
+   "accept": [
+    "Schedule",
+    "Schedule.command",
+    "ScheduleRunCommand",
+    "Schedule.call"
+   ]
+  },
+  {
+   "q": "define a custom artisan console command",
+   "hit": false,
+   "top": [
+    "Application.call",
+    "Kernel.addCommands",
+    "InteractsWithConsole.artisan",
+    "Kernel.call",
+    "Application.call"
+   ],
+   "accept": [
+    "Command",
+    "GeneratorCommand",
+    "Command.execute"
+   ]
+  },
+  {
+   "q": "bind an implementation into the service container and resolve it",
+   "hit": true,
+   "top": [
+    "Container.bindMethod",
+    "Container.resolving",
+    "Container.bind",
+    "Container.bindMethod",
+    "resolve"
+   ],
+   "accept": [
+    "Container.bind",
+    "Container.make",
+    "Container.resolve",
+    "Container.singleton"
+   ]
+  },
+  {
+   "q": "register services when the framework boots",
+   "hit": true,
+   "top": [
+    "Application.registerBaseServiceProviders",
+    "Application.register",
+    "ServiceProvider.register",
+    "Application.register",
+    "Application.bootProvider"
+   ],
+   "accept": [
+    "ServiceProvider",
+    "ServiceProvider.register",
+    "registerConfiguredProviders"
+   ]
+  },
+  {
+   "q": "compile blade templates into php",
+   "hit": true,
+   "top": [
+    "BladeCompiler.compileString",
+    "CompilesEchos.compileEchos",
+    "BladeCompiler.__construct",
+    "BladeCompiler.compile",
+    "CompilesEchos.addBladeCompilerVariable"
+   ],
+   "accept": [
+    "BladeCompiler",
+    "BladeCompiler.compile",
+    "compileString",
+    "compileStatements"
+   ]
+  },
+  {
+   "q": "paginate query results into pages",
+   "hit": true,
+   "top": [
+    "Builder.paginate",
+    "AbstractPaginator.withQueryString",
+    "AbstractPaginator.addQuery",
+    "AbstractPaginator.appends",
+    "AbstractPaginator.queryStringResolver"
+   ],
+   "accept": [
+    "paginate",
+    "Paginator",
+    "LengthAwarePaginator",
+    "CursorPaginator",
+    "Builder.paginate"
+   ]
+  },
+  {
+   "q": "run several database statements in one transaction",
+   "hit": true,
+   "top": [
+    "DatabaseTransactions.beginDatabaseTransaction",
+    "DatabaseBatchRepository.transaction",
+    "DatabaseTransactionsManager.commit",
+    "DatabaseTransactionRecord.executeCallbacks",
+    "SqlServerConnection.transaction"
+   ],
+   "accept": [
+    "transaction",
+    "beginTransaction",
+    "ManagesTransactions"
+   ]
+  },
+  {
+   "q": "soft delete models instead of removing rows",
+   "hit": true,
+   "top": [
+    "SoftDeletes.forceDelete",
+    "SoftDeletes.forceDeleteQuietly",
+    "SoftDeletes.runSoftDelete",
+    "SoftDeletes.performDeleteOnModel",
+    "SoftDeletes"
+   ],
+   "accept": [
+    "SoftDeletes",
+    "SoftDeletingScope",
+    "runSoftDelete",
+    "restore"
+   ]
+  },
+  {
+   "q": "broadcast an event to websocket channels",
+   "hit": true,
+   "top": [
+    "InteractsWithBroadcasting.broadcastVia",
+    "InteractsWithSockets.broadcastToEveryone",
+    "InteractsWithBroadcasting.broadcastConnections",
+    "BroadcastNotificationCreated.broadcastOn",
+    "ShouldBroadcast.broadcastOn"
+   ],
+   "accept": [
+    "BroadcastManager",
+    "ShouldBroadcast",
+    "BroadcastEvent",
+    "PusherBroadcaster",
+    "Broadcaster"
+   ]
+  },
+  {
+   "q": "define private and presence channels with authorization",
+   "hit": true,
+   "top": [
+    "PresenceChannel",
+    "Broadcaster.channel",
+    "AblyBroadcaster.isGuardedChannel",
+    "Broadcaster.verifyUserCanAccessChannel",
+    "PrivateChannel"
+   ],
+   "accept": [
+    "PrivateChannel",
+    "PresenceChannel",
+    "Channel",
+    "verifyUserCanAccessChannel"
+   ]
+  },
+  {
+   "q": "rate limit how many requests a client can make",
+   "hit": true,
+   "top": [
+    "RateLimiter.attempts",
+    "ThrottleRequests.__construct",
+    "UserWithAccessor.getRateLimitingAttribute",
+    "ThrottleRequestsWithRedis.__construct",
+    "RateLimiter.attempt"
+   ],
+   "accept": [
+    "RateLimiter",
+    "ThrottleRequests",
+    "Limit",
+    "RateLimiter.attempt",
+    "RateLimiter.tooManyAttempts"
+   ]
+  },
+  {
+   "q": "store and retrieve files on local or cloud disks",
+   "hit": true,
+   "top": [
+    "UploadedFile.storeAs",
+    "FilesystemAdapter",
+    "UploadedFile.storePubliclyAs",
+    "UploadedFile.store",
+    "FilesystemManager.cloud"
+   ],
+   "accept": [
+    "FilesystemManager",
+    "FilesystemAdapter",
+    "FilesystemManager.disk",
+    "FilesystemAdapter.put",
+    "FilesystemAdapter.get"
+   ]
+  },
+  {
+   "q": "translate strings into the user's locale with pluralization",
+   "hit": true,
+   "top": [
+    "PotentiallyTranslatedString.translateChoice",
+    "Translator.locale",
+    "Translator.setLocale",
+    "Translator.localeArray",
+    "Translator.getLocale"
+   ],
+   "accept": [
+    "Translator",
+    "Translator.get",
+    "Translator.choice",
+    "MessageSelector"
+   ]
+  },
+  {
+   "q": "send a notification via mail database or other channels",
+   "hit": true,
+   "top": [
+    "MailChannel.send",
+    "DatabaseChannel.send",
+    "MailChannel.buildMessage",
+    "ChannelManager.sendNow",
+    "DatabaseChannel.getData"
+   ],
+   "accept": [
+    "NotificationSender",
+    "ChannelManager",
+    "MailChannel",
+    "DatabaseChannel",
+    "RoutesNotifications"
+   ]
+  },
+  {
+   "q": "authorize an action using gates and policies",
+   "hit": true,
+   "top": [
+    "Gate.policy",
+    "Gate.callPolicyMethod",
+    "Gate.resolvePolicyCallback",
+    "Gate.policies",
+    "Gate.guessPolicyNamesUsing"
+   ],
+   "accept": [
+    "Gate",
+    "Gate.define",
+    "Gate.allows",
+    "Gate.authorize",
+    "Gate.policy",
+    "AuthorizesRequests"
+   ]
+  },
+  {
+   "q": "log a user in by checking their credentials",
+   "hit": true,
+   "top": [
+    "SessionGuard.once",
+    "DatabaseUserProvider.validateCredentials",
+    "DatabaseUserProvider.rehashPasswordIfRequired",
+    "SessionGuard.login",
+    "SessionGuard.shouldLogin"
+   ],
+   "accept": [
+    "SessionGuard",
+    "SessionGuard.attempt",
+    "AuthManager",
+    "StatefulGuard"
+   ]
+  },
+  {
+   "q": "apply a global scope to every query of a model",
+   "hit": true,
+   "top": [
+    "Model.newQueryWithoutScopes",
+    "HasGlobalScopes.addGlobalScope",
+    "HasGlobalScopes.addGlobalScopes",
+    "HasGlobalScopes.hasGlobalScope",
+    "HasGlobalScopes.setAllGlobalScopes"
+   ],
+   "accept": [
+    "addGlobalScope",
+    "Scope",
+    "HasGlobalScopes.addGlobalScope",
+    "SoftDeletingScope.apply",
+    "Scope.apply"
+   ]
+  },
+  {
+   "q": "define accessors and mutators for model attributes",
+   "hit": true,
+   "top": [
+    "HasAttributes.transformModelValue",
+    "Attribute.__construct",
+    "Model.preventsAccessingMissingAttributes",
+    "HasCacheableAttributeWithAccessor",
+    "HasAttributes.getMutatorMethods"
+   ],
+   "accept": [
+    "Attribute",
+    "castAttribute",
+    "HasAttributes.castAttribute",
+    "mutateAttribute",
+    "HasAttributes.mutateAttribute",
+    "Attribute.make"
+   ]
+  },
+  {
+   "q": "transform arrays fluently with the collection api",
+   "hit": true,
+   "top": [
+    "Collection.transform",
+    "Collection.values",
+    "Collection.mapToDictionary",
+    "Collection.dot",
+    "Collection.concat"
+   ],
+   "accept": [
+    "Collection",
+    "Collection.map",
+    "Collection.filter",
+    "Collection.pluck"
+   ]
+  },
+  {
+   "q": "manipulate strings fluently like slugs and case changes",
+   "hit": true,
+   "top": [
+    "Str.convertCase",
+    "Str.slug",
+    "Stringable.convertCase",
+    "Stringable.slug",
+    "Str.headline"
+   ],
+   "accept": [
+    "Str",
+    "Stringable",
+    "Str.slug",
+    "Str.of",
+    "Str.camel"
+   ]
+  },
+  {
+   "q": "make outgoing http requests with the built in http client",
+   "hit": false,
+   "top": [
+    "Factory.createPendingRequest",
+    "Request.headers",
+    "Request",
+    "Factory.allowStrayRequests",
+    "Request.method"
+   ],
+   "accept": [
+    "PendingRequest",
+    "PendingRequest.get",
+    "PendingRequest.post",
+    "PendingRequest.send",
+    "Factory.fake"
+   ]
+  },
+  {
+   "q": "dispatch a batch of jobs and track its progress",
+   "hit": true,
+   "top": [
+    "Batch.progress",
+    "Batch.recordSuccessfulJob",
+    "Dispatcher.batch",
+    "Dispatcher.dispatchSync",
+    "PendingBatch.then"
+   ],
+   "accept": [
+    "Batch",
+    "PendingBatch",
+    "BatchRepository",
+    "DatabaseBatchRepository"
+   ]
+  },
+  {
+   "q": "chain jobs so they run one after another",
+   "hit": false,
+   "top": [
+    "Queueable.prependToChain",
+    "JobChainAddingAppendingJob",
+    "JobChainingTest.testJobsCanBeChainedOnSuccessWithSeveralJobs",
+    "JobChainingTestSecondJob",
+    "JobChainingTest.testJobsCanBeChainedOnSuccessUsingPendingChain"
+   ],
+   "accept": [
+    "PendingChain",
+    "chain",
+    "dispatchNextJobInChain",
+    "Queueable.chain"
+   ]
+  },
+  {
+   "q": "generate fake model instances for tests with factories",
+   "hit": false,
+   "top": [
+    "ModelMakeCommandTest.testItCanGenerateModelFileWithFactoryOption",
+    "ModelMakeCommandTest.testItCanGenerateModelFileWithFactoryOptionForDeepFolder",
+    "ModelMakeCommandTest.testItCanGenerateModelFileWithSeederption",
+    "DatabaseEloquentFactoryTest.test_model_instances_can_be_used_in_place_of_nested_factories",
+    "ModelMakeCommandTest.testItCanGenerateNestedModelFileWithControllerOption"
+   ],
+   "accept": [
+    "HasFactory",
+    "Factory.create",
+    "Factory.make",
+    "Factory.definition"
+   ]
+  },
+  {
+   "q": "seed the database with initial records",
+   "hit": true,
+   "top": [
+    "SeedCommand.getDatabase",
+    "InteractsWithDatabase.seed",
+    "Seeder.setCommand",
+    "Seeder.__invoke",
+    "Seeder"
+   ],
+   "accept": [
+    "Seeder",
+    "Seeder.call",
+    "SeedCommand"
+   ]
+  },
+  {
+   "q": "create signed urls that cannot be tampered with",
+   "hit": true,
+   "top": [
+    "UrlGenerator.secure",
+    "UrlGenerator.signedRoute",
+    "UrlGenerator.secure",
+    "UrlGenerator.to",
+    "UrlSigningTest.createValidateSignatureMiddleware"
+   ],
+   "accept": [
+    "signedRoute",
+    "temporarySignedRoute",
+    "hasValidSignature",
+    "UrlGenerator.signedRoute",
+    "ValidateSignature"
+   ]
+  },
+  {
+   "q": "put the application into maintenance mode",
+   "hit": true,
+   "top": [
+    "Application.maintenanceMode",
+    "MaintenanceMode.active",
+    "MaintenanceMode.deactivate",
+    "Application.maintenanceMode",
+    "MaintenanceModeManager.createFileDriver"
+   ],
+   "accept": [
+    "DownCommand",
+    "UpCommand",
+    "PreventRequestsDuringMaintenance",
+    "FileBasedMaintenanceMode",
+    "MaintenanceModeManager"
+   ]
+  },
+  {
+   "q": "eager load relationships to avoid n plus one queries",
+   "hit": true,
+   "top": [
+    "Builder.eagerLoadRelations",
+    "Model.loadAggregate",
+    "Builder.eagerLoadRelation",
+    "LazyCollection.eager",
+    "Model.loadMorphAggregate"
+   ],
+   "accept": [
+    "Builder.with",
+    "eagerLoadRelations",
+    "eagerLoadRelation",
+    "loadMissing"
+   ]
+  },
+  {
+   "q": "process a large table in chunks or lazily",
+   "hit": true,
+   "top": [
+    "BuildsQueries.lazyById",
+    "BuildsQueries.orderedLazyById",
+    "BuildsQueries.chunkMap",
+    "BuildsQueries.lazy",
+    "BuildsQueries.chunkById"
+   ],
+   "accept": [
+    "chunk",
+    "chunkById",
+    "BuildsQueries.chunk",
+    "lazy",
+    "cursor",
+    "Builder.cursor"
+   ]
+  },
+  {
+   "q": "insert or update rows in a single atomic upsert",
+   "hit": true,
+   "top": [
+    "DatabaseBatchRepository.updateAtomicValues",
+    "Builder.upsert",
+    "Builder.upsert",
+    "HasOneOrMany.upsert",
+    "MySqlGrammar.compileUpsert"
+   ],
+   "accept": [
+    "upsert",
+    "Builder.upsert"
+   ]
+  },
+  {
+   "q": "flash data to the session for only the next request",
+   "hit": true,
+   "top": [
+    "Store.flashInput",
+    "Store.flash",
+    "InteractsWithFlashData.flash",
+    "RedirectResponse.__call",
+    "SessionManager.shouldBlock"
+   ],
+   "accept": [
+    "Store.flash",
+    "flash",
+    "Store.now",
+    "flashInput",
+    "Store.keep"
+   ]
+  },
+  {
+   "q": "queue a cookie to be attached to the outgoing response",
+   "hit": true,
+   "top": [
+    "CookieJar.queue",
+    "AddQueuedCookiesToResponse",
+    "AddQueuedCookiesToResponse.handle",
+    "CookieJar.queued",
+    "QueueingFactory.getQueuedCookies"
+   ],
+   "accept": [
+    "CookieJar",
+    "CookieJar.queue",
+    "CookieJar.make",
+    "AddQueuedCookiesToResponse"
+   ]
+  },
+  {
+   "q": "render a view template with bound data",
+   "hit": true,
+   "top": [
+    "View.render",
+    "View.getData",
+    "InteractsWithViews.blade",
+    "View.offsetExists",
+    "View.with"
+   ],
+   "accept": [
+    "View.render",
+    "Factory.make",
+    "View.with",
+    "renderContents"
+   ]
+  },
+  {
+   "q": "attach and detach records on a many to many relation",
+   "hit": true,
+   "top": [
+    "InteractsWithPivotTable.detach",
+    "BelongsTo.dissociate",
+    "MorphToMany.baseAttachRecord",
+    "HasRelationships.belongsToMany",
+    "BelongsToMany.saveManyQuietly"
+   ],
+   "accept": [
+    "belongsToMany",
+    "BelongsToMany",
+    "attach",
+    "detach",
+    "sync",
+    "InteractsWithPivotTable.attach"
+   ]
+  },
+  {
+   "q": "observe model lifecycle events like creating and deleting",
+   "hit": true,
+   "top": [
+    "HasEvents.deleted",
+    "HasEvents.deleting",
+    "Model.deleteQuietly",
+    "HasEvents.observe",
+    "HasEvents.registerModelEvent"
+   ],
+   "accept": [
+    "observe",
+    "registerObserver",
+    "ObservedBy",
+    "HasEvents.observe"
+   ]
+  }
+ ]
+}

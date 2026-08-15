@@ -1,0 +1,447 @@
+{
+ "repo": "vscode",
+ "split": "heldout",
+ "fixture_commit": "fabdb6a30b49f79a7aba0f2ad9df9b399473380f",
+ "binary_sha256_16": "44b2be5618b3ba8d",
+ "params": {
+  "cards": "contrast-no-neighbors",
+  "lambda": 0.3,
+  "frozen": true,
+  "one_shot": true
+ },
+ "n": 26,
+ "hits": 17,
+ "hit5_pct": 65.4,
+ "results": [
+  {
+   "q": "open a file in a new editor tab",
+   "hit": true,
+   "top": [
+    "SingleEditorTabsControl.doHandleOpenEditor",
+    "FileEditorInput.setForceOpenAsText",
+    "SingleEditorTabsControl.openEditors",
+    "ExtensionEditor.openTab",
+    "NoEditorTabsControl.handleOpenedEditors"
+   ],
+   "accept": [
+    "openEditor",
+    "openEditors",
+    "EditorService.openEditor",
+    "TextEditorService"
+   ]
+  },
+  {
+   "q": "show a quick pick list for the user to choose from",
+   "hit": true,
+   "top": [
+    "KernelPickerMRUStrategy.displaySelectAnotherQuickPick",
+    "applyPicks",
+    "showQuickPick",
+    "QuickPick.selectedItems",
+    "toQuickPick"
+   ],
+   "accept": [
+    "QuickInputService.pick",
+    "showQuickPick",
+    "QuickPick",
+    "createQuickPick"
+   ]
+  },
+  {
+   "q": "register a command that appears in the command palette",
+   "hit": true,
+   "top": [
+    "appendToCommandPalette",
+    "CommandManager.register",
+    "registerCommands",
+    "registerCommand",
+    "CommandHandler.registerTextEditorCommand"
+   ],
+   "accept": [
+    "registerCommand",
+    "registerAction2"
+   ]
+  },
+  {
+   "q": "tokenize a line with a textmate grammar for highlighting",
+   "hit": false,
+   "top": [
+    "TokenizationTextModelPart.getLineTokens",
+    "GrammarTokens.tokenizeLineWithEdit",
+    "tokenizeLineToHTML",
+    "GrammarTokens.refreshAllVisibleLineTokens",
+    "createLineTokens"
+   ],
+   "accept": [
+    "TextMateTokenizationFeature",
+    "TokenizationRegistry"
+   ]
+  },
+  {
+   "q": "watch the filesystem for file changes",
+   "hit": true,
+   "top": [
+    "DiskFileSystemProvider.createNonRecursiveWatcher",
+    "NodeJSFileWatcherLibrary.handleFileChanges",
+    "TestFileWatcher.toFileChangesEvent",
+    "FileSystemWatcher.onDidChange",
+    "DiskFileSystemProvider.createUniversalWatcher"
+   ],
+   "accept": [
+    "ParcelWatcher",
+    "NodeJSFileWatcherLibrary",
+    "watch",
+    "UniversalWatcher"
+   ]
+  },
+  {
+   "q": "compute the diff between two text documents",
+   "hit": false,
+   "top": [
+    "DiffChangeHelper.MarkNextChange",
+    "DiffChange",
+    "SequenceDiff.invert",
+    "NotebookDiffEditorSelection.compare",
+    "SequenceDiff.getEndExclusives"
+   ],
+   "accept": [
+    "computeDiff",
+    "DiffComputer",
+    "DefaultLinesDiffComputer.computeDiff",
+    "LegacyLinesDiffComputer.computeDiff"
+   ]
+  },
+  {
+   "q": "create an integrated terminal instance",
+   "hit": true,
+   "top": [
+    "ShellIntegrationAddon._createOrGetCommandDetection",
+    "TerminalInstanceService.createInstance",
+    "Terminal.createTerminal",
+    "InternalTerminalShellIntegration",
+    "TerminalInstanceService.onDidCreateInstance"
+   ],
+   "accept": [
+    "createTerminal",
+    "TerminalService.createTerminal",
+    "TerminalInstance",
+    "createInstance"
+   ]
+  },
+  {
+   "q": "read a configuration setting value",
+   "hit": false,
+   "top": [
+    "ConfigurationRegistry.getConfigurationProperties",
+    "ConfigurationRegistry.getPolicyConfigurations",
+    "UserSettings.getRestrictedSettings",
+    "getIgnoredSettingsFromConfig",
+    "ConfigurationInspectValue.policyInspectValue"
+   ],
+   "accept": [
+    "getValue",
+    "ConfigurationService.getValue",
+    "Configuration.getValue"
+   ]
+  },
+  {
+   "q": "resolve a pressed key chord to its command",
+   "hit": true,
+   "top": [
+    "_getChord",
+    "KeybindingResolver.resolve",
+    "MacLinuxKeyboardMapper._resolveChord",
+    "NativeResolvedKeybinding._getChordDispatch",
+    "WindowsKeyboardMapper._resolveChord"
+   ],
+   "accept": [
+    "KeybindingResolver.resolve",
+    "resolveKeybinding",
+    "KeybindingResolver"
+   ]
+  },
+  {
+   "q": "activate an extension when its events fire",
+   "hit": true,
+   "top": [
+    "ExtensionHostManager.activateByEvent",
+    "ImplicitActivationEventsImpl.createActivationEventsMap",
+    "ExtensionsActivator.activateByEvent",
+    "fireEvent",
+    "ExtensionHostManager._activateByEvent"
+   ],
+   "accept": [
+    "activate",
+    "ExtensionsActivator",
+    "ExtensionService",
+    "activateByEvent",
+    "ExtensionsActivator.activateById"
+   ]
+  },
+  {
+   "q": "search for text across all files in the workspace",
+   "hit": false,
+   "top": [
+    "ExtHostWorkspace.findTextInFiles",
+    "ExtHostWorkspace.findTextInFilesBase",
+    "Search.setFilesToIncludeText",
+    "ExtHostWorkspace.findTextInFiles2",
+    "FileWalker.getSearchPath"
+   ],
+   "accept": [
+    "TextSearchManager",
+    "SearchService",
+    "QueryBuilder.text",
+    "RipgrepTextSearchEngine",
+    "doSearch"
+   ]
+  },
+  {
+   "q": "push an operation onto the undo redo stack",
+   "hit": true,
+   "top": [
+    "UndoRedoService._pushElement",
+    "ResourceEditStack.pushElement",
+    "ResourceEditStack.moveBackward",
+    "UndoRedoService._safeInvokeWithLocks",
+    "ResourceEditStack.moveForward"
+   ],
+   "accept": [
+    "UndoRedoService.pushElement",
+    "pushEditOperation",
+    "UndoRedoService"
+   ]
+  },
+  {
+   "q": "insert text into the piece tree text buffer",
+   "hit": true,
+   "top": [
+    "PieceTreeBase.insertContentToNodeLeft",
+    "PieceTreeTextBuffer.constructor",
+    "PieceTreeBase.insertContentToNodeRight",
+    "PieceTreeBase.positionInBuffer",
+    "PieceTreeBase.insert"
+   ],
+   "accept": [
+    "PieceTreeBase.insert",
+    "PieceTreeTextBuffer.applyEdits",
+    "PieceTreeBase.delete",
+    "createNewPieces"
+   ]
+  },
+  {
+   "q": "enter a different workspace folder",
+   "hit": false,
+   "top": [
+    "toWorkspaceFolder",
+    "WorkspaceFolder",
+    "Workspace.folders",
+    "toWorkspaceFolders",
+    "Workspace.folders"
+   ],
+   "accept": [
+    "enterWorkspace",
+    "WorkspaceService",
+    "doEnterWorkspace",
+    "setWorkspace"
+   ]
+  },
+  {
+   "q": "register a source control provider like git",
+   "hit": false,
+   "top": [
+    "ApiImpl.registerRemoteSourcePublisher",
+    "Repository.sourceControl",
+    "ApiImpl.registerRemoteSourceProvider",
+    "ApiRepositoryUIState.constructor",
+    "GitFileSystemProvider.createDirectory"
+   ],
+   "accept": [
+    "registerSCMProvider",
+    "SCMService",
+    "addRepository"
+   ]
+  },
+  {
+   "q": "show an error notification to the user",
+   "hit": false,
+   "top": [
+    "PHPValidationProvider.showErrorMessage",
+    "NotificationsStatus.onDidChangeStatusMessage",
+    "CommandCenter.showErrorNotification",
+    "NotificationsStatus.doSetStatusMessage",
+    "getErrorMessage"
+   ],
+   "accept": [
+    "NotificationService.error",
+    "notify",
+    "NotificationService.notify",
+    "showMessage"
+   ]
+  },
+  {
+   "q": "start a debug session with a configuration",
+   "hit": true,
+   "top": [
+    "DebugModel.setBreakpointSessionData",
+    "DebugService.startDebugging",
+    "ServerReadyDetector.startDebugSession",
+    "DebugModel.getSession",
+    "DebugModel.setExceptionBreakpointsForSession"
+   ],
+   "accept": [
+    "startDebugging",
+    "DebugService.startDebugging",
+    "DebugSession",
+    "doCreateSession"
+   ]
+  },
+  {
+   "q": "provide completion suggestions while typing",
+   "hit": false,
+   "top": [
+    "SuggestInlineCompletions._getTriggerCharacterInfo",
+    "SuggestInlineCompletion.constructor",
+    "CompletionOptions",
+    "SuggestInlineCompletion",
+    "SuggestInlineCompletions.constructor"
+   ],
+   "accept": [
+    "provideSuggestionItems",
+    "CompletionModel",
+    "SuggestController",
+    "CompletionItemModel"
+   ]
+  },
+  {
+   "q": "show hover information at the cursor position",
+   "hit": false,
+   "top": [
+    "HoverWidget.setHoverPointerPosition",
+    "getInstanceHoverInfo",
+    "RenderedContentHover.computeHoverPositions",
+    "HoverSource.constructor",
+    "onMouseMove"
+   ],
+   "accept": [
+    "ContentHoverController",
+    "ContentHoverWidget",
+    "computeAsync"
+   ]
+  },
+  {
+   "q": "compute quick fixes and code actions at a position",
+   "hit": true,
+   "top": [
+    "QuickFixAction",
+    "computeUnchangedMoves",
+    "getCodeActions",
+    "reportDecreasingAligningPositions",
+    "workbenchCalculateActions"
+   ],
+   "accept": [
+    "getCodeActions",
+    "CodeActionController",
+    "CodeActionModel",
+    "applyCodeAction"
+   ]
+  },
+  {
+   "q": "render the minimap next to the editor",
+   "hit": true,
+   "top": [
+    "Minimap.render",
+    "InnerMinimap.render",
+    "InnerMinimap.renderDecorations",
+    "InnerMinimap.renderLines",
+    "InnerMinimap._applyLayout"
+   ],
+   "accept": [
+    "Minimap",
+    "MinimapCharRenderer",
+    "InnerMinimap"
+   ]
+  },
+  {
+   "q": "compute folding ranges for the editor",
+   "hit": true,
+   "top": [
+    "computeRanges",
+    "FoldingRegions.toFoldRange",
+    "FoldingRegions.findRange",
+    "FoldingRegions.fromFoldRanges",
+    "FoldingController.getRangeProvider"
+   ],
+   "accept": [
+    "FoldingModel",
+    "computeRanges",
+    "RangesCollector",
+    "FoldingController",
+    "IndentRangeProvider.compute"
+   ]
+  },
+  {
+   "q": "add an entry to the status bar",
+   "hit": true,
+   "top": [
+    "StatusbarPart.addEntry",
+    "StatusbarPart.doAddPendingEntry",
+    "StatusbarService.addEntry",
+    "StatusbarPart.appendStatusbarEntries",
+    "StatusbarPart.appendStatusbarEntry"
+   ],
+   "accept": [
+    "addEntry",
+    "StatusbarService.addEntry",
+    "StatusbarEntryItem"
+   ]
+  },
+  {
+   "q": "write text to the system clipboard",
+   "hit": true,
+   "top": [
+    "BrowserClipboardService.writeText",
+    "ExtHostClipboard.writeText",
+    "setTextData",
+    "ClipboardService.writeText",
+    "NativeClipboardService.writeText"
+   ],
+   "accept": [
+    "writeText",
+    "ClipboardService.writeText",
+    "NativeClipboardService",
+    "BrowserClipboardService"
+   ]
+  },
+  {
+   "q": "layout the workbench grid of parts and panels",
+   "hit": true,
+   "top": [
+    "PanelPart.layout",
+    "GridWidgetView.layout",
+    "adjustPartPositions",
+    "getPanelPosition",
+    "layout"
+   ],
+   "accept": [
+    "layout",
+    "SerializableGrid"
+   ]
+  },
+  {
+   "q": "restore editors from the previous session",
+   "hit": true,
+   "top": [
+    "RestoreEditorsToMainWindowAction",
+    "EditorPart.restoreGroup",
+    "navigateBackToEditorGroup",
+    "EditorParts.restoreState",
+    "TextEditorPaneSelection.restore"
+   ],
+   "accept": [
+    "restoreEditors",
+    "restore"
+   ]
+  }
+ ]
+}

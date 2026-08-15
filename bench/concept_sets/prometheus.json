@@ -1,0 +1,235 @@
+{
+ "repo": "prometheus",
+ "commit": "7086161a93b262aa0949dbf2aba15a5a7b13e0a3",
+ "split": "heldout",
+ "provenance": "Drafted from framework documentation knowledge by claude-fable-5 on 2026-07-11; answers verified against the pinned index via symbol-table existence lookup only (no search runs); frozen before diffusion/contrast mechanisms were measured.",
+ "questions": [
+  {
+   "q": "scrape metrics from a discovered target",
+   "accept": [
+    "scrapeLoop",
+    "scrapePool",
+    "scrapeAndReport",
+    "targetScraper",
+    "scrapeLoop.run",
+    "scrapePool.sync"
+   ]
+  },
+  {
+   "q": "evaluate alerting and recording rules on a schedule",
+   "accept": [
+    "Group.Eval",
+    "AlertingRule.Eval",
+    "RecordingRule.Eval",
+    "Group.run",
+    "Manager.Update"
+   ]
+  },
+  {
+   "q": "parse a promql expression into an ast",
+   "accept": [
+    "ParseExpr",
+    "NewParser",
+    "parseGenerated",
+    "Parse"
+   ]
+  },
+  {
+   "q": "execute a promql query over the stored samples",
+   "accept": [
+    "Engine.exec",
+    "NewInstantQuery",
+    "NewRangeQuery",
+    "evaluator.eval",
+    "Engine.NewInstantQuery",
+    "Engine.NewRangeQuery"
+   ]
+  },
+  {
+   "q": "send firing alerts to the alertmanager",
+   "accept": [
+    "sendAll",
+    "Manager.sendAll",
+    "sendOne",
+    "Notify"
+   ]
+  },
+  {
+   "q": "discover scrape targets from service discovery",
+   "accept": [
+    "Discoverer",
+    "Manager.ApplyConfig",
+    "Manager.Run",
+    "updater"
+   ]
+  },
+  {
+   "q": "append new samples into local storage",
+   "accept": [
+    "headAppender.Append",
+    "DB.Appender",
+    "Head.Appender",
+    "appender.Append"
+   ]
+  },
+  {
+   "q": "compact storage blocks into larger ones",
+   "accept": [
+    "LeveledCompactor.Compact",
+    "Compact",
+    "compactHead",
+    "DB.Compact",
+    "LeveledCompactor.write"
+   ]
+  },
+  {
+   "q": "write and replay the write ahead log",
+   "accept": [
+    "WL.Log",
+    "Watcher.Run",
+    "Checkpoint",
+    "WL.Repair",
+    "loadWAL",
+    "Watcher"
+   ]
+  },
+  {
+   "q": "send samples to a remote storage endpoint",
+   "accept": [
+    "QueueManager",
+    "QueueManager.Append",
+    "WriteStorage",
+    "sendSamples",
+    "shards.enqueue"
+   ]
+  },
+  {
+   "q": "load and validate the yaml configuration file",
+   "accept": [
+    "LoadFile",
+    "Load",
+    "Config.Validate",
+    "reloadConfig",
+    "Config.UnmarshalYAML"
+   ]
+  },
+  {
+   "q": "expose metrics of one prometheus to be scraped by another",
+   "accept": [
+    "federation",
+    "Handler.federation"
+   ]
+  },
+  {
+   "q": "the http api endpoint that runs a query",
+   "accept": [
+    "API.query",
+    "API.queryRange",
+    "apiFuncResult"
+   ]
+  },
+  {
+   "q": "relabel targets before scraping using rules",
+   "accept": [
+    "Process",
+    "PopulateLabels",
+    "ProcessBuilder"
+   ]
+  },
+  {
+   "q": "merge series from multiple queriers into one result",
+   "accept": [
+    "NewMergeQuerier",
+    "mergeGenericQuerier",
+    "NewMergeSeriesSet"
+   ]
+  },
+  {
+   "q": "select series matching label matchers",
+   "accept": [
+    "Select",
+    "PostingsForMatchers",
+    "blockQuerier.Select"
+   ]
+  },
+  {
+   "q": "keep active alerts and their state for the ui",
+   "accept": [
+    "ActiveAlerts",
+    "AlertingRule.ActiveAlerts",
+    "Alert",
+    "sendAlerts",
+    "AlertingRule.State"
+   ]
+  },
+  {
+   "q": "delete old data past the retention period",
+   "accept": [
+    "Truncate",
+    "Head.Truncate",
+    "deleteBlocks"
+   ]
+  },
+  {
+   "q": "read chunks of a series from a block",
+   "accept": [
+    "ChunkReader",
+    "Chunk",
+    "blockChunkReader"
+   ]
+  },
+  {
+   "q": "the index mapping label values to series",
+   "accept": [
+    "Postings",
+    "MemPostings",
+    "Reader.Postings",
+    "Writer.AddSeries"
+   ]
+  },
+  {
+   "q": "record rules write their result back as new series",
+   "accept": [
+    "RecordingRule.Eval",
+    "RecordingRule",
+    "Group.Eval"
+   ]
+  },
+  {
+   "q": "web ui handler serving the console pages",
+   "accept": [
+    "Handler",
+    "Handler.Run",
+    "New",
+    "consoles"
+   ]
+  },
+  {
+   "q": "check scrape target health up or down",
+   "accept": [
+    "Target.Health",
+    "TargetHealth"
+   ]
+  },
+  {
+   "q": "stale markers when a target disappears",
+   "accept": [
+    "IsStaleNaN"
+   ]
+  },
+  {
+   "q": "limit how many samples a query can load",
+   "accept": [
+    "checkAndExpandSeriesSet"
+   ]
+  },
+  {
+   "q": "exemplars stored alongside samples",
+   "accept": [
+    "AppendExemplar",
+    "CircularExemplarStorage",
+    "ExemplarQuerier"
+   ]
+  }
+ ]
+}

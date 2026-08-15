@@ -1,0 +1,250 @@
+{
+ "repo": "symfony",
+ "commit": "fca27be5c0bf49f5ab5d274c42d8235ec1d3ae02",
+ "split": "heldout",
+ "provenance": "Drafted from framework documentation knowledge by claude-fable-5 on 2026-07-11; answers verified against the pinned index via symbol-table existence lookup only (no search runs); frozen before diffusion/contrast mechanisms were measured.",
+ "questions": [
+  {
+   "q": "turn an http request into a response through the kernel",
+   "accept": [
+    "HttpKernel.handle",
+    "HttpKernel.handleRaw",
+    "Kernel.handle",
+    "HttpKernelInterface.handle"
+   ]
+  },
+  {
+   "q": "dispatch an event to all its listeners",
+   "accept": [
+    "EventDispatcher.dispatch",
+    "EventDispatcher.callListeners",
+    "TraceableEventDispatcher.dispatch"
+   ]
+  },
+  {
+   "q": "figure out which controller should handle the request",
+   "accept": [
+    "ControllerResolver.getController",
+    "ControllerResolver",
+    "ControllerResolverInterface"
+   ]
+  },
+  {
+   "q": "match the request url against the routing table",
+   "accept": [
+    "UrlMatcher.match",
+    "Router.match",
+    "UrlMatcher.matchCollection",
+    "RedirectableUrlMatcher.match"
+   ]
+  },
+  {
+   "q": "generate a url from a route name and parameters",
+   "accept": [
+    "UrlGenerator.generate",
+    "Router.generate",
+    "UrlGenerator.doGenerate",
+    "CompiledUrlGenerator.generate"
+   ]
+  },
+  {
+   "q": "compile the dependency injection container",
+   "accept": [
+    "ContainerBuilder.compile",
+    "Compiler.compile",
+    "PhpDumper.dump"
+   ]
+  },
+  {
+   "q": "autowire service constructor arguments by type",
+   "accept": [
+    "AutowirePass",
+    "AutowirePass.process",
+    "AutowirePass.autowireCalls",
+    "AbstractRecursivePass"
+   ]
+  },
+  {
+   "q": "validate an object against its constraints",
+   "accept": [
+    "RecursiveValidator.validate",
+    "Validator.validate",
+    "ConstraintValidator",
+    "RecursiveContextualValidator.validate"
+   ]
+  },
+  {
+   "q": "serialize an object into json",
+   "accept": [
+    "Serializer.serialize",
+    "Serializer.normalize",
+    "JsonEncoder.encode",
+    "ObjectNormalizer",
+    "AbstractNormalizer"
+   ]
+  },
+  {
+   "q": "translate a message into the user's locale",
+   "accept": [
+    "Translator.trans",
+    "TranslatorInterface",
+    "MessageCatalogue.get",
+    "Translator.getCatalogue"
+   ]
+  },
+  {
+   "q": "cache values in a psr compatible pool",
+   "accept": [
+    "AbstractAdapter",
+    "FilesystemAdapter",
+    "CacheItem",
+    "ArrayAdapter",
+    "ChainAdapter"
+   ]
+  },
+  {
+   "q": "define a console command with arguments and options",
+   "accept": [
+    "Command",
+    "Command.execute",
+    "Command.configure",
+    "Application.run",
+    "Command.run",
+    "InputDefinition"
+   ]
+  },
+  {
+   "q": "build a form and handle its submission",
+   "accept": [
+    "FormBuilder",
+    "Form.handleRequest",
+    "FormFactory.create",
+    "Form.submit",
+    "FormBuilderInterface"
+   ]
+  },
+  {
+   "q": "authenticate the user for the current request",
+   "accept": [
+    "AuthenticatorInterface",
+    "AuthenticatorManager.authenticateRequest",
+    "AuthenticatorManager",
+    "TokenStorage.setToken",
+    "UserBadge"
+   ]
+  },
+  {
+   "q": "make an outgoing http request to another service",
+   "accept": [
+    "CurlHttpClient.request",
+    "HttpClient.create",
+    "NativeHttpClient.request",
+    "HttpClientInterface",
+    "AmpHttpClient.request"
+   ]
+  },
+  {
+   "q": "dispatch a message onto the message bus",
+   "accept": [
+    "MessageBus.dispatch",
+    "MessageBusInterface",
+    "Envelope",
+    "HandleMessageMiddleware.handle"
+   ]
+  },
+  {
+   "q": "acquire a lock shared between processes",
+   "accept": [
+    "LockFactory.createLock",
+    "Lock.acquire",
+    "Lock.release",
+    "SemaphoreStore",
+    "FlockStore"
+   ]
+  },
+  {
+   "q": "copy files and create directories on disk",
+   "accept": [
+    "Filesystem.copy",
+    "Filesystem.mkdir",
+    "Filesystem.dumpFile",
+    "Filesystem.mirror"
+   ]
+  },
+  {
+   "q": "parse a yaml document into php values",
+   "accept": [
+    "Yaml.parse",
+    "Parser.parse",
+    "Yaml.parseFile",
+    "Inline.parse"
+   ]
+  },
+  {
+   "q": "load environment variables from a dotenv file",
+   "accept": [
+    "Dotenv.load",
+    "Dotenv.bootEnv",
+    "Dotenv.parse",
+    "Dotenv.populate"
+   ]
+  },
+  {
+   "q": "run an external process and capture its output",
+   "accept": [
+    "Process.run",
+    "Process.start",
+    "Process.wait",
+    "Process.mustRun",
+    "Process.getOutput"
+   ]
+  },
+  {
+   "q": "subscribe a class to the events it listens for",
+   "accept": [
+    "EventSubscriberInterface",
+    "getSubscribedEvents",
+    "RegisterListenersPass",
+    "addSubscriber"
+   ]
+  },
+  {
+   "q": "boot the kernel with its bundles and container",
+   "accept": [
+    "Kernel.boot",
+    "Kernel.initializeContainer",
+    "Kernel.initializeBundles",
+    "Bundle.boot"
+   ]
+  },
+  {
+   "q": "start and use the session for the request",
+   "accept": [
+    "Session.start",
+    "Session.set",
+    "NativeSessionStorage.start",
+    "SessionInterface",
+    "Session.get"
+   ]
+  },
+  {
+   "q": "rate limit how often an action can happen",
+   "accept": [
+    "RateLimiterFactory.create",
+    "TokenBucketLimiter.consume",
+    "SlidingWindowLimiter.consume",
+    "LimiterInterface",
+    "RateLimit"
+   ]
+  },
+  {
+   "q": "store failed messenger messages for retry",
+   "accept": [
+    "SendFailedMessageForRetryListener",
+    "FailedMessagesRetryCommand",
+    "RetryStrategyInterface",
+    "MultiplierRetryStrategy.isRetryable"
+   ]
+  }
+ ]
+}

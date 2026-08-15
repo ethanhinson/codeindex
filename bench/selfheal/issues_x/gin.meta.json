@@ -1,0 +1,359 @@
+[
+ {
+  "sha": "8790d08909",
+  "issue": 3236,
+  "is_pr": true,
+  "subject": "fix(uri): query binding bug (#3236)",
+  "q": "fix(uri): query binding bug"
+ },
+ {
+  "sha": "82bcd6d39b",
+  "issue": 3199,
+  "is_pr": true,
+  "subject": "fix(binding): dereference pointer to struct (#3199)",
+  "q": "fix(binding): dereference pointer to struct when validating structs"
+ },
+ {
+  "sha": "86ff4a64c7",
+  "issue": 3759,
+  "is_pr": true,
+  "subject": "fix(header): Allow header according to RFC 7231 (HTTP 405) (#3759)",
+  "q": "fix(header): Allow header according to RFC 7231 (HTTP 405)"
+ },
+ {
+  "sha": "3dc1cd6572",
+  "issue": 3819,
+  "is_pr": false,
+  "subject": "fix(binding): binding error while not upload file (#3819) (#3820)",
+  "q": "Binding a non mandatory file parameter will directly result in an error message"
+ },
+ {
+  "sha": "9f598a31aa",
+  "issue": 3812,
+  "is_pr": true,
+  "subject": "fix(router): catch-all conflicting wildcard (#3812)",
+  "q": "fix(router): catch-all conflicting wildcard"
+ },
+ {
+  "sha": "386d244068",
+  "issue": 3502,
+  "is_pr": true,
+  "subject": "fix(tree): correctly expand the capacity of params (#3502)",
+  "q": "fix(tree): correctly expand the capacity of params"
+ },
+ {
+  "sha": "44d0dd7092",
+  "issue": 3659,
+  "is_pr": false,
+  "subject": "fix: Add pointer support for url query params (#3659) (#3666)",
+  "q": "Can't bind list of struct pointer in query"
+ },
+ {
+  "sha": "2d4bbec941",
+  "issue": 3556,
+  "is_pr": true,
+  "subject": "fix lack of escaping of filename in Content-Disposition (#3556)",
+  "q": "fix lack of escaping of filename in Content-Disposition"
+ },
+ {
+  "sha": "4cee78f538",
+  "issue": 3500,
+  "is_pr": true,
+  "subject": "Fix #3500 Add escape logic for header (#3503)",
+  "q": "Add escape logic for header"
+ },
+ {
+  "sha": "8eb5f832ba",
+  "issue": 3460,
+  "is_pr": true,
+  "subject": "fix(router): tree bug where loop index is not decremented. (#3460)",
+  "q": "fix(router): tree bug where loop index is not decremented."
+ },
+ {
+  "sha": "41f2669ebc",
+  "issue": 3453,
+  "is_pr": true,
+  "subject": "console logger HTTP status bug fixed and the corresponding unit test added (#3453)",
+  "q": "console logger HTTP status code bug fixed"
+ },
+ {
+  "sha": "8b9c55e8b0",
+  "issue": 3227,
+  "is_pr": true,
+  "subject": "fix(route): redirectSlash bug (#3227)",
+  "q": "fix(route): redirectSlash bug"
+ },
+ {
+  "sha": "088cdd74d4",
+  "issue": 3221,
+  "is_pr": true,
+  "subject": "Fix the value of ginSupportMinGoVer constant by semantic (#3221)",
+  "q": "Fix the value of ginSupportMinGoVer constant by semantic"
+ },
+ {
+  "sha": "87811a97bd",
+  "issue": 3033,
+  "is_pr": true,
+  "subject": "fix: the trusted proxies should support ipv6 address by default (#3033)",
+  "q": "fix: default trusted proxies should add ipv6"
+ },
+ {
+  "sha": "7d189814cb",
+  "issue": 2983,
+  "is_pr": true,
+  "subject": "fix: wrong when wildcard follows named param (#2983)",
+  "q": "fix: wrong when wildcard follows named param"
+ },
+ {
+  "sha": "cbdd47a7e1",
+  "issue": 2924,
+  "is_pr": true,
+  "subject": "fix tsr with mixed static and wildcard paths (#2924)",
+  "q": "fix tsr with mixed static and wildcard paths"
+ },
+ {
+  "sha": "1c2aa59b20",
+  "issue": 2847,
+  "is_pr": true,
+  "subject": "fix the misplacement of adding slashes (#2847)",
+  "q": "fix the misplacement of adding slashes"
+ },
+ {
+  "sha": "0a55865c3f",
+  "issue": 2786,
+  "is_pr": false,
+  "subject": "fix #2786 (#2796)",
+  "q": "[Bug]mixed param and non-param paths"
+ },
+ {
+  "sha": "d4ca9a0fb1",
+  "issue": 2762,
+  "is_pr": false,
+  "subject": "fix #2762 (#2767)",
+  "q": "404 when using dynamic routing"
+ },
+ {
+  "sha": "1d0f938f28",
+  "issue": 2755,
+  "is_pr": true,
+  "subject": "Fix insufficient slice check (#2755)",
+  "q": "Fix insufficient slice check"
+ },
+ {
+  "sha": "2921582d11",
+  "issue": 2706,
+  "is_pr": true,
+  "subject": "Fix conflict between param and exact path (#2706)",
+  "q": "Fix conflict between param and exact path"
+ },
+ {
+  "sha": "03e5e05ae0",
+  "issue": 2674,
+  "is_pr": false,
+  "subject": "fix: data race with trustedCIDRs (#2674) (#2675)",
+  "q": "Data race with gin-gonic v1.7.0"
+ },
+ {
+  "sha": "b01605bb5b",
+  "issue": 2609,
+  "is_pr": true,
+  "subject": "basic auth: fix timing oracle (#2609)",
+  "q": "basic auth: fix timing oracle"
+ },
+ {
+  "sha": "f4bc259de3",
+  "issue": 2584,
+  "is_pr": true,
+  "subject": "fix error gin support min Go version (#2584)",
+  "q": "fix error gin support min Go version"
+ },
+ {
+  "sha": "a7a6986d73",
+  "issue": 2528,
+  "is_pr": true,
+  "subject": "fix: print headers without Authorization header on broken pipe (#2528)",
+  "q": "fix: print headers without Authorization header on broken pipe"
+ },
+ {
+  "sha": "a6e8665e42",
+  "issue": 2366,
+  "is_pr": true,
+  "subject": "fix(tree): reassign fullpath when register new node which the same current node (#2366)",
+  "q": "fix(tree): reassign fullpath when register new node which the same current node"
+ },
+ {
+  "sha": "298ebca691",
+  "issue": 2305,
+  "is_pr": true,
+  "subject": "fix missing initial sync.RWMutex (#2305)",
+  "q": "fix missing initial sync.RWMutex"
+ },
+ {
+  "sha": "2ff2b19e14",
+  "issue": 2216,
+  "is_pr": true,
+  "subject": "fix accept incoming network connections (#2216)",
+  "q": "fix accept incoming network connections"
+ },
+ {
+  "sha": "5f56109bcf",
+  "issue": 2209,
+  "is_pr": false,
+  "subject": "Use json marshall in context json to fix breaking new line issue. Fixes #2209 (#2228)",
+  "q": "context.JSON adds a new line to end of JSON response"
+ },
+ {
+  "sha": "7c21e04f62",
+  "issue": 2166,
+  "is_pr": true,
+  "subject": "fix maxParams bug (#2166)",
+  "q": "Fixed a bug in the calculation of the maximum number of parameters"
+ },
+ {
+  "sha": "db9174ae0c",
+  "issue": 1942,
+  "is_pr": false,
+  "subject": "fix ignore walking on form mapping (#1942) (#1943)",
+  "q": "request cause panic with v1.4.0 @ form_mapping.go:63 ~ form_mapping.go:89  ,  be careful"
+ },
+ {
+  "sha": "aabaccbba2",
+  "issue": 2118,
+  "is_pr": true,
+  "subject": "Close files opened in static file handler (#2118)",
+  "q": "Close files opened in static file handler"
+ },
+ {
+  "sha": "75b9d2bed7",
+  "issue": 1931,
+  "is_pr": true,
+  "subject": "Attempt to fix PostForm cache bug (#1931)",
+  "q": "Attempt to fix #1927"
+ },
+ {
+  "sha": "4a23c4f7b9",
+  "issue": 1804,
+  "is_pr": false,
+  "subject": "fix #1804 which is caused by calling middleware twice. (#1805)",
+  "q": "Default engine producing two log lines with StaticFS for 404"
+ },
+ {
+  "sha": "2dd3193006",
+  "issue": 391,
+  "is_pr": false,
+  "subject": "Support negotiation wildcards, fix #391 (#1112)",
+  "q": "Support HTTP content negotiation wildcards"
+ },
+ {
+  "sha": "a768f064d5",
+  "issue": 1760,
+  "is_pr": false,
+  "subject": "fix many redirects (#1760) (#1764)",
+  "q": "Out of range if redirect more than 45 times"
+ },
+ {
+  "sha": "49e4b0c60c",
+  "issue": 1718,
+  "is_pr": true,
+  "subject": "fix mapping inner structs with correct tag (#1718)",
+  "q": "fix mapping inner structs with correct tag"
+ },
+ {
+  "sha": "98c7ac7202",
+  "issue": 1682,
+  "is_pr": true,
+  "subject": "fix bug (#1682)",
+  "q": "fix bug"
+ },
+ {
+  "sha": "7ec82ee894",
+  "issue": 1640,
+  "is_pr": true,
+  "subject": "recovery: fix issue about syscall import on google app engine (#1640)",
+  "q": "recovery: fix issue about syscall import on google app engine"
+ },
+ {
+  "sha": "37854ee10f",
+  "issue": 1089,
+  "is_pr": false,
+  "subject": "Fix panic stack trace being printed during recovery of broken pipe (#1089) (#1259)",
+  "q": "write: broken pipe  in func (r Data) Render"
+ },
+ {
+  "sha": "7e64d32269",
+  "issue": 1462,
+  "is_pr": false,
+  "subject": "Attempt to fix #1462 (#1463)",
+  "q": "change to test_helpers.go causes flag parsing to fail for cmd line app"
+ },
+ {
+  "sha": "5636afe02d",
+  "issue": 1350,
+  "is_pr": true,
+  "subject": "fix bug, return err when failed binding bool (#1350)",
+  "q": "fix bug, return err when failed binding bool"
+ },
+ {
+  "sha": "e31cbdf241",
+  "issue": 999,
+  "is_pr": true,
+  "subject": "feat(logger): show query string in logger. (#999) close #988",
+  "q": "show query string in logger."
+ },
+ {
+  "sha": "fb7448f081",
+  "issue": 997,
+  "is_pr": true,
+  "subject": "feat(binding): add UseNumber() in gin.Context.BindJSON() (#997) close #368",
+  "q": "resolve #368 add option to UseNumber() in gin.Context.BindJSON()"
+ },
+ {
+  "sha": "6a3a8ae61b",
+  "issue": 904,
+  "is_pr": true,
+  "subject": "Fix time.Time binding (#904)",
+  "q": "Fix time.Time binding"
+ },
+ {
+  "sha": "b26d956e07",
+  "issue": 752,
+  "is_pr": false,
+  "subject": "fix #752 ignore appengine os.",
+  "q": "IsTerminal not available on Google App Engine"
+ },
+ {
+  "sha": "c3bfd69303",
+  "issue": 744,
+  "is_pr": true,
+  "subject": "Merge pull request #744 from aviddiviner/logger-fix",
+  "q": "Logger: skip ANSI color commands if output is not a tty"
+ },
+ {
+  "sha": "79ea1eaaf2",
+  "issue": 494,
+  "is_pr": true,
+  "subject": "Merge pull request #494 from dolmen/fix/indent-route-debug",
+  "q": "Fix indent of routes debug prints"
+ },
+ {
+  "sha": "251b73fc70",
+  "issue": 239,
+  "is_pr": true,
+  "subject": "Fixes #239 bug",
+  "q": "issue #238 proposed fix"
+ },
+ {
+  "sha": "97ae4a6b65",
+  "issue": 119,
+  "is_pr": false,
+  "subject": "Fix for #119. gin.LoadHTML* incorrectly works in debug mode.",
+  "q": "why don't working LoadHTMLTemplates function in debug mode"
+ },
+ {
+  "sha": "3716419fca",
+  "issue": 76,
+  "is_pr": true,
+  "subject": "Merge pull request #76 from mopemope/fix-plainrender",
+  "q": "Fix Corrupted plainRender"
+ }
+]

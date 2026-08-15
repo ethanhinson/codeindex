@@ -1,0 +1,1736 @@
+{
+  "gin": [
+    {
+      "q": "bind query string parameters onto a struct",
+      "accept": [
+        "ShouldBindQuery",
+        "BindQuery",
+        "Context.ShouldBindQuery",
+        "Context.BindQuery"
+      ]
+    },
+    {
+      "q": "bind uri path parameters onto struct fields",
+      "accept": [
+        "ShouldBindUri",
+        "BindUri",
+        "Context.ShouldBindUri",
+        "Context.BindUri"
+      ]
+    },
+    {
+      "q": "bind request headers onto a struct",
+      "accept": [
+        "ShouldBindHeader",
+        "BindHeader",
+        "Context.ShouldBindHeader"
+      ]
+    },
+    {
+      "q": "bind a toml or yaml request body onto a struct",
+      "accept": [
+        "ShouldBindTOML",
+        "ShouldBindYAML",
+        "BindTOML",
+        "BindYAML",
+        "Context.ShouldBindTOML",
+        "Context.ShouldBindYAML"
+      ]
+    },
+    {
+      "q": "bind the request body more than once by caching it",
+      "accept": [
+        "ShouldBindBodyWith",
+        "ShouldBindBodyWithJSON",
+        "ShouldBindBodyWithYAML",
+        "Context.ShouldBindBodyWith"
+      ]
+    },
+    {
+      "q": "render an html template as the response",
+      "accept": [
+        "HTML",
+        "Context.HTML"
+      ]
+    },
+    {
+      "q": "return a formatted plain text response",
+      "accept": [
+        "String",
+        "Context.String"
+      ]
+    },
+    {
+      "q": "respond with raw bytes and a custom content type",
+      "accept": [
+        "Data",
+        "DataFromReader",
+        "Context.Data",
+        "Context.DataFromReader"
+      ]
+    },
+    {
+      "q": "respond with xml yaml or protobuf instead of json",
+      "accept": [
+        "XML",
+        "YAML",
+        "TOML",
+        "ProtoBuf",
+        "Context.XML",
+        "Context.YAML",
+        "Context.ProtoBuf"
+      ]
+    },
+    {
+      "q": "copy the request context to use safely inside a goroutine",
+      "accept": [
+        "Copy",
+        "Context.Copy"
+      ]
+    },
+    {
+      "q": "switch the framework between debug release and test mode",
+      "accept": [
+        "SetMode",
+        "Mode",
+        "IsDebugging",
+        "DebugPrintRouteFunc"
+      ]
+    },
+    {
+      "q": "attach an error to the context and collect errors from middleware",
+      "accept": [
+        "Error",
+        "Context.Error",
+        "Errors.ByType",
+        "Errors.Last",
+        "errorMsgs.ByType"
+      ]
+    },
+    {
+      "q": "list all registered routes with their handler names",
+      "accept": [
+        "Routes",
+        "Engine.Routes",
+        "RoutesInfo",
+        "iterate",
+        "nameOfFunction"
+      ]
+    },
+    {
+      "q": "use a standard net/http handler as a gin handler",
+      "accept": [
+        "WrapF",
+        "WrapH"
+      ]
+    },
+    {
+      "q": "read a header from the incoming request",
+      "accept": [
+        "GetHeader",
+        "Context.GetHeader",
+        "requestHeader"
+      ]
+    },
+    {
+      "q": "set the http response status code without a body",
+      "accept": [
+        "Status",
+        "Context.Status"
+      ]
+    },
+    {
+      "q": "how the radix tree matches an incoming url to a registered route",
+      "accept": [
+        "getValue",
+        "addRoute",
+        "node.getValue",
+        "node.addRoute",
+        "findCaseInsensitivePath"
+      ]
+    },
+    {
+      "q": "register custom template functions and change template delimiters",
+      "accept": [
+        "SetFuncMap",
+        "Delims",
+        "Engine.SetFuncMap",
+        "Engine.Delims"
+      ]
+    },
+    {
+      "q": "create a fake context for unit testing handlers",
+      "accept": [
+        "CreateTestContext",
+        "CreateTestContextOnly"
+      ]
+    },
+    {
+      "q": "read form values from a post request body",
+      "accept": [
+        "PostForm",
+        "DefaultPostForm",
+        "GetPostForm",
+        "PostFormArray",
+        "Context.PostForm",
+        "Context.DefaultPostForm"
+      ]
+    },
+    {
+      "q": "get the matched route pattern like /user/:id inside a handler",
+      "accept": [
+        "FullPath",
+        "Context.FullPath"
+      ]
+    },
+    {
+      "q": "control the samesite attribute of cookies being set",
+      "accept": [
+        "SetSameSite",
+        "Context.SetSameSite"
+      ]
+    },
+    {
+      "q": "serve a file from a custom http filesystem",
+      "accept": [
+        "FileFromFS",
+        "Context.FileFromFS",
+        "StaticFS"
+      ]
+    },
+    {
+      "q": "use the gin context as a standard go context with deadline and values",
+      "accept": [
+        "Context.Deadline",
+        "Context.Done",
+        "Context.Err",
+        "Context.Value"
+      ]
+    },
+    {
+      "q": "plug in a custom struct validator for binding",
+      "accept": [
+        "StructValidator",
+        "defaultValidator",
+        "ValidateStruct",
+        "defaultValidator.ValidateStruct",
+        "setupValidator"
+      ]
+    },
+    {
+      "q": "re-enter the router to handle a rewritten request internally",
+      "accept": [
+        "HandleContext",
+        "Engine.HandleContext"
+      ]
+    },
+    {
+      "q": "force the connection to download the response as a named file",
+      "accept": [
+        "FileAttachment",
+        "Context.FileAttachment"
+      ]
+    }
+  ],
+  "flask": [
+    {
+      "q": "subscribe to signals like template rendered or request finished",
+      "accept": [
+        "template_rendered",
+        "request_started",
+        "request_finished",
+        "got_request_exception",
+        "appcontext_pushed"
+      ]
+    },
+    {
+      "q": "write view functions as async coroutines",
+      "accept": [
+        "ensure_sync",
+        "async_to_sync",
+        "Flask.ensure_sync",
+        "Flask.async_to_sync",
+        "App.ensure_sync"
+      ]
+    },
+    {
+      "q": "keep deployment specific files in the instance folder",
+      "accept": [
+        "instance_path",
+        "open_instance_resource",
+        "auto_find_instance_path",
+        "Flask.open_instance_resource",
+        "Flask.auto_find_instance_path"
+      ]
+    },
+    {
+      "q": "stream a rendered template in chunks instead of all at once",
+      "accept": [
+        "stream_template",
+        "stream_template_string",
+        "generate"
+      ]
+    },
+    {
+      "q": "write class based views with one method per http verb",
+      "accept": [
+        "MethodView",
+        "View",
+        "View.as_view",
+        "as_view",
+        "MethodView.dispatch_request"
+      ]
+    },
+    {
+      "q": "inject variables into the context of every rendered template",
+      "accept": [
+        "context_processor",
+        "Scaffold.context_processor",
+        "App.context_processor",
+        "update_template_context",
+        "Flask.update_template_context"
+      ]
+    },
+    {
+      "q": "register a global function callable from any template",
+      "accept": [
+        "template_global",
+        "add_template_global",
+        "Scaffold.template_global",
+        "Flask.add_template_global",
+        "App.template_global"
+      ]
+    },
+    {
+      "q": "customize how the app serializes json app wide",
+      "accept": [
+        "JSONProvider",
+        "DefaultJSONProvider",
+        "JSONProvider.dumps",
+        "DefaultJSONProvider.dumps"
+      ]
+    },
+    {
+      "q": "how non json types like datetime survive session serialization",
+      "accept": [
+        "TaggedJSONSerializer",
+        "JSONTag",
+        "TagDateTime",
+        "TagTuple"
+      ]
+    },
+    {
+      "q": "invoke the app's cli commands from a test",
+      "accept": [
+        "test_cli_runner",
+        "FlaskCliRunner",
+        "Flask.test_cli_runner",
+        "FlaskCliRunner.invoke"
+      ]
+    },
+    {
+      "q": "preload objects into the flask shell session",
+      "accept": [
+        "shell_context_processor",
+        "make_shell_context",
+        "Flask.make_shell_context",
+        "App.shell_context_processor",
+        "ShellCommand"
+      ]
+    },
+    {
+      "q": "how the static folder is served for an app or blueprint",
+      "accept": [
+        "send_static_file",
+        "Flask.send_static_file",
+        "Scaffold.send_static_file",
+        "App.send_static_file",
+        "static_folder"
+      ]
+    },
+    {
+      "q": "open a data file bundled inside the application package",
+      "accept": [
+        "open_resource",
+        "Flask.open_resource",
+        "Scaffold.open_resource",
+        "App.open_resource"
+      ]
+    },
+    {
+      "q": "preprocess url values before every view receives them",
+      "accept": [
+        "url_value_preprocessor",
+        "url_defaults",
+        "Scaffold.url_value_preprocessor",
+        "App.url_value_preprocessor",
+        "inject_url_defaults"
+      ]
+    },
+    {
+      "q": "how the cli locates and imports the application object",
+      "accept": [
+        "ScriptInfo",
+        "load_app",
+        "find_best_app",
+        "prepare_import",
+        "find_app_by_string",
+        "ScriptInfo.load_app"
+      ]
+    },
+    {
+      "q": "load environment variables from dotenv files at startup",
+      "accept": [
+        "load_dotenv",
+        "get_load_dotenv"
+      ]
+    },
+    {
+      "q": "customize the jinja environment the app creates",
+      "accept": [
+        "create_jinja_environment",
+        "Flask.create_jinja_environment",
+        "App.create_jinja_environment",
+        "Environment",
+        "create_global_jinja_loader"
+      ]
+    },
+    {
+      "q": "decide which templates get autoescaping applied",
+      "accept": [
+        "select_jinja_autoescape",
+        "Flask.select_jinja_autoescape",
+        "App.select_jinja_autoescape"
+      ]
+    },
+    {
+      "q": "how the app logger is created and configured",
+      "accept": [
+        "create_logger",
+        "has_level_handler",
+        "wsgi_errors_stream"
+      ]
+    },
+    {
+      "q": "read grouped config keys that share a prefix as a dict",
+      "accept": [
+        "get_namespace",
+        "Config.get_namespace"
+      ]
+    },
+    {
+      "q": "load configuration from a json or toml file with a custom loader",
+      "accept": [
+        "from_file",
+        "Config.from_file"
+      ]
+    },
+    {
+      "q": "register a blueprint inside another blueprint",
+      "accept": [
+        "Blueprint.register_blueprint",
+        "Blueprint.register",
+        "BlueprintSetupState"
+      ]
+    },
+    {
+      "q": "customize what happens when building a url fails",
+      "accept": [
+        "handle_url_build_error",
+        "Flask.handle_url_build_error",
+        "App.handle_url_build_error",
+        "url_build_error_handlers"
+      ]
+    },
+    {
+      "q": "control when the session cookie expires and if it is sent",
+      "accept": [
+        "get_expiration_time",
+        "should_set_cookie",
+        "SessionInterface.get_expiration_time",
+        "SessionInterface.should_set_cookie",
+        "permanent"
+      ]
+    },
+    {
+      "q": "register a custom test usable in template conditionals",
+      "accept": [
+        "template_test",
+        "add_template_test",
+        "Scaffold.template_test",
+        "Flask.add_template_test",
+        "App.template_test"
+      ]
+    },
+    {
+      "q": "how unhandled exceptions become 500 error responses",
+      "accept": [
+        "handle_exception",
+        "handle_user_exception",
+        "Flask.handle_exception",
+        "App.handle_user_exception"
+      ]
+    }
+  ],
+  "nest": [
+    {
+      "q": "give a provider request scoped lifetime instead of singleton",
+      "accept": [
+        "Scope",
+        "ContextIdFactory",
+        "createContextId",
+        "getByRequest"
+      ]
+    },
+    {
+      "q": "create a testing module to unit test providers",
+      "accept": [
+        "TestingModule",
+        "TestingModuleBuilder",
+        "createTestingModule",
+        "Test.createTestingModule"
+      ]
+    },
+    {
+      "q": "replace a real provider with a mock in tests",
+      "accept": [
+        "overrideProvider",
+        "TestingModuleBuilder.overrideProvider",
+        "OverrideBy",
+        "useMocker"
+      ]
+    },
+    {
+      "q": "fetch a provider instance from the container at runtime",
+      "accept": [
+        "ModuleRef",
+        "NestApplicationContext.get",
+        "NestApplicationContext.resolve",
+        "InstanceLinksHost",
+        "resolvePerContext"
+      ]
+    },
+    {
+      "q": "break a circular dependency between two providers",
+      "accept": [
+        "forwardRef",
+        "isForwardReference",
+        "DependenciesScanner.isForwardReference"
+      ]
+    },
+    {
+      "q": "build a configurable dynamic module with forRoot options",
+      "accept": [
+        "ConfigurableModuleBuilder",
+        "ConfigurableModuleBuilder.build",
+        "ConfigurableModuleBuilder.setExtras"
+      ]
+    },
+    {
+      "q": "make a module global so it does not need importing",
+      "accept": [
+        "Global",
+        "isGlobalModule",
+        "addGlobalModule"
+      ]
+    },
+    {
+      "q": "run cleanup logic when the application shuts down",
+      "accept": [
+        "OnApplicationShutdown",
+        "OnModuleDestroy",
+        "enableShutdownHooks",
+        "callAppShutdownHook",
+        "callModuleDestroyHook"
+      ]
+    },
+    {
+      "q": "enable cross origin requests for the http app",
+      "accept": [
+        "enableCors",
+        "NestApplication.enableCors"
+      ]
+    },
+    {
+      "q": "handle multipart file uploads in a controller",
+      "accept": [
+        "FileInterceptor",
+        "FilesInterceptor",
+        "UploadedFile",
+        "MulterModule",
+        "AnyFilesInterceptor"
+      ]
+    },
+    {
+      "q": "strip sensitive fields when serializing responses",
+      "accept": [
+        "ClassSerializerInterceptor",
+        "SerializeOptions"
+      ]
+    },
+    {
+      "q": "access the underlying request generically inside a guard or filter",
+      "accept": [
+        "ExecutionContext",
+        "ArgumentsHost",
+        "ExecutionContextHost",
+        "switchToHttp"
+      ]
+    },
+    {
+      "q": "parse and validate a route param as an integer or uuid",
+      "accept": [
+        "ParseIntPipe",
+        "ParseUUIDPipe",
+        "ParseBoolPipe",
+        "ParseFloatPipe"
+      ]
+    },
+    {
+      "q": "supply a default value when a query param is missing",
+      "accept": [
+        "DefaultValuePipe",
+        "DefaultValuePipe.transform"
+      ]
+    },
+    {
+      "q": "signal that the caller is not authenticated or lacks permission",
+      "accept": [
+        "UnauthorizedException",
+        "ForbiddenException"
+      ]
+    },
+    {
+      "q": "log messages with the built in logger service",
+      "accept": [
+        "Logger",
+        "ConsoleLogger",
+        "useLogger"
+      ]
+    },
+    {
+      "q": "create a standalone application context without an http server",
+      "accept": [
+        "createApplicationContext",
+        "NestApplicationContext",
+        "NestFactoryStatic.createApplicationContext"
+      ]
+    },
+    {
+      "q": "attach a microservice listener to an existing http application",
+      "accept": [
+        "connectMicroservice",
+        "NestApplication.connectMicroservice",
+        "NestMicroservice"
+      ]
+    },
+    {
+      "q": "send a message from one service to a microservice and await the reply",
+      "accept": [
+        "ClientProxy",
+        "ClientProxy.send",
+        "ClientsModule",
+        "ClientProxyFactory",
+        "ClientTCP"
+      ]
+    },
+    {
+      "q": "push server sent events from a controller route",
+      "accept": [
+        "Sse",
+        "SseStream"
+      ]
+    },
+    {
+      "q": "render a server side template view from a handler",
+      "accept": [
+        "Render",
+        "setBaseViewsDir",
+        "setViewEngine"
+      ]
+    },
+    {
+      "q": "redirect the client from a handler using a decorator",
+      "accept": [
+        "Redirect",
+        "RouterResponseController.redirect",
+        "ExpressAdapter.redirect"
+      ]
+    },
+    {
+      "q": "set a static response header on a route",
+      "accept": [
+        "Header",
+        "ExpressAdapter.setHeader",
+        "RouterResponseController.setHeaders"
+      ]
+    },
+    {
+      "q": "read query string parameters in a handler",
+      "accept": [
+        "Query",
+        "createPipesRouteParamDecorator",
+        "RouteParamsFactory.exchangeKeyForValue"
+      ]
+    },
+    {
+      "q": "swap express for fastify as the underlying http platform",
+      "accept": [
+        "FastifyAdapter",
+        "ExpressAdapter",
+        "AbstractHttpAdapter"
+      ]
+    },
+    {
+      "q": "start an interactive repl session with the app's providers",
+      "accept": [
+        "repl",
+        "ReplContext",
+        "REPL_INITIALIZED_MESSAGE"
+      ]
+    },
+    {
+      "q": "enumerate providers and controllers with their metadata at runtime",
+      "accept": [
+        "DiscoveryService",
+        "DiscoveryModule",
+        "MetadataScanner"
+      ]
+    }
+  ],
+  "laravel-framework": [
+    {
+      "q": "broadcast an event to websocket channels",
+      "accept": [
+        "BroadcastManager",
+        "ShouldBroadcast",
+        "BroadcastEvent",
+        "PusherBroadcaster",
+        "Broadcaster"
+      ]
+    },
+    {
+      "q": "define private and presence channels with authorization",
+      "accept": [
+        "PrivateChannel",
+        "PresenceChannel",
+        "Channel",
+        "verifyUserCanAccessChannel"
+      ]
+    },
+    {
+      "q": "rate limit how many requests a client can make",
+      "accept": [
+        "RateLimiter",
+        "ThrottleRequests",
+        "Limit",
+        "RateLimiter.attempt",
+        "RateLimiter.tooManyAttempts"
+      ]
+    },
+    {
+      "q": "store and retrieve files on local or cloud disks",
+      "accept": [
+        "FilesystemManager",
+        "FilesystemAdapter",
+        "FilesystemManager.disk",
+        "FilesystemAdapter.put",
+        "FilesystemAdapter.get"
+      ]
+    },
+    {
+      "q": "translate strings into the user's locale with pluralization",
+      "accept": [
+        "Translator",
+        "Translator.get",
+        "Translator.choice",
+        "MessageSelector"
+      ]
+    },
+    {
+      "q": "send a notification via mail database or other channels",
+      "accept": [
+        "NotificationSender",
+        "ChannelManager",
+        "MailChannel",
+        "DatabaseChannel",
+        "RoutesNotifications"
+      ]
+    },
+    {
+      "q": "authorize an action using gates and policies",
+      "accept": [
+        "Gate",
+        "Gate.define",
+        "Gate.allows",
+        "Gate.authorize",
+        "Gate.policy",
+        "AuthorizesRequests"
+      ]
+    },
+    {
+      "q": "log a user in by checking their credentials",
+      "accept": [
+        "SessionGuard",
+        "SessionGuard.attempt",
+        "AuthManager",
+        "StatefulGuard",
+        "Auth.attempt"
+      ]
+    },
+    {
+      "q": "apply a global scope to every query of a model",
+      "accept": [
+        "addGlobalScope",
+        "Scope",
+        "HasGlobalScopes.addGlobalScope",
+        "SoftDeletingScope.apply",
+        "Scope.apply"
+      ]
+    },
+    {
+      "q": "define accessors and mutators for model attributes",
+      "accept": [
+        "Attribute",
+        "castAttribute",
+        "HasAttributes.castAttribute",
+        "mutateAttribute",
+        "HasAttributes.mutateAttribute",
+        "Attribute.make"
+      ]
+    },
+    {
+      "q": "transform arrays fluently with the collection api",
+      "accept": [
+        "Collection",
+        "Collection.map",
+        "Collection.filter",
+        "Collection.each",
+        "Collection.pluck"
+      ]
+    },
+    {
+      "q": "manipulate strings fluently like slugs and case changes",
+      "accept": [
+        "Str",
+        "Stringable",
+        "Str.slug",
+        "Str.of",
+        "Str.camel"
+      ]
+    },
+    {
+      "q": "make outgoing http requests with the built in http client",
+      "accept": [
+        "PendingRequest",
+        "PendingRequest.get",
+        "PendingRequest.post",
+        "PendingRequest.send",
+        "Factory.fake"
+      ]
+    },
+    {
+      "q": "dispatch a batch of jobs and track its progress",
+      "accept": [
+        "Batch",
+        "PendingBatch",
+        "BatchRepository",
+        "DatabaseBatchRepository",
+        "Bus.batch"
+      ]
+    },
+    {
+      "q": "chain jobs so they run one after another",
+      "accept": [
+        "PendingChain",
+        "chain",
+        "dispatchNextJobInChain",
+        "Queueable.chain"
+      ]
+    },
+    {
+      "q": "generate fake model instances for tests with factories",
+      "accept": [
+        "HasFactory",
+        "Factory.create",
+        "Factory.make",
+        "Factory.definition",
+        "Factory.newFactory"
+      ]
+    },
+    {
+      "q": "seed the database with initial records",
+      "accept": [
+        "Seeder",
+        "Seeder.call",
+        "SeedCommand",
+        "Seeder.run"
+      ]
+    },
+    {
+      "q": "create signed urls that cannot be tampered with",
+      "accept": [
+        "signedRoute",
+        "temporarySignedRoute",
+        "hasValidSignature",
+        "UrlGenerator.signedRoute",
+        "ValidateSignature"
+      ]
+    },
+    {
+      "q": "put the application into maintenance mode",
+      "accept": [
+        "DownCommand",
+        "UpCommand",
+        "PreventRequestsDuringMaintenance",
+        "FileBasedMaintenanceMode",
+        "MaintenanceModeManager"
+      ]
+    },
+    {
+      "q": "eager load relationships to avoid n plus one queries",
+      "accept": [
+        "Builder.with",
+        "eagerLoadRelations",
+        "eagerLoadRelation",
+        "loadMissing",
+        "Builder.loadMissing"
+      ]
+    },
+    {
+      "q": "process a large table in chunks or lazily",
+      "accept": [
+        "chunk",
+        "chunkById",
+        "BuildsQueries.chunk",
+        "lazy",
+        "cursor",
+        "Builder.cursor"
+      ]
+    },
+    {
+      "q": "insert or update rows in a single atomic upsert",
+      "accept": [
+        "upsert",
+        "Builder.upsert"
+      ]
+    },
+    {
+      "q": "flash data to the session for only the next request",
+      "accept": [
+        "Store.flash",
+        "flash",
+        "Store.now",
+        "flashInput",
+        "Store.keep"
+      ]
+    },
+    {
+      "q": "queue a cookie to be attached to the outgoing response",
+      "accept": [
+        "CookieJar",
+        "CookieJar.queue",
+        "CookieJar.make",
+        "AddQueuedCookiesToResponse"
+      ]
+    },
+    {
+      "q": "render a view template with bound data",
+      "accept": [
+        "View.render",
+        "Factory.make",
+        "View.with",
+        "renderContents"
+      ]
+    },
+    {
+      "q": "attach and detach records on a many to many relation",
+      "accept": [
+        "belongsToMany",
+        "BelongsToMany",
+        "attach",
+        "detach",
+        "sync",
+        "InteractsWithPivotTable.attach"
+      ]
+    },
+    {
+      "q": "observe model lifecycle events like creating and deleting",
+      "accept": [
+        "observe",
+        "Model.observe",
+        "registerObserver",
+        "ObservedBy",
+        "HasEvents.observe"
+      ]
+    }
+  ],
+  "prometheus": [
+    {
+      "q": "where promql functions like rate and increase are implemented",
+      "accept": [
+        "FunctionCalls",
+        "funcRate",
+        "funcIncrease",
+        "extrapolatedRate",
+        "funcDelta"
+      ]
+    },
+    {
+      "q": "keep the most recent samples in memory in the tsdb head block",
+      "accept": [
+        "Head",
+        "memSeries",
+        "headAppender",
+        "stripeSeries",
+        "getOrCreate"
+      ]
+    },
+    {
+      "q": "checkpoint the write ahead log so it can be truncated",
+      "accept": [
+        "Checkpoint",
+        "DeleteCheckpoints",
+        "LastCheckpoint"
+      ]
+    },
+    {
+      "q": "flush head chunks to disk as memory mapped chunk files",
+      "accept": [
+        "ChunkDiskMapper",
+        "WriteChunk",
+        "mmappedChunk",
+        "IterateAllChunks",
+        "ChunkDiskMapper.WriteChunk"
+      ]
+    },
+    {
+      "q": "serve remote read requests from other prometheus servers",
+      "accept": [
+        "NewReadHandler",
+        "readHandler",
+        "StreamChunkedReadResponses",
+        "NegotiateResponseType",
+        "remoteReadHandler"
+      ]
+    },
+    {
+      "q": "ingest opentelemetry metrics through the otlp endpoint",
+      "accept": [
+        "NewOTLPWriteHandler",
+        "otlpWriteHandler",
+        "PrometheusConverter",
+        "FromMetrics"
+      ]
+    },
+    {
+      "q": "append native histogram samples to storage",
+      "accept": [
+        "AppendHistogram",
+        "appendHistogram",
+        "HistogramAppender",
+        "histogramAppender",
+        "AppendFloatHistogram"
+      ]
+    },
+    {
+      "q": "evaluate a promql expression step by step over a time range",
+      "accept": [
+        "rangeEval",
+        "evaluator",
+        "evalSubquery",
+        "execEvalStmt"
+      ]
+    },
+    {
+      "q": "speed up matching label values against a regex",
+      "accept": [
+        "FastRegexMatcher",
+        "NewFastRegexMatcher",
+        "optimizeConcatRegex",
+        "findSetMatches"
+      ]
+    },
+    {
+      "q": "mark deleted series ranges with tombstones",
+      "accept": [
+        "MemTombstones",
+        "Intervals",
+        "AddInterval",
+        "CleanTombstones"
+      ]
+    },
+    {
+      "q": "accept out of order samples within a configured time window",
+      "accept": [
+        "OOOChunk",
+        "NewOOOChunk",
+        "oooHeadChunk",
+        "OutOfOrderTimeWindow"
+      ]
+    },
+    {
+      "q": "discover pods and endpoints in kubernetes to scrape",
+      "accept": [
+        "Endpoints",
+        "EndpointSlice",
+        "Pod",
+        "Node",
+        "Ingress"
+      ]
+    },
+    {
+      "q": "the http api endpoints listing label names and values",
+      "accept": [
+        "labelNames",
+        "labelValues",
+        "API.labelNames",
+        "API.labelValues"
+      ]
+    },
+    {
+      "q": "compute a quantile from classic histogram buckets",
+      "accept": [
+        "bucketQuantile",
+        "histogramQuantile",
+        "funcHistogramQuantile",
+        "ensureMonotonicAndIgnoreSmallDeltas"
+      ]
+    },
+    {
+      "q": "parse and evaluate subqueries inside promql",
+      "accept": [
+        "SubqueryExpr",
+        "evalSubquery",
+        "subqueryTimes"
+      ]
+    },
+    {
+      "q": "snapshot in memory head data on clean shutdown",
+      "accept": [
+        "ChunkSnapshot",
+        "DeleteChunkSnapshots",
+        "LastChunkSnapshot",
+        "loadChunkSnapshot"
+      ]
+    },
+    {
+      "q": "isolate concurrent appends from queries in the tsdb",
+      "accept": [
+        "isolation",
+        "isolationState",
+        "lowWatermark",
+        "newIsolation"
+      ]
+    },
+    {
+      "q": "load blocks from disk on startup and when new ones appear",
+      "accept": [
+        "reloadBlocks",
+        "OpenBlock",
+        "openBlocks",
+        "DB.reloadBlocks"
+      ]
+    },
+    {
+      "q": "shard samples across queues for remote write",
+      "accept": [
+        "QueueManager",
+        "calculateDesiredShards",
+        "runShard",
+        "shards"
+      ]
+    },
+    {
+      "q": "apply a reloaded configuration file to running components",
+      "accept": [
+        "ApplyConfig",
+        "Manager.ApplyConfig",
+        "reloadConfig",
+        "Handler.ApplyConfig"
+      ]
+    },
+    {
+      "q": "parse the text exposition format of scraped metrics",
+      "accept": [
+        "PromParser",
+        "OpenMetricsParser",
+        "ProtobufParser"
+      ]
+    },
+    {
+      "q": "expand template annotations in alert rules",
+      "accept": [
+        "NewTemplateExpander",
+        "Expander",
+        "ExpandExternalLabels",
+        "Expander.Expand"
+      ]
+    },
+    {
+      "q": "walk the promql ast visiting every node",
+      "accept": [
+        "Walk",
+        "Inspect",
+        "Visitor"
+      ]
+    },
+    {
+      "q": "track currently running queries in the active query log",
+      "accept": [
+        "ActiveQueryTracker",
+        "NewActiveQueryTracker",
+        "queryLogger"
+      ]
+    },
+    {
+      "q": "compress samples with xor encoding inside chunks",
+      "accept": [
+        "XORChunk",
+        "xorAppender",
+        "xorIterator",
+        "NewXORChunk"
+      ]
+    }
+  ],
+  "symfony": [
+    {
+      "q": "model a workflow or state machine with places and transitions",
+      "accept": [
+        "Workflow",
+        "StateMachine",
+        "Workflow.can",
+        "Workflow.apply",
+        "Transition",
+        "MarkingStore"
+      ]
+    },
+    {
+      "q": "send an email through an smtp transport",
+      "accept": [
+        "EsmtpTransport",
+        "SmtpTransport",
+        "Mailer",
+        "Mailer.send",
+        "SendmailTransport"
+      ]
+    },
+    {
+      "q": "build the mailer transport from a dsn string",
+      "accept": [
+        "Transport.fromDsn",
+        "fromDsn",
+        "Transport.fromDsns",
+        "AbstractTransportFactory",
+        "Dsn.fromString"
+      ]
+    },
+    {
+      "q": "write a security voter deciding access to a resource",
+      "accept": [
+        "Voter",
+        "VoterInterface",
+        "AccessDecisionManager",
+        "AccessDecisionManager.decide",
+        "Voter.voteOnAttribute"
+      ]
+    },
+    {
+      "q": "evaluate a string expression with the expression language",
+      "accept": [
+        "ExpressionLanguage",
+        "ExpressionLanguage.evaluate",
+        "ExpressionLanguage.compile",
+        "Expression"
+      ]
+    },
+    {
+      "q": "read and write object properties using a path string",
+      "accept": [
+        "PropertyAccessor",
+        "PropertyAccessor.getValue",
+        "PropertyAccessor.setValue",
+        "PropertyPath"
+      ]
+    },
+    {
+      "q": "dump a variable nicely for debugging",
+      "accept": [
+        "VarDumper",
+        "HtmlDumper",
+        "CliDumper",
+        "VarDumper.dump",
+        "AbstractDumper"
+      ]
+    },
+    {
+      "q": "find files in directories matching name patterns",
+      "accept": [
+        "Finder",
+        "Finder.files",
+        "Finder.name",
+        "Finder.in"
+      ]
+    },
+    {
+      "q": "define option defaults and validation for a configurable class",
+      "accept": [
+        "OptionsResolver",
+        "OptionsResolver.setDefaults",
+        "OptionsResolver.resolve",
+        "OptionsResolver.setRequired"
+      ]
+    },
+    {
+      "q": "turn a title into a url friendly slug",
+      "accept": [
+        "AsciiSlugger",
+        "AsciiSlugger.slug",
+        "SluggerInterface"
+      ]
+    },
+    {
+      "q": "generate uuid and ulid identifiers",
+      "accept": [
+        "Uuid",
+        "Ulid",
+        "UuidV4",
+        "Uuid.v4",
+        "AbstractUid"
+      ]
+    },
+    {
+      "q": "freeze or mock the current time in tests",
+      "accept": [
+        "MockClock",
+        "Clock",
+        "MockClock.sleep",
+        "MockClock.modify",
+        "DatePoint"
+      ]
+    },
+    {
+      "q": "schedule messages to run periodically like cron",
+      "accept": [
+        "Schedule",
+        "RecurringMessage",
+        "CronExpressionTrigger",
+        "PeriodicalTrigger"
+      ]
+    },
+    {
+      "q": "send chat messages or sms through notifier channels",
+      "accept": [
+        "Notifier",
+        "Chatter",
+        "Texter",
+        "Notifier.send",
+        "NotifierInterface"
+      ]
+    },
+    {
+      "q": "convert a css selector into an xpath expression",
+      "accept": [
+        "CssSelectorConverter",
+        "CssSelectorConverter.toXPath"
+      ]
+    },
+    {
+      "q": "crawl and filter html from a response in functional tests",
+      "accept": [
+        "Crawler",
+        "Crawler.filter",
+        "KernelBrowser",
+        "AbstractBrowser.request"
+      ]
+    },
+    {
+      "q": "return a json response from a controller",
+      "accept": [
+        "JsonResponse",
+        "JsonResponse.setData",
+        "JsonResponse.fromJsonString"
+      ]
+    },
+    {
+      "q": "stream a large file or generated content as the response",
+      "accept": [
+        "StreamedResponse",
+        "BinaryFileResponse",
+        "StreamedJsonResponse"
+      ]
+    },
+    {
+      "q": "access the current request from a service via the request stack",
+      "accept": [
+        "RequestStack",
+        "RequestStack.getCurrentRequest",
+        "RequestStack.getMainRequest"
+      ]
+    },
+    {
+      "q": "listen to kernel request and response lifecycle events",
+      "accept": [
+        "RequestEvent",
+        "ResponseEvent",
+        "ExceptionEvent",
+        "TerminateEvent",
+        "KernelEvents"
+      ]
+    },
+    {
+      "q": "cache entire http responses with the built in reverse proxy",
+      "accept": [
+        "HttpCache",
+        "HttpCache.handle",
+        "HttpCache.lookup",
+        "Store"
+      ]
+    },
+    {
+      "q": "render page fragments over esi or as inline sub requests",
+      "accept": [
+        "Esi",
+        "FragmentHandler",
+        "InlineFragmentRenderer",
+        "EsiFragmentRenderer"
+      ]
+    },
+    {
+      "q": "show a progress bar in a console command",
+      "accept": [
+        "ProgressBar",
+        "ProgressBar.advance",
+        "SymfonyStyle.progressStart",
+        "ProgressIndicator"
+      ]
+    },
+    {
+      "q": "resolve env var prefixes like json or base64 in container config",
+      "accept": [
+        "EnvVarProcessor",
+        "EnvVarProcessor.getEnv",
+        "EnvVarProcessorInterface",
+        "EnvPlaceholderParameterBag"
+      ]
+    },
+    {
+      "q": "register a compiler pass that rewrites service definitions",
+      "accept": [
+        "CompilerPassInterface",
+        "ContainerBuilder.addCompilerPass",
+        "addCompilerPass",
+        "PassConfig"
+      ]
+    },
+    {
+      "q": "collect all services tagged with a given tag",
+      "accept": [
+        "findTaggedServiceIds",
+        "TaggedIteratorArgument",
+        "ContainerBuilder.findTaggedServiceIds",
+        "PriorityTaggedServiceTrait"
+      ]
+    },
+    {
+      "q": "measure code execution time with the stopwatch",
+      "accept": [
+        "Stopwatch",
+        "Stopwatch.start",
+        "Stopwatch.stop",
+        "StopwatchEvent"
+      ]
+    },
+    {
+      "q": "compose an email message with attachments",
+      "accept": [
+        "Email",
+        "Email.attach",
+        "Email.addPart",
+        "Attachment",
+        "Email.attachFromPath"
+      ]
+    },
+    {
+      "q": "hash and verify user passwords",
+      "accept": [
+        "NativePasswordHasher",
+        "PasswordHasherFactory",
+        "UserPasswordHasher",
+        "SodiumPasswordHasher"
+      ]
+    },
+    {
+      "q": "generate and validate csrf tokens",
+      "accept": [
+        "CsrfTokenManager",
+        "CsrfToken",
+        "CsrfTokenManager.isTokenValid",
+        "isTokenValid"
+      ]
+    }
+  ],
+  "vscode": [
+    {
+      "q": "how the extension host talks to the renderer over rpc",
+      "accept": [
+        "RPCProtocol",
+        "ExtensionHostManager",
+        "LazyPromise",
+        "RPCProtocol.getProxy",
+        "createProxyIdentifier"
+      ]
+    },
+    {
+      "q": "add decorations like highlights or squiggles to editor text",
+      "accept": [
+        "deltaDecorations",
+        "createDecorationsCollection",
+        "ModelDecorationOptions",
+        "changeDecorations",
+        "DecorationsCollection"
+      ]
+    },
+    {
+      "q": "run a task defined in tasks json",
+      "accept": [
+        "AbstractTaskService",
+        "TerminalTaskSystem",
+        "runTask",
+        "executeTask",
+        "TaskService"
+      ]
+    },
+    {
+      "q": "insert a snippet and tab through its placeholders",
+      "accept": [
+        "SnippetController2",
+        "SnippetSession",
+        "SnippetParser",
+        "insertSnippet"
+      ]
+    },
+    {
+      "q": "rename a symbol and apply the edits across files",
+      "accept": [
+        "RenameController",
+        "rename",
+        "RenameOperation",
+        "provideRenameEdits"
+      ]
+    },
+    {
+      "q": "jump to the definition of the symbol under the cursor",
+      "accept": [
+        "getDefinitionsAtPosition",
+        "DefinitionAction",
+        "getDeclarationsAtPosition",
+        "GotoDefinitionAtPositionEditorContribution"
+      ]
+    },
+    {
+      "q": "find all references to a symbol and show them in a peek view",
+      "accept": [
+        "getReferencesAtPosition",
+        "ReferencesController",
+        "ReferencesModel",
+        "ReferenceWidget"
+      ]
+    },
+    {
+      "q": "build the symbol outline shown for a document",
+      "accept": [
+        "OutlineModel",
+        "getDocumentSymbols",
+        "OutlineElement",
+        "OutlineGroup"
+      ]
+    },
+    {
+      "q": "apply semantic token highlighting from language providers",
+      "accept": [
+        "getDocumentSemanticTokens",
+        "SemanticTokensBuilder",
+        "SemanticTokensProviderStyling",
+        "DocumentSemanticTokensProvider"
+      ]
+    },
+    {
+      "q": "show inlay hints inline within a line of code",
+      "accept": [
+        "InlayHintsController",
+        "InlayHintItem",
+        "getInlayHints",
+        "InlayHintsFragments"
+      ]
+    },
+    {
+      "q": "format the whole document with the selected formatter",
+      "accept": [
+        "formatDocumentWithSelectedProvider",
+        "formatDocumentRangesWithSelectedProvider",
+        "FormattingConflicts",
+        "getDocumentFormattingEditsWithSelectedProvider"
+      ]
+    },
+    {
+      "q": "add a cursor at the next occurrence of the current selection",
+      "accept": [
+        "MultiCursorSelectionController",
+        "AddSelectionToNextFindMatchAction",
+        "MultiCursorSession",
+        "InsertCursorAbove"
+      ]
+    },
+    {
+      "q": "find and replace text inside the current editor",
+      "accept": [
+        "CommonFindController",
+        "FindModelBoundToEditorModel",
+        "FindReplaceState",
+        "StartFindAction"
+      ]
+    },
+    {
+      "q": "colorize matching bracket pairs in the editor",
+      "accept": [
+        "BracketPairsTree",
+        "BracketInfo",
+        "BracketPairColorizationOptions"
+      ]
+    },
+    {
+      "q": "render large lists and trees virtually in the workbench ui",
+      "accept": [
+        "AsyncDataTree",
+        "ObjectTree",
+        "ListView",
+        "AbstractTree"
+      ]
+    },
+    {
+      "q": "show custom html ui in a webview panel",
+      "accept": [
+        "createWebviewPanel",
+        "WebviewElement",
+        "ExtHostWebviewPanels",
+        "WebviewInput"
+      ]
+    },
+    {
+      "q": "execute cells in a notebook editor",
+      "accept": [
+        "NotebookEditorWidget",
+        "NotebookExecutionService",
+        "executeNotebookCells",
+        "NotebookCellExecution"
+      ]
+    },
+    {
+      "q": "let extensions sign in through an authentication provider",
+      "accept": [
+        "AuthenticationService",
+        "getSession",
+        "getSessions",
+        "ExtHostAuthentication"
+      ]
+    },
+    {
+      "q": "persist extension or workbench state across restarts with a memento",
+      "accept": [
+        "Memento",
+        "ExtensionMemento",
+        "ExtHostMemento",
+        "getMemento"
+      ]
+    },
+    {
+      "q": "restrict features until the user trusts the workspace",
+      "accept": [
+        "WorkspaceTrustManagementService",
+        "isWorkspaceTrusted",
+        "WorkspaceTrustRequestService"
+      ]
+    },
+    {
+      "q": "evaluate when clause context keys controlling ui visibility",
+      "accept": [
+        "ContextKeyService",
+        "ContextKeyExpr",
+        "contextMatchesRules",
+        "RawContextKey"
+      ]
+    },
+    {
+      "q": "write extension log output to an output channel",
+      "accept": [
+        "createOutputChannel",
+        "ExtHostOutputService",
+        "OutputViewPane",
+        "ExtHostOutputChannel"
+      ]
+    },
+    {
+      "q": "report progress of a long running operation in the ui",
+      "accept": [
+        "withProgress",
+        "ProgressService",
+        "ExtHostProgress",
+        "withProgressFromSource"
+      ]
+    },
+    {
+      "q": "contribute a file system provider for virtual file schemes",
+      "accept": [
+        "registerFileSystemProvider",
+        "ExtHostFileSystem",
+        "FileService.registerProvider",
+        "activateProvider"
+      ]
+    },
+    {
+      "q": "provide readonly content for virtual text documents",
+      "accept": [
+        "registerTextDocumentContentProvider",
+        "ExtHostDocumentContentProvider",
+        "TextDocumentContentProvider",
+        "provideTextDocumentContent"
+      ]
+    },
+    {
+      "q": "parse build and stringify uri objects",
+      "accept": [
+        "URI.parse",
+        "URI.file",
+        "uriToFsPath",
+        "URI.toString",
+        "URI"
+      ]
+    },
+    {
+      "q": "split the editor area into multiple groups",
+      "accept": [
+        "EditorGroupView",
+        "addGroup",
+        "splitGroup",
+        "SplitEditorAction"
+      ]
+    },
+    {
+      "q": "switch the workbench color theme",
+      "accept": [
+        "setColorTheme",
+        "WorkbenchThemeService",
+        "ColorThemeData"
+      ]
+    },
+    {
+      "q": "synchronize settings and keybindings across machines",
+      "accept": [
+        "UserDataSyncService",
+        "SettingsSynchroniser",
+        "KeybindingsSynchroniser"
+      ]
+    }
+  ]
+}

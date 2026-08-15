@@ -1,0 +1,571 @@
+{
+ "repo": "gin",
+ "split": "issues-closed",
+ "fixture_commit": "75ccf94d605a05fe24817fc2f166f6f2959d5cea",
+ "binary_sha256_16": "f24fddce4873e4b9",
+ "params": null,
+ "n": 39,
+ "hits": 8,
+ "hit5_pct": 20.5,
+ "results": [
+  {
+   "q": "fix(uri): query binding bug",
+   "hit": true,
+   "top": [
+    "queryBinding.Bind",
+    "queryBinding",
+    "queryBinding.Name",
+    "testQueryBindingFail",
+    "formBinding.Bind"
+   ],
+   "accept": [
+    "queryBinding.Bind"
+   ]
+  },
+  {
+   "q": "fix(binding): dereference pointer to struct when validating structs",
+   "hit": false,
+   "top": [
+    "substructNoValidation",
+    "structNoValidationPointer",
+    "structNoValidationValues",
+    "Context.ShouldBindWith",
+    "structModifyValidation"
+   ],
+   "accept": [
+    "defaultValidator.ValidateStruct"
+   ]
+  },
+  {
+   "q": "fix(header): Allow header according to RFC 7231 (HTTP 405)",
+   "hit": false,
+   "top": [
+    "headerBinding.Bind",
+    "Reader.writeHeaders",
+    "headerSource",
+    "Context.requestHeader",
+    "mockWriter.Header"
+   ],
+   "accept": [
+    "Engine.handleHTTPRequest"
+   ]
+  },
+  {
+   "q": "Binding a non mandatory file parameter will directly result in an error message",
+   "hit": false,
+   "top": [
+    "Context.MustBindWith",
+    "FooBarFileFailStruct",
+    "Engine",
+    "Context",
+    "Context.ShouldBindHeader"
+   ],
+   "accept": [
+    "setWithProperType"
+   ]
+  },
+  {
+   "q": "fix(router): catch-all conflicting wildcard",
+   "hit": true,
+   "top": [
+    "findWildcard",
+    "RouterGroup.GET",
+    "RouterGroup.PATCH",
+    "node.insertChild",
+    "RouterGroup.Match"
+   ],
+   "accept": [
+    "node.insertChild"
+   ]
+  },
+  {
+   "q": "Can't bind list of struct pointer in query",
+   "hit": false,
+   "top": [
+    "QueryTest",
+    "queryBinding",
+    "Context.BindWith",
+    "Context.ShouldBindWith",
+    "queryBinding.Bind"
+   ],
+   "accept": [
+    "setWithProperType"
+   ]
+  },
+  {
+   "q": "fix lack of escaping of filename in Content-Disposition",
+   "hit": true,
+   "top": [
+    "Context.FileAttachment",
+    "escapeQuotes",
+    "writeContentType",
+    "onlyFilesFS.Open",
+    "neuteredReaddirFile.Readdir"
+   ],
+   "accept": [
+    "Context.FileFromFS",
+    "escapeQuotes",
+    "Context.FileAttachment"
+   ]
+  },
+  {
+   "q": "Add escape logic for header",
+   "hit": false,
+   "top": [
+    "Reader.writeHeaders",
+    "headerSource",
+    "Context.requestHeader",
+    "escapeQuotes",
+    "responseWriter.WriteHeaderNow"
+   ],
+   "accept": [
+    "redirectTrailingSlash"
+   ]
+  },
+  {
+   "q": "console logger HTTP status code bug fixed",
+   "hit": false,
+   "top": [
+    "DisableConsoleColor",
+    "ForceConsoleColor",
+    "LogFormatterParams.StatusCodeColor",
+    "consoleColorModeValue",
+    "LogFormatterParams.IsOutputColor"
+   ],
+   "accept": [
+    "responseWriter.WriteHeader"
+   ]
+  },
+  {
+   "q": "Fix the value of ginSupportMinGoVer constant by semantic",
+   "hit": false,
+   "top": [
+    "Engine.allocateContext",
+    "Context.ClientIP",
+    "isWindows",
+    "HandlerFunc",
+    "Engine"
+   ],
+   "accept": [
+    "debugPrintWARNINGDefault"
+   ]
+  },
+  {
+   "q": "fix: default trusted proxies should add ipv6",
+   "hit": false,
+   "top": [
+    "Engine.SetTrustedProxies",
+    "Engine.isTrustedProxy",
+    "Context.ClientIP",
+    "Engine.prepareTrustedCIDRs",
+    "Engine.parseTrustedProxies"
+   ],
+   "accept": [
+    "New"
+   ]
+  },
+  {
+   "q": "[Bug]mixed param and non-param paths",
+   "hit": false,
+   "top": [
+    "TestRouteParamsNotEmpty",
+    "TestRouteParamsByNameWithExtraSlash",
+    "TestRouteRawPathNoUnescape",
+    "TestRouteContextHoldsFullPath",
+    "TestRouteRedirectFixedPath"
+   ],
+   "accept": [
+    "node.getValue"
+   ]
+  },
+  {
+   "q": "404 when using dynamic routing",
+   "hit": false,
+   "top": [
+    "testRouteNotOK2",
+    "cleanPath",
+    "testRouteNotOK",
+    "TestRouterNotFoundWithRemoveExtraSlash",
+    "TestRouteNotOK2"
+   ],
+   "accept": [
+    "node",
+    "node.getValue"
+   ]
+  },
+  {
+   "q": "Fix conflict between param and exact path",
+   "hit": true,
+   "top": [
+    "joinPaths",
+    "TestRouteParamsByNameWithExtraSlash",
+    "node.insertChild",
+    "node.addRoute",
+    "TestRouteRawPathNoUnescape"
+   ],
+   "accept": [
+    "node",
+    "node.getValue"
+   ]
+  },
+  {
+   "q": "Data race with gin-gonic v1.7.0",
+   "hit": false,
+   "top": [
+    "Engine.RunUnix",
+    "Engine.Run",
+    "Engine.RunFd",
+    "RunUnix",
+    "engine"
+   ],
+   "accept": [
+    "Context.RemoteIP"
+   ]
+  },
+  {
+   "q": "basic auth: fix timing oracle",
+   "hit": true,
+   "top": [
+    "TestBasicAuthSucceed",
+    "TestBasicAuth401",
+    "processAccounts",
+    "TestBasicAuthFails",
+    "authPairs.searchCredential"
+   ],
+   "accept": [
+    "authPairs.searchCredential"
+   ]
+  },
+  {
+   "q": "fix error gin support min Go version",
+   "hit": false,
+   "top": [
+    "serveError",
+    "Run",
+    "ErrorType",
+    "OptionFunc",
+    "RunUnix"
+   ],
+   "accept": [
+    "debugPrintWARNINGDefault"
+   ]
+  },
+  {
+   "q": "fix: print headers without Authorization header on broken pipe",
+   "hit": false,
+   "top": [
+    "authorizationHeader",
+    "Reader.writeHeaders",
+    "mapHeader",
+    "headerSource",
+    "processAccounts"
+   ],
+   "accept": [
+    "CustomRecoveryWithWriter"
+   ]
+  },
+  {
+   "q": "fix missing initial sync.RWMutex",
+   "hit": false,
+   "top": [
+    "decodeXML",
+    "decodeMsgPack",
+    "Engine.rebuild404Handlers",
+    "debugPrintWARNINGSetHTMLTemplate",
+    "decodeToml"
+   ],
+   "accept": [
+    "Context.Set",
+    "Context.Get"
+   ]
+  },
+  {
+   "q": "fix accept incoming network connections",
+   "hit": false,
+   "top": [
+    "Engine.SetTrustedProxies",
+    "Engine.prepareTrustedCIDRs",
+    "parseAccept",
+    "Context.NegotiateFormat",
+    "formBinding.Bind"
+   ],
+   "accept": [
+    "resolveAddress"
+   ]
+  },
+  {
+   "q": "context.JSON adds a new line to end of JSON response",
+   "hit": false,
+   "top": [
+    "Context.IndentedJSON",
+    "Context.JSON",
+    "TestContextRenderIndentedJSON",
+    "TestContextRenderAPIJSON",
+    "Context.String"
+   ],
+   "accept": [
+    "WriteJSON"
+   ]
+  },
+  {
+   "q": "Fixed a bug in the calculation of the maximum number of parameters",
+   "hit": false,
+   "top": [
+    "countParams",
+    "Context",
+    "Engine",
+    "TestTreeCatchMaxParams",
+    "RouterGroup.StaticFS"
+   ],
+   "accept": [
+    "node.insertChild"
+   ]
+  },
+  {
+   "q": "request cause panic with v1.4.0 @ form_mapping.go:63 ~ form_mapping.go:89  ,  be careful",
+   "hit": false,
+   "top": [
+    "mapURI",
+    "mapFormByTag",
+    "mapForm",
+    "mappingByPtr",
+    "createFormMultipartRequestForMapFail"
+   ],
+   "accept": [
+    "mapping",
+    "tryToSetValue"
+   ]
+  },
+  {
+   "q": "Close files opened in static file handler",
+   "hit": false,
+   "top": [
+    "onlyFilesFS.Open",
+    "RouterGroup.staticFileHandler",
+    "TestResponseRecorder.CloseNotify",
+    "responseWriter.CloseNotify",
+    "StaticFile"
+   ],
+   "accept": [
+    "RouterGroup.createStaticHandler"
+   ]
+  },
+  {
+   "q": "Fix 'errcheck' linter warnings",
+   "hit": false,
+   "top": [
+    "Context.MustBindWith",
+    "Context.BindUri",
+    "Context.Negotiate",
+    "TestErrorUnwrap",
+    "CustomRecoveryWithWriter"
+   ],
+   "accept": [
+    "Engine.RunUnix"
+   ]
+  },
+  {
+   "q": "Attempt to fix #1927",
+   "hit": false,
+   "top": [
+    "ErrorType",
+    "Benchmark404Many",
+    "Birthday.UnmarshalParam",
+    "longestCommonPrefix",
+    "Engine.rebuild404Handlers"
+   ],
+   "accept": [
+    "Context.reset"
+   ]
+  },
+  {
+   "q": "Default engine producing two log lines with StaticFS for 404",
+   "hit": false,
+   "top": [
+    "StaticFS",
+    "RouterGroup.StaticFS",
+    "RouterGroup.StaticFileFS",
+    "TestRouteStaticFileFS",
+    "RouterGroup.Static"
+   ],
+   "accept": [
+    "RouterGroup.createStaticHandler"
+   ]
+  },
+  {
+   "q": "Support HTTP content negotiation wildcards",
+   "hit": true,
+   "top": [
+    "Context.NegotiateFormat",
+    "Negotiate",
+    "Context",
+    "chooseData",
+    "TestContextNegotiationFormatWithWildcardAccept"
+   ],
+   "accept": [
+    "Context.NegotiateFormat"
+   ]
+  },
+  {
+   "q": "Out of range if redirect more than 45 times",
+   "hit": false,
+   "top": [
+    "Redirect.Render",
+    "redirectRequest",
+    "redirectFixedPath",
+    "Redirect",
+    "Context.Redirect"
+   ],
+   "accept": [
+    "Engine.HandleContext"
+   ]
+  },
+  {
+   "q": "Fix case of GitHub",
+   "hit": false,
+   "top": [
+    "githubConfigRouter",
+    "TestGithubAPI",
+    "BenchmarkParallelGithubDefault",
+    "BenchmarkGithub",
+    "node.findCaseInsensitivePath"
+   ],
+   "accept": [
+    "RouterGroup.handle"
+   ]
+  },
+  {
+   "q": "fix mapping inner structs with correct tag",
+   "hit": true,
+   "top": [
+    "mappingByPtr",
+    "mapping",
+    "mapFormByTag",
+    "TestMappingCustomStructTypeWithURITag",
+    "TestMappingCustomStructTypeWithFormTag"
+   ],
+   "accept": [
+    "mapFormByTag"
+   ]
+  },
+  {
+   "q": "recovery: fix issue about syscall import on google app engine",
+   "hit": true,
+   "top": [
+    "RecoveryWithWriter",
+    "debugPrintError",
+    "init",
+    "Recovery",
+    "defaultHandleRecovery"
+   ],
+   "accept": [
+    "RecoveryWithWriter"
+   ]
+  },
+  {
+   "q": "write: broken pipe  in func (r Data) Render",
+   "hit": false,
+   "top": [
+    "Data.Render",
+    "writeContentType",
+    "Data.WriteContentType",
+    "errorWriter.Write",
+    "Reader.Render"
+   ],
+   "accept": [
+    "RecoveryWithWriter"
+   ]
+  },
+  {
+   "q": "fix: fmt output log to os.Stderr",
+   "hit": false,
+   "top": [
+    "LogFormatterParams",
+    "TestErrorLogger",
+    "LoggerWithFormatter",
+    "Logger",
+    "TestDefaultLogFormatter"
+   ],
+   "accept": [
+    "debugPrint"
+   ]
+  },
+  {
+   "q": "change to test_helpers.go causes flag parsing to fail for cmd line app",
+   "hit": false,
+   "top": [
+    "TestErrorUnwrap",
+    "TestErr",
+    "TestErrorLogger",
+    "TestErr.Error",
+    "TestLoggerWithConfigSkippingPaths"
+   ],
+   "accept": [
+    "CreateTestContext"
+   ]
+  },
+  {
+   "q": "Add and fix the explanation of `HandleContext`",
+   "hit": false,
+   "top": [
+    "TestContextResetInHandler",
+    "Engine.HandleContext",
+    "TestContextHandler",
+    "Context.Handler",
+    "TestContextHandlers"
+   ],
+   "accept": [
+    "Engine.ServeHTTP"
+   ]
+  },
+  {
+   "q": "fix bug, return err when failed binding bool",
+   "hit": false,
+   "top": [
+    "validate",
+    "TestBindingQueryBoolFail",
+    "testQueryBindingFail",
+    "testQueryBindingBoolFail",
+    "failStruct"
+   ],
+   "accept": [
+    "setBoolField"
+   ]
+  },
+  {
+   "q": "Fix some golint warnings in gin.go",
+   "hit": false,
+   "top": [
+    "serveError",
+    "TestErrorUnwrap",
+    "Run",
+    "RunTLS",
+    "Engine.RunFd"
+   ],
+   "accept": [
+    "Engine.Delims",
+    "Engine.SecureJsonPrefix",
+    "Engine.LoadHTMLGlob",
+    "Engine.LoadHTMLFiles",
+    "Engine.SetHTMLTemplate"
+   ]
+  },
+  {
+   "q": "Fix golint warnings in utils.go",
+   "hit": false,
+   "top": [
+    "RunTLS",
+    "TestErrorUnwrap",
+    "Engine.RunTLS",
+    "RunFd",
+    "Engine.RunFd"
+   ],
+   "accept": [
+    "Bind",
+    "WrapF",
+    "WrapH",
+    "H.MarshalXML"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,422 @@
+[
+ {
+  "sha": "9286733482",
+  "issue": 13923,
+  "is_pr": true,
+  "subject": "Merge pull request #13923 from DylanVeldra/fix-tenant-context-payload",
+  "q": "fix(core): merge req context with tenant payload in the request instance"
+ },
+ {
+  "sha": "f7248e2d8d",
+  "issue": 14181,
+  "is_pr": true,
+  "subject": "Merge pull request #14181 from nestjs/fix/validation-pipe-swc-enum-bug",
+  "q": "fix(common): fallback to empty string for enums when validating (swc builder)"
+ },
+ {
+  "sha": "3324703b88",
+  "issue": 13804,
+  "is_pr": true,
+  "subject": "Merge pull request #13804 from patrickacioli/fix-lazy-transient-provider",
+  "q": "fix(core): dependencies not resolving for transient lazy providers"
+ },
+ {
+  "sha": "a1732f5b3d",
+  "issue": 14175,
+  "is_pr": true,
+  "subject": "Merge pull request #14175 from micalevisk/fix-issue-14154",
+  "q": "fix(common,core): align the logic of optional provider"
+ },
+ {
+  "sha": "71e8acec39",
+  "issue": 14163,
+  "is_pr": true,
+  "subject": "Merge pull request #14163 from nestjs/fix/grpc-client-streaming-bug",
+  "q": "fix(microservices): grpc client streaming bugs"
+ },
+ {
+  "sha": "30a6b52c50",
+  "issue": 14094,
+  "is_pr": false,
+  "subject": "fix(microservices): grpc client streaming bugs #14094 #13818",
+  "q": "Streamed messages missed when using grpc client streaming with async guards"
+ },
+ {
+  "sha": "491ed77f22",
+  "issue": 14059,
+  "is_pr": true,
+  "subject": "Merge pull request #14059 from v-sum/fix-disregarded-rmq-client-options",
+  "q": "fix(microservices): include discarded rmq client options"
+ },
+ {
+  "sha": "49dc36d9e5",
+  "issue": 14132,
+  "is_pr": true,
+  "subject": "Merge pull request #14132 from nestjs/fix/mqtt-microservices-qos2",
+  "q": "fix(microservices): no messages emitted with mqtt when qos set"
+ },
+ {
+  "sha": "831d29553d",
+  "issue": 14133,
+  "is_pr": true,
+  "subject": "Merge pull request #14133 from nestjs/fix/flaky-durable-provider",
+  "q": "fix(core): flaky durable provider, remove instance on error"
+ },
+ {
+  "sha": "229d97f018",
+  "issue": 13953,
+  "is_pr": false,
+  "subject": "fix(core): flaky durable provider, remove instance on error #13953",
+  "q": "Durable providers are unable to recover from errors being thrown"
+ },
+ {
+  "sha": "1fe4dc2cad",
+  "issue": 14079,
+  "is_pr": false,
+  "subject": "fix(microservices): no messages emitted with mqtt when qos set #14079",
+  "q": "When using the MqttClient Proxy in MQTT 5.0, we must call the setProperties() to emit message"
+ },
+ {
+  "sha": "42e0798d8c",
+  "issue": 14085,
+  "is_pr": true,
+  "subject": "Merge pull request #14085 from nestjs/fix/internal-core-module-on-preview",
+  "q": "fix(core): initialize internal core module on preview"
+ },
+ {
+  "sha": "f9c5140a47",
+  "issue": 14017,
+  "is_pr": true,
+  "subject": "Merge pull request #14017 from tuxmachine/fix/14016-fastify-head",
+  "q": "fix(fastify): uppercase http method names"
+ },
+ {
+  "sha": "7468810734",
+  "issue": 13883,
+  "is_pr": true,
+  "subject": "Merge pull request #13883 from nestjs/fix/nats-client-promise-13880",
+  "q": "fix(microservices): hold nats client connection promise ref"
+ },
+ {
+  "sha": "1b8e3287d0",
+  "issue": 13880,
+  "is_pr": false,
+  "subject": "fix(microservices): hold nats client connection promise ref #13880",
+  "q": "microservices: multiple NATS clients created blocking application shutdown"
+ },
+ {
+  "sha": "e5e65c26f9",
+  "issue": 13762,
+  "is_pr": true,
+  "subject": "Merge pull request #13762 from sheepster1/fix-promise-conversion-in-interceptor-consumer",
+  "q": "fix(core): unhandled promise rejection in interceptors consumer"
+ },
+ {
+  "sha": "970cb48012",
+  "issue": 13712,
+  "is_pr": true,
+  "subject": "Merge pull request #13712 from micalevisk/fix/forwardref-on-exports",
+  "q": "fix(core): when using forward references on `exports` array"
+ },
+ {
+  "sha": "945f7a0653",
+  "issue": 13453,
+  "is_pr": true,
+  "subject": "Merge pull request #13453 from zhengjitf/fix-11601",
+  "q": "fix(core): possible memory leak when using server side events"
+ },
+ {
+  "sha": "2d5a7b87e5",
+  "issue": 13536,
+  "is_pr": true,
+  "subject": "Merge pull request #13536 from Fcmam5/fix/do-not-crash-when_not_using-enabledVersioning",
+  "q": "feat(fastify): Do not crash if enableVersioning is not used"
+ },
+ {
+  "sha": "c0af8af0cd",
+  "issue": 13496,
+  "is_pr": false,
+  "subject": "feat(fastify): Do not crash if enableVersioning is not used (fixes #13496)",
+  "q": "Nest crash when RouteConstraints is used without app versioning enabled"
+ },
+ {
+  "sha": "f29f932b2b",
+  "issue": 13366,
+  "is_pr": true,
+  "subject": "Merge pull request #13366 from breeeew/fix-request-scope-leak",
+  "q": "fix(core): break reference chain to instance object"
+ },
+ {
+  "sha": "40800d3f56",
+  "issue": 13337,
+  "is_pr": true,
+  "subject": "Merge pull request #13337 from nestjs/fix/global-prefix-midleware-issue",
+  "q": "fix(core): middleware is not executed for root route when global prefix is set"
+ },
+ {
+  "sha": "07fb4d58d1",
+  "issue": 13285,
+  "is_pr": true,
+  "subject": "Merge pull request #13285 from sorooshme/fix-microservice-rmq-noassert-flag",
+  "q": "fix(microservices): fix rabbitmq no-assert not being applied correctly"
+ },
+ {
+  "sha": "57bae20d04",
+  "issue": 13317,
+  "is_pr": true,
+  "subject": "Merge pull request #13317 from hokaccha/fix-console-logger-is-stack",
+  "q": "fix(common): fix stacktrace regex"
+ },
+ {
+  "sha": "1bf2dc4e43",
+  "issue": 13328,
+  "is_pr": true,
+  "subject": "Merge pull request #13328 from youngkiu/fix/redundant-emit-code",
+  "q": "fix(microservices): fix redundant code to emit error"
+ },
+ {
+  "sha": "ef9ef4327b",
+  "issue": 13193,
+  "is_pr": true,
+  "subject": "Merge pull request #13193 from micalevisk/fix/issue-13093",
+  "q": "fix(core): when having multiple versions on middleware routes builder"
+ },
+ {
+  "sha": "7786a65f1f",
+  "issue": 13105,
+  "is_pr": true,
+  "subject": "Merge pull request #13105 from Deniks/deniks-rmq-options-fix",
+  "q": "feat(microservices): add type for rmq connection options"
+ },
+ {
+  "sha": "aee3701246",
+  "issue": 13151,
+  "is_pr": true,
+  "subject": "Merge pull request #13151 from leandrogenas/fix-inbox-prefix",
+  "q": "fix(packages/microservices): pass inboxPrefix as argument to createInbox"
+ },
+ {
+  "sha": "829f57f7c0",
+  "issue": 13083,
+  "is_pr": true,
+  "subject": "Merge pull request #13083 from nestjs/fix/non-unique-hashes",
+  "q": "fix: generate unique hashes for dynamic modules, and clients"
+ },
+ {
+  "sha": "ec57fba4f6",
+  "issue": 12959,
+  "is_pr": true,
+  "subject": "Merge pull request #12959 from yurks/fix-grpc-client-closing",
+  "q": "fix(microservices): grpc client closing"
+ },
+ {
+  "sha": "afdc15c4af",
+  "issue": 12769,
+  "is_pr": true,
+  "subject": "Merge pull request #12769 from benlesh/fix-breakpressure-with-integration-test",
+  "q": "fix(microservices): fix backpressure with integration test"
+ },
+ {
+  "sha": "551d12b160",
+  "issue": 12519,
+  "is_pr": true,
+  "subject": "Merge pull request #12519 from micalevisk/fix/issue-12518",
+  "q": "fix(core): when the discoverable decorator was not used on calling `getProviders`/`getControllers`"
+ },
+ {
+  "sha": "55c6a9abad",
+  "issue": 12561,
+  "is_pr": true,
+  "subject": "Merge pull request #12561 from micalevisk/fix/logger-print-classes",
+  "q": "fix(common): when passing class functions to logger methods"
+ },
+ {
+  "sha": "833a5fbd31",
+  "issue": 12382,
+  "is_pr": true,
+  "subject": "Merge pull request #12382 from jmcdo29/fix/ws-get-pattern",
+  "q": "fix: allow for filters to be aware of the pattern for websockets"
+ },
+ {
+  "sha": "2d13d081d8",
+  "issue": 12321,
+  "is_pr": true,
+  "subject": "Merge pull request #12321 from KrisAphalon/fix-missing-pattern-on-ws",
+  "q": "fix(ws): fix incorrect host pattern on messages"
+ },
+ {
+  "sha": "c7854328aa",
+  "issue": 12331,
+  "is_pr": true,
+  "subject": "Merge pull request #12331 from benlesh/fix-write-drain-bug",
+  "q": "fix(grpc): will properly write to streams"
+ },
+ {
+  "sha": "4b4713555d",
+  "issue": 12254,
+  "is_pr": true,
+  "subject": "Merge pull request #12254 from baconcheese113/fix-redis-options",
+  "q": "Guard undefined Redis options"
+ },
+ {
+  "sha": "f3d6f994b0",
+  "issue": 12096,
+  "is_pr": true,
+  "subject": "Merge pull request #12096 from mohamadrezamomeni/fix-multi-files",
+  "q": "fix(common): fix custom multi file validator"
+ },
+ {
+  "sha": "a1b0b45ed7",
+  "issue": 12163,
+  "is_pr": true,
+  "subject": "Merge pull request #12163 from jmcdo29/fix/circular-injection-big",
+  "q": "fix(core): create completed field on settlement for better tracking"
+ },
+ {
+  "sha": "33b0aaa353",
+  "issue": 12035,
+  "is_pr": true,
+  "subject": "Merge pull request #12035 from nestjs/fix/globals-in-lazy-modules",
+  "q": "fix(core): allow importing providers from global modules in lazy modules"
+ },
+ {
+  "sha": "c01ea3f808",
+  "issue": 11785,
+  "is_pr": true,
+  "subject": "Merge pull request #11785 from nestjs/fix/middleware-for-versioned-ctrls",
+  "q": "fix(core): apply middleware to versioned controllers (ctrl-level)"
+ },
+ {
+  "sha": "efa9909b63",
+  "issue": 11673,
+  "is_pr": true,
+  "subject": "Merge pull request #11673 from namoscato/fix-11665-error-cause-type",
+  "q": "fix(common): loosen http exception cause type"
+ },
+ {
+  "sha": "0fa730885a",
+  "issue": 11692,
+  "is_pr": true,
+  "subject": "Merge pull request #11692 from OleksandrZaturskyi/fix/client-kafka-consumer-assignments",
+  "q": "fix(microservices): check length of member partitions on group join"
+ },
+ {
+  "sha": "8053f11451",
+  "issue": 9809,
+  "is_pr": true,
+  "subject": "Merge pull request #9809 from rychardvale/fix-middleware-multiple-runs",
+  "q": "feat(core): middleware runs once for matching route"
+ },
+ {
+  "sha": "b1be7a3d21",
+  "issue": 11650,
+  "is_pr": true,
+  "subject": "Merge pull request #11650 from nestjs/fix/global-prefix-exclude-with-versioning",
+  "q": "fix(core): global prefix exclude when versioning is turned on"
+ },
+ {
+  "sha": "4bb43f0c47",
+  "issue": 11437,
+  "is_pr": true,
+  "subject": "Merge pull request #11437 from julien-sarazin/fix/issue-11429",
+  "q": "fix(microservices): grpc-server handle async interceptors"
+ },
+ {
+  "sha": "b2a35f231a",
+  "issue": 11571,
+  "is_pr": true,
+  "subject": "Merge pull request #11571 from TP-O/fix-error-log",
+  "q": "fix(common): `ConsoleLogger` doesn't log stacktrace"
+ },
+ {
+  "sha": "5a2be89eab",
+  "issue": 10549,
+  "is_pr": true,
+  "subject": "Merge pull request #10549 from Papooch/fix/microservices-client-falsy-options",
+  "q": "fix(microservices): allow falsy values in options"
+ },
+ {
+  "sha": "c885a89dec",
+  "issue": 11188,
+  "is_pr": true,
+  "subject": "Merge pull request #11188 from CodyTseng/fix-ws-multi-servers-on-different-paths",
+  "q": "fix(ws): mount multi `ws` servers on different paths"
+ },
+ {
+  "sha": "36e8bfca81",
+  "issue": 11303,
+  "is_pr": false,
+  "subject": "fix(core): circular structure error (jest) #11303",
+  "q": "Circular JSON TypeError in @nestjs/axios"
+ },
+ {
+  "sha": "a64b9cc9cb",
+  "issue": 11073,
+  "is_pr": true,
+  "subject": "Merge pull request #11073 from H4ad/fix/issue-with-xxhash",
+  "q": "fix(core): removed xxhash to fix #11071"
+ },
+ {
+  "sha": "bd92969b0c",
+  "issue": 11071,
+  "is_pr": false,
+  "subject": "fix(core): removed xxhash to fix #11071",
+  "q": "\"perf(core): change sha1 to xxhash\" commit broke runtime of Nest.js application on Ubuntu 20.04"
+ },
+ {
+  "sha": "20b545bf48",
+  "issue": 11031,
+  "is_pr": true,
+  "subject": "Merge pull request #11031 from nestjs/fix/unwrap-forward-ref",
+  "q": "fix(core): unwrap forward ref in module compiler"
+ },
+ {
+  "sha": "452a71bfcf",
+  "issue": 11026,
+  "is_pr": true,
+  "subject": "Merge pull request #11026 from nestjs/fix/kafka-client-parallel-messages",
+  "q": "fix(microservices): messages emitted before kafka client is ready fail"
+ },
+ {
+  "sha": "03efdce8d6",
+  "issue": 11020,
+  "is_pr": true,
+  "subject": "Merge pull request #11020 from nestjs/fix/kafka-retriable-error-bugs",
+  "q": "fix(microservices): pull kafka retriable error from all handlers, laz\u2026"
+ },
+ {
+  "sha": "2ed509a0f6",
+  "issue": 11019,
+  "is_pr": true,
+  "subject": "Merge pull request #11019 from nestjs/fix/gracefully-reconnect-rmq",
+  "q": "fix(microservices): rmq should gracefully reconnect upon error"
+ },
+ {
+  "sha": "32b0d9c600",
+  "issue": 10737,
+  "is_pr": true,
+  "subject": "Merge pull request #10737 from mahkassem/Parse-File-Pipe-Fix",
+  "q": "Parse file pipe fix (multiple files validation)"
+ },
+ {
+  "sha": "f71554ca96",
+  "issue": 10696,
+  "is_pr": true,
+  "subject": "Merge pull request #10696 from kos984/fix/NestApplicationContext-listenToShutdownSignals",
+  "q": "fix(core): process exit before shutdown hook end"
+ },
+ {
+  "sha": "6d88e3cd3c",
+  "issue": 10809,
+  "is_pr": true,
+  "subject": "Merge pull request #10809 from micalevisk/fix/durable-payload-regression",
+  "q": "fix(core,microservices): inject the context when the tree is not durable"
+ },
+ {
+  "sha": "7865c61d0f",
+  "issue": 10889,
+  "is_pr": true,
+  "subject": "Merge pull request #10889 from jmcdo29/fix/fastify-exception-handler",
+  "q": "fix(fastify): return the response on exception"
+ }
+]

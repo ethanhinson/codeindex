@@ -1,0 +1,325 @@
+{
+ "repo": "gin",
+ "commit": "75ccf94d605a05fe24817fc2f166f6f2959d5cea",
+ "split": "issues-closed",
+ "provenance": "Mined from closed GitHub issues/PRs by bench/selfheal/issues_expand.py (mapping v2 + hygiene fixes a/b/c) on 2026-07-12: fix-ish commit subjects referencing (#N) in the deepened pinned clone (1757 commits, newest-first, 1-4 source files, <=10 symbols); accept sets are tier=0 symbols resolved BY NAME from git hunk-header function context (builtin golang/python/php drivers, custom ts xfuncname) and added definition lines, within the same changed file; comment-only hunks do not attribute; line-span overlap only for hunks with no name context AND files byte-identical to HEAD. Questions are verbatim GitHub issue/PR titles (REST API, cached in .issue_cache.json); titles containing a mapped symbol name (locate-class) or matching the refactor/lint/typo/docstring/style/fmt/cleanup/annotation/spelling substring deny-list were dropped.",
+ "questions": [
+  {
+   "q": "fix(uri): query binding bug",
+   "accept": [
+    "queryBinding.Bind"
+   ]
+  },
+  {
+   "q": "fix(binding): dereference pointer to struct when validating structs",
+   "accept": [
+    "defaultValidator.ValidateStruct"
+   ]
+  },
+  {
+   "q": "fix(header): Allow header according to RFC 7231 (HTTP 405)",
+   "accept": [
+    "Engine.handleHTTPRequest"
+   ]
+  },
+  {
+   "q": "Binding a non mandatory file parameter will directly result in an error message",
+   "accept": [
+    "setWithProperType"
+   ]
+  },
+  {
+   "q": "fix(router): catch-all conflicting wildcard",
+   "accept": [
+    "node.insertChild"
+   ]
+  },
+  {
+   "q": "fix(tree): correctly expand the capacity of params",
+   "accept": [
+    "node.getValue"
+   ]
+  },
+  {
+   "q": "Can't bind list of struct pointer in query",
+   "accept": [
+    "setWithProperType"
+   ]
+  },
+  {
+   "q": "fix lack of escaping of filename in Content-Disposition",
+   "accept": [
+    "Context.FileFromFS",
+    "escapeQuotes",
+    "Context.FileAttachment"
+   ]
+  },
+  {
+   "q": "Add escape logic for header",
+   "accept": [
+    "redirectTrailingSlash"
+   ]
+  },
+  {
+   "q": "fix(router): tree bug where loop index is not decremented.",
+   "accept": [
+    "node.getValue"
+   ]
+  },
+  {
+   "q": "console logger HTTP status code bug fixed",
+   "accept": [
+    "responseWriter.WriteHeader"
+   ]
+  },
+  {
+   "q": "fix(route): redirectSlash bug",
+   "accept": [
+    "countSections",
+    "node.addRoute",
+    "node.getValue"
+   ]
+  },
+  {
+   "q": "Fix the value of ginSupportMinGoVer constant by semantic",
+   "accept": [
+    "debugPrintWARNINGDefault"
+   ]
+  },
+  {
+   "q": "fix: default trusted proxies should add ipv6",
+   "accept": [
+    "New"
+   ]
+  },
+  {
+   "q": "fix: wrong when wildcard follows named param",
+   "accept": [
+    "node.getValue"
+   ]
+  },
+  {
+   "q": "fix tsr with mixed static and wildcard paths",
+   "accept": [
+    "node.getValue"
+   ]
+  },
+  {
+   "q": "fix the misplacement of adding slashes",
+   "accept": [
+    "node.getValue"
+   ]
+  },
+  {
+   "q": "[Bug]mixed param and non-param paths",
+   "accept": [
+    "node.getValue"
+   ]
+  },
+  {
+   "q": "404 when using dynamic routing",
+   "accept": [
+    "node",
+    "node.getValue"
+   ]
+  },
+  {
+   "q": "Fix insufficient slice check",
+   "accept": [
+    "node.getValue"
+   ]
+  },
+  {
+   "q": "Fix conflict between param and exact path",
+   "accept": [
+    "node",
+    "node.getValue"
+   ]
+  },
+  {
+   "q": "Data race with gin-gonic v1.7.0",
+   "accept": [
+    "Context.RemoteIP"
+   ]
+  },
+  {
+   "q": "basic auth: fix timing oracle",
+   "accept": [
+    "authPairs.searchCredential"
+   ]
+  },
+  {
+   "q": "fix error gin support min Go version",
+   "accept": [
+    "debugPrintWARNINGDefault"
+   ]
+  },
+  {
+   "q": "fix: print headers without Authorization header on broken pipe",
+   "accept": [
+    "CustomRecoveryWithWriter"
+   ]
+  },
+  {
+   "q": "fix(tree): reassign fullpath when register new node which the same current node",
+   "accept": [
+    "node.addRoute"
+   ]
+  },
+  {
+   "q": "fix missing initial sync.RWMutex",
+   "accept": [
+    "Context.Set",
+    "Context.Get"
+   ]
+  },
+  {
+   "q": "fix accept incoming network connections",
+   "accept": [
+    "resolveAddress"
+   ]
+  },
+  {
+   "q": "context.JSON adds a new line to end of JSON response",
+   "accept": [
+    "WriteJSON"
+   ]
+  },
+  {
+   "q": "Fixed a bug in the calculation of the maximum number of parameters",
+   "accept": [
+    "node.insertChild"
+   ]
+  },
+  {
+   "q": "request cause panic with v1.4.0 @ form_mapping.go:63 ~ form_mapping.go:89  ,  be careful",
+   "accept": [
+    "mapping",
+    "tryToSetValue"
+   ]
+  },
+  {
+   "q": "Close files opened in static file handler",
+   "accept": [
+    "RouterGroup.createStaticHandler"
+   ]
+  },
+  {
+   "q": "Attempt to fix #1927",
+   "accept": [
+    "Context.reset"
+   ]
+  },
+  {
+   "q": "Default engine producing two log lines with StaticFS for 404",
+   "accept": [
+    "RouterGroup.createStaticHandler"
+   ]
+  },
+  {
+   "q": "Support HTTP content negotiation wildcards",
+   "accept": [
+    "Context.NegotiateFormat"
+   ]
+  },
+  {
+   "q": "Out of range if redirect more than 45 times",
+   "accept": [
+    "Engine.HandleContext"
+   ]
+  },
+  {
+   "q": "fix mapping inner structs with correct tag",
+   "accept": [
+    "mapFormByTag"
+   ]
+  },
+  {
+   "q": "fix bug",
+   "accept": [
+    "RouterGroup.createStaticHandler"
+   ]
+  },
+  {
+   "q": "recovery: fix issue about syscall import on google app engine",
+   "accept": [
+    "RecoveryWithWriter"
+   ]
+  },
+  {
+   "q": "write: broken pipe  in func (r Data) Render",
+   "accept": [
+    "RecoveryWithWriter"
+   ]
+  },
+  {
+   "q": "change to test_helpers.go causes flag parsing to fail for cmd line app",
+   "accept": [
+    "CreateTestContext"
+   ]
+  },
+  {
+   "q": "fix bug, return err when failed binding bool",
+   "accept": [
+    "setBoolField"
+   ]
+  },
+  {
+   "q": "show query string in logger.",
+   "accept": [
+    "LoggerWithWriter"
+   ]
+  },
+  {
+   "q": "resolve #368 add option to UseNumber() in gin.Context.BindJSON()",
+   "accept": [
+    "DisableBindValidation",
+    "EnableJsonDecoderUseNumber"
+   ]
+  },
+  {
+   "q": "Fix time.Time binding",
+   "accept": [
+    "setTimeField"
+   ]
+  },
+  {
+   "q": "IsTerminal not available on Google App Engine",
+   "accept": [
+    "LoggerWithWriter"
+   ]
+  },
+  {
+   "q": "Logger: skip ANSI color commands if output is not a tty",
+   "accept": [
+    "LoggerWithWriter"
+   ]
+  },
+  {
+   "q": "Fix indent of routes debug prints",
+   "accept": [
+    "debugPrintRoute"
+   ]
+  },
+  {
+   "q": "issue #238 proposed fix",
+   "accept": [
+    "responseWriter.Hijack"
+   ]
+  },
+  {
+   "q": "why don't working LoadHTMLTemplates function in debug mode",
+   "accept": [
+    "Engine.LoadHTMLGlob",
+    "Engine.LoadHTMLFiles",
+    "Render"
+   ]
+  },
+  {
+   "q": "Fix Corrupted plainRender",
+   "accept": [
+    "Render"
+   ]
+  }
+ ]
+}

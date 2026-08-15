@@ -1,0 +1,276 @@
+{
+ "repo": "drupal",
+ "commit": "0f9b2c320c20d0cbafef18764fac8e957a84071f",
+ "split": "runtime-gate",
+ "provenance": "Drafted from platform documentation knowledge (WordPress actions/filters/cron/REST/templates; Drupal hooks/entity API/render/routing/plugins/config/queue) by claude-fable-5 on 2026-07-12; answers verified against the pinned index via symbol-table existence lookup only (no search runs); hook field marks answers reached through string-keyed dispatch; frozen before any runtime-evidence ingestion runs.",
+ "questions": [
+  {
+   "q": "how cron invokes each module's cron hook",
+   "hook": true,
+   "accept": [
+    "Cron.run",
+    "Cron.invokeCronHandlers",
+    "ModuleHandler.invokeAll"
+   ]
+  },
+  {
+   "q": "how a module hook gets invoked by name across all modules",
+   "hook": true,
+   "accept": [
+    "ModuleHandler.invokeAll",
+    "ModuleHandler.invoke",
+    "ModuleHandler.invokeAllWith"
+   ]
+  },
+  {
+   "q": "what lets other modules react when an entity is saved or deleted",
+   "hook": true,
+   "accept": [
+    "EntityStorageBase.invokeHook",
+    "ContentEntityStorageBase.invokeHook",
+    "ModuleHandler.invokeAll"
+   ]
+  },
+  {
+   "q": "how the controller string from a route definition becomes a callable",
+   "hook": true,
+   "accept": [
+    "ControllerResolver.getController",
+    "ControllerResolver"
+   ],
+   "pruned": [
+    "ControllerResolver.createController"
+   ]
+  },
+  {
+   "q": "how form validate and submit handlers get executed",
+   "hook": true,
+   "accept": [
+    "FormSubmitter.executeSubmitHandlers",
+    "FormValidator.executeValidateHandlers",
+    "FormBuilder.processForm"
+   ]
+  },
+  {
+   "q": "how queued items are claimed and processed by their worker plugins",
+   "hook": true,
+   "accept": [
+    "Cron.processQueues",
+    "QueueWorkerManager",
+    "DatabaseQueue.claimItem",
+    "QueueWorkerInterface.processItem"
+   ]
+  },
+  {
+   "q": "instantiate a plugin from its id and configuration",
+   "hook": true,
+   "accept": [
+    "PluginManagerBase.createInstance",
+    "DefaultFactory.createInstance",
+    "ContainerFactory.createInstance",
+    "DefaultPluginManager"
+   ]
+  },
+  {
+   "q": "how a theme hook and its preprocess functions turn into markup",
+   "hook": true,
+   "accept": [
+    "ThemeManager.render",
+    "Registry.get",
+    "ThemeManager.buildThemeHookSuggestions"
+   ]
+  },
+  {
+   "q": "how route access checker services decide if the user may access a route",
+   "hook": true,
+   "accept": [
+    "AccessManager.check",
+    "AccessManager.checkNamedRoute"
+   ],
+   "pruned": [
+    "CheckProvider.getChecks"
+   ]
+  },
+  {
+   "q": "what event subscriber serves dynamic page cache hits before rendering",
+   "hook": true,
+   "accept": [
+    "DynamicPageCacheSubscriber.onRequest",
+    "DynamicPageCacheSubscriber.onResponse",
+    "DynamicPageCacheSubscriber"
+   ]
+  },
+  {
+   "q": "what code runs when a user logs in so modules can react",
+   "hook": true,
+   "accept": [
+    "user_login_finalize",
+    "UserLoginForm.submitForm"
+   ]
+  },
+  {
+   "q": "how batch operations are processed across requests",
+   "hook": true,
+   "accept": [
+    "_batch_process",
+    "batch_process",
+    "_batch_finished"
+   ]
+  },
+  {
+   "q": "how an email is built and sent through the mail plugin system",
+   "hook": true,
+   "accept": [
+    "MailManager.mail",
+    "MailManager.doMail",
+    "PhpMail.mail"
+   ]
+  },
+  {
+   "q": "how block plugins are built and rendered into the page",
+   "hook": true,
+   "accept": [
+    "BlockViewBuilder.view",
+    "BlockViewBuilder.preRender"
+   ],
+   "pruned": [
+    "BlockViewBuilder.buildBlock"
+   ]
+  },
+  {
+   "q": "how plugin definitions are discovered from php attributes in module namespaces",
+   "hook": true,
+   "accept": [
+    "DefaultPluginManager.getDefinitions",
+    "AttributeClassDiscovery",
+    "AttributeDiscoveryWithAnnotations"
+   ]
+  },
+  {
+   "q": "load an entity by its id from storage",
+   "hook": false,
+   "accept": [
+    "EntityStorageBase.load",
+    "EntityStorageBase.loadMultiple",
+    "EntityTypeManager.getStorage"
+   ]
+  },
+  {
+   "q": "turn a render array into html markup",
+   "hook": false,
+   "accept": [
+    "Renderer.render",
+    "Renderer.doRender",
+    "Renderer.renderRoot"
+   ]
+  },
+  {
+   "q": "read values from a configuration object",
+   "hook": false,
+   "accept": [
+    "ConfigFactory.get",
+    "Config.get"
+   ],
+   "pruned": [
+    "ImmutableConfig.get"
+   ]
+  },
+  {
+   "q": "save a configuration object to storage",
+   "hook": false,
+   "accept": [
+    "Config.save",
+    "DatabaseStorage.write",
+    "CachedStorage.write"
+   ]
+  },
+  {
+   "q": "add an item to a queue for later processing",
+   "hook": false,
+   "accept": [
+    "DatabaseQueue.createItem",
+    "QueueInterface.createItem"
+   ],
+   "pruned": [
+    "MemoryQueue.createItem"
+   ]
+  },
+  {
+   "q": "invalidate cached data by cache tags",
+   "hook": false,
+   "accept": [
+    "Cache.invalidateTags",
+    "CacheTagsInvalidator.invalidateTags",
+    "CacheTagsInvalidatorInterface.invalidateTags"
+   ]
+  },
+  {
+   "q": "check whether an account has a permission",
+   "hook": false,
+   "accept": [
+    "AccountProxy.hasPermission",
+    "UserSession.hasPermission",
+    "Role.hasPermission",
+    "PermissionChecker.hasPermission"
+   ]
+  },
+  {
+   "q": "resolve a url path alias to its internal system path",
+   "hook": false,
+   "accept": [
+    "AliasManager.getPathByAlias",
+    "AliasRepository.lookupByAlias"
+   ],
+   "pruned": [
+    "PathProcessorAlias.processInbound"
+   ]
+  },
+  {
+   "q": "translate a string into the current language",
+   "hook": false,
+   "accept": [
+    "TranslationManager.translate",
+    "StringTranslationTrait.t",
+    "TranslatableMarkup"
+   ]
+  },
+  {
+   "q": "log a message through the logging system",
+   "hook": false,
+   "accept": [
+    "LoggerChannel.log",
+    "LoggerChannelFactory.get",
+    "DbLog.log"
+   ]
+  },
+  {
+   "q": "build a database select query with conditions",
+   "hook": false,
+   "accept": [
+    "Condition.condition",
+    "Connection.select"
+   ],
+   "pruned": [
+    "Select.condition"
+   ]
+  },
+  {
+   "q": "build the add or edit form for an entity",
+   "hook": false,
+   "accept": [
+    "EntityFormBuilder.getForm",
+    "EntityForm.buildForm",
+    "EntityForm.form"
+   ]
+  },
+  {
+   "q": "validate an entity's field values against constraints",
+   "hook": false,
+   "accept": [
+    "ContentEntityBase.validate",
+    "TypedData.validate",
+    "EntityConstraintViolationList"
+   ]
+  }
+ ]
+}

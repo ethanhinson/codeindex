@@ -1,0 +1,182 @@
+[
+ {
+  "sha": "d7209a9570",
+  "issue": 5393,
+  "is_pr": true,
+  "subject": "fix super call in list comprehension (#5393)"
+ },
+ {
+  "sha": "05eebe36ab",
+  "issue": 5344,
+  "is_pr": true,
+  "subject": "fix missing quote in `--key` error message (#5344)"
+ },
+ {
+  "sha": "4be9f52142",
+  "issue": 5161,
+  "is_pr": true,
+  "subject": "fix use of `importlib.util.find_spec` (#5161)"
+ },
+ {
+  "sha": "631b6dd546",
+  "issue": 4921,
+  "is_pr": true,
+  "subject": "Merge pull request #4921 from ivanovmg/fix/template_folder"
+ },
+ {
+  "sha": "3635583ce2",
+  "issue": 4662,
+  "is_pr": true,
+  "subject": "Merge pull request #4662 from pallets/fix-run-skip"
+ },
+ {
+  "sha": "6d637f0fdb",
+  "issue": 4230,
+  "is_pr": true,
+  "subject": "Merge pull request #4230 from matipau/blueprint-fix"
+ },
+ {
+  "sha": "06cf349bb8",
+  "issue": 4152,
+  "is_pr": true,
+  "subject": "Merge pull request #4152 from Yourun-proger/fix"
+ },
+ {
+  "sha": "39887ee4df",
+  "issue": 3964,
+  "is_pr": true,
+  "subject": "Merge pull request #3964 from pgjones/fix"
+ },
+ {
+  "sha": "a40c381ffd",
+  "issue": 3560,
+  "is_pr": true,
+  "subject": "Merge pull request #3560 from greyli/fix-env-chdir"
+ },
+ {
+  "sha": "cd4023d9d2",
+  "issue": 3237,
+  "is_pr": true,
+  "subject": "Merge pull request #3237 from scrosby/fix-3218"
+ },
+ {
+  "sha": "2308cba407",
+  "issue": 2897,
+  "is_pr": false,
+  "subject": "Fix #2897 - Add `extra_files` option to `flask run` CLI"
+ },
+ {
+  "sha": "e2f4b53396",
+  "issue": 3168,
+  "is_pr": false,
+  "subject": "Fix dev-server warning message readability (#3168)"
+ },
+ {
+  "sha": "232e5c81bc",
+  "issue": 2825,
+  "is_pr": true,
+  "subject": "Merge pull request #2825 from eso31/fix-2824-issue"
+ },
+ {
+  "sha": "717f9d33ca",
+  "issue": 3054,
+  "is_pr": true,
+  "subject": "Merge pull request #3054 from tirkarthi/fix-py37-warnings"
+ },
+ {
+  "sha": "b2ec6a33a2",
+  "issue": 2827,
+  "is_pr": true,
+  "subject": "Merge pull request #2827 from schafle/fix-2823"
+ },
+ {
+  "sha": "401d7f9bb2",
+  "issue": 2789,
+  "is_pr": true,
+  "subject": "Merge pull request #2789 from briehanlombaard/fix-sslcontext-attribute-error"
+ },
+ {
+  "sha": "324b4ea255",
+  "issue": 2711,
+  "is_pr": true,
+  "subject": "Merge pull request #2711 from pope1ni/session-serializer-fixes"
+ },
+ {
+  "sha": "641fdeaf98",
+  "issue": 2398,
+  "is_pr": true,
+  "subject": "Merge pull request #2398 from miguelgrinberg/app-not-found-error-fix"
+ },
+ {
+  "sha": "4fc48200a5",
+  "issue": 1910,
+  "is_pr": true,
+  "subject": "reconfigure the app from run command and method extract templates_auto_reload to property continues #1910 closes #1907"
+ },
+ {
+  "sha": "fa7e8d6073",
+  "issue": 2357,
+  "is_pr": false,
+  "subject": "be smarter about adding \".cli\" to reloader command python -m flask.cli raises an import warning on > 2.6 it's only needed on 2.6, \"flask\" works otherwise closes #2357"
+ },
+ {
+  "sha": "6637e20174",
+  "issue": 1348,
+  "is_pr": false,
+  "subject": "only open session if request hasn't been pushed yet closes #1348"
+ },
+ {
+  "sha": "c3d49e29ea",
+  "issue": 2007,
+  "is_pr": false,
+  "subject": "show warning if session cookie domain is ip closes #2007"
+ },
+ {
+  "sha": "5b7fd9ad88",
+  "issue": 2208,
+  "is_pr": false,
+  "subject": "Print a stacktrace on CLI error (closes #2208)"
+ },
+ {
+  "sha": "f3d661de66",
+  "issue": 2039,
+  "is_pr": true,
+  "subject": "Fix unbound error (#2039)"
+ },
+ {
+  "sha": "98b155c65d",
+  "issue": 1288,
+  "is_pr": false,
+  "subject": "Fixed #1288: app.add_url_rule() should look for OPTIONS methods in a case-insensitive manner"
+ },
+ {
+  "sha": "ff3ef8511e",
+  "issue": 997,
+  "is_pr": true,
+  "subject": "Merge pull request #997 from charlax/ca/fix/response_class_documentation"
+ },
+ {
+  "sha": "280d865960",
+  "issue": 879,
+  "is_pr": false,
+  "subject": "fix issue #879 and add a test for it"
+ },
+ {
+  "sha": "2506c0b9a9",
+  "issue": 930,
+  "is_pr": true,
+  "subject": "Fixed sending etags for file streams with a name.  This fixes #930."
+ },
+ {
+  "sha": "3d9055b3b7",
+  "issue": 725,
+  "is_pr": false,
+  "subject": "Added the JSONIFY_PRETTYPRINT_REGULAR config variable.  This fixes #725"
+ },
+ {
+  "sha": "6ab569b0e3",
+  "issue": 661,
+  "is_pr": false,
+  "subject": "Added note on teardown in debug mode.  Fixes #661"
+ }
+]

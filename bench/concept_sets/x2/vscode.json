@@ -1,0 +1,477 @@
+{
+ "repo": "vscode",
+ "commit": "fabdb6a30b49f79a7aba0f2ad9df9b399473380f",
+ "split": "heldout",
+ "provenance": "Drafted from framework documentation knowledge by claude-fable-5 on 2026-07-11; answers verified against the pinned index via symbol-table existence lookup only (no search runs); frozen before diffusion/contrast mechanisms were measured. | expansion x2, drafted from framework documentation knowledge, verified by symbol-table lookup only, frozen before any measurement, 2026-07-12. Original questions copied verbatim.",
+ "questions": [
+  {
+   "q": "open a file in a new editor tab",
+   "accept": [
+    "openEditor",
+    "openEditors",
+    "EditorService.openEditor",
+    "TextEditorService"
+   ]
+  },
+  {
+   "q": "show a quick pick list for the user to choose from",
+   "accept": [
+    "QuickInputService.pick",
+    "showQuickPick",
+    "QuickPick",
+    "createQuickPick"
+   ]
+  },
+  {
+   "q": "register a command that appears in the command palette",
+   "accept": [
+    "registerCommand",
+    "registerAction2"
+   ]
+  },
+  {
+   "q": "tokenize a line with a textmate grammar for highlighting",
+   "accept": [
+    "TextMateTokenizationFeature",
+    "TokenizationRegistry"
+   ]
+  },
+  {
+   "q": "watch the filesystem for file changes",
+   "accept": [
+    "ParcelWatcher",
+    "NodeJSFileWatcherLibrary",
+    "watch",
+    "UniversalWatcher"
+   ]
+  },
+  {
+   "q": "compute the diff between two text documents",
+   "accept": [
+    "computeDiff",
+    "DiffComputer",
+    "DefaultLinesDiffComputer.computeDiff",
+    "LegacyLinesDiffComputer.computeDiff"
+   ]
+  },
+  {
+   "q": "create an integrated terminal instance",
+   "accept": [
+    "createTerminal",
+    "TerminalService.createTerminal",
+    "TerminalInstance",
+    "createInstance"
+   ]
+  },
+  {
+   "q": "read a configuration setting value",
+   "accept": [
+    "getValue",
+    "ConfigurationService.getValue",
+    "Configuration.getValue"
+   ]
+  },
+  {
+   "q": "resolve a pressed key chord to its command",
+   "accept": [
+    "KeybindingResolver.resolve",
+    "resolveKeybinding",
+    "KeybindingResolver"
+   ]
+  },
+  {
+   "q": "activate an extension when its events fire",
+   "accept": [
+    "activate",
+    "ExtensionsActivator",
+    "ExtensionService",
+    "activateByEvent",
+    "ExtensionsActivator.activateById"
+   ]
+  },
+  {
+   "q": "search for text across all files in the workspace",
+   "accept": [
+    "TextSearchManager",
+    "SearchService",
+    "QueryBuilder.text",
+    "RipgrepTextSearchEngine",
+    "doSearch"
+   ]
+  },
+  {
+   "q": "push an operation onto the undo redo stack",
+   "accept": [
+    "UndoRedoService.pushElement",
+    "pushEditOperation",
+    "UndoRedoService"
+   ]
+  },
+  {
+   "q": "insert text into the piece tree text buffer",
+   "accept": [
+    "PieceTreeBase.insert",
+    "PieceTreeTextBuffer.applyEdits",
+    "PieceTreeBase.delete",
+    "createNewPieces"
+   ]
+  },
+  {
+   "q": "enter a different workspace folder",
+   "accept": [
+    "enterWorkspace",
+    "WorkspaceService",
+    "doEnterWorkspace",
+    "setWorkspace"
+   ]
+  },
+  {
+   "q": "register a source control provider like git",
+   "accept": [
+    "registerSCMProvider",
+    "SCMService",
+    "addRepository"
+   ]
+  },
+  {
+   "q": "show an error notification to the user",
+   "accept": [
+    "NotificationService.error",
+    "notify",
+    "NotificationService.notify",
+    "showMessage"
+   ]
+  },
+  {
+   "q": "start a debug session with a configuration",
+   "accept": [
+    "startDebugging",
+    "DebugService.startDebugging",
+    "DebugSession",
+    "doCreateSession"
+   ]
+  },
+  {
+   "q": "provide completion suggestions while typing",
+   "accept": [
+    "provideSuggestionItems",
+    "CompletionModel",
+    "SuggestController",
+    "CompletionItemModel"
+   ]
+  },
+  {
+   "q": "show hover information at the cursor position",
+   "accept": [
+    "ContentHoverController",
+    "ContentHoverWidget",
+    "computeAsync"
+   ]
+  },
+  {
+   "q": "compute quick fixes and code actions at a position",
+   "accept": [
+    "getCodeActions",
+    "CodeActionController",
+    "CodeActionModel",
+    "applyCodeAction"
+   ]
+  },
+  {
+   "q": "render the minimap next to the editor",
+   "accept": [
+    "Minimap",
+    "MinimapCharRenderer",
+    "InnerMinimap"
+   ]
+  },
+  {
+   "q": "compute folding ranges for the editor",
+   "accept": [
+    "FoldingModel",
+    "computeRanges",
+    "RangesCollector",
+    "FoldingController",
+    "IndentRangeProvider.compute"
+   ]
+  },
+  {
+   "q": "add an entry to the status bar",
+   "accept": [
+    "addEntry",
+    "StatusbarService.addEntry",
+    "StatusbarEntryItem"
+   ]
+  },
+  {
+   "q": "write text to the system clipboard",
+   "accept": [
+    "writeText",
+    "ClipboardService.writeText",
+    "NativeClipboardService",
+    "BrowserClipboardService"
+   ]
+  },
+  {
+   "q": "layout the workbench grid of parts and panels",
+   "accept": [
+    "layout",
+    "SerializableGrid"
+   ]
+  },
+  {
+   "q": "restore editors from the previous session",
+   "accept": [
+    "restoreEditors",
+    "restore"
+   ]
+  },
+  {
+   "q": "how the extension host talks to the renderer over rpc",
+   "accept": [
+    "RPCProtocol",
+    "ExtensionHostManager",
+    "LazyPromise",
+    "RPCProtocol.getProxy",
+    "createProxyIdentifier"
+   ]
+  },
+  {
+   "q": "add decorations like highlights or squiggles to editor text",
+   "accept": [
+    "deltaDecorations",
+    "createDecorationsCollection",
+    "ModelDecorationOptions",
+    "changeDecorations"
+   ]
+  },
+  {
+   "q": "run a task defined in tasks json",
+   "accept": [
+    "TerminalTaskSystem",
+    "runTask",
+    "executeTask",
+    "TaskService"
+   ]
+  },
+  {
+   "q": "insert a snippet and tab through its placeholders",
+   "accept": [
+    "SnippetController2",
+    "SnippetSession",
+    "SnippetParser",
+    "insertSnippet"
+   ]
+  },
+  {
+   "q": "rename a symbol and apply the edits across files",
+   "accept": [
+    "RenameController",
+    "rename",
+    "RenameOperation",
+    "provideRenameEdits"
+   ]
+  },
+  {
+   "q": "jump to the definition of the symbol under the cursor",
+   "accept": [
+    "getDefinitionsAtPosition",
+    "DefinitionAction",
+    "getDeclarationsAtPosition",
+    "GotoDefinitionAtPositionEditorContribution"
+   ]
+  },
+  {
+   "q": "find all references to a symbol and show them in a peek view",
+   "accept": [
+    "getReferencesAtPosition",
+    "ReferencesModel",
+    "ReferenceWidget"
+   ]
+  },
+  {
+   "q": "build the symbol outline shown for a document",
+   "accept": [
+    "OutlineModel",
+    "getDocumentSymbols",
+    "OutlineElement",
+    "OutlineGroup"
+   ]
+  },
+  {
+   "q": "apply semantic token highlighting from language providers",
+   "accept": [
+    "getDocumentSemanticTokens",
+    "SemanticTokensBuilder",
+    "SemanticTokensProviderStyling",
+    "DocumentSemanticTokensProvider"
+   ]
+  },
+  {
+   "q": "show inlay hints inline within a line of code",
+   "accept": [
+    "InlayHintsController",
+    "InlayHintItem",
+    "InlayHintsFragments"
+   ]
+  },
+  {
+   "q": "format the whole document with the selected formatter",
+   "accept": [
+    "formatDocumentWithSelectedProvider",
+    "formatDocumentRangesWithSelectedProvider",
+    "getDocumentFormattingEditsWithSelectedProvider"
+   ]
+  },
+  {
+   "q": "add a cursor at the next occurrence of the current selection",
+   "accept": [
+    "MultiCursorSelectionController",
+    "AddSelectionToNextFindMatchAction",
+    "MultiCursorSession",
+    "InsertCursorAbove"
+   ]
+  },
+  {
+   "q": "find and replace text inside the current editor",
+   "accept": [
+    "CommonFindController",
+    "FindModelBoundToEditorModel",
+    "FindReplaceState"
+   ]
+  },
+  {
+   "q": "colorize matching bracket pairs in the editor",
+   "accept": [
+    "BracketPairsTree",
+    "BracketInfo"
+   ]
+  },
+  {
+   "q": "render large lists and trees virtually in the workbench ui",
+   "accept": [
+    "AsyncDataTree",
+    "ObjectTree",
+    "ListView"
+   ]
+  },
+  {
+   "q": "show custom html ui in a webview panel",
+   "accept": [
+    "createWebviewPanel",
+    "WebviewElement",
+    "ExtHostWebviewPanels",
+    "WebviewInput"
+   ]
+  },
+  {
+   "q": "execute cells in a notebook editor",
+   "accept": [
+    "NotebookEditorWidget",
+    "NotebookExecutionService",
+    "executeNotebookCells"
+   ]
+  },
+  {
+   "q": "let extensions sign in through an authentication provider",
+   "accept": [
+    "AuthenticationService",
+    "getSession",
+    "getSessions",
+    "ExtHostAuthentication"
+   ]
+  },
+  {
+   "q": "persist extension or workbench state across restarts with a memento",
+   "accept": [
+    "Memento",
+    "ExtensionMemento",
+    "getMemento"
+   ]
+  },
+  {
+   "q": "restrict features until the user trusts the workspace",
+   "accept": [
+    "WorkspaceTrustManagementService",
+    "isWorkspaceTrusted",
+    "WorkspaceTrustRequestService"
+   ]
+  },
+  {
+   "q": "evaluate when clause context keys controlling ui visibility",
+   "accept": [
+    "ContextKeyService",
+    "contextMatchesRules",
+    "RawContextKey"
+   ]
+  },
+  {
+   "q": "write extension log output to an output channel",
+   "accept": [
+    "createOutputChannel",
+    "ExtHostOutputService",
+    "OutputViewPane",
+    "ExtHostOutputChannel"
+   ]
+  },
+  {
+   "q": "report progress of a long running operation in the ui",
+   "accept": [
+    "withProgress",
+    "ProgressService",
+    "ExtHostProgress"
+   ]
+  },
+  {
+   "q": "contribute a file system provider for virtual file schemes",
+   "accept": [
+    "registerFileSystemProvider",
+    "ExtHostFileSystem",
+    "FileService.registerProvider",
+    "activateProvider"
+   ]
+  },
+  {
+   "q": "provide readonly content for virtual text documents",
+   "accept": [
+    "registerTextDocumentContentProvider",
+    "ExtHostDocumentContentProvider",
+    "provideTextDocumentContent"
+   ]
+  },
+  {
+   "q": "parse build and stringify uri objects",
+   "accept": [
+    "URI.parse",
+    "URI.file",
+    "uriToFsPath",
+    "URI.toString",
+    "URI"
+   ]
+  },
+  {
+   "q": "split the editor area into multiple groups",
+   "accept": [
+    "EditorGroupView",
+    "addGroup",
+    "SplitEditorAction"
+   ]
+  },
+  {
+   "q": "switch the workbench color theme",
+   "accept": [
+    "setColorTheme",
+    "WorkbenchThemeService",
+    "ColorThemeData"
+   ]
+  },
+  {
+   "q": "synchronize settings and keybindings across machines",
+   "accept": [
+    "UserDataSyncService",
+    "SettingsSynchroniser",
+    "KeybindingsSynchroniser"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,619 @@
+{
+ "repo": "btt-api",
+ "split": "private-tickets",
+ "fixture_commit": "059d408b58497d62e8a2b2c4803f1379c38e2981",
+ "binary_sha256_16": "e5680de3616abfbe",
+ "params": null,
+ "n": 40,
+ "hits": 9,
+ "hit5_pct": 22.5,
+ "results": [
+  {
+   "q": "Empty comparison handling creates errors",
+   "hit": false,
+   "top": [
+    "compare",
+    "PublicationsComparatorTest.testGetDiffNodes_emptyIfNoDifferences",
+    "Diff.isEmpty",
+    "PublicationsComparatorTest.testGetDiffNodes_emptyIfNoNewNodes",
+    "PublicationsComparatorTest.testConstruct_emptyNodesTagNameToCheckShouldThrowAnError"
+   ],
+   "accept": [
+    "ApiCollectionQueryHandler"
+   ]
+  },
+  {
+   "q": "UI/UX 47: Airbnb: Batch Calendar Operations: Set limits to the payload.",
+   "hit": true,
+   "top": [
+    "CalendarBatchOperationsSourceItem",
+    "CalendarBatchOperationsSourceItem.getOperations",
+    "AbstractCalendarOperationsPublicationTypeHelper.publishCalendarBatchOperationsPublication",
+    "CalendarBatchOperationsSourceItem.__construct",
+    "AvailabilityRulesSourceItem.getAllowRtbAboveMaxNights"
+   ],
+   "accept": [
+    "CalendarBatchOperationsSourceItem"
+   ]
+  },
+  {
+   "q": "100 update listing mapping calls from XML > REST",
+   "hit": true,
+   "top": [
+    "ListingRepository.updateListingMapping",
+    "UpdateXmlListingImportRequest",
+    "ListingRepository.updateListingMapping",
+    "UpdateXmlListingImportRequest.buildRequestBody",
+    "ListingRepository.updateRestListingIds"
+   ],
+   "accept": [
+    "ApiClientRepository",
+    "ListingRepository"
+   ]
+  },
+  {
+   "q": "UI/UX 53: Core? Payments not applied to certain LiveRez reservations",
+   "hit": false,
+   "top": [
+    "ReservationPayload.payoutAmount",
+    "BookingPayoutFailure",
+    "IDAInitiateReservationPayload.payoutAmount",
+    "OrderPaymentMethodRepository.createFromReservationPayload",
+    "SPSConfirmReservationPayload.payoutAmount"
+   ],
+   "accept": [
+    "ListingContentSourceItem",
+    "QuoteSourceItem",
+    "ReservationOrderBuilder",
+    "v2_rc_airbnb_webhook_reservation_acceptance_confirmation"
+   ]
+  },
+  {
+   "q": "Grooming: Oddities with failed payment/reservation emails",
+   "hit": true,
+   "top": [
+    "rc_boost_core_send_failure_notice",
+    "BookingPayoutFailure",
+    "ConfirmedReservationProcessor.sendBookingFailureNotification",
+    "ConfirmedReservationProcessorTest.testRecordErrorAndNotify_emailNotSentIfAlreadySent",
+    "ConfirmedReservationProcessorTest.testRecordErrorAndNotify_emailSendsIfNoOrderFound"
+   ],
+   "accept": [
+    "BookingConfirmationResource",
+    "_rc_airbnb_webhook_payout_notification",
+    "rc_boost_core_send_failure_notice"
+   ]
+  },
+  {
+   "q": "Make a UI for Vrbo/HomeToGo for a max nights, by default set to 31",
+   "hit": true,
+   "top": [
+    "PromotionIncentiveBuilder.buildApplicableNights",
+    "LodgingRateLosContentSourceItem.getLOSMaxNights",
+    "AvailabilityRulesSourceItem.getDefaultMaxNights",
+    "LodgingRateLosContentSourceItem.applyBlackoutDatesToLOS",
+    "AvailabilitySourceItem.getDefaultMaxNightsOverride"
+   ],
+   "accept": [
+    "HaxmlListingConfigProvider",
+    "LodgingRateLosContentSourceItem",
+    "VrboOrderTest"
+   ]
+  },
+  {
+   "q": "RentalsUnited: Check on automated room configurations",
+   "hit": true,
+   "top": [
+    "RoomConfigurator.configureSleepingRoomToProtobuf",
+    "RoomsApiSourceItem.getMaxOccupancy",
+    "RoomConfigurator.configureAmenitiesForRoomToProtobuf",
+    "RoomConfigurator.configureSleepingRoomToProtobuf",
+    "BedroomHelper.getPlacesInBedroom"
+   ],
+   "accept": [
+    "ListingConfigReader",
+    "ListingConfigReaderTest",
+    "RoomConfigurator"
+   ]
+  },
+  {
+   "q": "Hotfix: Airbnb listings: Need to send the node deactivation_reason when we set has_availability to false",
+   "hit": true,
+   "top": [
+    "ListingPublicationTypeHelper.isPublicationDataChangingToUnlisted",
+    "AirbnbListing.buildAvailabilityPeriod",
+    "rc_airbnb_is_listing_v2_active",
+    "ReconnectListings.isListingAlreadyConnected",
+    "ReconnectListings.validateChannel"
+   ],
+   "accept": [
+    "ListingPublicationTypeHelper"
+   ]
+  },
+  {
+   "q": "Implement the concrete SourceItem and all methods for 'houserules/properties' in Boost backend repo",
+   "hit": false,
+   "top": [
+    "SourceItem",
+    "ItemRepository",
+    "HouseRulesApiRepository",
+    "HouseRulesApiRepository.upsertPropertyHouseRules",
+    "Engine.setSource"
+   ],
+   "accept": [
+    "PublicationEnqueuerTest"
+   ]
+  },
+  {
+   "q": "Investigate rate generation for Rentals United",
+   "hit": false,
+   "top": [
+    "AbstractQuoteSourceItem.calculateRentFeesDerived",
+    "AbstractQuoteSourceItem.calculateRentTaxesTotalFromRentFees",
+    "AbstractQuoteSourceItem.getRentTaxesTotal",
+    "AbstractQuoteSourceItem.calculateRentFeesTotal",
+    "AbstractQuoteSourceItem.getAdjustedRent"
+   ],
+   "accept": [
+    "PricesFullSourceItem",
+    "PricesSourceItem"
+   ]
+  },
+  {
+   "q": "Air conditioning amenity mapping for Google and Escapia not working as expected",
+   "hit": false,
+   "top": [
+    "ListingsSourceItem.getAmenities",
+    "SourceEngineContentReader.getAmenityMappings",
+    "rc_airbnb_get_amenities",
+    "_rc_rooms_determine_bath_type",
+    "AmenityHelper.transformAmenityIntoRoomAmenity"
+   ],
+   "accept": [
+    "ChannelEngineCategoryValueMapping"
+   ]
+  },
+  {
+   "q": "Update Booking.com roomrates endpoint to version 1.1",
+   "hit": false,
+   "top": [
+    "AbstractReservationPayload.roomRateTotalWithoutOTADiscounts",
+    "EVRNCheckBookingUpdates.storeUpdateChangeLogVersion",
+    "BookingRepository.updateBookingFromReservationData",
+    "UpdateBoostBookings.setBookings",
+    "EVRNCheckBookingUpdates.setUpdateChangeLogVersion"
+   ],
+   "accept": [
+    "BdcHeadersHelperTest",
+    "RcBdcClient",
+    "RcBdcHeadersHelper"
+   ]
+  },
+  {
+   "q": "test pr5308 - Demand Channel - GDE-1107 follow up - debug endpoint issues",
+   "hit": true,
+   "top": [
+    "DemandChannelController.debug",
+    "ChannelConfigReaderTest",
+    "ChannelTest",
+    "ListingConfigReaderTest.testGetBlackoutPeriods_usesChannelConfig",
+    "Partner.getChannels"
+   ],
+   "accept": [
+    "AbstractSPSCheckoutService",
+    "DemandChannelController",
+    "SPSCheckoutService"
+   ]
+  },
+  {
+   "q": "hotfix - Demand Channel - PHP syntax error? Causing /initiate to fail",
+   "hit": false,
+   "top": [
+    "DemandChannelAdjustmentApplier.__construct",
+    "ChannelLOSPriceBlock.__construct",
+    "AbstractChannelMetadata.__construct",
+    "NeedsChannel.__construct",
+    "Channel.__construct"
+   ],
+   "accept": [
+    "IDAInitiateReservationPayload"
+   ]
+  },
+  {
+   "q": "test pr4908 - Booking.com CAPI - Backend - Create publication type helper class/PublicationTypeHelper for policy-api",
+   "hit": false,
+   "top": [
+    "NewPropertyDealPublicationTypeHelper",
+    "PutPropertyPublicationTypeHelper",
+    "NewPropertyDealPublicationTypeHelperTest.getHelper",
+    "PropertyDetailsPublicationTypeHelper",
+    "PropertyStatusPublicationTypeHelper"
+   ],
+   "accept": [
+    "CancelPolicySourceItemTest",
+    "ListingPublisherTest",
+    "SyncInitialPropertyContentWork"
+   ]
+  },
+  {
+   "q": "test pr4885 - Booking.com - Property-API  Property Details inserted into Automatic Queue Update Process",
+   "hit": false,
+   "top": [
+    "rc_property_class_enqueue_update_booking_num_eids",
+    "LegalDetailsEnqueueHelperTest.getEngineEidsToUpdateLegalDetailsProvider",
+    "rc_property_class_update_booking_num_eids",
+    "LegalDetailsEnqueueHelperTest.testGetEngineEidsToUpdateLegalDetails",
+    "GetPropertyScoresQueueWorker.setPropertyId"
+   ],
+   "accept": [
+    "ListingPublisher",
+    "ListingUpdateStatusValidator",
+    "ListingUpdateStatusValidatorTest"
+   ]
+  },
+  {
+   "q": "Marriott - HVMB - Minor adjustments and bug fix to LOS that we are sending to Marriott",
+   "hit": false,
+   "top": [
+    "rc_marriott_return_reservation_bad_request",
+    "rc_channels_update_7138",
+    "AdvanceBookingOffsetTransformer.transformProtoAdvanceBookingOffsetToMarriottAdvanceBookingOffset",
+    "rc_marriott_update_7007",
+    "BlackoutStayDatesTransformer.transformProtoBlackoutStayDatesToMarriottBlackoutStayDates"
+   ],
+   "accept": [
+    "LosPricesBuilder",
+    "LosPricesBuilderTest",
+    "LosPricingCollectionSourceItemTest",
+    "LosPricingSourceItemTest"
+   ]
+  },
+  {
+   "q": "Booking.com - Email Errors - BetterStack - A Booking.com reservation failed to reach a pms and also failed to send an email",
+   "hit": false,
+   "top": [
+    "BookingFailure.__construct",
+    "BookingErrorEmail",
+    "BookingErrorEmail.send",
+    "BookingErrorEmail.getEmails",
+    "BookingFailure"
+   ],
+   "accept": [
+    "LoggerFactory",
+    "RcBdcReservationEntity",
+    "rc_bdc_sps_configure"
+   ]
+  },
+  {
+   "q": "Marriott - HVMB - Completely remove the field 'Days for policy' from front end and backend publications",
+   "hit": true,
+   "top": [
+    "ListingPoliciesSourceItem.getDaysForPolicy",
+    "ListingPoliciesSourceItemTest.testGetDaysForPolicy",
+    "ListingPoliciesPublicationTypeHelper.unpublish",
+    "rc_core_update_7009",
+    "ListingLosPricingPublicationTypeHelper.needsPreviousPublicationDataLogging"
+   ],
+   "accept": [
+    "ListingPoliciesSourceItem",
+    "ListingPoliciesSourceItemTest"
+   ]
+  },
+  {
+   "q": "test 4955 or prod - Booking.com - Update frontend for Booking.com so that booking.com meta data url is used just like Airbnb and Google url's",
+   "hit": false,
+   "top": [
+    "UpdateGoogleBooking",
+    "BookingResource.updated",
+    "ListingRepository.updateListingConnectionIds",
+    "BookingUpdateServiceContentIndexSourceItemTest.testGetBookingsQuery_validSearch_bothStartAndEndDate",
+    "location_www_update_5301"
+   ],
+   "accept": [
+    "ListingMetadata",
+    "OpenPropertyWork",
+    "rc_bdc_schema",
+    "rc_bdc_update_7076"
+   ]
+  },
+  {
+   "q": "test pr5116 - Booking.com - Invalid validation error about children allowed?",
+   "hit": false,
+   "top": [
+    "BookingPolicyRuleTest.testValidateApply_invalidBookingPolicy_vrm",
+    "BookingPolicyRuleTest.testValidateApply_validBookingPolicy",
+    "BookingPolicyRuleTest.testValidateApply_invalidBookingPolicy_invalidEnum_vrm",
+    "BookingPolicyRuleTest.testValidateApply_invalidBookingPolicy_invalidEnum_liveRez",
+    "BookAndCancelTest.bookingErrorEmail"
+   ],
+   "accept": [
+    "PropertySettingsSourceItem",
+    "RoomsApiSourceItem"
+   ]
+  },
+  {
+   "q": "test pr5150 - Demand Channel - Ensure that if demand channel integration is updated, we rebuild rates publications for all properties using the channel",
+   "hit": false,
+   "top": [
+    "SupportRateModifications.getDemandChannelAdjustment",
+    "DemandChannelAdjustmentApplier.getDemandChannelCommissionPercent",
+    "SupportRateModificationsTest.testGetPriceFactor_channel",
+    "DemandChannelAdjustmentApplierTest",
+    "DemandChannelAdjustmentApplier.__construct"
+   ],
+   "accept": [
+    "FakeOrganizationHandler",
+    "rc_channels_entity_update",
+    "rc_channels_get_items"
+   ]
+  },
+  {
+   "q": "Pet fee for Streamline, Rentals United and Marriott doesn't work; need to potentially add an additional logic where we take pet amount and pass it to Streamline in MRDC",
+   "hit": false,
+   "top": [
+    "PricingSettingsSourceItem.validatePetFeeWithPetsNotAllowed",
+    "Builder.buildFeeAndTaxFromChannelFee",
+    "FeesAndTaxesSourceItem.isEngineNightlyBasePlusFeeApplicable",
+    "rc_hasp_rc_core_order_checkout_alter",
+    "PricingSettingsSourceItemTest.testGetStandardFees_petFeeRemovedIfPetsNotAllowed"
+   ],
+   "accept": [
+    "BookAndCancelTest",
+    "Order"
+   ]
+  },
+  {
+   "q": "Automatic Queue Update: Step 9: Continue the publication posting process with property profile photo with https://supply-xml.booking.com/property-profile/properties/{propertyId}/photo",
+   "hit": false,
+   "top": [
+    "PhotosUpdateInfoQueueWorker.setPropertyId",
+    "RcBdcPhotosRepository.queuePhotosUpdateInfo",
+    "SyncedPublicationImagesEntitiesUpdater.backfillPrePublicationPhotos",
+    "PhotosOrderQueueWorker.setPropertyId",
+    "PublicationEnqueuer.enqueuePublicationUpdatesByItem"
+   ],
+   "accept": [
+    "ListingPublisher",
+    "PropertyProfilePhotoPublicationTypeHelperTest",
+    "PropertyProfilePublicationTypeHelperTest"
+   ]
+  },
+  {
+   "q": "Clarity tracking, adding code to head",
+   "hit": false,
+   "top": [
+    "isNotInFocusAndDirty",
+    "CodegenState",
+    "isNotInFocusAndDirty",
+    "clearImmediate",
+    "isNotInFocusAndDirty"
+   ],
+   "accept": [
+    "boost_admin_preprocess_page",
+    "rc_channels_partner_app_embed_page"
+   ]
+  },
+  {
+   "q": "Publication Service - Haxml - Remove some more validations for non Vrbo (and HomeToGo?) connections",
+   "hit": false,
+   "top": [
+    "QueryBuilder.setAdvertiserId",
+    "AbstractHaxmlSourceItemFactory.schemaValidate",
+    "HaxmlFeeMappingRule",
+    "HaxmlFeeMappingRule.apply",
+    "GetPropertyStatusWorker.setAdvertiserId"
+   ],
+   "accept": [
+    "LodgingConfigContentSourceItem",
+    "LodgingConfigIndexSourceItem"
+   ]
+  },
+  {
+   "q": "Booking.com - What does this error mean, Invalid resource type: array",
+   "hit": false,
+   "top": [
+    "BookingCreationResource",
+    "BookingErrorEmail.__construct",
+    "BookingResource.created",
+    "BookingResource.id",
+    "BookingResource.__construct"
+   ],
+   "accept": [
+    "PropertyLicensesPublicationTypeHelper",
+    "RoomLicensesPublicationTypeHelper"
+   ]
+  },
+  {
+   "q": "Marriott - HVMB - Research and potentially implement password policies and restrictions",
+   "hit": false,
+   "top": [
+    "ConfigProviderFactory.loadForAuthRequest",
+    "FeesAndTaxesSourceItem.applyNightlyBasePlusFees",
+    "PasswordPolicy",
+    "PasswordPolicy.enabledPolicies",
+    "UserPasswordService.isPasswordPolicyEnabled"
+   ],
+   "accept": [
+    "rc_boost_order_log_trace",
+    "rc_channels_form_alter"
+   ]
+  },
+  {
+   "q": "Booking.com - Property type mapping isn't working correctly?",
+   "hit": false,
+   "top": [
+    "PropertyGroupMapper",
+    "BookingAlterationFailure",
+    "BookingModelTransformer",
+    "_rc_airbnb_map_webhook_reservation_fields",
+    "ListingContentSourceItem.getPropertyType"
+   ],
+   "accept": [
+    "InventoryGuestRoomBuilder"
+   ]
+  },
+  {
+   "q": "VRM BDC v2 Error On Booking - Better Stack Alerts",
+   "hit": false,
+   "top": [
+    "BookingCancellationResource.logCancellationError",
+    "BookingFailure.__construct",
+    "BookingFailure",
+    "BookingServiceTest.postProcessingErrors",
+    "rc_bdc_bulk_report_invalid_credit_card"
+   ],
+   "accept": [
+    "QuoteSourceItem"
+   ]
+  },
+  {
+   "q": "Booking.com - Backend \u201cto adjust existing source items to use data sent by the user\u201d",
+   "hit": false,
+   "top": [
+    "BookingResponseSourceItem.setBookingRequest",
+    "BookingRepository.updateBookingFromReservationData",
+    "BookingResponseSourceItem.setItemInfo",
+    "BookingContentSourceItem",
+    "UpdateBoostBookings"
+   ],
+   "accept": [
+    "PropertyLicenseSourceItemTest",
+    "RoomLicenseSourceItemTest"
+   ]
+  },
+  {
+   "q": "Airbnb - Version Update - Update GET listings call",
+   "hit": true,
+   "top": [
+    "AirbnbClient.updateAndSaveListing",
+    "ListingDataRepository.updateListingApprovalStatusObject",
+    "AirbnbClient.updateAndSaveListingData",
+    "ListingRepository.getListing",
+    "AirbnbListingMigrator.getListing"
+   ],
+   "accept": [
+    "ApiHeadersHelper",
+    "ApiHeadersHelperTest",
+    "ListingRepository"
+   ]
+  },
+  {
+   "q": "PP-39 - Booking.com - Need to remove the rule 'Don't send Booking.com data if listing is 'BDC Listing Active'",
+   "hit": false,
+   "top": [
+    "NewPropertyDealPublicationTypeHelper.isPromotionExpired",
+    "BookingFailure",
+    "NewPropertyDealPublicationTypeHelper",
+    "rc_bdc_bulk_send_policies",
+    "BookingPolicyRule"
+   ],
+   "accept": [
+    "ListingStatusHandler",
+    "ListingStatusHandlerTest",
+    "rc_bdc_rc_channels_channel_config_alter"
+   ]
+  },
+  {
+   "q": "New description: Make cron job for Bryson's clean up script, Old description: Continue debugging Redis Queues",
+   "hit": false,
+   "top": [
+    "Redis_Tests_Queue_QueueUnitTestCase.tearDown",
+    "Redis_Queue_PhpRedis.deleteQueue",
+    "Redis_Queue_PhpRedis.createQueue",
+    "rc_goog_update_7050",
+    "Redis_Queue.deleteQueue"
+   ],
+   "accept": [
+    "drush_rc_boost_core_frontend_queues_run",
+    "rc_boost_core_drush_command"
+   ]
+  },
+  {
+   "q": "VRM Create Custom Charge for Price Adjustments - BDC",
+   "hit": false,
+   "top": [
+    "_rc_bdc_setup_charge_cancellation_fee",
+    "ChargesApiSourceItem.buildFeeCharges",
+    "RcBdcLOSPricing.createEmptyRow",
+    "RcBdcDerivedPrices.buildDerivedPricing",
+    "DerivedChargesTrait.addDerivedCharges"
+   ],
+   "accept": [
+    "Builder",
+    "RcBdcReservationEntity",
+    "RcBdcReservationEntityController"
+   ]
+  },
+  {
+   "q": "VRM - Support for channel marketing source id in orderQuote / BDC",
+   "hit": false,
+   "top": [
+    "VrboOrderBuilderConfiguration.setChannel",
+    "VrboOrderBuilderQuote.getSourceItemFactory",
+    "VrboOrderBuilderConfiguration.getChannel",
+    "VrboOrderBuilderPmsBooking.getChannelId",
+    "ReservationOrderBuilder.applyVRMCustomizations"
+   ],
+   "accept": [
+    "RcBdcReservationEntity"
+   ]
+  },
+  {
+   "q": "Update RNS API client and reservation required params",
+   "hit": false,
+   "top": [
+    "BookingRepository.updateBookingFromReservationData",
+    "UpdateBoostBookings.setBookings",
+    "OrderRepository.updateFromReservationPayload",
+    "UpdateBoostBookings.updateBookings",
+    "OrderRepository.updateFromReservationPayload"
+   ],
+   "accept": [
+    "VrboBooking"
+   ]
+  },
+  {
+   "q": "1453 followup End to end testing for LMPM and RevMax",
+   "hit": false,
+   "top": [
+    "RevMaxClient.__construct",
+    "LmpmPropertyShowingUpInLodgingRateIndexHeartbeat.validate",
+    "rc_boost_core_update_7202",
+    "RevMaxClient.handleResponse",
+    "LmpmPropertyShowingUpInLodgingAvailabilityIndexHeartbeat.validate"
+   ],
+   "accept": [
+    "rc_vrbo_integration_feed"
+   ]
+  },
+  {
+   "q": "LiveRez Support for Quotehold",
+   "hit": false,
+   "top": [
+    "BoostQuoteSourceItem.setBaseArrival",
+    "rc_liverez_rc_core_order_quote",
+    "AirbnbPayloadReverter",
+    "rc_liverez_form_rc_core_order_form_alter",
+    "BookingPayoutFailure"
+   ],
+   "accept": [
+    "UpdateVrboBooking",
+    "VrboOrderBuilderBooking"
+   ]
+  },
+  {
+   "q": "Markup in Comments - LiveRez",
+   "hit": false,
+   "top": [
+    "createComment",
+    "drupal_placeholder",
+    "createComment",
+    "createComment",
+    "createComment"
+   ],
+   "accept": [
+    "RcVrboOrderEntity"
+   ]
+  }
+ ]
+}

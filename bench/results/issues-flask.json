@@ -1,0 +1,567 @@
+{
+ "repo": "flask",
+ "split": "issues-closed",
+ "fixture_commit": "ab8149664182b662453a563161aa89013c806dc9",
+ "binary_sha256_16": "67fd77f927efa832",
+ "params": null,
+ "n": 36,
+ "hits": 5,
+ "hit5_pct": 13.9,
+ "results": [
+  {
+   "q": "fix super call in list comprehension",
+   "hit": false,
+   "top": [
+    "super_reverse",
+    "super_reverse",
+    "super_reverse",
+    "super_reverse",
+    "super_reverse"
+   ],
+   "accept": [
+    "_validate_key"
+   ]
+  },
+  {
+   "q": "fix missing quote in `--key` error message",
+   "hit": false,
+   "top": [
+    "_validate_key",
+    "key_error",
+    "DebugFilesKeyError",
+    "test_trap_bad_request_key_error",
+    "test_run_cert_path"
+   ],
+   "accept": [
+    "CertParamType",
+    "CertParamType.convert"
+   ]
+  },
+  {
+   "q": "fix use of `importlib.util.find_spec`",
+   "hit": false,
+   "top": [
+    "prepare_import",
+    "find_package",
+    "_find_package_path",
+    "TestNoImports.test_name_with_import_error",
+    "not_found"
+   ],
+   "accept": [
+    "get_root_path"
+   ]
+  },
+  {
+   "q": "Allow pathlib.Path for template_folder",
+   "hit": false,
+   "top": [
+    "App.add_template_test",
+    "test_static_folder_with_pathlib_path",
+    "Scaffold.jinja_loader",
+    "test_add_template_test_with_template",
+    "Scaffold.__init__"
+   ],
+   "accept": [
+    "Flask",
+    "Flask.run"
+   ]
+  },
+  {
+   "q": "re-add flag to skip unguarded app.run from CLI",
+   "hit": false,
+   "top": [
+    "with_appcontext",
+    "NoAppException",
+    "ScriptInfo.__init__",
+    "FlaskGroup.__init__",
+    "run_command"
+   ],
+   "accept": [
+    "Flask",
+    "Flask.full_dispatch_request",
+    "load_dotenv"
+   ]
+  },
+  {
+   "q": "Fix callback order for nested blueprints",
+   "hit": false,
+   "top": [
+    "Blueprint.make_setup_state",
+    "Blueprint.register",
+    "test_nested_callback_order",
+    "Blueprint.record_once",
+    "test_nested_blueprint"
+   ],
+   "accept": [
+    "Flask",
+    "Flask.handle_http_exception",
+    "Flask.preprocess_request"
+   ]
+  },
+  {
+   "q": "`static_folder` can be a `pathlib.Path` object",
+   "hit": false,
+   "top": [
+    "test_static_folder_with_pathlib_path",
+    "Scaffold.static_folder",
+    "test_static_folder_with_ending_slash",
+    "Scaffold.static_folder",
+    "Scaffold.static_url_path"
+   ],
+   "accept": [
+    "Flask",
+    "Flask.create_jinja_environment"
+   ]
+  },
+  {
+   "q": "Use compat fspath instead of os.fspath in static_folder",
+   "hit": false,
+   "top": [
+    "Scaffold.static_folder",
+    "Scaffold.static_folder",
+    "App.__init__",
+    "Scaffold.static_url_path",
+    "Flask.send_static_file"
+   ],
+   "accept": [
+    "__getattr__"
+   ]
+  },
+  {
+   "q": "Fix wrapped view function comparison",
+   "hit": false,
+   "top": [
+    "wrapped_view",
+    "View",
+    "view",
+    "test_view_patching",
+    "test_method_based_view"
+   ],
+   "accept": [
+    "Flask",
+    "Flask.url_for"
+   ]
+  },
+  {
+   "q": "Stop change CWD to .env/.flaskenv location",
+   "hit": false,
+   "top": [
+    "load_dotenv",
+    "Config.__init__",
+    "App.jinja_env",
+    "EnvironBuilder.__init__",
+    "Flask.run"
+   ],
+   "accept": [
+    "FlaskGroup",
+    "FlaskGroup._load_plugin_commands",
+    "FlaskGroup.list_commands"
+   ]
+  },
+  {
+   "q": "Move python properties to decorator syntax",
+   "hit": false,
+   "top": [
+    "decorator",
+    "decorator",
+    "decorator",
+    "decorator",
+    "decorator"
+   ],
+   "accept": [
+    "Flask",
+    "Flask.test_cli_runner",
+    "Flask.handle_http_exception",
+    "Flask.handle_exception",
+    "Flask.log_exception",
+    "RequestContext",
+    "RequestContext.__init__"
+   ]
+  },
+  {
+   "q": "Define reloader extra_files in `flask run` CLI",
+   "hit": true,
+   "top": [
+    "Config.from_file",
+    "with_appcontext",
+    "load_dotenv",
+    "show_server_banner",
+    "FlaskCliRunner"
+   ],
+   "accept": [
+    "show_server_banner",
+    "CertParamType",
+    "CertParamType.convert"
+   ]
+  },
+  {
+   "q": "load_dotenv returns true even if no file exists",
+   "hit": false,
+   "top": [
+    "load_dotenv",
+    "get_load_dotenv",
+    "Flask.run",
+    "dotenv_not_available",
+    "test_load_dotenv"
+   ],
+   "accept": [
+    "FlaskGroup",
+    "FlaskGroup._load_plugin_commands",
+    "FlaskGroup.get_command"
+   ]
+  },
+  {
+   "q": "Improve warning about dev server use in production",
+   "hit": false,
+   "top": [
+    "show_server_banner",
+    "App.debug",
+    "internal_server_error",
+    "App.should_ignore_error",
+    "internal_server_error"
+   ],
+   "accept": [
+    "FlaskGroup",
+    "FlaskGroup.list_commands"
+   ]
+  },
+  {
+   "q": "Fixes issue #2824 flask --version",
+   "hit": false,
+   "top": [
+    "DebugFilesKeyError.__init__",
+    "UnexpectedUnicodeError",
+    "NoAppException",
+    "Request.on_json_loading_failed",
+    "DebugFilesKeyError.__str__"
+   ],
+   "accept": [
+    "locate_app",
+    "get_version"
+   ]
+  },
+  {
+   "q": "Fix DeprecationWarning on collections import in flask.sessions",
+   "hit": true,
+   "top": [
+    "SessionInterface.make_null_session",
+    "SessionInterface.save_session",
+    "SessionMixin.permanent",
+    "SessionInterface.is_null_session",
+    "NullSession"
+   ],
+   "accept": [
+    "SessionMixin"
+   ]
+  },
+  {
+   "q": "copy_current_request_context copies old session object",
+   "hit": true,
+   "top": [
+    "RequestContext.copy",
+    "SessionInterface.open_session",
+    "test_session_transactions_keep_context",
+    "SessionInterface.save_session",
+    "SecureCookieSessionInterface.save_session"
+   ],
+   "accept": [
+    "after_this_request",
+    "AppContext",
+    "AppContext.__exit__",
+    "RequestContext",
+    "RequestContext.__init__"
+   ]
+  },
+  {
+   "q": "[Fixed 2823] Checking if .env is file before prompting to install dotenv",
+   "hit": false,
+   "top": [
+    "load_dotenv",
+    "get_load_dotenv",
+    "Flask.run",
+    "Config.from_envvar",
+    "dotenv_not_available"
+   ],
+   "accept": [
+    "FlaskGroup",
+    "FlaskGroup.__init__"
+   ]
+  },
+  {
+   "q": "AttributeError: 'module' object has no attribute 'SSLContext'",
+   "hit": false,
+   "top": [
+    "run_command",
+    "prepare_import",
+    "CertParamType",
+    "celery_init_app",
+    "DebugFilesKeyError.__init__"
+   ],
+   "accept": [
+    "FlaskGroup",
+    "FlaskGroup.make_context",
+    "FlaskGroup.parse_args"
+   ]
+  },
+  {
+   "q": "Minor session serializer fixes.",
+   "hit": false,
+   "top": [
+    "SecureCookieSessionInterface.get_signing_serializer",
+    "SessionMixin",
+    "SecureCookieSession",
+    "SessionInterface.save_session",
+    "FailingSessionInterface"
+   ],
+   "accept": [
+    "TaggedJSONSerializer",
+    "TaggedJSONSerializer.__init__",
+    "TaggedJSONSerializer.register"
+   ]
+  },
+  {
+   "q": "fix variable substitution in error message",
+   "hit": false,
+   "top": [
+    "error2",
+    "error",
+    "test_escaping",
+    "test_no_escaping",
+    "do_error"
+   ],
+   "accept": [
+    "prepare_import"
+   ]
+  },
+  {
+   "q": "Enable template auto-reloading in app.run()",
+   "hit": false,
+   "top": [
+    "test_templates_auto_reload",
+    "test_add_template_global",
+    "test_templates_auto_reload_debug_run",
+    "Blueprint.add_app_template_global",
+    "missing_template"
+   ],
+   "accept": [
+    "Flask",
+    "Flask.test_client",
+    "Flask.test_cli_runner",
+    "Flask.handle_http_exception",
+    "Flask.handle_exception",
+    "Flask.dispatch_request",
+    "Flask.full_dispatch_request",
+    "ScriptInfo",
+    "ScriptInfo.__init__",
+    "ScriptInfo.load_app"
+   ]
+  },
+  {
+   "q": "python -m flask run raises RuntimeWarning",
+   "hit": false,
+   "top": [
+    "Flask.run",
+    "run_command",
+    "Flask.make_shell_context",
+    "Flask.wsgi_app",
+    "Flask.do_teardown_appcontext"
+   ],
+   "accept": [
+    "FlaskGroup",
+    "FlaskGroup.list_commands"
+   ]
+  },
+  {
+   "q": "sessions not saved when streaming",
+   "hit": false,
+   "top": [
+    "SecureCookieSessionInterface.save_session",
+    "SessionInterface.save_session",
+    "TestStreaming.test_stream_keeps_session",
+    "SessionInterface.should_set_cookie",
+    "NullSession"
+   ],
+   "accept": [
+    "RequestContext",
+    "RequestContext.__init__",
+    "RequestContext.copy"
+   ]
+  },
+  {
+   "q": "Prevent setting `SERVER_NAME` and `SESSION_COOKIE_DOMAIN` to an IP address",
+   "hit": true,
+   "top": [
+    "SessionInterface.get_cookie_domain",
+    "SecureCookieSessionInterface.save_session",
+    "SessionInterface.should_set_cookie",
+    "SessionInterface.get_cookie_samesite",
+    "test_session_dynamic_cookie_name"
+   ],
+   "accept": [
+    "SecureCookieSessionInterface",
+    "SecureCookieSessionInterface.open_session"
+   ]
+  },
+  {
+   "q": "Do not swallow exceptions if CLI fails to load",
+   "hit": false,
+   "top": [
+    "NoAppException",
+    "test_no_command_echo_loading_error",
+    "Flask.handle_user_exception",
+    "Flask.handle_exception",
+    "test_open_resource_exceptions"
+   ],
+   "accept": [
+    "ScriptInfo",
+    "ScriptInfo.load_app"
+   ]
+  },
+  {
+   "q": "Fix unbound error",
+   "hit": false,
+   "top": [
+    "test_help_echo_loading_error",
+    "test_no_command_echo_loading_error",
+    "abort",
+    "LimitedLoader.__init__",
+    "internal_server_error"
+   ],
+   "accept": [
+    "Flask",
+    "Flask.update_template_context"
+   ]
+  },
+  {
+   "q": "Clitest update",
+   "hit": false,
+   "top": [
+    "update",
+    "on_update",
+    "Flask.update_template_context",
+    "test_from_prefixed_env_nested",
+    "test_from_prefixed_env_custom_prefix"
+   ],
+   "accept": [
+    "find_best_app"
+   ]
+  },
+  {
+   "q": "app.add_url_rule() should look for OPTIONS methods in a case-insensitive manner",
+   "hit": false,
+   "top": [
+    "App.add_url_rule",
+    "Scaffold.route",
+    "BlueprintSetupState.add_url_rule",
+    "Scaffold.add_url_rule",
+    "test_options_on_multiple_rules"
+   ],
+   "accept": [
+    "Flask",
+    "Flask.async_to_sync"
+   ]
+  },
+  {
+   "q": "Clarify the after_request argument",
+   "hit": false,
+   "top": [
+    "after_request",
+    "after_request",
+    "Scaffold.after_request",
+    "after_request",
+    "after_this_request"
+   ],
+   "accept": [
+    "Flask",
+    "Flask.make_response"
+   ]
+  },
+  {
+   "q": "before_app_first_request strange behaviour",
+   "hit": true,
+   "top": [
+    "Blueprint.before_app_request",
+    "Flask.preprocess_request",
+    "test_no_setup_after_first_request",
+    "before_request1",
+    "before_app"
+   ],
+   "accept": [
+    "Flask",
+    "Flask.wsgi_app"
+   ]
+  },
+  {
+   "q": "Fix relative send_from_directory for package apps",
+   "hit": false,
+   "top": [
+    "send_from_directory",
+    "find_package",
+    "TestSendfile.test_send_from_directory",
+    "test_prepare_import",
+    "send_file"
+   ],
+   "accept": [
+    "get_root_path"
+   ]
+  },
+  {
+   "q": "fix a etags bug when sending a file stream with a name",
+   "hit": false,
+   "top": [
+    "send_file",
+    "_stream",
+    "stream_with_context",
+    "test_wsgi_errors_stream",
+    "wsgi_errors_stream"
+   ],
+   "accept": [
+    "send_from_directory"
+   ]
+  },
+  {
+   "q": "GET params discarded by flask test client, when using full url",
+   "hit": false,
+   "top": [
+    "Flask.test_request_context",
+    "Flask.url_for",
+    "Request",
+    "FlaskClient.open",
+    "Request.endpoint"
+   ],
+   "accept": [
+    "EnvironBuilder"
+   ]
+  },
+  {
+   "q": "Explicitly state that the jsonify method changes on request",
+   "hit": false,
+   "top": [
+    "jsonify",
+    "DefaultJSONProvider.response",
+    "TaggedJSONSerializer.__init__",
+    "JSONProvider",
+    "test_jsonify_basic_types"
+   ],
+   "accept": [
+    "Flask",
+    "Flask.get_send_file_max_age"
+   ]
+  },
+  {
+   "q": "@app.teardown_request function doesn't called in debug mode [NOT-A-BUG]",
+   "hit": false,
+   "top": [
+    "test_teardown_request_handler_error",
+    "test_teardown_request_handler_debug_mode",
+    "teardown_app",
+    "teardown_app",
+    "test_teardown_request_handler"
+   ],
+   "accept": [
+    "Flask",
+    "Flask.make_response"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,331 @@
+{
+ "repo": "prometheus",
+ "commit": "7086161a93b262aa0949dbf2aba15a5a7b13e0a3",
+ "split": "issues-heldout",
+ "provenance": "Mined from closed GitHub issues/PRs by bench/selfheal/issues_expand.py (mapping v2 + hygiene fixes a/b/c) on 2026-07-12: fix-ish commit subjects referencing (#N) in the deepened pinned clone (14814 commits, newest-first, 1-4 source files, <=10 symbols); accept sets are tier=0 symbols resolved BY NAME from git hunk-header function context (builtin golang/python/php drivers, custom ts xfuncname) and added definition lines, within the same changed file; comment-only hunks do not attribute; line-span overlap only for hunks with no name context AND files byte-identical to HEAD. Questions are verbatim GitHub issue/PR titles (REST API, cached in .issue_cache.json); titles containing a mapped symbol name (locate-class) or matching the refactor/lint/typo/docstring/style/fmt/cleanup/annotation/spelling substring deny-list were dropped.",
+ "questions": [
+  {
+   "q": "Fix bug in `lbl!~\".+\"` postings for matchers shortcut",
+   "accept": [
+    "PostingsForMatchers"
+   ]
+  },
+  {
+   "q": "[BUGFIX] `RuleDependencyController`: Fix for indeterminate conditions",
+   "accept": [
+    "ruleDependencyController.AnalyseRules"
+   ]
+  },
+  {
+   "q": "hot reload always_scrape_classic_histograms and convert_classic_histo\u2026",
+   "accept": [
+    "scrapePool.restartLoops"
+   ]
+  },
+  {
+   "q": "[BUGFIX] PromQL: Fix behaviour of `changes()` for mix of histograms and floats",
+   "accept": [
+    "funcChanges"
+   ]
+  },
+  {
+   "q": "Add support for utf8 names on /v1/label/:name/values endpoint",
+   "accept": [
+    "yySymType",
+    "yyParserImpl.Parse",
+    "API.labelValues"
+   ]
+  },
+  {
+   "q": "[BUGFIX] PromQL: Fix behaviour of some aggregations with histograms",
+   "accept": [
+    "evaluator.aggregationK"
+   ]
+  },
+  {
+   "q": "[TESTS] Remote-Write: Fix BenchmarkStartup",
+   "accept": [
+    "Watcher.Notify",
+    "Watcher.SetMetrics",
+    "Watcher.Start"
+   ]
+  },
+  {
+   "q": "Fix promtool analyze block shows metric name with 0 cardinality",
+   "accept": [
+    "postingInfo"
+   ]
+  },
+  {
+   "q": "promql: fix issues with comparison binary operations with `bool` modifier and native histograms",
+   "accept": [
+    "evaluator.VectorBinop",
+    "evaluator.VectorscalarBinop"
+   ]
+  },
+  {
+   "q": "[BUGFIX] TSDB: Fix race on stale values in headAppender (#15322)",
+   "accept": [
+    "headAppender.Append"
+   ]
+  },
+  {
+   "q": "[BUGFIX] TSDB: Fix race on stale values in headAppender",
+   "accept": [
+    "headAppender.Append"
+   ]
+  },
+  {
+   "q": "Fix AllPostings added twice",
+   "accept": [
+    "PostingsForMatchers"
+   ]
+  },
+  {
+   "q": "scrape: stop erroring on empty scrapes",
+   "accept": [
+    "appendErrors",
+    "scrapeLoop.updateStaleMarkers",
+    "scrapeLoop.append"
+   ]
+  },
+  {
+   "q": "bugfix: Fix otlp translator switching colons to underscores in suffix adding mode",
+   "accept": [
+    "normalizeName"
+   ]
+  },
+  {
+   "q": "Fix round function not honoring delayed name removal flag",
+   "accept": [
+    "funcRound"
+   ]
+  },
+  {
+   "q": "fix(nhcb): created timestamp fails when keeping classic histograms",
+   "accept": [
+    "NHCBParser.CreatedTimestamp"
+   ]
+  },
+  {
+   "q": "fix(nhcb): do not return nhcb from parse if exponential is present",
+   "accept": [
+    "NHCBParser",
+    "NHCBParser.Next",
+    "NHCBParser.compareLabels",
+    "NHCBParser.storeClassicLabels",
+    "NHCBParser.storeExponentialLabels",
+    "NHCBParser.processClassicHistogramSeries"
+   ]
+  },
+  {
+   "q": "Fix stddev/stdvar when aggregating histograms, NaNs, and infinities",
+   "accept": [
+    "evaluator.aggregation"
+   ]
+  },
+  {
+   "q": "[CHANGE] No longer ingest OM _created as timeseries if feature-flag 'created-timestamp-zero-ingestion' is enabled; fixed OM text CT conversion bug",
+   "accept": [
+    "Parser",
+    "New",
+    "OpenMetricsParser.CreatedTimestamp",
+    "fuzzParseMetricWithContentType",
+    "scrapeLoop.append"
+   ]
+  },
+  {
+   "q": "[Release 2.55] [BUGFIX] PromQL: make sort_by_label stable",
+   "accept": [
+    "funcSortByLabel",
+    "funcSortByLabelDesc"
+   ]
+  },
+  {
+   "q": "BUGFIX: TSDB: panic in chunk querier",
+   "accept": [
+    "HeadAndOOOChunkQuerier.LabelValues",
+    "HeadAndOOOChunkQuerier.LabelNames",
+    "HeadAndOOOChunkQuerier.Close"
+   ]
+  },
+  {
+   "q": "fix(utf8): propagate validationScheme config to scraping options",
+   "accept": [
+    "scrapePool.sync"
+   ]
+  },
+  {
+   "q": "[BUGFIX] Protobuf scraping: reset exemplar position",
+   "accept": [
+    "ProtobufParser.Next"
+   ]
+  },
+  {
+   "q": "fix: check ct ingestion before calling p.CreatedTimestamp",
+   "accept": [
+    "scrapeLoop.append"
+   ]
+  },
+  {
+   "q": "fix bug with metadata for rw2",
+   "accept": [
+    "Watcher.readSegment"
+   ]
+  },
+  {
+   "q": "fix(utf8): ensure correct validation when legacy mode turned on",
+   "accept": [
+    "Labels.UnmarshalYAML",
+    "Labels.IsValid",
+    "joinLabels",
+    "scrapeLoopOptions",
+    "scrapePool.restartLoops",
+    "scrapeLoop",
+    "newScrapeLoop",
+    "scrapeLoop.append",
+    "writeHandler.write",
+    "writeHandler.appendV2"
+   ]
+  },
+  {
+   "q": "fix(utf8): fix config logic for name validation",
+   "accept": [
+    "ScrapeConfig.Validate"
+   ]
+  },
+  {
+   "q": "[BUGFIX] TSDB: Fix query overlapping in-order and ooo head",
+   "accept": [
+    "HeadAndOOOChunkReader.ChunkOrIterable"
+   ]
+  },
+  {
+   "q": "Fix histogram pool poisoning bug chunkenc.Iterator",
+   "accept": [
+    "evaluator.matrixIterSlice"
+   ]
+  },
+  {
+   "q": "Fix: panic: runtime error: index out of range [4] with length 4",
+   "accept": [
+    "expandFloatSpansAndBuckets",
+    "FloatHistogramAppender.AppendFloatHistogram",
+    "expandIntSpansAndBuckets",
+    "HistogramAppender.AppendHistogram",
+    "Insert",
+    "counterResetHint",
+    "adjustForInserts"
+   ]
+  },
+  {
+   "q": "Native histograms: fix spurios counter reset when merging recoded chunk to normal chunk",
+   "accept": [
+    "FloatHistogramAppender.appendable",
+    "expandFloatSpansAndBuckets",
+    "FloatHistogramAppender.appendableGauge",
+    "FloatHistogramAppender.AppendFloatHistogram",
+    "HistogramAppender.appendable",
+    "expandIntSpansAndBuckets",
+    "HistogramAppender.appendableGauge",
+    "HistogramAppender.AppendHistogram",
+    "counterResetHint"
+   ]
+  },
+  {
+   "q": "[BUGFIX] Storage: errors from a single secondary querier should be warnings.",
+   "accept": [
+    "NewMergeQuerier",
+    "filterQueriers",
+    "NewMergeChunkQuerier",
+    "filterChunkQueriers"
+   ]
+  },
+  {
+   "q": "Fix relabel.Regexp zero value marshalling",
+   "accept": [
+    "Regexp.String"
+   ]
+  },
+  {
+   "q": "Fix decoding buckets for native histograms in binops",
+   "accept": [
+    "detectHistogramStatsDecoding"
+   ]
+  },
+  {
+   "q": "[ENHANCEMENT] Docker SD: add MatchFirstNetwork for containers with multiple networks",
+   "accept": [
+    "DockerSDConfig",
+    "DockerDiscovery",
+    "NewDockerDiscovery",
+    "DockerDiscovery.refresh"
+   ]
+  },
+  {
+   "q": "Fix data corruption in remote write if max_sample_age is applied",
+   "accept": [
+    "buildTimeSeries"
+   ]
+  },
+  {
+   "q": "How to use Prometheus EC2 SD with Multiple AWS EC2 interfaces",
+   "accept": [
+    "EC2Discovery.refresh"
+   ]
+  },
+  {
+   "q": "Fix `Matcher.String()` with empty label name",
+   "accept": [
+    "Matcher.shouldQuoteName"
+   ]
+  },
+  {
+   "q": "native histograms: only reduce resolution for exponential histograms",
+   "accept": [
+    "bucketLimitAppender.AppendHistogram"
+   ]
+  },
+  {
+   "q": "fix check context cancellation not incrementing count",
+   "accept": [
+    "Reader.LabelNamesFor"
+   ]
+  },
+  {
+   "q": "Fix head stats and hooks when replaying a corrupted snapshot",
+   "accept": [
+    "Head.resetInMemoryState",
+    "stripeSeries.gc",
+    "stripeSeries.iterForDeletion"
+   ]
+  },
+  {
+   "q": "fix(api): Send warnings only if the limit is really exceeded",
+   "accept": [
+    "API.labelNames",
+    "API.labelValues",
+    "API.series"
+   ]
+  },
+  {
+   "q": "Fix FastRegexMatcher matching multibyte runes with dot matcher `.`",
+   "accept": [
+    "zeroOrOneCharacterStringMatcher.Matches"
+   ]
+  },
+  {
+   "q": "Merge `release-2.52` back to main",
+   "accept": [
+    "unsafeMarshalVectorJSON",
+    "unsafeMarshalMatrixJSON"
+   ]
+  },
+  {
+   "q": "fix(scaleway-sd): use public IPs if no private IP present",
+   "accept": [
+    "instanceDiscovery.refresh"
+   ]
+  }
+ ]
+}

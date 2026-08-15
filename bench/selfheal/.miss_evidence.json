@@ -1,0 +1,1704 @@
+{
+ "gin": [
+  {
+   "q": "fix(binding): dereference pointer to struct when validating structs",
+   "accept": [
+    "defaultValidator.ValidateStruct"
+   ],
+   "sha": "82bcd6d39b",
+   "issue": 3199,
+   "top5": [
+    "substructNoValidation",
+    "structNoValidationPointer",
+    "structNoValidationValues",
+    "Context.ShouldBindWith",
+    "structModifyValidation"
+   ],
+   "accept_ranks_top15": [
+    8
+   ],
+   "literals": [],
+   "accept_names_in_diff": [
+    "ValidateStruct",
+    "defaultValidator"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "fix(header): Allow header according to RFC 7231 (HTTP 405)",
+   "accept": [
+    "Engine.handleHTTPRequest"
+   ],
+   "sha": "86ff4a64c7",
+   "issue": 3759,
+   "top5": [
+    "Context.requestHeader",
+    "headerBinding.Bind",
+    "Reader.writeHeaders",
+    "mockWriter.Header",
+    "headerSource"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "Engine",
+    "handleHTTPRequest"
+   ],
+   "title_overlap_with_accept": [
+    "HTTP"
+   ]
+  },
+  {
+   "q": "Binding a non mandatory file parameter will directly result in an error message",
+   "accept": [
+    "setWithProperType"
+   ],
+   "sha": "3dc1cd6572",
+   "issue": 3819,
+   "top5": [
+    "Context.MustBindWith",
+    "FooBarFileFailStruct",
+    "Context.ShouldBindHeader",
+    "TestBindingFormFilesMultipartFail",
+    "validate"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "setWithProperType"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "fix(router): catch-all conflicting wildcard",
+   "accept": [
+    "node.insertChild"
+   ],
+   "sha": "9f598a31aa",
+   "issue": 3812,
+   "top5": [
+    "RouterGroup.GET",
+    "RouterGroup.PATCH",
+    "RouterGroup.Match",
+    "TestRouterNotFoundWithRemoveExtraSlash",
+    "findWildcard"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [
+    {
+     "loc": "tree.go:303",
+     "literal": "only one wildcard per path segment is allowed, has: '",
+     "word": "wildcard"
+    },
+    {
+     "loc": "tree.go:309",
+     "literal": "wildcards must be named with a non-empty name in path '",
+     "word": "wildcard"
+    },
+    {
+     "loc": "tree.go:350",
+     "literal": "catch-all routes are only allowed at the end of the path in path '",
+     "word": "catch"
+    },
+    {
+     "loc": "tree.go:358",
+     "literal": "catch-all wildcard '",
+     "word": "wildcard"
+    },
+    {
+     "loc": "tree.go:368",
+     "literal": "no / before catch-all in path '",
+     "word": "catch"
+    }
+   ],
+   "accept_names_in_diff": [
+    "insertChild",
+    "node"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Can't bind list of struct pointer in query",
+   "accept": [
+    "setWithProperType"
+   ],
+   "sha": "44d0dd7092",
+   "issue": 3659,
+   "top5": [
+    "QueryTest",
+    "queryBinding",
+    "Context.BindWith",
+    "Context.ShouldBindWith",
+    "queryBinding.Bind"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "setWithProperType"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Add escape logic for header",
+   "accept": [
+    "redirectTrailingSlash"
+   ],
+   "sha": "4cee78f538",
+   "issue": 3500,
+   "top5": [
+    "Context.requestHeader",
+    "Reader.writeHeaders",
+    "responseWriter.WriteHeaderNow",
+    "Context.Header",
+    "Context.GetHeader"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "redirectTrailingSlash"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "console logger HTTP status code bug fixed",
+   "accept": [
+    "responseWriter.WriteHeader"
+   ],
+   "sha": "41f2669ebc",
+   "issue": 3453,
+   "top5": [
+    "LogFormatterParams.StatusCodeColor",
+    "DisableConsoleColor",
+    "Context.Status",
+    "LogFormatterParams.MethodColor",
+    "consoleColorModeValue"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [
+    {
+     "loc": "response_writer.go:67",
+     "literal": "[WARNING] Headers were already written. Wanted to override status code %d with %d",
+     "word": "status"
+    }
+   ],
+   "accept_names_in_diff": [
+    "WriteHeader",
+    "responseWriter"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Fix the value of ginSupportMinGoVer constant by semantic",
+   "accept": [
+    "debugPrintWARNINGDefault"
+   ],
+   "sha": "088cdd74d4",
+   "issue": 3221,
+   "top5": [
+    "Engine.allocateContext",
+    "isWindows",
+    "HandlerFunc",
+    "Context",
+    "compareFunc"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "debugPrintWARNINGDefault"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "fix: default trusted proxies should add ipv6",
+   "accept": [
+    "New"
+   ],
+   "sha": "87811a97bd",
+   "issue": 3033,
+   "top5": [
+    "Engine.SetTrustedProxies",
+    "Engine.isTrustedProxy",
+    "Engine.isUnsafeTrustedProxies",
+    "Engine.parseTrustedProxies",
+    "Context.ClientIP"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "New"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "[Bug]mixed param and non-param paths",
+   "accept": [
+    "node.getValue"
+   ],
+   "sha": "0a55865c3f",
+   "issue": 2786,
+   "top5": [
+    "TestRouteParamsNotEmpty",
+    "TestRouteParamsByNameWithExtraSlash",
+    "TestRouteRawPathNoUnescape",
+    "TestRouteContextHoldsFullPath",
+    "TestRouteRedirectFixedPath"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "getValue",
+    "node"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "404 when using dynamic routing",
+   "accept": [
+    "node",
+    "node.getValue"
+   ],
+   "sha": "d4ca9a0fb1",
+   "issue": 2762,
+   "top5": [
+    "testRouteNotOK2",
+    "testRouteNotOK",
+    "TestRouterNotFoundWithRemoveExtraSlash",
+    "TestRouteNotOK2",
+    "TestRouterNotFound"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "getValue",
+    "node"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Fix conflict between param and exact path",
+   "accept": [
+    "node",
+    "node.getValue"
+   ],
+   "sha": "2921582d11",
+   "issue": 2706,
+   "top5": [
+    "joinPaths",
+    "TestRouteParamsByNameWithExtraSlash",
+    "TestRouteRawPathNoUnescape",
+    "genLongPaths",
+    "TestRouteParamsNotEmpty"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [
+    {
+     "loc": "tree.go:249",
+     "literal": "' conflicts with existing wildcard '",
+     "word": "conflict"
+    },
+    {
+     "loc": "tree.go:360",
+     "literal": "' conflicts with existing path segment '",
+     "word": "conflict"
+    }
+   ],
+   "accept_names_in_diff": [
+    "getValue",
+    "node"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Data race with gin-gonic v1.7.0",
+   "accept": [
+    "Context.RemoteIP"
+   ],
+   "sha": "03e5e05ae0",
+   "issue": 2674,
+   "top5": [
+    "RunUnix",
+    "Engine.RunUnix",
+    "Run",
+    "engine",
+    "Engine.RunFd"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "Context",
+    "RemoteIP"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "fix error gin support min Go version",
+   "accept": [
+    "debugPrintWARNINGDefault"
+   ],
+   "sha": "f4bc259de3",
+   "issue": 2584,
+   "top5": [
+    "serveError",
+    "Run",
+    "ErrorType",
+    "OptionFunc",
+    "RunUnix"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "debugPrintWARNINGDefault"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "fix: print headers without Authorization header on broken pipe",
+   "accept": [
+    "CustomRecoveryWithWriter"
+   ],
+   "sha": "a7a6986d73",
+   "issue": 2528,
+   "top5": [
+    "authorizationHeader",
+    "mapHeader",
+    "headerSource",
+    "responseWriter.WriteHeaderNow",
+    "Context.requestHeader"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [
+    {
+     "loc": "recovery.go:66",
+     "literal": "broken pipe",
+     "word": "broken"
+    },
+    {
+     "loc": "recovery.go:78",
+     "literal": "Authorization",
+     "word": "authorization"
+    }
+   ],
+   "accept_names_in_diff": [
+    "CustomRecoveryWithWriter"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "fix missing initial sync.RWMutex",
+   "accept": [
+    "Context.Set",
+    "Context.Get"
+   ],
+   "sha": "298ebca691",
+   "issue": 2305,
+   "top5": [
+    "decodeXML",
+    "decodeMsgPack",
+    "Engine.rebuild404Handlers",
+    "decodeToml",
+    "Engine"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "Context",
+    "Get",
+    "Set"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "fix accept incoming network connections",
+   "accept": [
+    "resolveAddress"
+   ],
+   "sha": "2ff2b19e14",
+   "issue": 2216,
+   "top5": [
+    "Engine.SetTrustedProxies",
+    "Engine.prepareTrustedCIDRs",
+    "parseAccept",
+    "Context.NegotiateFormat",
+    "formBinding.Bind"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "resolveAddress"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "context.JSON adds a new line to end of JSON response",
+   "accept": [
+    "WriteJSON"
+   ],
+   "sha": "5f56109bcf",
+   "issue": 2209,
+   "top5": [
+    "Context.IndentedJSON",
+    "Context.JSON",
+    "TestContextRenderIndentedJSON",
+    "TestContextRenderAPIJSON",
+    "IndentedJSON.WriteContentType"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "WriteJSON"
+   ],
+   "title_overlap_with_accept": [
+    "JSON"
+   ]
+  },
+  {
+   "q": "Fixed a bug in the calculation of the maximum number of parameters",
+   "accept": [
+    "node.insertChild"
+   ],
+   "sha": "7c21e04f62",
+   "issue": 2166,
+   "top5": [
+    "countParams",
+    "TestTreeCatchMaxParams",
+    "Params",
+    "Benchmark5Params",
+    "TestUnescapeParameters"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "insertChild",
+    "node"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "request cause panic with v1.4.0 @ form_mapping.go:63 ~ form_mapping.go:89  ,  be careful",
+   "accept": [
+    "mapping",
+    "tryToSetValue"
+   ],
+   "sha": "db9174ae0c",
+   "issue": 1942,
+   "top5": [
+    "mapURI",
+    "mapFormByTag",
+    "mapForm",
+    "mappingByPtr",
+    "createFormMultipartRequestForMapFail"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "mapping",
+    "tryToSetValue"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Close files opened in static file handler",
+   "accept": [
+    "RouterGroup.createStaticHandler"
+   ],
+   "sha": "aabaccbba2",
+   "issue": 2118,
+   "top5": [
+    "onlyFilesFS.Open",
+    "RouterGroup.staticFileHandler",
+    "TestResponseRecorder.CloseNotify",
+    "responseWriter.CloseNotify",
+    "StaticFile"
+   ],
+   "accept_ranks_top15": [
+    10
+   ],
+   "literals": [
+    {
+     "loc": "routergroup.go:243",
+     "literal": "too many handlers",
+     "word": "handler"
+    }
+   ],
+   "accept_names_in_diff": [
+    "RouterGroup",
+    "createStaticHandler"
+   ],
+   "title_overlap_with_accept": [
+    "handler",
+    "static"
+   ]
+  },
+  {
+   "q": "Fix 'errcheck' linter warnings",
+   "accept": [
+    "Engine.RunUnix"
+   ],
+   "sha": "393a63f3b0",
+   "issue": 2093,
+   "top5": [
+    "TestErrorUnwrap",
+    "Error",
+    "debugPrintWARNINGNew",
+    "debugPrintWARNINGDefault",
+    "Context.Error"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "Engine",
+    "RunUnix"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Attempt to fix #1927",
+   "accept": [
+    "Context.reset"
+   ],
+   "sha": "75b9d2bed7",
+   "issue": 1931,
+   "top5": [
+    "ErrorType",
+    "Benchmark404Many",
+    "Birthday.UnmarshalParam",
+    "Engine.rebuild404Handlers",
+    "Benchmark404"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "Context",
+    "reset"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Default engine producing two log lines with StaticFS for 404",
+   "accept": [
+    "RouterGroup.createStaticHandler"
+   ],
+   "sha": "4a23c4f7b9",
+   "issue": 1804,
+   "top5": [
+    "StaticFS",
+    "RouterGroup.StaticFS",
+    "RouterGroup.StaticFileFS",
+    "TestRouteStaticFileFS",
+    "RouterGroup.Static"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "RouterGroup",
+    "createStaticHandler"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Out of range if redirect more than 45 times",
+   "accept": [
+    "Engine.HandleContext"
+   ],
+   "sha": "a768f064d5",
+   "issue": 1760,
+   "top5": [
+    "Context.Redirect",
+    "Redirect",
+    "Redirect.Render",
+    "responseWriter.Hijack",
+    "New"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "Engine",
+    "HandleContext"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Fix case of GitHub",
+   "accept": [
+    "RouterGroup.handle"
+   ],
+   "sha": "d8fb18c33b",
+   "issue": 1726,
+   "top5": [
+    "githubConfigRouter",
+    "TestGithubAPI",
+    "BenchmarkParallelGithubDefault",
+    "BenchmarkGithub",
+    "node.findCaseInsensitivePath"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "RouterGroup",
+    "handle"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "fix mapping inner structs with correct tag",
+   "accept": [
+    "mapFormByTag"
+   ],
+   "sha": "49e4b0c60c",
+   "issue": 1718,
+   "top5": [
+    "TestMappingCustomStructTypeWithURITag",
+    "mapping",
+    "TestMappingCustomStructTypeWithFormTag",
+    "Tag",
+    "mappingByPtr"
+   ],
+   "accept_ranks_top15": [
+    8
+   ],
+   "literals": [],
+   "accept_names_in_diff": [
+    "mapFormByTag"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "recovery: fix issue about syscall import on google app engine",
+   "accept": [
+    "RecoveryWithWriter"
+   ],
+   "sha": "7ec82ee894",
+   "issue": 1640,
+   "top5": [
+    "debugPrintError",
+    "init",
+    "Recovery",
+    "defaultHandleRecovery",
+    "decodeMsgPack"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "RecoveryWithWriter"
+   ],
+   "title_overlap_with_accept": [
+    "recovery"
+   ]
+  },
+  {
+   "q": "write: broken pipe  in func (r Data) Render",
+   "accept": [
+    "RecoveryWithWriter"
+   ],
+   "sha": "37854ee10f",
+   "issue": 1089,
+   "top5": [
+    "Data.Render",
+    "writeContentType",
+    "Data.WriteContentType",
+    "errorWriter.Write",
+    "Reader.Render"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "RecoveryWithWriter"
+   ],
+   "title_overlap_with_accept": [
+    "write"
+   ]
+  },
+  {
+   "q": "fix: fmt output log to os.Stderr",
+   "accept": [
+    "debugPrint"
+   ],
+   "sha": "402ef120e1",
+   "issue": 1571,
+   "top5": [
+    "TestErrorLogger",
+    "LoggerWithFormatter",
+    "TestDefaultLogFormatter",
+    "Logger",
+    "TestLoggerWithFormatter"
+   ],
+   "accept_ranks_top15": [
+    11
+   ],
+   "literals": [],
+   "accept_names_in_diff": [
+    "debugPrint"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "change to test_helpers.go causes flag parsing to fail for cmd line app",
+   "accept": [
+    "CreateTestContext"
+   ],
+   "sha": "7e64d32269",
+   "issue": 1462,
+   "top5": [
+    "TestErrorUnwrap",
+    "TestErr",
+    "TestErrorLogger",
+    "TestErr.Error",
+    "TestLoggerWithConfigSkippingPaths"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "CreateTestContext"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Add and fix the explanation of `HandleContext`",
+   "accept": [
+    "Engine.ServeHTTP"
+   ],
+   "sha": "07cbe116a0",
+   "issue": 1371,
+   "top5": [
+    "TestContextResetInHandler",
+    "Engine.HandleContext",
+    "TestContextHandler",
+    "Context.Handler",
+    "TestContextHandlers"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "Engine",
+    "ServeHTTP"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "fix bug, return err when failed binding bool",
+   "accept": [
+    "setBoolField"
+   ],
+   "sha": "5636afe02d",
+   "issue": 1350,
+   "top5": [
+    "validate",
+    "TestBindingQueryBoolFail",
+    "testQueryBindingFail",
+    "testQueryBindingBoolFail",
+    "failStruct"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "setBoolField"
+   ],
+   "title_overlap_with_accept": [
+    "bool"
+   ]
+  },
+  {
+   "q": "Fix some golint warnings in gin.go",
+   "accept": [
+    "Engine.Delims",
+    "Engine.SecureJsonPrefix",
+    "Engine.LoadHTMLGlob",
+    "Engine.LoadHTMLFiles",
+    "Engine.SetHTMLTemplate"
+   ],
+   "sha": "a712f77d7a",
+   "issue": 1215,
+   "top5": [
+    "serveError",
+    "TestErrorUnwrap",
+    "Run",
+    "RunTLS",
+    "Engine.RunFd"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "Delims",
+    "Engine",
+    "LoadHTMLFiles",
+    "LoadHTMLGlob",
+    "SecureJsonPrefix",
+    "SetHTMLTemplate"
+   ],
+   "title_overlap_with_accept": [
+    "gin"
+   ]
+  },
+  {
+   "q": "Fix golint warnings in utils.go",
+   "accept": [
+    "Bind",
+    "WrapF",
+    "WrapH",
+    "H.MarshalXML"
+   ],
+   "sha": "6626358d4f",
+   "issue": 1209,
+   "top5": [
+    "RunTLS",
+    "TestErrorUnwrap",
+    "Engine.RunTLS",
+    "RunFd",
+    "Engine.RunFd"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "Bind",
+    "H",
+    "MarshalXML",
+    "WrapF",
+    "WrapH"
+   ],
+   "title_overlap_with_accept": []
+  }
+ ],
+ "flask": [
+  {
+   "q": "fix super call in list comprehension",
+   "accept": [
+    "SeparatedPathType"
+   ],
+   "sha": "d7209a9570",
+   "issue": 5393,
+   "top5": [
+    "super_reverse",
+    "super_reverse",
+    "super_reverse",
+    "super_reverse",
+    "super_reverse"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "SeparatedPathType"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "fix use of `importlib.util.find_spec`",
+   "accept": [
+    "get_root_path"
+   ],
+   "sha": "4be9f52142",
+   "issue": 5161,
+   "top5": [
+    "prepare_import",
+    "find_package",
+    "_find_package_path",
+    "TestNoImports.test_name_with_import_error",
+    "not_found"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "get_root_path"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Allow pathlib.Path for template_folder",
+   "accept": [
+    "Flask",
+    "Blueprint"
+   ],
+   "sha": "631b6dd546",
+   "issue": 4921,
+   "top5": [
+    "App.add_template_test",
+    "test_static_folder_with_pathlib_path",
+    "Scaffold.jinja_loader",
+    "test_add_template_test_with_template",
+    "Scaffold.__init__"
+   ],
+   "accept_ranks_top15": [
+    6,
+    14
+   ],
+   "literals": [
+    {
+     "loc": "src/flask/app.py:129",
+     "literal": "static_url_path",
+     "word": "path"
+    },
+    {
+     "loc": "src/flask/app.py:129",
+     "literal": "template_folder",
+     "word": "template_folder"
+    },
+    {
+     "loc": "src/flask/app.py:133",
+     "literal": "instance_path",
+     "word": "path"
+    },
+    {
+     "loc": "src/flask/app.py:137",
+     "literal": "root_path",
+     "word": "path"
+    },
+    {
+     "loc": "src/flask/app.py:192",
+     "literal": "SESSION_COOKIE_PATH",
+     "word": "path"
+    },
+    {
+     "loc": "src/flask/app.py:275",
+     "literal": "{self.static_url_path}/<path:filename>",
+     "word": "path"
+    },
+    {
+     "loc": "src/flask/app.py:876",
+     "literal": "Exception on {request.path} [{request.method}]",
+     "word": "path"
+    }
+   ],
+   "accept_names_in_diff": [
+    "Blueprint",
+    "Flask"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Fix callback order for nested blueprints",
+   "accept": [
+    "Flask"
+   ],
+   "sha": "6d637f0fdb",
+   "issue": 4230,
+   "top5": [
+    "Blueprint.make_setup_state",
+    "Blueprint.register",
+    "test_nested_callback_order",
+    "Blueprint.record_once",
+    "test_nested_blueprint"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [
+    {
+     "loc": "src/flask/app.py:998",
+     "literal": "Install Flask with the 'async' extra in order to use async views.",
+     "word": "order"
+    },
+    {
+     "loc": "src/flask/app.py:1499",
+     "literal": "callbacks-and-errors",
+     "word": "callback"
+    }
+   ],
+   "accept_names_in_diff": [
+    "Flask"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "`static_folder` can be a `pathlib.Path` object",
+   "accept": [
+    "Flask",
+    "Blueprint"
+   ],
+   "sha": "06cf349bb8",
+   "issue": 4152,
+   "top5": [
+    "test_static_folder_with_pathlib_path",
+    "Scaffold.static_folder",
+    "test_static_folder_with_ending_slash",
+    "Scaffold.static_folder",
+    "Scaffold.static_url_path"
+   ],
+   "accept_ranks_top15": [
+    8,
+    9,
+    15
+   ],
+   "literals": [
+    {
+     "loc": "src/flask/app.py:129",
+     "literal": "static_url_path",
+     "word": "path"
+    },
+    {
+     "loc": "src/flask/app.py:129",
+     "literal": "static_folder",
+     "word": "static_folder"
+    },
+    {
+     "loc": "src/flask/app.py:133",
+     "literal": "instance_path",
+     "word": "path"
+    },
+    {
+     "loc": "src/flask/app.py:137",
+     "literal": "root_path",
+     "word": "path"
+    },
+    {
+     "loc": "src/flask/app.py:192",
+     "literal": "SESSION_COOKIE_PATH",
+     "word": "path"
+    },
+    {
+     "loc": "src/flask/app.py:275",
+     "literal": "{self.static_url_path}/<path:filename>",
+     "word": "path"
+    },
+    {
+     "loc": "src/flask/app.py:321",
+     "literal": "'static_folder' must be set to serve static_files.",
+     "word": "static_folder"
+    },
+    {
+     "loc": "src/flask/app.py:876",
+     "literal": "Exception on {request.path} [{request.method}]",
+     "word": "path"
+    }
+   ],
+   "accept_names_in_diff": [
+    "Blueprint",
+    "Flask"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Fix wrapped view function comparison",
+   "accept": [
+    "Flask"
+   ],
+   "sha": "39887ee4df",
+   "issue": 3964,
+   "top5": [
+    "wrapped_view",
+    "View",
+    "view",
+    "test_view_patching",
+    "test_method_based_view"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [
+    {
+     "loc": "src/flask/app.py:126",
+     "literal": "yourapplication.views.frontend",
+     "word": "view"
+    },
+    {
+     "loc": "src/flask/app.py:422",
+     "literal": "json.dumps_function",
+     "word": "function"
+    },
+    {
+     "loc": "src/flask/app.py:998",
+     "literal": "Install Flask with the 'async' extra in order to use async views.",
+     "word": "view"
+    },
+    {
+     "loc": "src/flask/app.py:1205",
+     "literal": "The view function did not return a valid response tuple.",
+     "word": "function"
+    },
+    {
+     "loc": "src/flask/app.py:1213",
+     "literal": "The view function for {request.endpoint!r} did not",
+     "word": "function"
+    },
+    {
+     "loc": "src/flask/app.py:1214",
+     "literal": " return a valid response. The function either returned",
+     "word": "function"
+    },
+    {
+     "loc": "src/flask/app.py:1242",
+     "literal": "{e}\\nThe view function did not return a valid",
+     "word": "function"
+    },
+    {
+     "loc": "src/flask/app.py:1250",
+     "literal": "The view function did not return a valid",
+     "word": "function"
+    }
+   ],
+   "accept_names_in_diff": [
+    "Flask"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Move python properties to decorator syntax",
+   "accept": [
+    "Flask",
+    "RequestContext"
+   ],
+   "sha": "cd4023d9d2",
+   "issue": 3237,
+   "top5": [
+    "decorator",
+    "decorator",
+    "decorator",
+    "decorator",
+    "decorator"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "Flask",
+    "RequestContext"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Define reloader extra_files in `flask run` CLI",
+   "accept": [
+    "_validate_key",
+    "run_command"
+   ],
+   "sha": "2308cba407",
+   "issue": 2897,
+   "top5": [
+    "Config.from_file",
+    "with_appcontext",
+    "load_dotenv",
+    "show_server_banner",
+    "FlaskCliRunner"
+   ],
+   "accept_ranks_top15": [
+    15
+   ],
+   "literals": [],
+   "accept_names_in_diff": [
+    "_validate_key",
+    "run_command"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Fixes issue #2824 flask --version",
+   "accept": [
+    "get_version"
+   ],
+   "sha": "232e5c81bc",
+   "issue": 2825,
+   "top5": [
+    "DebugFilesKeyError.__init__",
+    "UnexpectedUnicodeError",
+    "NoAppException",
+    "Request.on_json_loading_failed",
+    "DebugFilesKeyError.__str__"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [
+    {
+     "loc": "src/flask/cli.py:271",
+     "literal": "flask",
+     "word": "flask"
+    },
+    {
+     "loc": "src/flask/cli.py:275",
+     "literal": "Python {platform.python_version()}\\n",
+     "word": "version"
+    },
+    {
+     "loc": "src/flask/cli.py:276",
+     "literal": "Flask {flask_version}\\n",
+     "word": "version"
+    },
+    {
+     "loc": "src/flask/cli.py:277",
+     "literal": "Werkzeug {werkzeug_version}",
+     "word": "version"
+    },
+    {
+     "loc": "src/flask/cli.py:284",
+     "literal": "--version",
+     "word": "version"
+    },
+    {
+     "loc": "src/flask/cli.py:285",
+     "literal": "Show the Flask version.",
+     "word": "version"
+    }
+   ],
+   "accept_names_in_diff": [
+    "get_version"
+   ],
+   "title_overlap_with_accept": [
+    "version"
+   ]
+  },
+  {
+   "q": "Minor session serializer fixes.",
+   "accept": [
+    "TaggedJSONSerializer",
+    "TaggedJSONSerializer.register"
+   ],
+   "sha": "324b4ea255",
+   "issue": 2711,
+   "top5": [
+    "SecureCookieSessionInterface.get_signing_serializer",
+    "SessionMixin",
+    "SecureCookieSession",
+    "SessionInterface.save_session",
+    "FailingSessionInterface"
+   ],
+   "accept_ranks_top15": [
+    9
+   ],
+   "literals": [
+    {
+     "loc": "src/flask/json/tag.py:222",
+     "literal": "itsdangerous.Serializer",
+     "word": "serializer"
+    }
+   ],
+   "accept_names_in_diff": [
+    "TaggedJSONSerializer",
+    "register"
+   ],
+   "title_overlap_with_accept": [
+    "serializer"
+   ]
+  },
+  {
+   "q": "fix variable substitution in error message",
+   "accept": [
+    "locate_app"
+   ],
+   "sha": "641fdeaf98",
+   "issue": 2398,
+   "top5": [
+    "error2",
+    "error",
+    "test_escaping",
+    "test_no_escaping",
+    "do_error"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "locate_app"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Enable template auto-reloading in app.run()",
+   "accept": [
+    "Flask",
+    "ScriptInfo"
+   ],
+   "sha": "4fc48200a5",
+   "issue": 1910,
+   "top5": [
+    "test_templates_auto_reload",
+    "test_add_template_global",
+    "test_templates_auto_reload_debug_run",
+    "Blueprint.add_app_template_global",
+    "missing_template"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [
+    {
+     "loc": "src/flask/app.py:129",
+     "literal": "template_folder",
+     "word": "template"
+    },
+    {
+     "loc": "src/flask/app.py:163",
+     "literal": "templates",
+     "word": "template"
+    },
+    {
+     "loc": "src/flask/app.py:204",
+     "literal": "EXPLAIN_TEMPLATE_LOADING",
+     "word": "template"
+    },
+    {
+     "loc": "src/flask/app.py:206",
+     "literal": "TEMPLATES_AUTO_RELOAD",
+     "word": "template"
+    },
+    {
+     "loc": "src/flask/app.py:208",
+     "literal": "PROVIDE_AUTOMATIC_OPTIONS",
+     "word": "auto"
+    },
+    {
+     "loc": "src/flask/app.py:399",
+     "literal": "autoescape",
+     "word": "auto"
+    },
+    {
+     "loc": "src/flask/app.py:402",
+     "literal": "auto_reload",
+     "word": "auto"
+    },
+    {
+     "loc": "src/flask/app.py:896",
+     "literal": "provide_automatic_options",
+     "word": "auto"
+    }
+   ],
+   "accept_names_in_diff": [
+    "Flask",
+    "ScriptInfo"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "python -m flask run raises RuntimeWarning",
+   "accept": [
+    "main"
+   ],
+   "sha": "fa7e8d6073",
+   "issue": 2357,
+   "top5": [
+    "Flask.run",
+    "run_command",
+    "Flask.make_shell_context",
+    "Flask.wsgi_app",
+    "Flask.do_teardown_appcontext"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "main"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "sessions not saved when streaming",
+   "accept": [
+    "RequestContext"
+   ],
+   "sha": "6637e20174",
+   "issue": 1348,
+   "top5": [
+    "SecureCookieSessionInterface.save_session",
+    "SessionInterface.save_session",
+    "TestStreaming.test_stream_keeps_session",
+    "SessionInterface.should_set_cookie",
+    "NullSession"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "RequestContext"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Do not swallow exceptions if CLI fails to load",
+   "accept": [
+    "FlaskGroup"
+   ],
+   "sha": "5b7fd9ad88",
+   "issue": 2208,
+   "top5": [
+    "NoAppException",
+    "test_no_command_echo_loading_error",
+    "Flask.handle_user_exception",
+    "Flask.handle_exception",
+    "test_open_resource_exceptions"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [],
+   "accept_names_in_diff": [
+    "FlaskGroup"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Fix unbound error",
+   "accept": [
+    "Flask"
+   ],
+   "sha": "f3d661de66",
+   "issue": 2039,
+   "top5": [
+    "test_help_echo_loading_error",
+    "test_no_command_echo_loading_error",
+    "abort",
+    "LimitedLoader.__init__",
+    "internal_server_error"
+   ],
+   "accept_ranks_top15": [
+    10,
+    14
+   ],
+   "literals": [],
+   "accept_names_in_diff": [
+    "Flask"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "app.add_url_rule() should look for OPTIONS methods in a case-insensitive manner",
+   "accept": [
+    "Flask"
+   ],
+   "sha": "98b155c65d",
+   "issue": 1288,
+   "top5": [
+    "App.add_url_rule",
+    "Scaffold.route",
+    "BlueprintSetupState.add_url_rule",
+    "Scaffold.add_url_rule",
+    "test_options_on_multiple_rules"
+   ],
+   "accept_ranks_top15": [
+    9
+   ],
+   "literals": [
+    {
+     "loc": "src/flask/app.py:208",
+     "literal": "PROVIDE_AUTOMATIC_OPTIONS",
+     "word": "options"
+    },
+    {
+     "loc": "src/flask/app.py:386",
+     "literal": "jinja_options",
+     "word": "options"
+    },
+    {
+     "loc": "src/flask/app.py:498",
+     "literal": "OPTIONS",
+     "word": "options"
+    },
+    {
+     "loc": "src/flask/app.py:896",
+     "literal": "provide_automatic_options",
+     "word": "options"
+    }
+   ],
+   "accept_names_in_diff": [
+    "Flask"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Clarify the after_request argument",
+   "accept": [
+    "Flask"
+   ],
+   "sha": "ff3ef8511e",
+   "issue": 997,
+   "top5": [
+    "after_request",
+    "after_request",
+    "Scaffold.after_request",
+    "after_request",
+    "after_this_request"
+   ],
+   "accept_ranks_top15": [
+    8,
+    14
+   ],
+   "literals": [
+    {
+     "loc": "src/flask/app.py:1301",
+     "literal": "after_request",
+     "word": "after_request"
+    }
+   ],
+   "accept_names_in_diff": [
+    "Flask"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "Explicitly state that the jsonify method changes on request",
+   "accept": [
+    "Flask"
+   ],
+   "sha": "3d9055b3b7",
+   "issue": 725,
+   "top5": [
+    "jsonify",
+    "DefaultJSONProvider.response",
+    "TaggedJSONSerializer.__init__",
+    "JSONProvider",
+    "test_jsonify_basic_types"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [
+    {
+     "loc": "src/flask/app.py:197",
+     "literal": "SESSION_REFRESH_EACH_REQUEST",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:202",
+     "literal": "TRAP_BAD_REQUEST_ERRORS",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:212",
+     "literal": "~flask.Request",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:816",
+     "literal": "got_request_exception",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:876",
+     "literal": "Exception on {request.path} [{request.method}]",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:887",
+     "literal": "full_dispatch_request",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:949",
+     "literal": "Request finalizing failed with an error while handling an error",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:1091",
+     "literal": "Unable to build URLs outside an active request",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:1213",
+     "literal": "The view function for {request.endpoint!r} did not",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:1274",
+     "literal": "before_request_funcs",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:1277",
+     "literal": "before_request",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:1301",
+     "literal": "after_request",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:1334",
+     "literal": "teardown_request",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:1334",
+     "literal": "Blueprint.teardown_request",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:1336",
+     "literal": "request_tearing_down",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:1339",
+     "literal": "RequestContext.pop() <flask.ctx.RequestContext.pop>",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:1367",
+     "literal": "do_teardown_request",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:1392",
+     "literal": "RequestContext.push() <flask.ctx.RequestContext.push>",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:1408",
+     "literal": "~flask.ctx.RequestContext",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:1410",
+     "literal": "request",
+     "word": "request"
+    },
+    {
+     "loc": "src/flask/app.py:1416",
+     "literal": "test_request_context",
+     "word": "request"
+    }
+   ],
+   "accept_names_in_diff": [
+    "Flask"
+   ],
+   "title_overlap_with_accept": []
+  },
+  {
+   "q": "@app.teardown_request function doesn't called in debug mode [NOT-A-BUG]",
+   "accept": [
+    "Flask"
+   ],
+   "sha": "6ab569b0e3",
+   "issue": 661,
+   "top5": [
+    "test_teardown_request_handler_error",
+    "test_teardown_request_handler_debug_mode",
+    "teardown_app",
+    "teardown_app",
+    "test_teardown_request_handler"
+   ],
+   "accept_ranks_top15": [],
+   "literals": [
+    {
+     "loc": "src/flask/app.py:422",
+     "literal": "json.dumps_function",
+     "word": "function"
+    },
+    {
+     "loc": "src/flask/app.py:1205",
+     "literal": "The view function did not return a valid response tuple.",
+     "word": "function"
+    },
+    {
+     "loc": "src/flask/app.py:1213",
+     "literal": "The view function for {request.endpoint!r} did not",
+     "word": "function"
+    },
+    {
+     "loc": "src/flask/app.py:1214",
+     "literal": " return a valid response. The function either returned",
+     "word": "function"
+    },
+    {
+     "loc": "src/flask/app.py:1242",
+     "literal": "{e}\\nThe view function did not return a valid",
+     "word": "function"
+    },
+    {
+     "loc": "src/flask/app.py:1250",
+     "literal": "The view function did not return a valid",
+     "word": "function"
+    },
+    {
+     "loc": "src/flask/app.py:1334",
+     "literal": "teardown_request",
+     "word": "teardown_request"
+    },
+    {
+     "loc": "src/flask/app.py:1334",
+     "literal": "Blueprint.teardown_request",
+     "word": "teardown_request"
+    },
+    {
+     "loc": "src/flask/app.py:1367",
+     "literal": "do_teardown_request",
+     "word": "teardown_request"
+    }
+   ],
+   "accept_names_in_diff": [
+    "Flask"
+   ],
+   "title_overlap_with_accept": []
+  }
+ ]
+}

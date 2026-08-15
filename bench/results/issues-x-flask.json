@@ -1,0 +1,592 @@
+{
+ "repo": "flask",
+ "split": "issues-closed",
+ "fixture_commit": "ab8149664182b662453a563161aa89013c806dc9",
+ "binary_sha256_16": "f24fddce4873e4b9",
+ "params": null,
+ "n": 39,
+ "hits": 9,
+ "hit5_pct": 23.1,
+ "results": [
+  {
+   "q": "fix super call in list comprehension",
+   "hit": false,
+   "top": [
+    "super_reverse",
+    "super_reverse",
+    "super_reverse",
+    "super_reverse",
+    "super_reverse"
+   ],
+   "accept": [
+    "CertParamType.convert",
+    "SeparatedPathType.convert"
+   ]
+  },
+  {
+   "q": "fix missing quote in `--key` error message",
+   "hit": true,
+   "top": [
+    "_validate_key",
+    "key_error",
+    "DebugFilesKeyError",
+    "test_trap_bad_request_key_error",
+    "test_run_cert_path"
+   ],
+   "accept": [
+    "_validate_key"
+   ]
+  },
+  {
+   "q": "fix use of `importlib.util.find_spec`",
+   "hit": false,
+   "top": [
+    "prepare_import",
+    "find_package",
+    "_find_package_path",
+    "TestNoImports.test_name_with_import_error",
+    "not_found"
+   ],
+   "accept": [
+    "get_root_path"
+   ]
+  },
+  {
+   "q": "Allow pathlib.Path for template_folder",
+   "hit": false,
+   "top": [
+    "App.add_template_test",
+    "test_static_folder_with_pathlib_path",
+    "Scaffold.jinja_loader",
+    "test_add_template_test_with_template",
+    "Scaffold.__init__"
+   ],
+   "accept": [
+    "Flask.__init__",
+    "Blueprint.__init__"
+   ]
+  },
+  {
+   "q": "Fix callback order for nested blueprints",
+   "hit": false,
+   "top": [
+    "Blueprint.make_setup_state",
+    "Blueprint.register",
+    "test_nested_callback_order",
+    "Blueprint.record_once",
+    "test_nested_blueprint"
+   ],
+   "accept": [
+    "Flask.update_template_context",
+    "Flask.preprocess_request",
+    "Flask.process_response",
+    "Flask.do_teardown_request"
+   ]
+  },
+  {
+   "q": "`static_folder` can be a `pathlib.Path` object",
+   "hit": false,
+   "top": [
+    "test_static_folder_with_pathlib_path",
+    "Scaffold.static_folder",
+    "test_static_folder_with_ending_slash",
+    "Scaffold.static_folder",
+    "Scaffold.static_url_path"
+   ],
+   "accept": [
+    "Flask.__init__",
+    "Blueprint.__init__"
+   ]
+  },
+  {
+   "q": "Stop change CWD to .env/.flaskenv location",
+   "hit": true,
+   "top": [
+    "load_dotenv",
+    "Config.__init__",
+    "App.jinja_env",
+    "EnvironBuilder.__init__",
+    "Flask.run"
+   ],
+   "accept": [
+    "load_dotenv"
+   ]
+  },
+  {
+   "q": "Move python properties to decorator syntax",
+   "hit": false,
+   "top": [
+    "decorator",
+    "decorator",
+    "decorator",
+    "decorator",
+    "decorator"
+   ],
+   "accept": [
+    "Flask.open_instance_resource",
+    "Flask.make_shell_context",
+    "AppContext.__init__",
+    "RequestContext.__init__"
+   ]
+  },
+  {
+   "q": "Fix teardown bug in FlaskClient",
+   "hit": false,
+   "top": [
+    "Flask.do_teardown_appcontext",
+    "Flask.do_teardown_request",
+    "RequestContext.pop",
+    "App.should_ignore_error",
+    "App.teardown_appcontext"
+   ],
+   "accept": [
+    "FlaskClient.__exit__"
+   ]
+  },
+  {
+   "q": "Define reloader extra_files in `flask run` CLI",
+   "hit": false,
+   "top": [
+    "Config.from_file",
+    "with_appcontext",
+    "load_dotenv",
+    "show_server_banner",
+    "FlaskCliRunner"
+   ],
+   "accept": [
+    "_validate_key",
+    "run_command"
+   ]
+  },
+  {
+   "q": "Improve warning about dev server use in production",
+   "hit": true,
+   "top": [
+    "show_server_banner",
+    "App.debug",
+    "internal_server_error",
+    "App.should_ignore_error",
+    "internal_server_error"
+   ],
+   "accept": [
+    "show_server_banner"
+   ]
+  },
+  {
+   "q": "Fixes issue #2824 flask --version",
+   "hit": false,
+   "top": [
+    "DebugFilesKeyError.__init__",
+    "UnexpectedUnicodeError",
+    "NoAppException",
+    "Request.on_json_loading_failed",
+    "DebugFilesKeyError.__str__"
+   ],
+   "accept": [
+    "get_version"
+   ]
+  },
+  {
+   "q": "Fix DeprecationWarning on collections import in flask.sessions",
+   "hit": true,
+   "top": [
+    "SessionInterface.make_null_session",
+    "SessionInterface.save_session",
+    "SessionMixin.permanent",
+    "SessionInterface.is_null_session",
+    "NullSession"
+   ],
+   "accept": [
+    "SessionMixin"
+   ]
+  },
+  {
+   "q": "[Fixed 2823] Checking if .env is file before prompting to install dotenv",
+   "hit": true,
+   "top": [
+    "load_dotenv",
+    "get_load_dotenv",
+    "Flask.run",
+    "Config.from_envvar",
+    "dotenv_not_available"
+   ],
+   "accept": [
+    "load_dotenv"
+   ]
+  },
+  {
+   "q": "AttributeError: 'module' object has no attribute 'SSLContext'",
+   "hit": false,
+   "top": [
+    "run_command",
+    "prepare_import",
+    "CertParamType",
+    "celery_init_app",
+    "DebugFilesKeyError.__init__"
+   ],
+   "accept": [
+    "CertParamType.convert",
+    "SeparatedPathType.convert",
+    "_validate_key"
+   ]
+  },
+  {
+   "q": "Fix blueprint route for \"\"",
+   "hit": false,
+   "top": [
+    "BlueprintSetupState.add_url_rule",
+    "Blueprint",
+    "App.register_blueprint",
+    "Blueprint.add_url_rule",
+    "Blueprint"
+   ],
+   "accept": [
+    "Blueprint.__init__"
+   ]
+  },
+  {
+   "q": "Minor session serializer fixes.",
+   "hit": false,
+   "top": [
+    "SecureCookieSessionInterface.get_signing_serializer",
+    "SessionMixin",
+    "SecureCookieSession",
+    "SessionInterface.save_session",
+    "FailingSessionInterface"
+   ],
+   "accept": [
+    "JSONTag.to_python",
+    "TagDict.to_python",
+    "TagTuple.to_python",
+    "TagBytes.to_python",
+    "TagMarkup.to_python",
+    "TagUUID.to_python",
+    "TagDateTime.to_python",
+    "JSONTag.__init__",
+    "TaggedJSONSerializer.__init__",
+    "TaggedJSONSerializer.register"
+   ]
+  },
+  {
+   "q": "fix variable substitution in error message",
+   "hit": false,
+   "top": [
+    "error2",
+    "error",
+    "test_escaping",
+    "test_no_escaping",
+    "do_error"
+   ],
+   "accept": [
+    "locate_app"
+   ]
+  },
+  {
+   "q": "python -m flask run raises RuntimeWarning",
+   "hit": false,
+   "top": [
+    "Flask.run",
+    "run_command",
+    "Flask.make_shell_context",
+    "Flask.wsgi_app",
+    "Flask.do_teardown_appcontext"
+   ],
+   "accept": [
+    "main"
+   ]
+  },
+  {
+   "q": "sessions not saved when streaming",
+   "hit": false,
+   "top": [
+    "SecureCookieSessionInterface.save_session",
+    "SessionInterface.save_session",
+    "TestStreaming.test_stream_keeps_session",
+    "SessionInterface.should_set_cookie",
+    "NullSession"
+   ],
+   "accept": [
+    "AppContext.push",
+    "RequestContext.push"
+   ]
+  },
+  {
+   "q": "Use existing response.vary property to set vary header",
+   "hit": false,
+   "top": [
+    "vary_header_set",
+    "Flask.make_default_options_response",
+    "no_vary_header",
+    "vary_cookie_header_set",
+    "Flask.make_response"
+   ],
+   "accept": [
+    "SessionInterface.save_session",
+    "SecureCookieSessionInterface.save_session"
+   ]
+  },
+  {
+   "q": "Prevent setting `SERVER_NAME` and `SESSION_COOKIE_DOMAIN` to an IP address",
+   "hit": true,
+   "top": [
+    "SessionInterface.get_cookie_domain",
+    "SecureCookieSessionInterface.save_session",
+    "SessionInterface.should_set_cookie",
+    "SessionInterface.get_cookie_samesite",
+    "test_session_dynamic_cookie_name"
+   ],
+   "accept": [
+    "SessionInterface.save_session",
+    "SecureCookieSessionInterface.save_session"
+   ]
+  },
+  {
+   "q": "Do not swallow exceptions if CLI fails to load",
+   "hit": false,
+   "top": [
+    "NoAppException",
+    "test_no_command_echo_loading_error",
+    "Flask.handle_user_exception",
+    "Flask.handle_exception",
+    "test_open_resource_exceptions"
+   ],
+   "accept": [
+    "FlaskGroup.list_commands"
+   ]
+  },
+  {
+   "q": "Forward ported CLI tests from Flask-CLI and fixed a bug with the CLI's name.",
+   "hit": false,
+   "top": [
+    "FlaskCliRunner",
+    "Flask.test_cli_runner",
+    "NoAppException",
+    "EnvironBuilder.__init__",
+    "Flask"
+   ],
+   "accept": [
+    "Flask.__init__"
+   ]
+  },
+  {
+   "q": "Remove Blueprint.view_functions",
+   "hit": false,
+   "top": [
+    "App.register_blueprint",
+    "Blueprint",
+    "from_blueprint",
+    "BlueprintSetupState.__init__",
+    "Blueprint.register_blueprint"
+   ],
+   "accept": [
+    "Blueprint.__init__"
+   ]
+  },
+  {
+   "q": "fix a etags bug when sending a file stream with a name",
+   "hit": true,
+   "top": [
+    "send_file",
+    "_stream",
+    "stream_with_context",
+    "test_wsgi_errors_stream",
+    "wsgi_errors_stream"
+   ],
+   "accept": [
+    "send_file"
+   ]
+  },
+  {
+   "q": "Add `JSON_ASCII` option to remove unneeded decoding on client side",
+   "hit": false,
+   "top": [
+    "JSONProvider.dump",
+    "DefaultJSONProvider.dumps",
+    "JSONProvider.dumps",
+    "test_json_as_unicode",
+    "TaggedJSONSerializer.untag"
+   ],
+   "accept": [
+    "Flask"
+   ]
+  },
+  {
+   "q": "Added content length to xsendfile",
+   "hit": false,
+   "top": [
+    "Request.max_content_length",
+    "Request.max_content_length",
+    "test_max_content_length",
+    "Request.max_form_memory_size",
+    "Response.max_cookie_size"
+   ],
+   "accept": [
+    "send_file"
+   ]
+  },
+  {
+   "q": "session is saved before @after_request callbacks",
+   "hit": false,
+   "top": [
+    "SecureCookieSessionInterface.save_session",
+    "SessionInterface.save_session",
+    "SessionInterface.should_set_cookie",
+    "SessionInterface.is_null_session",
+    "FlaskClient.session_transaction"
+   ],
+   "accept": [
+    "Flask.process_response"
+   ]
+  },
+  {
+   "q": "Switch to primitive types in the config",
+   "hit": false,
+   "top": [
+    "ConfigAttribute.__init__",
+    "Config",
+    "ConfigAttribute",
+    "Config.from_prefixed_env",
+    "Base"
+   ],
+   "accept": [
+    "Flask"
+   ]
+  },
+  {
+   "q": "Traceback logs not available for POST requests",
+   "hit": true,
+   "top": [
+    "has_level_handler",
+    "Flask.log_exception",
+    "FormDataRoutingRedirect",
+    "wsgi_errors_stream",
+    "Flask.raise_routing_exception"
+   ],
+   "accept": [
+    "Flask",
+    "Flask.handle_http_exception",
+    "Flask.handle_user_exception"
+   ]
+  },
+  {
+   "q": "Make Tests for bluprints with dotted Names",
+   "hit": false,
+   "top": [
+    "blue_func_test",
+    "test_dotted_names_from_app",
+    "test_dotted_name_not_allowed",
+    "foo",
+    "a"
+   ],
+   "accept": [
+    "Request.blueprint"
+   ]
+  },
+  {
+   "q": "logging improperly extending directly from Logger class",
+   "hit": true,
+   "top": [
+    "create_logger",
+    "has_level_handler",
+    "App.logger",
+    "test_logger",
+    "SuppressedFlask.log_exception"
+   ],
+   "accept": [
+    "create_logger"
+   ]
+  },
+  {
+   "q": "after_request behavior regarding exceptions",
+   "hit": false,
+   "top": [
+    "Flask.handle_user_exception",
+    "Flask.handle_http_exception",
+    "abort",
+    "Flask.handle_exception",
+    "Flask.full_dispatch_request"
+   ],
+   "accept": [
+    "Flask.__init__",
+    "Flask.process_response",
+    "Flask.do_teardown_request",
+    "Flask.wsgi_app"
+   ]
+  },
+  {
+   "q": "Wrong \"Date\" http header, breaks clientside caching for static files, lots of 304 responses",
+   "hit": false,
+   "top": [
+    "SessionInterface.should_set_cookie",
+    "Flask.get_send_file_max_age",
+    "SessionInterface.get_expiration_time",
+    "no_vary_header",
+    "make_response"
+   ],
+   "accept": [
+    "send_file"
+   ]
+  },
+  {
+   "q": "Allow custom TestClient",
+   "hit": false,
+   "top": [
+    "Custom",
+    "CustomException",
+    "CustomRequestGlobals",
+    "CustomProvider",
+    "ForbiddenSubclassRegistered"
+   ],
+   "accept": [
+    "Flask",
+    "Flask.run",
+    "Flask.test_client"
+   ]
+  },
+  {
+   "q": "Documentation of server configuration and middleware inclusion",
+   "hit": false,
+   "top": [
+    "Config",
+    "Config.from_envvar",
+    "Flask.__call__",
+    "App.make_config",
+    "BlueprintSetupState"
+   ],
+   "accept": [
+    "Flask.make_response",
+    "Flask.create_url_adapter",
+    "AppContext.__init__",
+    "RequestContext.__init__"
+   ]
+  },
+  {
+   "q": "Static URL rule not being added on GAE with static_dir handler",
+   "hit": false,
+   "top": [
+    "test_static_url_path",
+    "test_static_url_path_with_ending_slash",
+    "test_static_url_empty_path",
+    "Flask.send_static_file",
+    "App.add_url_rule"
+   ],
+   "accept": [
+    "Flask.__init__"
+   ]
+  },
+  {
+   "q": "The after_request handlers should be called in reverse order",
+   "hit": false,
+   "top": [
+    "test_before_after_request_order",
+    "after_request_handler",
+    "after_request",
+    "after_this_request",
+    "after_request"
+   ],
+   "accept": [
+    "Flask.process_response"
+   ]
+  }
+ ]
+}

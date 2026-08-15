@@ -1,0 +1,440 @@
+{
+ "repo": "flask",
+ "split": "issues-closed",
+ "fixture_commit": "ab8149664182b662453a563161aa89013c806dc9",
+ "binary_sha256_16": "67fd77f927efa832",
+ "params": null,
+ "n": 30,
+ "hits": 10,
+ "hit5_pct": 33.3,
+ "results": [
+  {
+   "q": "fix super call in list comprehension",
+   "hit": false,
+   "top": [
+    "super_reverse",
+    "super_reverse",
+    "super_reverse",
+    "super_reverse",
+    "super_reverse"
+   ],
+   "accept": [
+    "SeparatedPathType"
+   ]
+  },
+  {
+   "q": "fix missing quote in `--key` error message",
+   "hit": true,
+   "top": [
+    "_validate_key",
+    "key_error",
+    "DebugFilesKeyError",
+    "test_trap_bad_request_key_error",
+    "test_run_cert_path"
+   ],
+   "accept": [
+    "_validate_key"
+   ]
+  },
+  {
+   "q": "fix use of `importlib.util.find_spec`",
+   "hit": false,
+   "top": [
+    "prepare_import",
+    "find_package",
+    "_find_package_path",
+    "TestNoImports.test_name_with_import_error",
+    "not_found"
+   ],
+   "accept": [
+    "get_root_path"
+   ]
+  },
+  {
+   "q": "Allow pathlib.Path for template_folder",
+   "hit": false,
+   "top": [
+    "App.add_template_test",
+    "test_static_folder_with_pathlib_path",
+    "Scaffold.jinja_loader",
+    "test_add_template_test_with_template",
+    "Scaffold.__init__"
+   ],
+   "accept": [
+    "Flask",
+    "Blueprint"
+   ]
+  },
+  {
+   "q": "re-add flag to skip unguarded app.run from CLI",
+   "hit": true,
+   "top": [
+    "with_appcontext",
+    "NoAppException",
+    "ScriptInfo.__init__",
+    "FlaskGroup.__init__",
+    "run_command"
+   ],
+   "accept": [
+    "Flask",
+    "FlaskGroup"
+   ]
+  },
+  {
+   "q": "Fix callback order for nested blueprints",
+   "hit": false,
+   "top": [
+    "Blueprint.make_setup_state",
+    "Blueprint.register",
+    "test_nested_callback_order",
+    "Blueprint.record_once",
+    "test_nested_blueprint"
+   ],
+   "accept": [
+    "Flask"
+   ]
+  },
+  {
+   "q": "`static_folder` can be a `pathlib.Path` object",
+   "hit": false,
+   "top": [
+    "test_static_folder_with_pathlib_path",
+    "Scaffold.static_folder",
+    "test_static_folder_with_ending_slash",
+    "Scaffold.static_folder",
+    "Scaffold.static_url_path"
+   ],
+   "accept": [
+    "Flask",
+    "Blueprint"
+   ]
+  },
+  {
+   "q": "Fix wrapped view function comparison",
+   "hit": false,
+   "top": [
+    "wrapped_view",
+    "View",
+    "view",
+    "test_view_patching",
+    "test_method_based_view"
+   ],
+   "accept": [
+    "Flask"
+   ]
+  },
+  {
+   "q": "Stop change CWD to .env/.flaskenv location",
+   "hit": true,
+   "top": [
+    "load_dotenv",
+    "Config.__init__",
+    "App.jinja_env",
+    "EnvironBuilder.__init__",
+    "Flask.run"
+   ],
+   "accept": [
+    "load_dotenv"
+   ]
+  },
+  {
+   "q": "Move python properties to decorator syntax",
+   "hit": false,
+   "top": [
+    "decorator",
+    "decorator",
+    "decorator",
+    "decorator",
+    "decorator"
+   ],
+   "accept": [
+    "Flask",
+    "RequestContext"
+   ]
+  },
+  {
+   "q": "Define reloader extra_files in `flask run` CLI",
+   "hit": false,
+   "top": [
+    "Config.from_file",
+    "with_appcontext",
+    "load_dotenv",
+    "show_server_banner",
+    "FlaskCliRunner"
+   ],
+   "accept": [
+    "_validate_key",
+    "run_command"
+   ]
+  },
+  {
+   "q": "Improve warning about dev server use in production",
+   "hit": true,
+   "top": [
+    "show_server_banner",
+    "App.debug",
+    "internal_server_error",
+    "App.should_ignore_error",
+    "internal_server_error"
+   ],
+   "accept": [
+    "show_server_banner"
+   ]
+  },
+  {
+   "q": "Fixes issue #2824 flask --version",
+   "hit": false,
+   "top": [
+    "DebugFilesKeyError.__init__",
+    "UnexpectedUnicodeError",
+    "NoAppException",
+    "Request.on_json_loading_failed",
+    "DebugFilesKeyError.__str__"
+   ],
+   "accept": [
+    "get_version"
+   ]
+  },
+  {
+   "q": "Fix DeprecationWarning on collections import in flask.sessions",
+   "hit": true,
+   "top": [
+    "SessionInterface.make_null_session",
+    "SessionInterface.save_session",
+    "SessionMixin.permanent",
+    "SessionInterface.is_null_session",
+    "NullSession"
+   ],
+   "accept": [
+    "SessionMixin"
+   ]
+  },
+  {
+   "q": "[Fixed 2823] Checking if .env is file before prompting to install dotenv",
+   "hit": true,
+   "top": [
+    "load_dotenv",
+    "get_load_dotenv",
+    "Flask.run",
+    "Config.from_envvar",
+    "dotenv_not_available"
+   ],
+   "accept": [
+    "load_dotenv"
+   ]
+  },
+  {
+   "q": "AttributeError: 'module' object has no attribute 'SSLContext'",
+   "hit": true,
+   "top": [
+    "run_command",
+    "prepare_import",
+    "CertParamType",
+    "celery_init_app",
+    "DebugFilesKeyError.__init__"
+   ],
+   "accept": [
+    "CertParamType",
+    "_validate_key"
+   ]
+  },
+  {
+   "q": "Minor session serializer fixes.",
+   "hit": false,
+   "top": [
+    "SecureCookieSessionInterface.get_signing_serializer",
+    "SessionMixin",
+    "SecureCookieSession",
+    "SessionInterface.save_session",
+    "FailingSessionInterface"
+   ],
+   "accept": [
+    "TaggedJSONSerializer",
+    "TaggedJSONSerializer.register"
+   ]
+  },
+  {
+   "q": "fix variable substitution in error message",
+   "hit": false,
+   "top": [
+    "error2",
+    "error",
+    "test_escaping",
+    "test_no_escaping",
+    "do_error"
+   ],
+   "accept": [
+    "locate_app"
+   ]
+  },
+  {
+   "q": "Enable template auto-reloading in app.run()",
+   "hit": false,
+   "top": [
+    "test_templates_auto_reload",
+    "test_add_template_global",
+    "test_templates_auto_reload_debug_run",
+    "Blueprint.add_app_template_global",
+    "missing_template"
+   ],
+   "accept": [
+    "Flask",
+    "ScriptInfo"
+   ]
+  },
+  {
+   "q": "python -m flask run raises RuntimeWarning",
+   "hit": false,
+   "top": [
+    "Flask.run",
+    "run_command",
+    "Flask.make_shell_context",
+    "Flask.wsgi_app",
+    "Flask.do_teardown_appcontext"
+   ],
+   "accept": [
+    "main"
+   ]
+  },
+  {
+   "q": "sessions not saved when streaming",
+   "hit": false,
+   "top": [
+    "SecureCookieSessionInterface.save_session",
+    "SessionInterface.save_session",
+    "TestStreaming.test_stream_keeps_session",
+    "SessionInterface.should_set_cookie",
+    "NullSession"
+   ],
+   "accept": [
+    "RequestContext"
+   ]
+  },
+  {
+   "q": "Prevent setting `SERVER_NAME` and `SESSION_COOKIE_DOMAIN` to an IP address",
+   "hit": true,
+   "top": [
+    "SessionInterface.get_cookie_domain",
+    "SecureCookieSessionInterface.save_session",
+    "SessionInterface.should_set_cookie",
+    "SessionInterface.get_cookie_samesite",
+    "test_session_dynamic_cookie_name"
+   ],
+   "accept": [
+    "SecureCookieSessionInterface"
+   ]
+  },
+  {
+   "q": "Do not swallow exceptions if CLI fails to load",
+   "hit": false,
+   "top": [
+    "NoAppException",
+    "test_no_command_echo_loading_error",
+    "Flask.handle_user_exception",
+    "Flask.handle_exception",
+    "test_open_resource_exceptions"
+   ],
+   "accept": [
+    "FlaskGroup"
+   ]
+  },
+  {
+   "q": "Fix unbound error",
+   "hit": false,
+   "top": [
+    "test_help_echo_loading_error",
+    "test_no_command_echo_loading_error",
+    "abort",
+    "LimitedLoader.__init__",
+    "internal_server_error"
+   ],
+   "accept": [
+    "Flask"
+   ]
+  },
+  {
+   "q": "app.add_url_rule() should look for OPTIONS methods in a case-insensitive manner",
+   "hit": false,
+   "top": [
+    "App.add_url_rule",
+    "Scaffold.route",
+    "BlueprintSetupState.add_url_rule",
+    "Scaffold.add_url_rule",
+    "test_options_on_multiple_rules"
+   ],
+   "accept": [
+    "Flask"
+   ]
+  },
+  {
+   "q": "Clarify the after_request argument",
+   "hit": false,
+   "top": [
+    "after_request",
+    "after_request",
+    "Scaffold.after_request",
+    "after_request",
+    "after_this_request"
+   ],
+   "accept": [
+    "Flask"
+   ]
+  },
+  {
+   "q": "before_app_first_request strange behaviour",
+   "hit": true,
+   "top": [
+    "Blueprint.before_app_request",
+    "Flask.preprocess_request",
+    "test_no_setup_after_first_request",
+    "before_request1",
+    "before_app"
+   ],
+   "accept": [
+    "Flask"
+   ]
+  },
+  {
+   "q": "fix a etags bug when sending a file stream with a name",
+   "hit": true,
+   "top": [
+    "send_file",
+    "_stream",
+    "stream_with_context",
+    "test_wsgi_errors_stream",
+    "wsgi_errors_stream"
+   ],
+   "accept": [
+    "send_file"
+   ]
+  },
+  {
+   "q": "Explicitly state that the jsonify method changes on request",
+   "hit": false,
+   "top": [
+    "jsonify",
+    "DefaultJSONProvider.response",
+    "TaggedJSONSerializer.__init__",
+    "JSONProvider",
+    "test_jsonify_basic_types"
+   ],
+   "accept": [
+    "Flask"
+   ]
+  },
+  {
+   "q": "@app.teardown_request function doesn't called in debug mode [NOT-A-BUG]",
+   "hit": false,
+   "top": [
+    "test_teardown_request_handler_error",
+    "test_teardown_request_handler_debug_mode",
+    "teardown_app",
+    "teardown_app",
+    "test_teardown_request_handler"
+   ],
+   "accept": [
+    "Flask"
+   ]
+  }
+ ]
+}

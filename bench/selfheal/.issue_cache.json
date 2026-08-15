@@ -1,0 +1,2343 @@
+{
+ "__meta__": {
+  "requests_made": 469
+ },
+ "gin-gonic/gin#1020": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix context.Copy() race condition"
+ },
+ "gin-gonic/gin#1050": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "render.Delims composite literal uses unkeyed fields"
+ },
+ "gin-gonic/gin#1089": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "write: broken pipe  in func (r Data) Render"
+ },
+ "gin-gonic/gin#119": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "why don't working LoadHTMLTemplates function in debug mode "
+ },
+ "gin-gonic/gin#1209": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix golint warnings in utils.go"
+ },
+ "gin-gonic/gin#1215": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix some golint warnings in gin.go"
+ },
+ "gin-gonic/gin#1350": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix bug, return err when failed binding bool"
+ },
+ "gin-gonic/gin#1371": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Add and fix the explanation of `HandleContext`"
+ },
+ "gin-gonic/gin#1462": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "change to test_helpers.go causes flag parsing to fail for cmd line app"
+ },
+ "gin-gonic/gin#1571": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: fmt output log to os.Stderr"
+ },
+ "gin-gonic/gin#1625": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix typos"
+ },
+ "gin-gonic/gin#1640": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "recovery: fix issue about syscall import on google app engine"
+ },
+ "gin-gonic/gin#1682": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix bug"
+ },
+ "gin-gonic/gin#1718": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix mapping inner structs with correct tag"
+ },
+ "gin-gonic/gin#1722": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix render writeHeaders method to make it the same as http.Header.Set"
+ },
+ "gin-gonic/gin#1726": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix case of GitHub"
+ },
+ "gin-gonic/gin#1745": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix Context.Next() - recheck len of handlers every iteration"
+ },
+ "gin-gonic/gin#1760": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Out of range if redirect more than 45 times"
+ },
+ "gin-gonic/gin#1804": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Default engine producing two log lines with StaticFS for 404"
+ },
+ "gin-gonic/gin#182": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fixed issue allowing to spoof ClientIP()"
+ },
+ "gin-gonic/gin#1841": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix context.Params race condition on Copy()"
+ },
+ "gin-gonic/gin#1931": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Attempt to fix #1927"
+ },
+ "gin-gonic/gin#1942": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "request cause panic with v1.4.0 @ form_mapping.go:63 ~ form_mapping.go:89  ,  be careful"
+ },
+ "gin-gonic/gin#2051": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "refactor(context.go): GetPostFormMap"
+ },
+ "gin-gonic/gin#2093": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix 'errcheck' linter warnings"
+ },
+ "gin-gonic/gin#2114": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[FIX] c.Request.FormFile maybe file, need close"
+ },
+ "gin-gonic/gin#2118": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Close files opened in static file handler"
+ },
+ "gin-gonic/gin#2166": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fixed a bug in the calculation of the maximum number of parameters"
+ },
+ "gin-gonic/gin#2209": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "context.JSON adds a new line to end of JSON response"
+ },
+ "gin-gonic/gin#2216": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix accept incoming network connections"
+ },
+ "gin-gonic/gin#2305": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix missing initial sync.RWMutex"
+ },
+ "gin-gonic/gin#2366": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(tree): reassign fullpath when register new node which the same current node"
+ },
+ "gin-gonic/gin#239": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "issue #238 proposed fix"
+ },
+ "gin-gonic/gin#2528": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: print headers without Authorization header on broken pipe"
+ },
+ "gin-gonic/gin#2551": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix typos in context.go"
+ },
+ "gin-gonic/gin#2584": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix error gin support min Go version"
+ },
+ "gin-gonic/gin#2609": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "basic auth: fix timing oracle"
+ },
+ "gin-gonic/gin#2674": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Data race with gin-gonic v1.7.0"
+ },
+ "gin-gonic/gin#2706": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix conflict between param and exact path"
+ },
+ "gin-gonic/gin#2755": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix insufficient slice check"
+ },
+ "gin-gonic/gin#2762": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "404 when using dynamic routing"
+ },
+ "gin-gonic/gin#2778": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Use the gin.CreateTestContext in test, could not get the param in the route."
+ },
+ "gin-gonic/gin#2786": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "[Bug]mixed param and non-param paths "
+ },
+ "gin-gonic/gin#2832": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Quick Fix c.ClientIP() Parse Error for TrustedProxies feature & NoMethod annotation"
+ },
+ "gin-gonic/gin#2847": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix the misplacement of adding slashes"
+ },
+ "gin-gonic/gin#2851": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: check obj type in protobufBinding"
+ },
+ "gin-gonic/gin#2924": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix tsr with mixed static and wildcard paths"
+ },
+ "gin-gonic/gin#2968": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: description error"
+ },
+ "gin-gonic/gin#2983": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: wrong when wildcard follows named param"
+ },
+ "gin-gonic/gin#2988": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: description error"
+ },
+ "gin-gonic/gin#3033": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: default trusted proxies should add ipv6"
+ },
+ "gin-gonic/gin#3088": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Annotation fix"
+ },
+ "gin-gonic/gin#3123": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix: missing `sameSite` when do context.reset()"
+ },
+ "gin-gonic/gin#3199": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(binding): dereference pointer to struct when validating structs"
+ },
+ "gin-gonic/gin#3221": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix the value of ginSupportMinGoVer constant by semantic"
+ },
+ "gin-gonic/gin#3227": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(route): redirectSlash bug"
+ },
+ "gin-gonic/gin#3236": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(uri): query binding bug"
+ },
+ "gin-gonic/gin#3397": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(context): panic on NegotiateFormat - index out of range"
+ },
+ "gin-gonic/gin#3453": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "console logger HTTP status code bug fixed"
+ },
+ "gin-gonic/gin#3460": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(router): tree bug where loop index is not decremented."
+ },
+ "gin-gonic/gin#3500": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Add escape logic for header"
+ },
+ "gin-gonic/gin#3502": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(tree): correctly expand the capacity of params"
+ },
+ "gin-gonic/gin#3512": {
+  "error": 404
+ },
+ "gin-gonic/gin#3556": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix lack of escaping of filename in Content-Disposition"
+ },
+ "gin-gonic/gin#3659": {
+  "is_pr": false,
+  "state": "open",
+  "title": "Can't bind list of struct pointer in query"
+ },
+ "gin-gonic/gin#3759": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(header): Allow header according to RFC 7231 (HTTP 405)"
+ },
+ "gin-gonic/gin#3784": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(route): Add fullPath in context copy"
+ },
+ "gin-gonic/gin#3812": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(router): catch-all conflicting wildcard"
+ },
+ "gin-gonic/gin#3819": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Binding a non mandatory file parameter will directly result in an error message"
+ },
+ "gin-gonic/gin#3873": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: protect Context.Keys map when call Copy method"
+ },
+ "gin-gonic/gin#3897": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(context): make context Value method adhere to Go standards"
+ },
+ "gin-gonic/gin#391": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Support HTTP content negotiation wildcards"
+ },
+ "gin-gonic/gin#494": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix indent of routes debug prints"
+ },
+ "gin-gonic/gin#514": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Support YAML for binding and rendering"
+ },
+ "gin-gonic/gin#630": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "gin.Error does not implement the error interface"
+ },
+ "gin-gonic/gin#723": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Low-priority request: Handle App Engine \"RemoteAddr\" address correctly in `context.ClientIP`?"
+ },
+ "gin-gonic/gin#744": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Logger: skip ANSI color commands if output is not a tty"
+ },
+ "gin-gonic/gin#752": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "IsTerminal not available on Google App Engine"
+ },
+ "gin-gonic/gin#76": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix Corrupted plainRender"
+ },
+ "gin-gonic/gin#904": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix time.Time binding"
+ },
+ "gin-gonic/gin#997": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "resolve #368 add option to UseNumber() in gin.Context.BindJSON()"
+ },
+ "gin-gonic/gin#998": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(render): remove repeated static check."
+ },
+ "gin-gonic/gin#999": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "show query string in logger."
+ },
+ "laravel/framework#52088": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] fix: dont use web middleware on health endpoint"
+ },
+ "laravel/framework#52094": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[10.x] Fix PHP_CLI_SERVER_WORKERS warning by suppressing it"
+ },
+ "laravel/framework#52117": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix 'pushProcessor method not found on LoggerInterface' error"
+ },
+ "laravel/framework#52135": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix SQLite schema dumps containing internal `sqlite_*` objects"
+ },
+ "laravel/framework#52171": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] fix: Model newCollection generics; feat: add HasCollection trait"
+ },
+ "laravel/framework#52181": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix return for ApplicationBuilder:: withCommandRouting method"
+ },
+ "laravel/framework#52188": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] fix: Model/JsonResource::toJson should not fail with prior json errors"
+ },
+ "laravel/framework#52204": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] fix: Request::json() json errors when decoding empty string"
+ },
+ "laravel/framework#52227": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fully qualify morph columns when using WHERE clauses"
+ },
+ "laravel/framework#52275": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix SQLite schema dumps missing most tables"
+ },
+ "laravel/framework#52280": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix explicit route binding for broadcast routes"
+ },
+ "laravel/framework#52289": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix flat array parameter for relation upsert"
+ },
+ "laravel/framework#52293": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[10.x] backport #52188"
+ },
+ "laravel/framework#52297": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix Bcrypt/Argon/Argon2I Hashers not checking database field for nullish value before checking hash compatibility"
+ },
+ "laravel/framework#52314": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[10.x] Fix runPaginationCountQuery not working properly for union queries"
+ },
+ "laravel/framework#52318": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fixes through() relationship"
+ },
+ "laravel/framework#52389": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[10.x] backport #52204"
+ },
+ "laravel/framework#52393": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix Http Client Pool requests that have no response"
+ },
+ "laravel/framework#52415": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[10.x] fix: prevent casting empty string to array from triggering json error"
+ },
+ "laravel/framework#52436": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Potential infinite recursion when executing `schema:dump`"
+ },
+ "laravel/framework#52627": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix Apostrophe Handling in SeeInOrder.php and Enhance Test Coverage"
+ },
+ "laravel/framework#52678": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix alter table expressions on SQLite"
+ },
+ "laravel/framework#52704": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[10.x] Fixes `whereDate`, `whereDay`, `whereMonth`, `whereTime`, `whereYear` and `whereJsonLength` to ignore invalid `$operator`"
+ },
+ "laravel/framework#52705": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix etag headers for binary file responses"
+ },
+ "laravel/framework#52738": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix issue where `$name` variable in non base config file becomes it's key"
+ },
+ "laravel/framework#52748": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix arguments passed to artisan commands that start with 'env'"
+ },
+ "laravel/framework#52761": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fixed attempt to call `Application::routesAreCached()` when application doesn't implements `CachesRoutes` contract."
+ },
+ "laravel/framework#52781": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fixes out of memory issue running `route:cache` with ServeFile"
+ },
+ "laravel/framework#52788": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Using Correct `Concurrency` Configuration Index Name"
+ },
+ "laravel/framework#52794": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Ensure `withoutPretending` method properly resets state after callback execution"
+ },
+ "laravel/framework#52889": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fixes trust proxy `REMOTE_ADDR` not working in Swoole"
+ },
+ "laravel/framework#52903": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix for not automatically registering commands in App\\Console\\Commands"
+ },
+ "laravel/framework#52924": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix make:listener command"
+ },
+ "laravel/framework#52943": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix crash of method PreventsCircularRecursion::withoutRecursion() on mocked models"
+ },
+ "laravel/framework#52974": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fixes function loading conflicts when using `@include('vendor/autoload.php')` via Laravel Envoy"
+ },
+ "laravel/framework#53048": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fixes validation using `shouldConvertToBoolean` when parameter uses dot notation"
+ },
+ "laravel/framework#53052": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fixes `make:model` for Form Requests"
+ },
+ "laravel/framework#53071": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Symfony\\Component\\Console\\Exception\\InvalidArgumentException"
+ },
+ "laravel/framework#53074": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fixes parameter declaration for `ServiceProvider::optimizes()`"
+ },
+ "laravel/framework#53076": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fixes regression with `queue:work` Command"
+ },
+ "laravel/framework#53100": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix resource not escaped correctly in substituteBindingsIntoRawSql()"
+ },
+ "laravel/framework#53103": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix determining pivot timestamp column name(s) when parent relation missing one or both of timestamps"
+ },
+ "laravel/framework#53119": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix HasManyThrough::one()"
+ },
+ "laravel/framework#53142": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: make model command with folder path - factory incorrect import path"
+ },
+ "laravel/framework#53174": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix trim getting discarded in `ViewMakeCommand`"
+ },
+ "laravel/framework#53204": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix handling exceptions thrown in eval()'d code"
+ },
+ "laravel/framework#53206": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fixes handling `Js::from(collect());`"
+ },
+ "laravel/framework#53254": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix incorrect bindings in DB::update when using a collection as a value"
+ },
+ "laravel/framework#53264": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix integrity constraint violation on failed_jobs_uuid_unique"
+ },
+ "laravel/framework#53275": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] fix: allows injection using multiple interfaces with the same concrete implementation"
+ },
+ "laravel/framework#53331": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix `trans_choice()` when translation replacement include `|` separator"
+ },
+ "laravel/framework#53335": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix fluent syntax for HasManyThrough when combining HasMany followed by HasOne"
+ },
+ "laravel/framework#53416": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix validation message when there is a parameter with escaped dot \"\\.\""
+ },
+ "laravel/framework#53439": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix error event listener in Vite prefetching"
+ },
+ "laravel/framework#53442": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix schema foreign ID support for tables with non-standard primary key"
+ },
+ "laravel/framework#53455": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[10.x] Fix append and prepend batch to chain"
+ },
+ "laravel/framework#53504": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix issue where overwriting middleware variable when setting middleware priority"
+ },
+ "laravel/framework#53514": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix extensions of contextual bindings"
+ },
+ "laravel/framework#53538": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix: Improve Request Port Extraction Handling in ServeCommand.php to Prevent Artisan Command Failures "
+ },
+ "laravel/framework#53553": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix `withoutOverlapping` via `PendingEventAttributes` proxy "
+ },
+ "laravel/framework#53626": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix attribute inheritance for nested scheduled groups"
+ },
+ "laravel/framework#53659": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix `SyntaxError` on Vite prefetch with empty assets"
+ },
+ "laravel/framework#53680": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix `withoutOverlapping` for grouped scheduled closures"
+ },
+ "laravel/framework#53687": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix `ResendTransport` missing custom headers"
+ },
+ "laravel/framework#53693": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix database reconnecting logic"
+ },
+ "laravel/framework#53696": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix foreignIdFor() when the foreign key is a non-incrementing integer other than ULID"
+ },
+ "laravel/framework#53763": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix the RateLimiter issue when using dynamic keys"
+ },
+ "laravel/framework#53811": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix mutexName inconsistency caused by different PHP binary paths on multiple servers"
+ },
+ "laravel/framework#53839": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fixed Enum usage in whereHasMorph condition when morph attribute casting"
+ },
+ "laravel/framework#53842": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix unescaped table names issue of `DatabaseTruncation` trait by introducing `Connection::withoutTablePrefix()` method"
+ },
+ "laravel/framework#53872": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fixes `Illuminate\\Http\\Response` to output empty string if `$content` is set to `null`"
+ },
+ "laravel/framework#53879": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix attribute mutator access in `loadMissing`"
+ },
+ "laravel/framework#53880": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix `numericAggregate`  on eloquent builder"
+ },
+ "laravel/framework#53941": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix client path value in file uploads"
+ },
+ "laravel/framework#53945": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix inspecting columns of raw indexes"
+ },
+ "laravel/framework#53948": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix: Handle mixed-type values in compileInsert"
+ },
+ "laravel/framework#53962": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix: (Queue Worker) firing the JobPopped event when $popCallbacks returns null"
+ },
+ "laravel/framework#53974": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] Fix cached health endpoint not working when in maintenance mode"
+ },
+ "laravel/framework#54006": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "11.x improve resend transport response handling - fix"
+ },
+ "laravel/framework#54119": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[11.x] fix: filter vendor paths from registered loaders in Application::inferBasePath"
+ },
+ "laravel/framework#54127": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: Don't set newLineWritten to true unless verbosity allows output"
+ },
+ "microsoft/vscode#11036": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Display members of a file in explorer"
+ },
+ "microsoft/vscode#231108": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Source controll stucks after pushing changes, button with infinite spinner not hiding"
+ },
+ "microsoft/vscode#234913": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix illegal value for line number error"
+ },
+ "microsoft/vscode#234944": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fixes old extensionHost process is not killed immediately after reloading vscode web tab in the browser"
+ },
+ "microsoft/vscode#234950": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix error when closing inline chat widgets"
+ },
+ "microsoft/vscode#234991": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: update list before message"
+ },
+ "microsoft/vscode#235011": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix https://github.com/microsoft/vscode/issues/235007"
+ },
+ "microsoft/vscode#235101": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Unable to dismiss warning message"
+ },
+ "microsoft/vscode#235104": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Allow List: Using \"Stable\" still allows pre-release versions"
+ },
+ "microsoft/vscode#235121": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix tree for empty children"
+ },
+ "microsoft/vscode#235127": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Allowed extensions policy - improve warning message"
+ },
+ "microsoft/vscode#235183": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "\"switch to release version\" confusing error message"
+ },
+ "microsoft/vscode#235207": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Git Blame - fix incorrect git blame positioning"
+ },
+ "microsoft/vscode#235212": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix chat editor overflow"
+ },
+ "microsoft/vscode#235220": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Focus on Webview View command is missing activity bar title in VS Code 1.96 Insiders"
+ },
+ "microsoft/vscode#235225": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Always display edited md cells in edit mode, fixes to accepting changes"
+ },
+ "microsoft/vscode#235228": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fixes for the find widget history"
+ },
+ "microsoft/vscode#235242": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "asorted fixes"
+ },
+ "microsoft/vscode#235248": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "move chat to /edit fixes"
+ },
+ "microsoft/vscode#235249": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "SCM - fix history graph action bugs"
+ },
+ "microsoft/vscode#235251": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix default collapse state for comments"
+ },
+ "microsoft/vscode#235257": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix chat editing diff updates and improve chat overlay"
+ },
+ "microsoft/vscode#235258": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix https://github.com/microsoft/vscode-copilot/issues/10957"
+ },
+ "microsoft/vscode#235265": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Commands tab is empty"
+ },
+ "microsoft/vscode#235291": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "one more reveal fix..."
+ },
+ "microsoft/vscode#235299": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: track notebook editors as valid chat context"
+ },
+ "microsoft/vscode#235302": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: allow deselecting related file suggestions in picker"
+ },
+ "microsoft/vscode#235304": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix find history setting change."
+ },
+ "microsoft/vscode#235305": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "testing: fix event listener leak in CR dropdown"
+ },
+ "microsoft/vscode#235329": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "walktrhough fixes"
+ },
+ "microsoft/vscode#235332": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix symbol dnd selection"
+ },
+ "microsoft/vscode#235369": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: update chat interaction terminology"
+ },
+ "microsoft/vscode#235374": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: update copilot limit reached message in chat quotas service"
+ },
+ "microsoft/vscode#235401": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix https://github.com/microsoft/vscode-copilot/issues/10944"
+ },
+ "microsoft/vscode#235414": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix https://github.com/microsoft/vscode-copilot/issues/11101"
+ },
+ "microsoft/vscode#235431": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: don't filter suggested files from Add Files picker"
+ },
+ "microsoft/vscode#235440": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: correct hover for chat editing code block pill with one insertion/deletion"
+ },
+ "microsoft/vscode#235457": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "chat - some fixes to setup and quotas"
+ },
+ "microsoft/vscode#235491": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix explorer find rerender error and related issue"
+ },
+ "microsoft/vscode#235519": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: validate chat session ID before trying to create an editing session from it"
+ },
+ "microsoft/vscode#235522": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Candidate: NB multiselect undo/redo fix"
+ },
+ "microsoft/vscode#235584": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix missing responses when transferring messages into chat panel"
+ },
+ "microsoft/vscode#235977": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Ghost Text Gets Stuck In Some Cases"
+ },
+ "microsoft/vscode#236267": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Add extra type check in `findFiles2` (#235692)"
+ },
+ "microsoft/vscode#236537": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Copilot not working in Remote windows"
+ },
+ "nestjs/nest#10549": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(microservices): allow falsy values in options"
+ },
+ "nestjs/nest#10625": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): fix reflectConstructorParams mutating constructor metadata"
+ },
+ "nestjs/nest#10696": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): process exit before shutdown hook end"
+ },
+ "nestjs/nest#10737": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Parse file pipe fix (multiple files validation)"
+ },
+ "nestjs/nest#10775": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "feat(core): pass signal when manually invoking close"
+ },
+ "nestjs/nest#10809": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core,microservices): inject the context when the tree is not durable"
+ },
+ "nestjs/nest#10822": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): ModuleRef#get and #resolve opts default values"
+ },
+ "nestjs/nest#10889": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(fastify): return the response on exception"
+ },
+ "nestjs/nest#10970": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(common): inject decorator should allow key to be undefined"
+ },
+ "nestjs/nest#11019": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(microservices): rmq should gracefully reconnect upon error"
+ },
+ "nestjs/nest#11020": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(microservices): pull kafka retriable error from all handlers, laz\u2026"
+ },
+ "nestjs/nest#11026": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(microservices): messages emitted before kafka client is ready fail"
+ },
+ "nestjs/nest#11031": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): unwrap forward ref in module compiler"
+ },
+ "nestjs/nest#11071": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "\"perf(core): change sha1 to xxhash\" commit broke runtime of Nest.js application on Ubuntu 20.04"
+ },
+ "nestjs/nest#11073": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): removed xxhash to fix #11071"
+ },
+ "nestjs/nest#11188": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(ws): mount multi `ws` servers on different paths"
+ },
+ "nestjs/nest#11303": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Circular JSON TypeError in @nestjs/axios"
+ },
+ "nestjs/nest#11318": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(common): fix @Inject and @Optional return types"
+ },
+ "nestjs/nest#11437": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(microservices): grpc-server handle async interceptors"
+ },
+ "nestjs/nest#11571": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(common): `ConsoleLogger` doesn't log stacktrace"
+ },
+ "nestjs/nest#11650": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): global prefix exclude when versioning is turned on"
+ },
+ "nestjs/nest#11673": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(common): loosen http exception cause type"
+ },
+ "nestjs/nest#11692": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(microservices): check length of member partitions on group join"
+ },
+ "nestjs/nest#11785": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): apply middleware to versioned controllers (ctrl-level)"
+ },
+ "nestjs/nest#12031": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(common): right generic type arg constraint for `FileValidator#isValid` method"
+ },
+ "nestjs/nest#12035": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): allow importing providers from global modules in lazy modules"
+ },
+ "nestjs/nest#12096": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(common): fix custom multi file validator"
+ },
+ "nestjs/nest#12163": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): create completed field on settlement for better tracking"
+ },
+ "nestjs/nest#12254": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Guard undefined Redis options"
+ },
+ "nestjs/nest#12321": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(ws): fix incorrect host pattern on messages"
+ },
+ "nestjs/nest#12331": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(grpc): will properly write to streams"
+ },
+ "nestjs/nest#12382": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: allow for filters to be aware of the pattern for websockets"
+ },
+ "nestjs/nest#12519": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): when the discoverable decorator was not used on calling `getProviders`/`getControllers`"
+ },
+ "nestjs/nest#12561": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(common): when passing class functions to logger methods"
+ },
+ "nestjs/nest#12769": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(microservices): fix backpressure with integration test"
+ },
+ "nestjs/nest#12959": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(microservices): grpc client closing"
+ },
+ "nestjs/nest#13083": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: generate unique hashes for dynamic modules, and clients"
+ },
+ "nestjs/nest#13105": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "feat(microservices): add type for rmq connection options"
+ },
+ "nestjs/nest#13151": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(packages/microservices): pass inboxPrefix as argument to createInbox"
+ },
+ "nestjs/nest#13193": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): when having multiple versions on middleware routes builder"
+ },
+ "nestjs/nest#13283": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(microservice) \bDelete unnecessary call of grpcClient.start"
+ },
+ "nestjs/nest#13285": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(microservices): fix rabbitmq no-assert not being applied correctly"
+ },
+ "nestjs/nest#13317": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(common): fix stacktrace regex"
+ },
+ "nestjs/nest#13328": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(microservices): fix redundant code to emit error"
+ },
+ "nestjs/nest#13337": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): middleware is not executed for root route when global prefix is set"
+ },
+ "nestjs/nest#13366": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): break reference chain to instance object"
+ },
+ "nestjs/nest#13453": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): possible memory leak when using server side events"
+ },
+ "nestjs/nest#13496": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Nest crash when RouteConstraints is used without app versioning enabled"
+ },
+ "nestjs/nest#13531": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(ws): close existing connections"
+ },
+ "nestjs/nest#13536": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "feat(fastify): Do not crash if enableVersioning is not used"
+ },
+ "nestjs/nest#13614": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): prevent exclude method from overwriting previous calls"
+ },
+ "nestjs/nest#13712": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): when using forward references on `exports` array"
+ },
+ "nestjs/nest#13762": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): unhandled promise rejection in interceptors consumer"
+ },
+ "nestjs/nest#13804": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): dependencies not resolving for transient lazy providers"
+ },
+ "nestjs/nest#13807": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(platform-fastify): search method not declared"
+ },
+ "nestjs/nest#13880": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "microservices: multiple NATS clients created blocking application shutdown"
+ },
+ "nestjs/nest#13883": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(microservices): hold nats client connection promise ref "
+ },
+ "nestjs/nest#13923": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): merge req context with tenant payload in the request instance"
+ },
+ "nestjs/nest#13953": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Durable providers are unable to recover from errors being thrown"
+ },
+ "nestjs/nest#14017": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(fastify): uppercase http method names"
+ },
+ "nestjs/nest#14059": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(microservices): include discarded rmq client options"
+ },
+ "nestjs/nest#14079": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "When using the MqttClient Proxy in MQTT 5.0, we must call the setProperties() to emit message"
+ },
+ "nestjs/nest#14085": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): initialize internal core module on preview"
+ },
+ "nestjs/nest#14094": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Streamed messages missed when using grpc client streaming with async guards"
+ },
+ "nestjs/nest#14132": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(microservices): no messages emitted with mqtt when qos set"
+ },
+ "nestjs/nest#14133": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(core): flaky durable provider, remove instance on error "
+ },
+ "nestjs/nest#14163": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(microservices): grpc client streaming bugs"
+ },
+ "nestjs/nest#14175": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(common,core): align the logic of optional provider"
+ },
+ "nestjs/nest#14181": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(common): fallback to empty string for enums when validating (swc builder)"
+ },
+ "nestjs/nest#14185": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(websockets): Prevent HTTP server early close in Socket.IO shutdown"
+ },
+ "nestjs/nest#14204": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(websockets): ensure non-shared servers call close method"
+ },
+ "nestjs/nest#14241": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(common): enforce string type in validationpipe"
+ },
+ "nestjs/nest#9809": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "feat(core): middleware runs once for matching route"
+ },
+ "pallets/flask#104": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "send_file in flask 0.6 issues"
+ },
+ "pallets/flask#1288": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "app.add_url_rule() should look for OPTIONS methods in a case-insensitive manner"
+ },
+ "pallets/flask#1348": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "sessions not saved when streaming"
+ },
+ "pallets/flask#1477": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Remove Blueprint.view_functions"
+ },
+ "pallets/flask#148": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Allow custom TestClient"
+ },
+ "pallets/flask#1538": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Moved open_session call from RequestContext.push to wsgi_app"
+ },
+ "pallets/flask#164": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Wrong \"Date\" http header, breaks clientside caching for static files, lots of 304 responses"
+ },
+ "pallets/flask#174": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "after_request behavior regarding exceptions"
+ },
+ "pallets/flask#1806": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Forward ported CLI tests from Flask-CLI and fixed a bug with the CLI's name."
+ },
+ "pallets/flask#1809": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "flask.Flask.register_blueprint is poorly documented"
+ },
+ "pallets/flask#1872": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Clitest update"
+ },
+ "pallets/flask#1910": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Enable template auto-reloading in app.run()"
+ },
+ "pallets/flask#2003": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix error in send_file helper"
+ },
+ "pallets/flask#2007": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Prevent setting `SERVER_NAME` and `SESSION_COOKIE_DOMAIN` to an IP address"
+ },
+ "pallets/flask#2039": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix unbound error"
+ },
+ "pallets/flask#2123": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix config.from_pyfile on Python 3"
+ },
+ "pallets/flask#2208": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Do not swallow exceptions if CLI fails to load"
+ },
+ "pallets/flask#224": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Docs should mention that url_for() skips query string args with value=None"
+ },
+ "pallets/flask#2267": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Flask error handler caching leads to inconsistent behavior"
+ },
+ "pallets/flask#227": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "get_flashed_messages() always forces session.should_save"
+ },
+ "pallets/flask#2310": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix refactoring error in static_folder docstring"
+ },
+ "pallets/flask#234": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "logging improperly extending directly from Logger class"
+ },
+ "pallets/flask#2345": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Use existing response.vary property to set vary header"
+ },
+ "pallets/flask#2357": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "python -m flask run raises RuntimeWarning"
+ },
+ "pallets/flask#2398": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix variable substitution in error message"
+ },
+ "pallets/flask#258": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Make Tests for bluprints with dotted Names"
+ },
+ "pallets/flask#2711": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Minor session serializer fixes."
+ },
+ "pallets/flask#2736": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "make_response changes breaks custom response class"
+ },
+ "pallets/flask#2748": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix blueprint route for \"\""
+ },
+ "pallets/flask#2789": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "AttributeError: 'module' object has no attribute 'SSLContext'"
+ },
+ "pallets/flask#2825": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fixes issue #2824 flask --version"
+ },
+ "pallets/flask#2827": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Fixed 2823] Checking if .env is file before prompting to install dotenv"
+ },
+ "pallets/flask#2897": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Define reloader extra_files in `flask run` CLI "
+ },
+ "pallets/flask#2935": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "copy_current_request_context copies old session object"
+ },
+ "pallets/flask#2937": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "load_dotenv returns true even if no file exists"
+ },
+ "pallets/flask#294": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Traceback logs not available for POST requests"
+ },
+ "pallets/flask#3054": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix DeprecationWarning on collections import in flask.sessions"
+ },
+ "pallets/flask#3056": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix syntax warning in docstring"
+ },
+ "pallets/flask#310": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Switch to primitive types in the config"
+ },
+ "pallets/flask#3157": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix teardown bug in FlaskClient"
+ },
+ "pallets/flask#3168": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Improve warning about dev server use in production"
+ },
+ "pallets/flask#3207": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Convert make_test_environ_builder into EnvironBuilder subclass"
+ },
+ "pallets/flask#3229": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix style issues on master using Black"
+ },
+ "pallets/flask#3237": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Move python properties to decorator syntax"
+ },
+ "pallets/flask#351": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "session is saved before @after_request callbacks"
+ },
+ "pallets/flask#3560": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Stop change CWD to .env/.flaskenv location"
+ },
+ "pallets/flask#3917": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "update json.dumps for http_date changes"
+ },
+ "pallets/flask#3964": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix wrapped view function comparison"
+ },
+ "pallets/flask#4049": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Use compat fspath instead of os.fspath in static_folder"
+ },
+ "pallets/flask#4152": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "`static_folder` can be a `pathlib.Path` object"
+ },
+ "pallets/flask#4230": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix callback order for nested blueprints"
+ },
+ "pallets/flask#447": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Added content length to xsendfile"
+ },
+ "pallets/flask#4662": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "re-add flag to skip unguarded app.run from CLI"
+ },
+ "pallets/flask#4780": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix misrendered docstring"
+ },
+ "pallets/flask#4921": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Allow pathlib.Path for template_folder"
+ },
+ "pallets/flask#5161": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix use of `importlib.util.find_spec`"
+ },
+ "pallets/flask#5336": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "type hint fix for flask.send_file"
+ },
+ "pallets/flask#5344": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix missing quote in `--key` error message"
+ },
+ "pallets/flask#535": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Add `JSON_ASCII` option to remove unneeded decoding on client side"
+ },
+ "pallets/flask#5389": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix jinja_loader typehint"
+ },
+ "pallets/flask#5393": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix super call in list comprehension"
+ },
+ "pallets/flask#661": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "@app.teardown_request function doesn't called in debug mode [NOT-A-BUG]"
+ },
+ "pallets/flask#725": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Explicitly state that the jsonify method changes on request"
+ },
+ "pallets/flask#81": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Static URL rule not being added on GAE with static_dir handler"
+ },
+ "pallets/flask#815": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "methods argument of Flask.route should be validated at import time"
+ },
+ "pallets/flask#82": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "The after_request handlers should be called in reverse order"
+ },
+ "pallets/flask#879": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "before_app_first_request strange behaviour"
+ },
+ "pallets/flask#88": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "Documentation of server configuration and middleware inclusion"
+ },
+ "pallets/flask#921": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix relative send_from_directory for package apps"
+ },
+ "pallets/flask#930": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix a etags bug when sending a file stream with a name"
+ },
+ "pallets/flask#968": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "GET params discarded by flask test client, when using full url"
+ },
+ "pallets/flask#997": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Clarify the after_request argument"
+ },
+ "prometheus/prometheus#10490": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[ENHANCEMENT] Docker SD: add MatchFirstNetwork for containers with multiple networks"
+ },
+ "prometheus/prometheus#13893": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix AllPostings added twice"
+ },
+ "prometheus/prometheus#13941": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(scaleway-sd): use public IPs if no private IP present"
+ },
+ "prometheus/prometheus#14015": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix `parser.VectorSelector.String()` with empty name matcher"
+ },
+ "prometheus/prometheus#14051": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Merge `release-2.52` back to main"
+ },
+ "prometheus/prometheus#14059": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix FastRegexMatcher matching multibyte runes with dot matcher `.`"
+ },
+ "prometheus/prometheus#14064": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Release PromQL engine resources on close, from tests"
+ },
+ "prometheus/prometheus#14078": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix data corruption in remote write if max_sample_age is applied"
+ },
+ "prometheus/prometheus#14079": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix head stats and hooks when replaying a corrupted snapshot"
+ },
+ "prometheus/prometheus#14116": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(api): Send warnings only if the limit is really exceeded"
+ },
+ "prometheus/prometheus#14273": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix Group.Equals() to take in account the new queryOffset too"
+ },
+ "prometheus/prometheus#14279": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "headIndexReader.LabelNamesFor: skip not found series"
+ },
+ "prometheus/prometheus#14287": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "native histograms: only reduce resolution for exponential histograms"
+ },
+ "prometheus/prometheus#14296": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix `Matcher.String()` with empty label name"
+ },
+ "prometheus/prometheus#14302": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix check context cancellation not incrementing count"
+ },
+ "prometheus/prometheus#14366": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Make rules Manager Update method  no-op after Close"
+ },
+ "prometheus/prometheus#14454": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix decoding buckets for native histograms in binops"
+ },
+ "prometheus/prometheus#14496": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[BUGFIX] Storage: errors from a single secondary querier should be warnings. "
+ },
+ "prometheus/prometheus#14513": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Native histograms: fix spurios counter reset when merging recoded chunk to normal chunk"
+ },
+ "prometheus/prometheus#14517": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix relabel.Regexp zero value marshalling"
+ },
+ "prometheus/prometheus#14598": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix: panic: runtime error: index out of range [4] with length 4"
+ },
+ "prometheus/prometheus#14605": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix histogram pool poisoning bug chunkenc.Iterator"
+ },
+ "prometheus/prometheus#14613": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix appendable: check whether last val was a histogram"
+ },
+ "prometheus/prometheus#14629": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix ToEncodedChunks minT for recoded chunks"
+ },
+ "prometheus/prometheus#14693": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[BUGFIX] TSDB: Fix query overlapping in-order and ooo head "
+ },
+ "prometheus/prometheus#14714": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix ooo ChunkOrIterableWithCopy"
+ },
+ "prometheus/prometheus#14716": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "remote-write: Return 4xx when request contains a timeseries with duplicate labels."
+ },
+ "prometheus/prometheus#14727": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(utf8): fix config logic for name validation"
+ },
+ "prometheus/prometheus#14736": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(utf8): ensure correct validation when legacy mode turned on"
+ },
+ "prometheus/prometheus#14738": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[CHANGE] No longer ingest OM _created as timeseries if feature-flag 'created-timestamp-zero-ingestion' is enabled; fixed OM text CT conversion bug"
+ },
+ "prometheus/prometheus#14766": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix bug with metadata for rw2"
+ },
+ "prometheus/prometheus#14772": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix: chunkenc.MockSeriesIterator"
+ },
+ "prometheus/prometheus#14809": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix: check ct ingestion before calling p.CreatedTimestamp"
+ },
+ "prometheus/prometheus#14810": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[BUGFIX] Protobuf scraping: reset exemplar position"
+ },
+ "prometheus/prometheus#14854": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(bstream/writeByte): ensure it appends only one byte"
+ },
+ "prometheus/prometheus#14861": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "promql.Engine.Close: No-op if nil"
+ },
+ "prometheus/prometheus#14874": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "BUGFIX: TSDB: panic in chunk querier"
+ },
+ "prometheus/prometheus#14880": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(utf8): propagate validationScheme config to scraping options"
+ },
+ "prometheus/prometheus#14941": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix stddev/stdvar when aggregating histograms, NaNs, and infinities"
+ },
+ "prometheus/prometheus#14949": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "refac: make typeRequiresCT private"
+ },
+ "prometheus/prometheus#14965": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[BUGFIX] Scraping: Naive fixes and optimzations for `CreatedTimestamp` function"
+ },
+ "prometheus/prometheus#14985": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Release 2.55] [BUGFIX] PromQL: make sort_by_label stable"
+ },
+ "prometheus/prometheus#15141": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix `MemPostings.Add` and `MemPostings.Get` data race"
+ },
+ "prometheus/prometheus#15142": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "bugfix: data race in head.Appender.AppendHistogram and Commit"
+ },
+ "prometheus/prometheus#15209": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(nhcb): do not return nhcb from parse if exponential is present"
+ },
+ "prometheus/prometheus#15218": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(nhcb): created timestamp fails when keeping classic histograms"
+ },
+ "prometheus/prometheus#15250": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix round function not honoring delayed name removal flag"
+ },
+ "prometheus/prometheus#15251": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "bugfix: Fix otlp translator switching colons to underscores in suffix adding mode"
+ },
+ "prometheus/prometheus#15322": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[BUGFIX] TSDB: Fix race on stale values in headAppender"
+ },
+ "prometheus/prometheus#15356": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "rules.NewGroup: Fix when no logger is passed"
+ },
+ "prometheus/prometheus#15357": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "scrape: stop erroring on empty scrapes"
+ },
+ "prometheus/prometheus#15389": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[BUGFIX] TSDB: Fix race on stale values in headAppender (#15322)"
+ },
+ "prometheus/prometheus#15399": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Add support for utf8 names on /v1/label/:name/values endpoint"
+ },
+ "prometheus/prometheus#15403": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[TESTS] Remote-Write: Fix BenchmarkStartup"
+ },
+ "prometheus/prometheus#15413": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "promql: fix issues with comparison binary operations with `bool` modifier and native histograms"
+ },
+ "prometheus/prometheus#15432": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[BUGFIX] PromQL: Fix behaviour of some aggregations with histograms"
+ },
+ "prometheus/prometheus#15434": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix!: stop unbounded memory usage from query log"
+ },
+ "prometheus/prometheus#15438": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix promtool analyze block shows metric name with 0 cardinality"
+ },
+ "prometheus/prometheus#15469": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[BUGFIX] PromQL: Fix behaviour of `changes()` for mix of histograms and floats"
+ },
+ "prometheus/prometheus#15489": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "hot reload always_scrape_classic_histograms and convert_classic_histo\u2026"
+ },
+ "prometheus/prometheus#15560": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[BUGFIX] `RuleDependencyController`: Fix for indeterminate conditions"
+ },
+ "prometheus/prometheus#15562": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "fix(deduper): use ptr to sync.RWMutex, fix panic during concurrent use"
+ },
+ "prometheus/prometheus#15684": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "Fix bug in `lbl!~\".+\"` postings for matchers shortcut"
+ },
+ "prometheus/prometheus#7406": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "How to use Prometheus EC2 SD with Multiple AWS EC2 interfaces"
+ },
+ "symfony/symfony#56868": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Serializer] fixed object normalizer for a class with `cancel` method"
+ },
+ "symfony/symfony#58518": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[FrameworkBundle] Fix `NullStore` registration"
+ },
+ "symfony/symfony#58562": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[HttpClient] Close gracefull when the server closes the connection abruptly"
+ },
+ "symfony/symfony#58601": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[RateLimiter] Fix bucket size reduced when previously created with bigger size"
+ },
+ "symfony/symfony#58615": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Validator] [Choice] Fix callback option if not array returned"
+ },
+ "symfony/symfony#58617": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[DependencyInjection] Fix replacing abstract arguments with bindings"
+ },
+ "symfony/symfony#58631": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[DependencyInjection] Fix parsing nested AutowireInline attributes"
+ },
+ "symfony/symfony#58638": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[FrameworkBundle] fix null store handling in XML configs"
+ },
+ "symfony/symfony#58658": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Notifier] [Twitter] Fix post INIT upload"
+ },
+ "symfony/symfony#58659": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[AssetMapper] Fix `JavaScriptImportPathCompiler` regex for non-latin characters"
+ },
+ "symfony/symfony#58670": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[TwigBridge] fix merge"
+ },
+ "symfony/symfony#58700": {
+  "is_pr": false,
+  "state": "closed",
+  "title": "HttpClientDataCollector fails if proc_open is disabled via php.ini"
+ },
+ "symfony/symfony#58704": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[HttpClient] fix for HttpClientDataCollector fails if proc_open is disabled via php.ini"
+ },
+ "symfony/symfony#58711": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Process] Fix handling empty path found in the PATH env var with ExecutableFinder"
+ },
+ "symfony/symfony#58712": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[HttpFoundation] Fix support for `\\SplTempFileObject` in `BinaryFileResponse`"
+ },
+ "symfony/symfony#58752": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Process] Fix escaping /X arguments on Windows"
+ },
+ "symfony/symfony#58753": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Cache] Fix clear() when using Predis"
+ },
+ "symfony/symfony#58757": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[RateLimiter] Fix DateInterval normalization"
+ },
+ "symfony/symfony#58763": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Messenger][RateLimiter] fix additional message handled when using a rate limiter"
+ },
+ "symfony/symfony#58772": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[DoctrineBridge] Backport detection fix of Xml/Yaml driver in DoctrineExtension"
+ },
+ "symfony/symfony#58800": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[PropertyInfo] fix support for phpstan/phpdoc-parser 2"
+ },
+ "symfony/symfony#58804": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Serializer][TypeInfo] fix support for phpstan/phpdoc-parser 2"
+ },
+ "symfony/symfony#58822": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[DependencyInjection] Fix checking for interfaces in ContainerBuilder::getReflectionClass()"
+ },
+ "symfony/symfony#58823": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[TwigBridge] Fix emojify as function in Undefined Handler"
+ },
+ "symfony/symfony#58828": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[PhpUnitBridge] fix dumping tests to skip with data providers"
+ },
+ "symfony/symfony#58842": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Routing] Fix: lost priority when defining hosts in configuration"
+ },
+ "symfony/symfony#58850": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[HttpClient] fix PHP 7.2 compatibility"
+ },
+ "symfony/symfony#58860": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[HttpClient] Fix catching some invalid Location headers"
+ },
+ "symfony/symfony#58862": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Notifier] Fix GoIpTransport"
+ },
+ "symfony/symfony#58866": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Validator] fix compatibility with PHP < 8.2.4"
+ },
+ "symfony/symfony#58867": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Messenger] fix version check to include dev versions"
+ },
+ "symfony/symfony#58917": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[OptionsResolver] Allow Union/Intersection Types in Resolved Closures"
+ },
+ "symfony/symfony#58924": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[HttpClient] Fix empty hosts in option \"resolve\""
+ },
+ "symfony/symfony#58931": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "CS: apply minor indentation fixes"
+ },
+ "symfony/symfony#58949": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[HttpClient] resolve IPv6 addresses with amphp/http-client 5"
+ },
+ "symfony/symfony#58953": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[HttpClient] Fix computing stats for PUSH with Amp"
+ },
+ "symfony/symfony#58956": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[DoctrineBridge] Fix `Connection::createSchemaManager()` for Doctrine DBAL v2"
+ },
+ "symfony/symfony#58963": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[PropertyInfo] Fix write visibility for Asymmetric Visibility and Virtual Properties"
+ },
+ "symfony/symfony#58983": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Translation] [Bridge][Lokalise] Fix empty keys array in PUT, DELETE requests causing Lokalise API error"
+ },
+ "symfony/symfony#58992": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[HttpClient] fix amphp/http-client 5 support"
+ },
+ "symfony/symfony#59012": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[PropertyInfo] Fix interface handling in `PhpStanTypeHelper`"
+ },
+ "symfony/symfony#59013": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[HttpClient] Fix checking for private IPs before connecting"
+ },
+ "symfony/symfony#59023": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[HttpClient] Fix streaming and redirecting with NoPrivateNetworkHttpClient"
+ },
+ "symfony/symfony#59066": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[TypeInfo] Fix resolve enum in string type resolver"
+ },
+ "symfony/symfony#59069": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Console] Fix division by 0 error"
+ },
+ "symfony/symfony#59099": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Mailer] [sendgrid-mailer] Fix null check on region"
+ },
+ "symfony/symfony#59122": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Notifier] fix desktop channel bus abstract arg"
+ },
+ "symfony/symfony#59124": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[FrameworkBundle] fix: notifier push channel bus abstract arg"
+ },
+ "symfony/symfony#59271": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[TypeInfo] Fix PHPDoc resolving of union with mixed"
+ },
+ "symfony/symfony#59318": {
+  "is_pr": true,
+  "state": "closed",
+  "title": "[Finder] Fix using `==` as default operator in `DateComparator`"
+ }
+}

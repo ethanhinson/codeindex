@@ -1,0 +1,381 @@
+{
+ "header": {
+  "experiment": "v8-search-concept",
+  "generated_seed": 4242,
+  "repo_pins": {
+   "gin": {
+    "path": "bench/repos/gin"
+   },
+   "laravel-framework": {
+    "path": "bench/repos/laravel-framework"
+   }
+  },
+  "model": "claude-sonnet-4-6",
+  "thresholds": {
+   "metric": "success (any accept symbol named in SYMBOLS section, word-boundary) + median paired total_cost_usd delta",
+   "green": "success_delta >= +15pp AND median paired cost delta <= +10% AND arm-B adoption >= 70%",
+   "yellow": "success_delta >= +15pp with cost delta <= +30%; OR success_delta in [0,+15) with savings >= 20%; adoption >= 40%",
+   "red": "otherwise (any success regression, or adoption < 40%)"
+  },
+  "n_tasks": 24,
+  "reps": 2,
+  "registered_before_any_run": true,
+  "known_bias_disclosed": "tasks come from the same frozen fixtures the retrieval pipeline was tuned on (curated-x2). This inflates arm-B RETRIEVAL quality vs unseen questions; the experiment measures AGENT-level utility (cost/success), which retrieval tuning does not automatically confer. A held-out-question replication is the follow-up if GREEN."
+ },
+ "tasks": [
+  {
+   "id": "concept-gin-79045",
+   "type": "concept",
+   "repo": "gin",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"group several routes under a common url prefix\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "Group",
+     "RouterGroup.Group"
+    ],
+    "question": "group several routes under a common url prefix"
+   }
+  },
+  {
+   "id": "concept-gin-99073",
+   "type": "concept",
+   "repo": "gin",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"bind the incoming json request body onto a struct\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "ShouldBindJSON",
+     "BindJSON",
+     "ShouldBind",
+     "ShouldBindWith",
+     "MustBindWith",
+     "Context.ShouldBindJSON",
+     "Context.BindJSON"
+    ],
+    "question": "bind the incoming json request body onto a struct"
+   }
+  },
+  {
+   "id": "concept-gin-43759",
+   "type": "concept",
+   "repo": "gin",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"read the raw request body bytes\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "GetRawData",
+     "Context.GetRawData"
+    ],
+    "question": "read the raw request body bytes"
+   }
+  },
+  {
+   "id": "concept-gin-18669",
+   "type": "concept",
+   "repo": "gin",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"re-enter the router to handle a rewritten request internally\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "HandleContext",
+     "Engine.HandleContext"
+    ],
+    "question": "re-enter the router to handle a rewritten request internally"
+   }
+  },
+  {
+   "id": "concept-gin-91475",
+   "type": "concept",
+   "repo": "gin",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"stop processing the request from inside middleware\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "Abort",
+     "AbortWithStatus",
+     "AbortWithStatusJSON",
+     "AbortWithError",
+     "Context.Abort"
+    ],
+    "question": "stop processing the request from inside middleware"
+   }
+  },
+  {
+   "id": "concept-gin-34042",
+   "type": "concept",
+   "repo": "gin",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"serve a single file when a route is hit\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "File",
+     "Context.File",
+     "StaticFile",
+     "FileAttachment"
+    ],
+    "question": "serve a single file when a route is hit"
+   }
+  },
+  {
+   "id": "concept-gin-80082",
+   "type": "concept",
+   "repo": "gin",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"force the connection to download the response as a named file\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "FileAttachment",
+     "Context.FileAttachment"
+    ],
+    "question": "force the connection to download the response as a named file"
+   }
+  },
+  {
+   "id": "concept-gin-81547",
+   "type": "concept",
+   "repo": "gin",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"figure out the real client ip address behind proxies\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "ClientIP",
+     "RemoteIP",
+     "Context.ClientIP",
+     "Context.RemoteIP"
+    ],
+    "question": "figure out the real client ip address behind proxies"
+   }
+  },
+  {
+   "id": "concept-gin-53328",
+   "type": "concept",
+   "repo": "gin",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"bind uri path parameters onto struct fields\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "ShouldBindUri",
+     "BindUri",
+     "Context.ShouldBindUri",
+     "Context.BindUri"
+    ],
+    "question": "bind uri path parameters onto struct fields"
+   }
+  },
+  {
+   "id": "concept-gin-38056",
+   "type": "concept",
+   "repo": "gin",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"set a cookie on the http response\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "SetCookie",
+     "Context.SetCookie"
+    ],
+    "question": "set a cookie on the http response"
+   }
+  },
+  {
+   "id": "concept-gin-83040",
+   "type": "concept",
+   "repo": "gin",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"how the radix tree matches an incoming url to a registered route\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "getValue",
+     "addRoute",
+     "node.getValue",
+     "node.addRoute",
+     "findCaseInsensitivePath"
+    ],
+    "question": "how the radix tree matches an incoming url to a registered route"
+   }
+  },
+  {
+   "id": "concept-gin-14570",
+   "type": "concept",
+   "repo": "gin",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"log each request with latency and status to the console\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "Logger",
+     "LoggerWithConfig",
+     "LoggerWithFormatter",
+     "LoggerWithWriter"
+    ],
+    "question": "log each request with latency and status to the console"
+   }
+  },
+  {
+   "id": "concept-lar-30352",
+   "type": "concept",
+   "repo": "laravel-framework",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"define the columns of a new database table\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "Blueprint",
+     "Builder.create",
+     "Blueprint.build"
+    ],
+    "question": "define the columns of a new database table"
+   }
+  },
+  {
+   "id": "concept-lar-96750",
+   "type": "concept",
+   "repo": "laravel-framework",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"bind an implementation into the service container and resolve it\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "Container.bind",
+     "Container.make",
+     "Container.resolve",
+     "Container.singleton"
+    ],
+    "question": "bind an implementation into the service container and resolve it"
+   }
+  },
+  {
+   "id": "concept-lar-83973",
+   "type": "concept",
+   "repo": "laravel-framework",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"paginate query results into pages\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "paginate",
+     "Paginator",
+     "LengthAwarePaginator",
+     "CursorPaginator",
+     "Builder.paginate"
+    ],
+    "question": "paginate query results into pages"
+   }
+  },
+  {
+   "id": "concept-lar-62999",
+   "type": "concept",
+   "repo": "laravel-framework",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"insert or update rows in a single atomic upsert\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "upsert",
+     "Builder.upsert"
+    ],
+    "question": "insert or update rows in a single atomic upsert"
+   }
+  },
+  {
+   "id": "concept-lar-70279",
+   "type": "concept",
+   "repo": "laravel-framework",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"send an email message\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "Mailer.send",
+     "Mailable",
+     "Mailer",
+     "Mailable.send",
+     "SendQueuedMailable"
+    ],
+    "question": "send an email message"
+   }
+  },
+  {
+   "id": "concept-lar-53982",
+   "type": "concept",
+   "repo": "laravel-framework",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"run several database statements in one transaction\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "transaction",
+     "beginTransaction",
+     "ManagesTransactions"
+    ],
+    "question": "run several database statements in one transaction"
+   }
+  },
+  {
+   "id": "concept-lar-87990",
+   "type": "concept",
+   "repo": "laravel-framework",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"define accessors and mutators for model attributes\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "Attribute",
+     "castAttribute",
+     "HasAttributes.castAttribute",
+     "mutateAttribute",
+     "HasAttributes.mutateAttribute",
+     "Attribute.make"
+    ],
+    "question": "define accessors and mutators for model attributes"
+   }
+  },
+  {
+   "id": "concept-lar-92306",
+   "type": "concept",
+   "repo": "laravel-framework",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"define a custom artisan console command\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "Command",
+     "GeneratorCommand",
+     "Command.execute"
+    ],
+    "question": "define a custom artisan console command"
+   }
+  },
+  {
+   "id": "concept-lar-39372",
+   "type": "concept",
+   "repo": "laravel-framework",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"cache a computed value and reuse it until it expires\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "remember",
+     "Repository.remember",
+     "rememberForever",
+     "Repository.get"
+    ],
+    "question": "cache a computed value and reuse it until it expires"
+   }
+  },
+  {
+   "id": "concept-lar-75211",
+   "type": "concept",
+   "repo": "laravel-framework",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"schedule recurring console tasks like cron\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "Schedule",
+     "Schedule.command",
+     "ScheduleRunCommand",
+     "Schedule.call"
+    ],
+    "question": "schedule recurring console tasks like cron"
+   }
+  },
+  {
+   "id": "concept-lar-63492",
+   "type": "concept",
+   "repo": "laravel-framework",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"dispatch a batch of jobs and track its progress\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "Batch",
+     "PendingBatch",
+     "BatchRepository",
+     "DatabaseBatchRepository"
+    ],
+    "question": "dispatch a batch of jobs and track its progress"
+   }
+  },
+  {
+   "id": "concept-lar-62332",
+   "type": "concept",
+   "repo": "laravel-framework",
+   "prompt": "In the repository at {REPO_PATH}, locate where the following capability is implemented: \"fire an event and notify its listeners\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names that implement it, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "Dispatcher.dispatch",
+     "Dispatcher.listen",
+     "invokeListeners",
+     "Dispatcher.until"
+    ],
+    "question": "fire an event and notify its listeners"
+   }
+  }
+ ]
+}

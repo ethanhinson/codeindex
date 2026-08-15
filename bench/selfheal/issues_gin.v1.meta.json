@@ -1,0 +1,314 @@
+[
+ {
+  "sha": "8790d08909",
+  "issue": 3236,
+  "is_pr": true,
+  "subject": "fix(uri): query binding bug (#3236)"
+ },
+ {
+  "sha": "2b1da2b0b3",
+  "issue": 3897,
+  "is_pr": true,
+  "subject": "fix(context): make context Value method adhere to Go standards (#3897)"
+ },
+ {
+  "sha": "82bcd6d39b",
+  "issue": 3199,
+  "is_pr": true,
+  "subject": "fix(binding): dereference pointer to struct (#3199)"
+ },
+ {
+  "sha": "86ff4a64c7",
+  "issue": 3759,
+  "is_pr": true,
+  "subject": "fix(header): Allow header according to RFC 7231 (HTTP 405) (#3759)"
+ },
+ {
+  "sha": "3dc1cd6572",
+  "issue": 3819,
+  "is_pr": false,
+  "subject": "fix(binding): binding error while not upload file (#3819) (#3820)"
+ },
+ {
+  "sha": "9f598a31aa",
+  "issue": 3812,
+  "is_pr": true,
+  "subject": "fix(router): catch-all conflicting wildcard (#3812)"
+ },
+ {
+  "sha": "386d244068",
+  "issue": 3502,
+  "is_pr": true,
+  "subject": "fix(tree): correctly expand the capacity of params (#3502)"
+ },
+ {
+  "sha": "44d0dd7092",
+  "issue": 3659,
+  "is_pr": false,
+  "subject": "fix: Add pointer support for url query params (#3659) (#3666)"
+ },
+ {
+  "sha": "2d4bbec941",
+  "issue": 3556,
+  "is_pr": true,
+  "subject": "fix lack of escaping of filename in Content-Disposition (#3556)"
+ },
+ {
+  "sha": "4cee78f538",
+  "issue": 3500,
+  "is_pr": true,
+  "subject": "Fix #3500 Add escape logic for header (#3503)"
+ },
+ {
+  "sha": "7cb151bb4c",
+  "issue": 3397,
+  "is_pr": true,
+  "subject": "fix(context): panic on NegotiateFormat - index out of range (#3397)"
+ },
+ {
+  "sha": "8eb5f832ba",
+  "issue": 3460,
+  "is_pr": true,
+  "subject": "fix(router): tree bug where loop index is not decremented. (#3460)"
+ },
+ {
+  "sha": "41f2669ebc",
+  "issue": 3453,
+  "is_pr": true,
+  "subject": "console logger HTTP status bug fixed and the corresponding unit test added (#3453)"
+ },
+ {
+  "sha": "8b9c55e8b0",
+  "issue": 3227,
+  "is_pr": true,
+  "subject": "fix(route): redirectSlash bug (#3227)"
+ },
+ {
+  "sha": "088cdd74d4",
+  "issue": 3221,
+  "is_pr": true,
+  "subject": "Fix the value of ginSupportMinGoVer constant by semantic (#3221)"
+ },
+ {
+  "sha": "87811a97bd",
+  "issue": 3033,
+  "is_pr": true,
+  "subject": "fix: the trusted proxies should support ipv6 address by default (#3033)"
+ },
+ {
+  "sha": "7d189814cb",
+  "issue": 2983,
+  "is_pr": true,
+  "subject": "fix: wrong when wildcard follows named param (#2983)"
+ },
+ {
+  "sha": "cbdd47a7e1",
+  "issue": 2924,
+  "is_pr": true,
+  "subject": "fix tsr with mixed static and wildcard paths (#2924)"
+ },
+ {
+  "sha": "1c2aa59b20",
+  "issue": 2847,
+  "is_pr": true,
+  "subject": "fix the misplacement of adding slashes (#2847)"
+ },
+ {
+  "sha": "eab47b5423",
+  "issue": 2851,
+  "is_pr": true,
+  "subject": "fix: check obj type in protobufBinding (#2851)"
+ },
+ {
+  "sha": "0a55865c3f",
+  "issue": 2786,
+  "is_pr": false,
+  "subject": "fix #2786 (#2796)"
+ },
+ {
+  "sha": "d4ca9a0fb1",
+  "issue": 2762,
+  "is_pr": false,
+  "subject": "fix #2762 (#2767)"
+ },
+ {
+  "sha": "1d0f938f28",
+  "issue": 2755,
+  "is_pr": true,
+  "subject": "Fix insufficient slice check (#2755)"
+ },
+ {
+  "sha": "2921582d11",
+  "issue": 2706,
+  "is_pr": true,
+  "subject": "Fix conflict between param and exact path (#2706)"
+ },
+ {
+  "sha": "03e5e05ae0",
+  "issue": 2674,
+  "is_pr": false,
+  "subject": "fix: data race with trustedCIDRs (#2674) (#2675)"
+ },
+ {
+  "sha": "b01605bb5b",
+  "issue": 2609,
+  "is_pr": true,
+  "subject": "basic auth: fix timing oracle (#2609)"
+ },
+ {
+  "sha": "f4bc259de3",
+  "issue": 2584,
+  "is_pr": true,
+  "subject": "fix error gin support min Go version (#2584)"
+ },
+ {
+  "sha": "a7a6986d73",
+  "issue": 2528,
+  "is_pr": true,
+  "subject": "fix: print headers without Authorization header on broken pipe (#2528)"
+ },
+ {
+  "sha": "a6e8665e42",
+  "issue": 2366,
+  "is_pr": true,
+  "subject": "fix(tree): reassign fullpath when register new node which the same current node (#2366)"
+ },
+ {
+  "sha": "298ebca691",
+  "issue": 2305,
+  "is_pr": true,
+  "subject": "fix missing initial sync.RWMutex (#2305)"
+ },
+ {
+  "sha": "2ff2b19e14",
+  "issue": 2216,
+  "is_pr": true,
+  "subject": "fix accept incoming network connections (#2216)"
+ },
+ {
+  "sha": "5f56109bcf",
+  "issue": 2209,
+  "is_pr": false,
+  "subject": "Use json marshall in context json to fix breaking new line issue. Fixes #2209 (#2228)"
+ },
+ {
+  "sha": "7c21e04f62",
+  "issue": 2166,
+  "is_pr": true,
+  "subject": "fix maxParams bug (#2166)"
+ },
+ {
+  "sha": "db9174ae0c",
+  "issue": 1942,
+  "is_pr": false,
+  "subject": "fix ignore walking on form mapping (#1942) (#1943)"
+ },
+ {
+  "sha": "393a63f3b0",
+  "issue": 2093,
+  "is_pr": true,
+  "subject": "Fix 'errcheck' linter warnings (#2093)"
+ },
+ {
+  "sha": "b8b2fada5c",
+  "issue": 2051,
+  "is_pr": true,
+  "subject": "fix GetPostFormMap (#2051)"
+ },
+ {
+  "sha": "75b9d2bed7",
+  "issue": 1931,
+  "is_pr": true,
+  "subject": "Attempt to fix PostForm cache bug (#1931)"
+ },
+ {
+  "sha": "4a23c4f7b9",
+  "issue": 1804,
+  "is_pr": false,
+  "subject": "fix #1804 which is caused by calling middleware twice. (#1805)"
+ },
+ {
+  "sha": "2dd3193006",
+  "issue": 391,
+  "is_pr": false,
+  "subject": "Support negotiation wildcards, fix #391 (#1112)"
+ },
+ {
+  "sha": "a768f064d5",
+  "issue": 1760,
+  "is_pr": false,
+  "subject": "fix many redirects (#1760) (#1764)"
+ },
+ {
+  "sha": "4867ff9634",
+  "issue": 1745,
+  "is_pr": true,
+  "subject": "fix Context.Next() - recheck len of handlers every iteration (#1745)"
+ },
+ {
+  "sha": "d8fb18c33b",
+  "issue": 1726,
+  "is_pr": true,
+  "subject": "Fix case of GitHub (#1726)"
+ },
+ {
+  "sha": "49e4b0c60c",
+  "issue": 1718,
+  "is_pr": true,
+  "subject": "fix mapping inner structs with correct tag (#1718)"
+ },
+ {
+  "sha": "7ec82ee894",
+  "issue": 1640,
+  "is_pr": true,
+  "subject": "recovery: fix issue about syscall import on google app engine (#1640)"
+ },
+ {
+  "sha": "37854ee10f",
+  "issue": 1089,
+  "is_pr": false,
+  "subject": "Fix panic stack trace being printed during recovery of broken pipe (#1089) (#1259)"
+ },
+ {
+  "sha": "402ef120e1",
+  "issue": 1571,
+  "is_pr": true,
+  "subject": "fix: fmt output log to os.Stderr (#1571)"
+ },
+ {
+  "sha": "7e64d32269",
+  "issue": 1462,
+  "is_pr": false,
+  "subject": "Attempt to fix #1462 (#1463)"
+ },
+ {
+  "sha": "07cbe116a0",
+  "issue": 1371,
+  "is_pr": true,
+  "subject": "Add and fix the explanation of `HandleContext` (#1371)"
+ },
+ {
+  "sha": "5636afe02d",
+  "issue": 1350,
+  "is_pr": true,
+  "subject": "fix bug, return err when failed binding bool (#1350)"
+ },
+ {
+  "sha": "a712f77d7a",
+  "issue": 1215,
+  "is_pr": true,
+  "subject": "Fix some golint warnings in gin.go (#1215)"
+ },
+ {
+  "sha": "6626358d4f",
+  "issue": 1209,
+  "is_pr": true,
+  "subject": "Fix golint warnings in utils.go (#1209)"
+ },
+ {
+  "sha": "4b54b86272",
+  "issue": 1050,
+  "is_pr": false,
+  "subject": "fix composite literal uses unkeyed fields warnings, #1050 (#1051)"
+ }
+]

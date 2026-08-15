@@ -1,0 +1,310 @@
+{
+ "repo": "vscode",
+ "commit": "fabdb6a30b49f79a7aba0f2ad9df9b399473380f",
+ "split": "issues-heldout",
+ "provenance": "Mined from closed GitHub issues/PRs by bench/selfheal/issues_expand.py (mapping v2 + hygiene fixes a/b/c) on 2026-07-12: fix-ish commit subjects referencing (#N) in the deepened pinned clone (127397 commits, newest-first, 1-4 source files, <=10 symbols); accept sets are tier=0 symbols resolved BY NAME from git hunk-header function context (builtin golang/python/php drivers, custom ts xfuncname) and added definition lines, within the same changed file; comment-only hunks do not attribute; line-span overlap only for hunks with no name context AND files byte-identical to HEAD. Questions are verbatim GitHub issue/PR titles (REST API, cached in .issue_cache.json); titles containing a mapped symbol name (locate-class) or matching the refactor/lint/typo/docstring/style/fmt/cleanup/annotation/spelling substring deny-list were dropped.",
+ "questions": [
+  {
+   "q": "Copilot not working in Remote windows",
+   "accept": [
+    "ChatSetupContext",
+    "ExtensionsWorkbenchService",
+    "ExtensionsWorkbenchService.installFromGallery",
+    "ExtensionManagementService",
+    "ExtensionManagementService.validateAndGetExtensionManagementServersToInstall"
+   ]
+  },
+  {
+   "q": "Add extra type check in `findFiles2` (#235692)",
+   "accept": [
+    "ExtHostWorkspace"
+   ]
+  },
+  {
+   "q": "Ghost Text Gets Stuck In Some Cases",
+   "accept": [
+    "InlineCompletionsController"
+   ]
+  },
+  {
+   "q": "Fix missing responses when transferring messages into chat panel",
+   "accept": [
+    "ChatModel"
+   ]
+  },
+  {
+   "q": "fix: validate chat session ID before trying to create an editing session from it",
+   "accept": [
+    "ChatEditingService"
+   ]
+  },
+  {
+   "q": "Candidate: NB multiselect undo/redo fix",
+   "accept": [
+    "NotebookMultiCursorController",
+    "NotebookMultiCursorController.updateViewModelSelections"
+   ]
+  },
+  {
+   "q": "Fix explorer find rerender error and related issue",
+   "accept": [
+    "ExplorerFindProvider"
+   ]
+  },
+  {
+   "q": "chat - some fixes to setup and quotas",
+   "accept": [
+    "ChatQuotasService",
+    "ChatSetupRequests",
+    "ChatSetupController"
+   ]
+  },
+  {
+   "q": "fix: correct hover for chat editing code block pill with one insertion/deletion",
+   "accept": [
+    "CollapsedCodeBlock"
+   ]
+  },
+  {
+   "q": "fix: don't filter suggested files from Add Files picker",
+   "accept": [
+    "AttachContextAction"
+   ]
+  },
+  {
+   "q": "Fix chat editor overflow",
+   "accept": [
+    "ChatViewPane"
+   ]
+  },
+  {
+   "q": "Fix symbol dnd selection",
+   "accept": [
+    "hookUpSymbolAttachmentDragAndContextMenu"
+   ]
+  },
+  {
+   "q": "fix https://github.com/microsoft/vscode-copilot/issues/11101",
+   "accept": [
+    "ChatEditingModifiedFileEntry"
+   ]
+  },
+  {
+   "q": "fix https://github.com/microsoft/vscode-copilot/issues/10944",
+   "accept": [
+    "InlineChatHintsController"
+   ]
+  },
+  {
+   "q": "fix: update copilot limit reached message in chat quotas service",
+   "accept": [
+    "ChatQuotasService"
+   ]
+  },
+  {
+   "q": "Focus on Webview View command is missing activity bar title in VS Code 1.96 Insiders",
+   "accept": [
+    "ViewsService"
+   ]
+  },
+  {
+   "q": "fix: update chat interaction terminology",
+   "accept": [
+    "ChatQuotasService",
+    "quotaToButtonMessage"
+   ]
+  },
+  {
+   "q": "Fixes for the find widget history",
+   "accept": [
+    "HistoryNavigator",
+    "FindController",
+    "FindWidget",
+    "FindWidgetSearchHistory",
+    "FindWidgetSearchHistory.getOrCreate"
+   ]
+  },
+  {
+   "q": "Unable to dismiss warning message",
+   "accept": [
+    "ExtensionsWorkbenchService"
+   ]
+  },
+  {
+   "q": "walktrhough fixes",
+   "accept": [
+    "moduleToContent",
+    "createCopilotSetupStep"
+   ]
+  },
+  {
+   "q": "Commands tab is empty",
+   "accept": [
+    "CommandsTableRenderer"
+   ]
+  },
+  {
+   "q": "Allowed extensions policy - improve warning message",
+   "accept": [
+    "ExtensionsWorkbenchService"
+   ]
+  },
+  {
+   "q": "testing: fix event listener leak in CR dropdown",
+   "accept": [
+    "TestingExplorerView"
+   ]
+  },
+  {
+   "q": "Fix find history setting change.",
+   "accept": [
+    "EditorFind",
+    "FindWidget"
+   ]
+  },
+  {
+   "q": "fix: allow deselecting related file suggestions in picker",
+   "accept": [
+    "AttachContextAction"
+   ]
+  },
+  {
+   "q": "fix: track notebook editors as valid chat context",
+   "accept": [
+    "AttachContextAction",
+    "ChatEditingSession"
+   ]
+  },
+  {
+   "q": "Display members of a file in explorer",
+   "accept": [
+    "InlineChatHintsController"
+   ]
+  },
+  {
+   "q": "one more reveal fix...",
+   "accept": [
+    "ChatEditorController"
+   ]
+  },
+  {
+   "q": "\"switch to release version\" confusing error message",
+   "accept": [
+    "ExtensionsContributions",
+    "TogglePreReleaseExtensionAction",
+    "InstallAnotherVersionAction"
+   ]
+  },
+  {
+   "q": "fix https://github.com/microsoft/vscode-copilot/issues/10957",
+   "accept": [
+    "_updateSashEnablement"
+   ]
+  },
+  {
+   "q": "Fix chat editing diff updates and improve chat overlay",
+   "accept": [
+    "ChatEditingModifiedFileEntry",
+    "ChatEditingModifiedFileEntry._updateDiffInfoSeq",
+    "ChatEditingModifiedFileEntry._updateDiffInfo",
+    "ChatEditingService"
+   ]
+  },
+  {
+   "q": "Allow List: Using \"Stable\" still allows pre-release versions",
+   "accept": [
+    "AllowedExtensionsService"
+   ]
+  },
+  {
+   "q": "Fix default collapse state for comments",
+   "accept": [
+    "MainThreadCommentThread"
+   ]
+  },
+  {
+   "q": "SCM - fix history graph action bugs",
+   "accept": [
+    "SCMHistoryViewPane"
+   ]
+  },
+  {
+   "q": "move chat to /edit fixes",
+   "accept": [
+    "registerChatTitleActions"
+   ]
+  },
+  {
+   "q": "asorted fixes",
+   "accept": [
+    "registerNewChatActions",
+    "ChatInputPart",
+    "InlineChatHintsController"
+   ]
+  },
+  {
+   "q": "Always display edited md cells in edit mode, fixes to accepting changes",
+   "accept": [
+    "NotebookChatActionsOverlay",
+    "NotebookModelSynchronizer",
+    "NotebookModelSynchronizer.updateTextDocumentModel"
+   ]
+  },
+  {
+   "q": "Git Blame - fix incorrect git blame positioning",
+   "accept": [
+    "DiffEditorWidget",
+    "toLineChanges",
+    "MainThreadTextEditors",
+    "DirtyDiffModelService",
+    "DirtyDiffModel",
+    "DirtyDiffModel._diff",
+    "DirtyDiffWorkbenchController"
+   ]
+  },
+  {
+   "q": "Fix tree for empty children",
+   "accept": [
+    "TreeViewDataProvider",
+    "TreeViewDataProvider.postGetChildren"
+   ]
+  },
+  {
+   "q": "fix https://github.com/microsoft/vscode/issues/235007",
+   "accept": [
+    "EditorBasedInlineChatWidget"
+   ]
+  },
+  {
+   "q": "fix: update list before message",
+   "accept": [
+    "ExtensionsListView"
+   ]
+  },
+  {
+   "q": "fix illegal value for line number error",
+   "accept": [
+    "SessionWholeRange"
+   ]
+  },
+  {
+   "q": "Source controll stucks after pushing changes, button with infinite spinner not hiding",
+   "accept": [
+    "MainThreadSCMProvider",
+    "ExtHostSourceControl"
+   ]
+  },
+  {
+   "q": "Fix error when closing inline chat widgets",
+   "accept": [
+    "ChatWidget"
+   ]
+  },
+  {
+   "q": "Fixes old extensionHost process is not killed immediately after reloading vscode web tab in the browser",
+   "accept": [
+    "BrowserLifecycleService"
+   ]
+  }
+ ]
+}

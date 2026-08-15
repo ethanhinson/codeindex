@@ -1,0 +1,317 @@
+[
+ {
+  "sha": "fabdb6a30b",
+  "issue": 236537,
+  "is_pr": false,
+  "subject": "Copilot not working in Remote windows (fix #236537) (#236552)",
+  "q": "Copilot not working in Remote windows"
+ },
+ {
+  "sha": "42b266171e",
+  "issue": 236267,
+  "is_pr": true,
+  "subject": "Merge pull request #236267 from mjbvz/port-find-fix",
+  "q": "Add extra type check in `findFiles2` (#235692)"
+ },
+ {
+  "sha": "f216365f15",
+  "issue": 235977,
+  "is_pr": false,
+  "subject": "Fixes #235977 (#235982)",
+  "q": "Ghost Text Gets Stuck In Some Cases"
+ },
+ {
+  "sha": "2eae0840a0",
+  "issue": 235584,
+  "is_pr": true,
+  "subject": "Fix missing responses when transferring messages into chat panel (#235584)",
+  "q": "Fix missing responses when transferring messages into chat panel"
+ },
+ {
+  "sha": "9d2d734b37",
+  "issue": 235519,
+  "is_pr": true,
+  "subject": "fix: validate chat session ID before trying to create an editing session from it (#235519)",
+  "q": "fix: validate chat session ID before trying to create an editing session from it"
+ },
+ {
+  "sha": "0b70bdaceb",
+  "issue": 235522,
+  "is_pr": true,
+  "subject": "Candidate: NB multiselect undo/redo fix (#235522)",
+  "q": "Candidate: NB multiselect undo/redo fix"
+ },
+ {
+  "sha": "83c06ce074",
+  "issue": 235491,
+  "is_pr": true,
+  "subject": "Fix explorer find rerender error and related issue (#235491)",
+  "q": "Fix explorer find rerender error and related issue"
+ },
+ {
+  "sha": "c8f53ea748",
+  "issue": 235457,
+  "is_pr": true,
+  "subject": "chat - some fixes to setup and quotas (#235457)",
+  "q": "chat - some fixes to setup and quotas"
+ },
+ {
+  "sha": "9452402131",
+  "issue": 235440,
+  "is_pr": true,
+  "subject": "fix: correct hover for chat editing code block pill with one insertion/deletion (#235440)",
+  "q": "fix: correct hover for chat editing code block pill with one insertion/deletion"
+ },
+ {
+  "sha": "3781e5f084",
+  "issue": 235431,
+  "is_pr": true,
+  "subject": "fix: don't filter suggested files from Add Files picker (#235431)",
+  "q": "fix: don't filter suggested files from Add Files picker"
+ },
+ {
+  "sha": "039b3503ca",
+  "issue": 235212,
+  "is_pr": true,
+  "subject": "Fix chat editor overflow (#235212)",
+  "q": "Fix chat editor overflow"
+ },
+ {
+  "sha": "d8980958a4",
+  "issue": 235332,
+  "is_pr": true,
+  "subject": "Fix symbol dnd selection (#235332)",
+  "q": "Fix symbol dnd selection"
+ },
+ {
+  "sha": "8cbf1e89e9",
+  "issue": 235414,
+  "is_pr": true,
+  "subject": "fix https://github.com/microsoft/vscode-copilot/issues/11101 (#235414)",
+  "q": "fix https://github.com/microsoft/vscode-copilot/issues/11101"
+ },
+ {
+  "sha": "4fc0684586",
+  "issue": 235401,
+  "is_pr": true,
+  "subject": "fix https://github.com/microsoft/vscode-copilot/issues/10944 (#235401)",
+  "q": "fix https://github.com/microsoft/vscode-copilot/issues/10944"
+ },
+ {
+  "sha": "2839b04c08",
+  "issue": 235374,
+  "is_pr": true,
+  "subject": "fix: update copilot limit reached message in chat quotas service (#235374)",
+  "q": "fix: update copilot limit reached message in chat quotas service"
+ },
+ {
+  "sha": "006f1d1c90",
+  "issue": 235220,
+  "is_pr": false,
+  "subject": "Focus on Webview View command is missing activity bar title in VS Code 1.96 Insiders (fix #235220) (#235372)",
+  "q": "Focus on Webview View command is missing activity bar title in VS Code 1.96 Insiders"
+ },
+ {
+  "sha": "c5001f6dd5",
+  "issue": 235369,
+  "is_pr": true,
+  "subject": "fix: update chat interaction terminology (#235369)",
+  "q": "fix: update chat interaction terminology"
+ },
+ {
+  "sha": "5340ddd4ad",
+  "issue": 235228,
+  "is_pr": true,
+  "subject": "Fixes for the find widget history (#235228)",
+  "q": "Fixes for the find widget history"
+ },
+ {
+  "sha": "d4ef5fd316",
+  "issue": 235101,
+  "is_pr": false,
+  "subject": "fix #235101 (#235330)",
+  "q": "Unable to dismiss warning message"
+ },
+ {
+  "sha": "9384fc74b0",
+  "issue": 235329,
+  "is_pr": true,
+  "subject": "walktrhough fixes (#235329)",
+  "q": "walktrhough fixes"
+ },
+ {
+  "sha": "faadd98ba1",
+  "issue": 235265,
+  "is_pr": false,
+  "subject": "fix #235265 (#235319)",
+  "q": "Commands tab is empty"
+ },
+ {
+  "sha": "6a2d2dffd5",
+  "issue": 235127,
+  "is_pr": false,
+  "subject": "fix #235127 (#235311)",
+  "q": "Allowed extensions policy - improve warning message"
+ },
+ {
+  "sha": "4d38b54e5c",
+  "issue": 235305,
+  "is_pr": true,
+  "subject": "testing: fix event listener leak in CR dropdown (#235305)",
+  "q": "testing: fix event listener leak in CR dropdown"
+ },
+ {
+  "sha": "17f9bf1277",
+  "issue": 235304,
+  "is_pr": true,
+  "subject": "Fix find history setting change. (#235304)",
+  "q": "Fix find history setting change."
+ },
+ {
+  "sha": "eeb1c0ff41",
+  "issue": 235302,
+  "is_pr": true,
+  "subject": "fix: allow deselecting related file suggestions in picker (#235302)",
+  "q": "fix: allow deselecting related file suggestions in picker"
+ },
+ {
+  "sha": "a37954c20c",
+  "issue": 235299,
+  "is_pr": true,
+  "subject": "fix: track notebook editors as valid chat context (#235299)",
+  "q": "fix: track notebook editors as valid chat context"
+ },
+ {
+  "sha": "5aa7115522",
+  "issue": 11036,
+  "is_pr": false,
+  "subject": "Fixes microsoft/vscode-copilot#11036 (#235294)",
+  "q": "Display members of a file in explorer"
+ },
+ {
+  "sha": "11413249c0",
+  "issue": 235291,
+  "is_pr": true,
+  "subject": "one more reveal fix... (#235291)",
+  "q": "one more reveal fix..."
+ },
+ {
+  "sha": "89c35ec43d",
+  "issue": 235183,
+  "is_pr": false,
+  "subject": "fix #235183 #235179 (#235287)",
+  "q": "\"switch to release version\" confusing error message"
+ },
+ {
+  "sha": "61856126ef",
+  "issue": 235258,
+  "is_pr": true,
+  "subject": "fix https://github.com/microsoft/vscode-copilot/issues/10957 (#235258)",
+  "q": "fix https://github.com/microsoft/vscode-copilot/issues/10957"
+ },
+ {
+  "sha": "312b68b342",
+  "issue": 235257,
+  "is_pr": true,
+  "subject": "Fix chat editing diff updates and improve chat overlay (#235257)",
+  "q": "Fix chat editing diff updates and improve chat overlay"
+ },
+ {
+  "sha": "e144e63816",
+  "issue": 235104,
+  "is_pr": false,
+  "subject": "fix #235104 (#235252)",
+  "q": "Allow List: Using \"Stable\" still allows pre-release versions"
+ },
+ {
+  "sha": "49cfcb0986",
+  "issue": 235251,
+  "is_pr": true,
+  "subject": "Fix default collapse state for comments (#235251)",
+  "q": "Fix default collapse state for comments"
+ },
+ {
+  "sha": "2fd2083358",
+  "issue": 235249,
+  "is_pr": true,
+  "subject": "SCM - fix history graph action bugs (#235249)",
+  "q": "SCM - fix history graph action bugs"
+ },
+ {
+  "sha": "d8f18c72e4",
+  "issue": 235248,
+  "is_pr": true,
+  "subject": "move chat to /edit fixes (#235248)",
+  "q": "move chat to /edit fixes"
+ },
+ {
+  "sha": "0e2d7ef9dc",
+  "issue": 235242,
+  "is_pr": true,
+  "subject": "asorted fixes (#235242)",
+  "q": "asorted fixes"
+ },
+ {
+  "sha": "1f38aa505c",
+  "issue": 235225,
+  "is_pr": true,
+  "subject": "Always display edited md cells in edit mode, fixes to accepting changes (#235225)",
+  "q": "Always display edited md cells in edit mode, fixes to accepting changes"
+ },
+ {
+  "sha": "1b94e9c10b",
+  "issue": 235207,
+  "is_pr": true,
+  "subject": "Git Blame - fix incorrect git blame positioning (#235207)",
+  "q": "Git Blame - fix incorrect git blame positioning"
+ },
+ {
+  "sha": "6019edf7d1",
+  "issue": 235121,
+  "is_pr": true,
+  "subject": "Fix tree for empty children (#235121)",
+  "q": "Fix tree for empty children"
+ },
+ {
+  "sha": "3999521f45",
+  "issue": 235011,
+  "is_pr": true,
+  "subject": "fix https://github.com/microsoft/vscode/issues/235007 (#235011)",
+  "q": "fix https://github.com/microsoft/vscode/issues/235007"
+ },
+ {
+  "sha": "83a9ada334",
+  "issue": 234991,
+  "is_pr": true,
+  "subject": "fix: update list before message (#234991)",
+  "q": "fix: update list before message"
+ },
+ {
+  "sha": "bfe98d2e6e",
+  "issue": 234913,
+  "is_pr": true,
+  "subject": "fix illegal value for line number error (#234913)",
+  "q": "fix illegal value for line number error"
+ },
+ {
+  "sha": "d6927564ee",
+  "issue": 231108,
+  "is_pr": false,
+  "subject": "Git - fix action button regression (#231108) (#234967)",
+  "q": "Source controll stucks after pushing changes, button with infinite spinner not hiding"
+ },
+ {
+  "sha": "5fe8e27136",
+  "issue": 234950,
+  "is_pr": true,
+  "subject": "Fix error when closing inline chat widgets (#234950)",
+  "q": "Fix error when closing inline chat widgets"
+ },
+ {
+  "sha": "30b132d696",
+  "issue": 234944,
+  "is_pr": true,
+  "subject": "Fixes old extensionHost process is not killed immediately after reloading vscode web tab in the browser (#234944)",
+  "q": "Fixes old extensionHost process is not killed immediately after reloading vscode web tab in the browser"
+ }
+]

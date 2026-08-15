@@ -1,0 +1,276 @@
+{
+ "repo": "flask",
+ "commit": "ab8149664182b662453a563161aa89013c806dc9",
+ "split": "issues-closed",
+ "provenance": "Mined from closed GitHub issues/PRs by bench/selfheal/issues_expand.py (mapping v2 + hygiene fixes a/b/c) on 2026-07-12: fix-ish commit subjects referencing (#N) in the deepened pinned clone (5375 commits, newest-first, 1-4 source files, <=10 symbols); accept sets are tier=0 symbols resolved BY NAME from git hunk-header function context (builtin golang/python/php drivers, custom ts xfuncname) and added definition lines, within the same changed file; comment-only hunks do not attribute; line-span overlap only for hunks with no name context AND files byte-identical to HEAD. Questions are verbatim GitHub issue/PR titles (REST API, cached in .issue_cache.json); titles containing a mapped symbol name (locate-class) or matching the refactor/lint/typo/docstring/style/fmt/cleanup/annotation/spelling substring deny-list were dropped.",
+ "questions": [
+  {
+   "q": "fix super call in list comprehension",
+   "accept": [
+    "CertParamType.convert",
+    "SeparatedPathType.convert"
+   ]
+  },
+  {
+   "q": "fix missing quote in `--key` error message",
+   "accept": [
+    "_validate_key"
+   ]
+  },
+  {
+   "q": "fix use of `importlib.util.find_spec`",
+   "accept": [
+    "get_root_path"
+   ]
+  },
+  {
+   "q": "Allow pathlib.Path for template_folder",
+   "accept": [
+    "Flask.__init__",
+    "Blueprint.__init__"
+   ]
+  },
+  {
+   "q": "Fix callback order for nested blueprints",
+   "accept": [
+    "Flask.update_template_context",
+    "Flask.preprocess_request",
+    "Flask.process_response",
+    "Flask.do_teardown_request"
+   ]
+  },
+  {
+   "q": "`static_folder` can be a `pathlib.Path` object",
+   "accept": [
+    "Flask.__init__",
+    "Blueprint.__init__"
+   ]
+  },
+  {
+   "q": "Stop change CWD to .env/.flaskenv location",
+   "accept": [
+    "load_dotenv"
+   ]
+  },
+  {
+   "q": "Move python properties to decorator syntax",
+   "accept": [
+    "Flask.open_instance_resource",
+    "Flask.make_shell_context",
+    "AppContext.__init__",
+    "RequestContext.__init__"
+   ]
+  },
+  {
+   "q": "Fix teardown bug in FlaskClient",
+   "accept": [
+    "FlaskClient.__exit__"
+   ]
+  },
+  {
+   "q": "Define reloader extra_files in `flask run` CLI",
+   "accept": [
+    "_validate_key",
+    "run_command"
+   ]
+  },
+  {
+   "q": "Improve warning about dev server use in production",
+   "accept": [
+    "show_server_banner"
+   ]
+  },
+  {
+   "q": "Fixes issue #2824 flask --version",
+   "accept": [
+    "get_version"
+   ]
+  },
+  {
+   "q": "Fix DeprecationWarning on collections import in flask.sessions",
+   "accept": [
+    "SessionMixin"
+   ]
+  },
+  {
+   "q": "[Fixed 2823] Checking if .env is file before prompting to install dotenv",
+   "accept": [
+    "load_dotenv"
+   ]
+  },
+  {
+   "q": "AttributeError: 'module' object has no attribute 'SSLContext'",
+   "accept": [
+    "CertParamType.convert",
+    "SeparatedPathType.convert",
+    "_validate_key"
+   ]
+  },
+  {
+   "q": "Fix blueprint route for \"\"",
+   "accept": [
+    "Blueprint.__init__"
+   ]
+  },
+  {
+   "q": "Minor session serializer fixes.",
+   "accept": [
+    "JSONTag.to_python",
+    "TagDict.to_python",
+    "TagTuple.to_python",
+    "TagBytes.to_python",
+    "TagMarkup.to_python",
+    "TagUUID.to_python",
+    "TagDateTime.to_python",
+    "JSONTag.__init__",
+    "TaggedJSONSerializer.__init__",
+    "TaggedJSONSerializer.register"
+   ]
+  },
+  {
+   "q": "fix variable substitution in error message",
+   "accept": [
+    "locate_app"
+   ]
+  },
+  {
+   "q": "python -m flask run raises RuntimeWarning",
+   "accept": [
+    "main"
+   ]
+  },
+  {
+   "q": "sessions not saved when streaming",
+   "accept": [
+    "AppContext.push",
+    "RequestContext.push"
+   ]
+  },
+  {
+   "q": "Use existing response.vary property to set vary header",
+   "accept": [
+    "SessionInterface.save_session",
+    "SecureCookieSessionInterface.save_session"
+   ]
+  },
+  {
+   "q": "Prevent setting `SERVER_NAME` and `SESSION_COOKIE_DOMAIN` to an IP address",
+   "accept": [
+    "SessionInterface.save_session",
+    "SecureCookieSessionInterface.save_session"
+   ]
+  },
+  {
+   "q": "Do not swallow exceptions if CLI fails to load",
+   "accept": [
+    "FlaskGroup.list_commands"
+   ]
+  },
+  {
+   "q": "Forward ported CLI tests from Flask-CLI and fixed a bug with the CLI's name.",
+   "accept": [
+    "Flask.__init__"
+   ]
+  },
+  {
+   "q": "Remove Blueprint.view_functions",
+   "accept": [
+    "Blueprint.__init__"
+   ]
+  },
+  {
+   "q": "fix a etags bug when sending a file stream with a name",
+   "accept": [
+    "send_file"
+   ]
+  },
+  {
+   "q": "Add `JSON_ASCII` option to remove unneeded decoding on client side",
+   "accept": [
+    "Flask"
+   ]
+  },
+  {
+   "q": "Added content length to xsendfile",
+   "accept": [
+    "send_file"
+   ]
+  },
+  {
+   "q": "session is saved before @after_request callbacks",
+   "accept": [
+    "Flask.process_response"
+   ]
+  },
+  {
+   "q": "Switch to primitive types in the config",
+   "accept": [
+    "Flask"
+   ]
+  },
+  {
+   "q": "Traceback logs not available for POST requests",
+   "accept": [
+    "Flask",
+    "Flask.handle_http_exception",
+    "Flask.handle_user_exception"
+   ]
+  },
+  {
+   "q": "Make Tests for bluprints with dotted Names",
+   "accept": [
+    "Request.blueprint"
+   ]
+  },
+  {
+   "q": "logging improperly extending directly from Logger class",
+   "accept": [
+    "create_logger"
+   ]
+  },
+  {
+   "q": "after_request behavior regarding exceptions",
+   "accept": [
+    "Flask.__init__",
+    "Flask.process_response",
+    "Flask.do_teardown_request",
+    "Flask.wsgi_app"
+   ]
+  },
+  {
+   "q": "Wrong \"Date\" http header, breaks clientside caching for static files, lots of 304 responses",
+   "accept": [
+    "send_file"
+   ]
+  },
+  {
+   "q": "Allow custom TestClient",
+   "accept": [
+    "Flask",
+    "Flask.run",
+    "Flask.test_client"
+   ]
+  },
+  {
+   "q": "Documentation of server configuration and middleware inclusion",
+   "accept": [
+    "Flask.make_response",
+    "Flask.create_url_adapter",
+    "AppContext.__init__",
+    "RequestContext.__init__"
+   ]
+  },
+  {
+   "q": "Static URL rule not being added on GAE with static_dir handler",
+   "accept": [
+    "Flask.__init__"
+   ]
+  },
+  {
+   "q": "The after_request handlers should be called in reverse order",
+   "accept": [
+    "Flask.process_response"
+   ]
+  }
+ ]
+}

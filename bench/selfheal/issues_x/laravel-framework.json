@@ -1,0 +1,410 @@
+{
+ "repo": "laravel-framework",
+ "commit": "5d964a15efc8fffcb175aed3976796c0420bcf99",
+ "split": "issues-closed",
+ "provenance": "Mined from closed GitHub issues/PRs by bench/selfheal/issues_expand.py (mapping v2 + hygiene fixes a/b/c) on 2026-07-12: fix-ish commit subjects referencing (#N) in the deepened pinned clone (34590 commits, newest-first, 1-4 source files, <=10 symbols); accept sets are tier=0 symbols resolved BY NAME from git hunk-header function context (builtin golang/python/php drivers, custom ts xfuncname) and added definition lines, within the same changed file; comment-only hunks do not attribute; line-span overlap only for hunks with no name context AND files byte-identical to HEAD. Questions are verbatim GitHub issue/PR titles (REST API, cached in .issue_cache.json); titles containing a mapped symbol name (locate-class) or matching the refactor/lint/typo/docstring/style/fmt/cleanup/annotation/spelling substring deny-list were dropped.",
+ "questions": [
+  {
+   "q": "fix: Don't set newLineWritten to true unless verbosity allows output",
+   "accept": [
+    "OutputStyle.writeln"
+   ]
+  },
+  {
+   "q": "11.x improve resend transport response handling - fix",
+   "accept": [
+    "ResendTransport.doSend"
+   ]
+  },
+  {
+   "q": "[11.x] Fixes `Illuminate\\Http\\Response` to output empty string if `$content` is set to `null`",
+   "accept": [
+    "Response.__construct",
+    "Response.getContent"
+   ]
+  },
+  {
+   "q": "[11.x] Fix cached health endpoint not working when in maintenance mode",
+   "accept": [
+    "ApplicationBuilder.withRouting",
+    "ApplicationBuilder.buildRoutingCallback"
+   ]
+  },
+  {
+   "q": "Fix: (Queue Worker) firing the JobPopped event when $popCallbacks returns null",
+   "accept": [
+    "Worker.getNextJob"
+   ]
+  },
+  {
+   "q": "[11.x] Fix client path value in file uploads",
+   "accept": [
+    "UploadedFile.createFromBase"
+   ]
+  },
+  {
+   "q": "[11.x] Fix inspecting columns of raw indexes",
+   "accept": [
+    "MySqlProcessor.processIndexes",
+    "PostgresProcessor.processIndexes",
+    "SQLiteProcessor.processIndexes",
+    "SqlServerProcessor.processIndexes"
+   ]
+  },
+  {
+   "q": "[11.x] fix: allows injection using multiple interfaces with the same concrete implementation",
+   "accept": [
+    "ResolvesRouteDependencies.resolveMethodDependencies",
+    "ResolvesRouteDependencies.transformDependency",
+    "ResolvesRouteDependencies.alreadyInParameters"
+   ]
+  },
+  {
+   "q": "[11.x] Fix attribute mutator access in `loadMissing`",
+   "accept": [
+    "Collection.loadMissingRelation"
+   ]
+  },
+  {
+   "q": "Fixed Enum usage in whereHasMorph condition when morph attribute casting",
+   "accept": [
+    "QueriesRelationships.hasMorph"
+   ]
+  },
+  {
+   "q": "[11.x] Fix the RateLimiter issue when using dynamic keys",
+   "accept": [
+    "Limit.fallbackKey"
+   ]
+  },
+  {
+   "q": "[11.x] Fix database reconnecting logic",
+   "accept": [
+    "DatabaseManager.__construct"
+   ]
+  },
+  {
+   "q": "[11.x] Fix `ResendTransport` missing custom headers",
+   "accept": [
+    "ResendTransport.doSend"
+   ]
+  },
+  {
+   "q": "[11.x] Fix `withoutOverlapping` for grouped scheduled closures",
+   "accept": [
+    "Event",
+    "Event.withOutputCallback",
+    "ManagesAttributes",
+    "ManagesAttributes.skip",
+    "ManagesAttributes.name",
+    "ManagesAttributes.description",
+    "PendingEventAttributes.mergeAttributes",
+    "Schedule.job"
+   ]
+  },
+  {
+   "q": "[11.x] Fix `SyntaxError` on Vite prefetch with empty assets",
+   "accept": [
+    "Vite.__invoke"
+   ]
+  },
+  {
+   "q": "[11.x] Fix attribute inheritance for nested scheduled groups",
+   "accept": [
+    "Schedule.__call"
+   ]
+  },
+  {
+   "q": "[11.x] Fix: Improve Request Port Extraction Handling in ServeCommand.php to Prevent Artisan Command Failures",
+   "accept": [
+    "ServeCommand.flushOutputBuffer",
+    "ServeCommand.getDateFromLine",
+    "ServeCommand.getRequestPortFromLine"
+   ]
+  },
+  {
+   "q": "Fix issue where overwriting middleware variable when setting middleware priority",
+   "accept": [
+    "ApplicationBuilder.withMiddleware"
+   ]
+  },
+  {
+   "q": "[11.x] Fix extensions of contextual bindings",
+   "accept": [
+    "Container.resolve"
+   ]
+  },
+  {
+   "q": "[10.x] Fix append and prepend batch to chain",
+   "accept": [
+    "Queueable.prependToChain",
+    "Queueable.appendToChain"
+   ]
+  },
+  {
+   "q": "Fix validation message when there is a parameter with escaped dot \"\\.\"",
+   "accept": [
+    "Validator.replacePlaceholderInString",
+    "Validator.replaceDotPlaceholderInParameters",
+    "Validator.addFailure"
+   ]
+  },
+  {
+   "q": "Fix schema foreign ID support for tables with non-standard primary key",
+   "accept": [
+    "Blueprint.foreignIdFor",
+    "ForeignIdColumnDefinition.__construct",
+    "ForeignIdColumnDefinition.constrained"
+   ]
+  },
+  {
+   "q": "[11.x] Fix fluent syntax for HasManyThrough when combining HasMany followed by HasOne",
+   "accept": [
+    "PendingHasThroughRelationship.has"
+   ]
+  },
+  {
+   "q": "[11.x] Fix error event listener in Vite prefetching",
+   "accept": [
+    "Vite.__invoke"
+   ]
+  },
+  {
+   "q": "[11.x] Fix integrity constraint violation on failed_jobs_uuid_unique",
+   "accept": [
+    "InteractsWithTestCaseLifecycle.tearDownTheTestEnvironment",
+    "WorkCommand",
+    "WorkCommand.listenForEvents",
+    "WorkCommand.outputUsingJson",
+    "WorkCommand.flushState"
+   ]
+  },
+  {
+   "q": "[11.x] Fix `trans_choice()` when translation replacement include `|` separator",
+   "accept": [
+    "Translator.choice"
+   ]
+  },
+  {
+   "q": "[11.x] Fix handling exceptions thrown in eval()'d code",
+   "accept": [
+    "Frame.line",
+    "Frame.snippet"
+   ]
+  },
+  {
+   "q": "[11.x] Fixes handling `Js::from(collect());`",
+   "accept": [
+    "Js.convertDataToJavaScriptExpression"
+   ]
+  },
+  {
+   "q": "[11.x] Fix trim getting discarded in `ViewMakeCommand`",
+   "accept": [
+    "ViewMakeCommand.getNameInput"
+   ]
+  },
+  {
+   "q": "fix: make model command with folder path - factory incorrect import path",
+   "accept": [
+    "ModelMakeCommand.buildFactoryReplacements"
+   ]
+  },
+  {
+   "q": "[11.x] Fix determining pivot timestamp column name(s) when parent relation missing one or both of timestamps",
+   "accept": [
+    "BelongsToMany.createdAt",
+    "BelongsToMany.updatedAt"
+   ]
+  },
+  {
+   "q": "[11.x] Fixes regression with `queue:work` Command",
+   "accept": [
+    "WorkCommand.handle",
+    "WorkCommand.writeOutput",
+    "WorkCommand.downForMaintenance",
+    "WorkCommand.outputUsingJson"
+   ]
+  },
+  {
+   "q": "Symfony\\Component\\Console\\Exception\\InvalidArgumentException",
+   "accept": [
+    "WorkCommand.handle",
+    "WorkCommand.writeOutput"
+   ]
+  },
+  {
+   "q": "[11.x] Fixes `make:model` for Form Requests",
+   "accept": [
+    "ModelMakeCommand.handle",
+    "ModelMakeCommand.createController",
+    "ModelMakeCommand.createFormRequests"
+   ]
+  },
+  {
+   "q": "[11.x] Fixes function loading conflicts when using `@include('vendor/autoload.php')` via Laravel Envoy",
+   "accept": [
+    "defer",
+    "php_binary"
+   ]
+  },
+  {
+   "q": "[11.x] Fixes trust proxy `REMOTE_ADDR` not working in Swoole",
+   "accept": [
+    "TrustProxies.setTrustedProxyIpAddressesToSpecificIps"
+   ]
+  },
+  {
+   "q": "[11.x] Fix make:listener command",
+   "accept": [
+    "ListenerMakeCommand.alreadyExists"
+   ]
+  },
+  {
+   "q": "[11.x] Fix for not automatically registering commands in App\\Console\\Commands",
+   "accept": [
+    "ApplicationBuilder.withCommands"
+   ]
+  },
+  {
+   "q": "[11.x] Using Correct `Concurrency` Configuration Index Name",
+   "accept": [
+    "ConcurrencyManager.getDefaultInstance",
+    "ConcurrencyManager.setDefaultInstance",
+    "ConcurrencyManager.getInstanceConfig"
+   ]
+  },
+  {
+   "q": "[11.x] Fix issue where `$name` variable in non base config file becomes it's key",
+   "accept": [
+    "LoadConfiguration.loadConfigurationFile"
+   ]
+  },
+  {
+   "q": "[11.x] Fixes out of memory issue running `route:cache` with ServeFile",
+   "accept": [
+    "FilesystemServiceProvider.serveFiles"
+   ]
+  },
+  {
+   "q": "Fix arguments passed to artisan commands that start with 'env'",
+   "accept": [
+    "EnvironmentDetector.getEnvironmentArgument"
+   ]
+  },
+  {
+   "q": "[11.x] Fixed attempt to call `Application::routesAreCached()` when application doesn't implements `CachesRoutes` contract.",
+   "accept": [
+    "FilesystemServiceProvider.serveFiles"
+   ]
+  },
+  {
+   "q": "[11.x] Fix etag headers for binary file responses",
+   "accept": [
+    "SetCacheHeaders.handle"
+   ]
+  },
+  {
+   "q": "[11.x] Fix alter table expressions on SQLite",
+   "accept": [
+    "BlueprintState.__construct",
+    "BlueprintState.update"
+   ]
+  },
+  {
+   "q": "Fix Apostrophe Handling in SeeInOrder.php and Enhance Test Coverage",
+   "accept": [
+    "SeeInOrder.matches"
+   ]
+  },
+  {
+   "q": "Potential infinite recursion when executing `schema:dump`",
+   "accept": [
+    "MySqlSchemaState.baseVariables",
+    "MySqlSchemaState.executeDumpProcess"
+   ]
+  },
+  {
+   "q": "[10.x] fix: prevent casting empty string to array from triggering json error",
+   "accept": [
+    "HasAttributes.fromJson"
+   ]
+  },
+  {
+   "q": "[11.x] Fix Http Client Pool requests that have no response",
+   "accept": [
+    "PendingRequest.makePromise"
+   ]
+  },
+  {
+   "q": "[10.x] backport #52204",
+   "accept": [
+    "Request.json"
+   ]
+  },
+  {
+   "q": "[11.x] Fixes through() relationship",
+   "accept": [
+    "PendingHasThroughRelationship.has"
+   ]
+  },
+  {
+   "q": "[11.x] Fully qualify morph columns when using WHERE clauses",
+   "accept": [
+    "QueriesRelationships.whereMorphedTo",
+    "QueriesRelationships.whereNotMorphedTo"
+   ]
+  },
+  {
+   "q": "[11.x] Fix Bcrypt/Argon/Argon2I Hashers not checking database field for nullish value before checking hash compatibility",
+   "accept": [
+    "Argon2IdHasher.check",
+    "ArgonHasher.check",
+    "BcryptHasher.check"
+   ]
+  },
+  {
+   "q": "[10.x] backport #52188",
+   "accept": [
+    "Model.toJson",
+    "JsonResource.toJson"
+   ]
+  },
+  {
+   "q": "[11.x] Fix explicit route binding for broadcast routes",
+   "accept": [
+    "RouteBinding.forModel"
+   ]
+  },
+  {
+   "q": "[11.x] Fix SQLite schema dumps missing most tables",
+   "accept": [
+    "SqliteSchemaState.dump"
+   ]
+  },
+  {
+   "q": "[11.x] Fix 'pushProcessor method not found on LoggerInterface' error",
+   "accept": [
+    "LogManager.get"
+   ]
+  },
+  {
+   "q": "[11.x] Fix SQLite schema dumps containing internal `sqlite_*` objects",
+   "accept": [
+    "SqliteSchemaState.dump"
+   ]
+  },
+  {
+   "q": "[11.x] fix: dont use web middleware on health endpoint",
+   "accept": [
+    "ApplicationBuilder.buildRoutingCallback"
+   ]
+  },
+  {
+   "q": "[10.x] Fix PHP_CLI_SERVER_WORKERS warning by suppressing it",
+   "accept": [
+    "ServeCommand.handleProcessOutput"
+   ]
+  }
+ ]
+}

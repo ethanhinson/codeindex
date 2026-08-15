@@ -1,0 +1,420 @@
+{
+ "repo": "flask",
+ "commit": "ab8149664182b662453a563161aa89013c806dc9",
+ "split": "tuning",
+ "provenance": "Drafted from framework documentation knowledge by claude-fable-5 on 2026-07-11; answers verified against the pinned index via symbol-table existence lookup only (no search runs); frozen before diffusion/contrast mechanisms were measured. | expansion x2, drafted from framework documentation knowledge, verified by symbol-table lookup only, frozen before any measurement, 2026-07-12. Original questions copied verbatim.",
+ "questions": [
+  {
+   "q": "register a url route for a view function",
+   "accept": [
+    "route",
+    "add_url_rule",
+    "Scaffold.route"
+   ]
+  },
+  {
+   "q": "how a request gets dispatched to its view function",
+   "accept": [
+    "dispatch_request",
+    "full_dispatch_request",
+    "wsgi_app",
+    "Flask.dispatch_request",
+    "Flask.full_dispatch_request",
+    "Flask.wsgi_app"
+   ]
+  },
+  {
+   "q": "redirect the user to another page",
+   "accept": [
+    "redirect"
+   ]
+  },
+  {
+   "q": "build the url for an endpoint by name",
+   "accept": [
+    "url_for",
+    "Flask.url_for"
+   ]
+  },
+  {
+   "q": "render an html template with variables",
+   "accept": [
+    "render_template",
+    "render_template_string"
+   ]
+  },
+  {
+   "q": "keep user data across requests in a session",
+   "accept": [
+    "SecureCookieSession",
+    "SecureCookieSessionInterface",
+    "open_session",
+    "save_session",
+    "SessionMixin"
+   ]
+  },
+  {
+   "q": "run a function before every request",
+   "accept": [
+    "before_request",
+    "Scaffold.before_request",
+    "Flask.preprocess_request",
+    "preprocess_request"
+   ]
+  },
+  {
+   "q": "register a handler for a specific http error like 404",
+   "accept": [
+    "errorhandler",
+    "register_error_handler",
+    "handle_http_exception",
+    "Scaffold.errorhandler"
+   ]
+  },
+  {
+   "q": "abort the request with an http error status",
+   "accept": [
+    "abort",
+    "make_aborter"
+   ]
+  },
+  {
+   "q": "flash a one time message shown on the next page",
+   "accept": [
+    "flash",
+    "get_flashed_messages"
+   ]
+  },
+  {
+   "q": "split an application into reusable route groups",
+   "accept": [
+    "Blueprint",
+    "register_blueprint",
+    "BlueprintSetupState"
+   ]
+  },
+  {
+   "q": "safely send a file from a directory as the response",
+   "accept": [
+    "send_file",
+    "send_from_directory"
+   ]
+  },
+  {
+   "q": "return a json response from a view",
+   "accept": [
+    "jsonify",
+    "JSONProvider.response",
+    "DefaultJSONProvider.response"
+   ]
+  },
+  {
+   "q": "load app configuration from an object or file",
+   "accept": [
+    "from_object",
+    "from_pyfile",
+    "from_envvar",
+    "from_prefixed_env",
+    "Config.from_object",
+    "Config.from_pyfile"
+   ]
+  },
+  {
+   "q": "start the built in development server",
+   "accept": [
+    "run",
+    "Flask.run"
+   ]
+  },
+  {
+   "q": "push an application context to use the app outside a request",
+   "accept": [
+    "app_context",
+    "AppContext",
+    "Flask.app_context",
+    "AppContext.push"
+   ]
+  },
+  {
+   "q": "the object that holds request state during handling",
+   "accept": [
+    "RequestContext",
+    "request_context",
+    "Flask.request_context",
+    "RequestContext.push"
+   ]
+  },
+  {
+   "q": "keep the request context alive while streaming a response",
+   "accept": [
+    "stream_with_context"
+   ]
+  },
+  {
+   "q": "modify the response after the view runs",
+   "accept": [
+    "after_request",
+    "process_response",
+    "Scaffold.after_request",
+    "Flask.process_response"
+   ]
+  },
+  {
+   "q": "clean up resources when the request ends",
+   "accept": [
+    "teardown_request",
+    "teardown_appcontext",
+    "do_teardown_request",
+    "do_teardown_appcontext"
+   ]
+  },
+  {
+   "q": "add custom command line commands to the app",
+   "accept": [
+    "AppGroup",
+    "FlaskGroup",
+    "with_appcontext"
+   ]
+  },
+  {
+   "q": "make test requests against the app in unit tests",
+   "accept": [
+    "test_client",
+    "FlaskClient",
+    "Flask.test_client",
+    "EnvironBuilder"
+   ]
+  },
+  {
+   "q": "register a custom filter usable inside templates",
+   "accept": [
+    "template_filter",
+    "add_template_filter"
+   ]
+  },
+  {
+   "q": "automatic response for options requests",
+   "accept": [
+    "make_default_options_response",
+    "Flask.make_default_options_response"
+   ]
+  },
+  {
+   "q": "turn a view's return value into a response object",
+   "accept": [
+    "make_response",
+    "Flask.make_response"
+   ]
+  },
+  {
+   "q": "write view functions as async coroutines",
+   "accept": [
+    "ensure_sync",
+    "async_to_sync",
+    "Flask.ensure_sync",
+    "Flask.async_to_sync"
+   ]
+  },
+  {
+   "q": "keep deployment specific files in the instance folder",
+   "accept": [
+    "open_instance_resource",
+    "auto_find_instance_path",
+    "Flask.open_instance_resource"
+   ]
+  },
+  {
+   "q": "stream a rendered template in chunks instead of all at once",
+   "accept": [
+    "stream_template",
+    "stream_template_string",
+    "generate"
+   ]
+  },
+  {
+   "q": "write class based views with one method per http verb",
+   "accept": [
+    "MethodView",
+    "View",
+    "View.as_view",
+    "as_view",
+    "MethodView.dispatch_request"
+   ]
+  },
+  {
+   "q": "inject variables into the context of every rendered template",
+   "accept": [
+    "context_processor",
+    "Scaffold.context_processor",
+    "update_template_context",
+    "Flask.update_template_context"
+   ]
+  },
+  {
+   "q": "register a global function callable from any template",
+   "accept": [
+    "template_global",
+    "add_template_global",
+    "App.template_global"
+   ]
+  },
+  {
+   "q": "customize how the app serializes json app wide",
+   "accept": [
+    "JSONProvider",
+    "DefaultJSONProvider",
+    "JSONProvider.dumps",
+    "DefaultJSONProvider.dumps"
+   ]
+  },
+  {
+   "q": "how non json types like datetime survive session serialization",
+   "accept": [
+    "TaggedJSONSerializer",
+    "JSONTag",
+    "TagDateTime",
+    "TagTuple"
+   ]
+  },
+  {
+   "q": "invoke the app's cli commands from a test",
+   "accept": [
+    "test_cli_runner",
+    "FlaskCliRunner",
+    "Flask.test_cli_runner",
+    "FlaskCliRunner.invoke"
+   ]
+  },
+  {
+   "q": "preload objects into the flask shell session",
+   "accept": [
+    "shell_context_processor",
+    "make_shell_context",
+    "Flask.make_shell_context",
+    "App.shell_context_processor"
+   ]
+  },
+  {
+   "q": "how the static folder is served for an app or blueprint",
+   "accept": [
+    "send_static_file",
+    "Flask.send_static_file",
+    "static_folder"
+   ]
+  },
+  {
+   "q": "open a data file bundled inside the application package",
+   "accept": [
+    "open_resource",
+    "Flask.open_resource"
+   ]
+  },
+  {
+   "q": "preprocess url values before every view receives them",
+   "accept": [
+    "url_value_preprocessor",
+    "url_defaults",
+    "Scaffold.url_value_preprocessor",
+    "inject_url_defaults"
+   ]
+  },
+  {
+   "q": "how the cli locates and imports the application object",
+   "accept": [
+    "ScriptInfo",
+    "load_app",
+    "find_best_app",
+    "prepare_import",
+    "find_app_by_string",
+    "ScriptInfo.load_app"
+   ]
+  },
+  {
+   "q": "load environment variables from dotenv files at startup",
+   "accept": [
+    "load_dotenv",
+    "get_load_dotenv"
+   ]
+  },
+  {
+   "q": "customize the jinja environment the app creates",
+   "accept": [
+    "create_jinja_environment",
+    "Flask.create_jinja_environment",
+    "App.create_jinja_environment",
+    "Environment",
+    "create_global_jinja_loader"
+   ]
+  },
+  {
+   "q": "decide which templates get autoescaping applied",
+   "accept": [
+    "select_jinja_autoescape",
+    "App.select_jinja_autoescape"
+   ]
+  },
+  {
+   "q": "how the app logger is created and configured",
+   "accept": [
+    "create_logger",
+    "has_level_handler",
+    "wsgi_errors_stream"
+   ]
+  },
+  {
+   "q": "read grouped config keys that share a prefix as a dict",
+   "accept": [
+    "get_namespace",
+    "Config.get_namespace"
+   ]
+  },
+  {
+   "q": "load configuration from a json or toml file with a custom loader",
+   "accept": [
+    "from_file",
+    "Config.from_file"
+   ]
+  },
+  {
+   "q": "register a blueprint inside another blueprint",
+   "accept": [
+    "Blueprint.register_blueprint",
+    "Blueprint.register",
+    "BlueprintSetupState"
+   ]
+  },
+  {
+   "q": "customize what happens when building a url fails",
+   "accept": [
+    "handle_url_build_error",
+    "App.handle_url_build_error"
+   ]
+  },
+  {
+   "q": "control when the session cookie expires and if it is sent",
+   "accept": [
+    "get_expiration_time",
+    "should_set_cookie",
+    "SessionInterface.get_expiration_time",
+    "SessionInterface.should_set_cookie",
+    "permanent"
+   ]
+  },
+  {
+   "q": "register a custom test usable in template conditionals",
+   "accept": [
+    "template_test",
+    "add_template_test",
+    "App.template_test"
+   ]
+  },
+  {
+   "q": "how unhandled exceptions become 500 error responses",
+   "accept": [
+    "handle_exception",
+    "handle_user_exception",
+    "Flask.handle_exception"
+   ]
+  }
+ ]
+}

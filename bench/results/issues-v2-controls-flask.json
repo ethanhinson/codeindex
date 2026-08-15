@@ -1,0 +1,722 @@
+{
+ "repo": "flask",
+ "fixture": "bench/selfheal/issues_flask.json",
+ "commit": "ab8149664182b662453a563161aa89013c806dc9",
+ "n": 30,
+ "find_control": {
+  "hits": 0,
+  "hit_at_5": 0.0
+ },
+ "grep_control": {
+  "hits": 13,
+  "hit_at_5": 43.3
+ },
+ "results": [
+  {
+   "q": "fix super call in list comprehension",
+   "accept": [
+    "SeparatedPathType"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": true,
+    "words": [
+     "comprehension",
+     "super"
+    ],
+    "top": [
+     "SeparatedPathType.convert",
+     "super_reverse",
+     "App.__init__",
+     "Flask.__init__",
+     "Flask.test_client"
+    ]
+   }
+  },
+  {
+   "q": "fix missing quote in `--key` error message",
+   "accept": [
+    "_validate_key"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": false,
+    "words": [
+     "missing",
+     "message"
+    ],
+    "top": [
+     "test_config_missing",
+     "test_config_missing_file",
+     "test_config_from_envvar_missing",
+     "missing_template",
+     "test_missing_session"
+    ]
+   }
+  },
+  {
+   "q": "fix use of `importlib.util.find_spec`",
+   "accept": [
+    "get_root_path"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": true,
+    "words": [
+     "importlib",
+     "find_spec"
+    ],
+    "top": [
+     "__getattr__",
+     "FlaskGroup._load_plugin_commands",
+     "get_version",
+     "_find_package_path",
+     "get_root_path"
+    ]
+   }
+  },
+  {
+   "q": "Allow pathlib.Path for template_folder",
+   "accept": [
+    "Flask",
+    "Blueprint"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": true,
+    "words": [
+     "template_folder",
+     "pathlib"
+    ],
+    "top": [
+     "Scaffold.jinja_loader",
+     "Flask",
+     "Flask.__init__",
+     "Blueprint.__init__",
+     "App"
+    ]
+   }
+  },
+  {
+   "q": "re-add flag to skip unguarded app.run from CLI",
+   "accept": [
+    "Flask",
+    "FlaskGroup"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": true,
+    "words": [
+     "unguarded",
+     "flag"
+    ],
+    "top": [
+     "get_debug_flag",
+     "test_flaskgroup_debug",
+     "TestHelpers.test_get_debug_flag",
+     "ScriptInfo.load_app",
+     "Flask.run"
+    ]
+   }
+  },
+  {
+   "q": "Fix callback order for nested blueprints",
+   "accept": [
+    "Flask"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": false,
+    "words": [
+     "blueprints",
+     "callback"
+    ],
+    "top": [
+     "App.iter_blueprints",
+     "Request.blueprints",
+     "test_cli_blueprints",
+     "Blueprint.register",
+     "App.__init__"
+    ]
+   }
+  },
+  {
+   "q": "`static_folder` can be a `pathlib.Path` object",
+   "accept": [
+    "Flask",
+    "Blueprint"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": true,
+    "words": [
+     "static_folder",
+     "pathlib"
+    ],
+    "top": [
+     "Scaffold.static_folder",
+     "Scaffold.has_static_folder",
+     "test_static_folder_with_pathlib_path",
+     "test_static_folder_with_ending_slash",
+     "Flask.__init__"
+    ]
+   }
+  },
+  {
+   "q": "Fix wrapped view function comparison",
+   "accept": [
+    "Flask"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": true,
+    "words": [
+     "comparison",
+     "function"
+    ],
+    "top": [
+     "my_function_exception_handler",
+     "new_function",
+     "Scaffold.__init__",
+     "Flask.make_response",
+     "find_app_by_string"
+    ]
+   }
+  },
+  {
+   "q": "Stop change CWD to .env/.flaskenv location",
+   "accept": [
+    "load_dotenv"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": true,
+    "words": [
+     "flaskenv",
+     "location"
+    ],
+    "top": [
+     "load_dotenv",
+     "FlaskGroup",
+     "Flask.run",
+     "ScriptInfo.__init__",
+     "test_load_dotenv"
+    ]
+   }
+  },
+  {
+   "q": "Move python properties to decorator syntax",
+   "accept": [
+    "Flask",
+    "RequestContext"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": false,
+    "words": [
+     "properties",
+     "decorator"
+    ],
+    "top": [
+     "SessionInterface",
+     "decorator",
+     "test_endpoint_decorator",
+     "test_route_decorator_custom_endpoint"
+    ]
+   }
+  },
+  {
+   "q": "Define reloader extra_files in `flask run` CLI",
+   "accept": [
+    "_validate_key",
+    "run_command"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": true,
+    "words": [
+     "extra_files",
+     "reloader"
+    ],
+    "top": [
+     "run_command",
+     "Flask.run",
+     "show_server_banner",
+     "test_werkzeug_passthrough_errors"
+    ]
+   }
+  },
+  {
+   "q": "Improve warning about dev server use in production",
+   "accept": [
+    "show_server_banner"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": false,
+    "words": [
+     "production",
+     "Improve"
+    ],
+    "top": [
+     "Flask.run",
+     "run_command",
+     "App.debug"
+    ]
+   }
+  },
+  {
+   "q": "Fixes issue #2824 flask --version",
+   "accept": [
+    "get_version"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": true,
+    "words": [
+     "version",
+     "flask"
+    ],
+    "top": [
+     "get_version",
+     "_get_werkzeug_version",
+     "test_get_version",
+     "App",
+     "send_file"
+    ]
+   }
+  },
+  {
+   "q": "Fix DeprecationWarning on collections import in flask.sessions",
+   "accept": [
+    "SessionMixin"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": false,
+    "words": [
+     "DeprecationWarning",
+     "collections"
+    ],
+    "top": [
+     "__getattr__",
+     "test_no_command_echo_loading_error",
+     "test_help_echo_loading_error",
+     "test_help_echo_exception"
+    ]
+   }
+  },
+  {
+   "q": "[Fixed 2823] Checking if .env is file before prompting to install dotenv",
+   "accept": [
+    "load_dotenv"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": false,
+    "words": [
+     "prompting",
+     "Checking"
+    ],
+    "top": []
+   }
+  },
+  {
+   "q": "AttributeError: 'module' object has no attribute 'SSLContext'",
+   "accept": [
+    "CertParamType",
+    "_validate_key"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": false,
+    "words": [
+     "AttributeError",
+     "SSLContext"
+    ],
+    "top": [
+     "__getattr__",
+     "find_app_by_string",
+     "_AppCtxGlobals.__getattr__",
+     "_AppCtxGlobals.__delattr__",
+     "App"
+    ]
+   }
+  },
+  {
+   "q": "Minor session serializer fixes.",
+   "accept": [
+    "TaggedJSONSerializer",
+    "TaggedJSONSerializer.register"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": true,
+    "words": [
+     "serializer",
+     "session"
+    ],
+    "top": [
+     "JSONTag.__init__",
+     "SecureCookieSessionInterface.get_signing_serializer",
+     "SecureCookieSessionInterface",
+     "TaggedJSONSerializer",
+     "TaggedJSONSerializer.register"
+    ]
+   }
+  },
+  {
+   "q": "fix variable substitution in error message",
+   "accept": [
+    "locate_app"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": false,
+    "words": [
+     "substitution",
+     "variable"
+    ],
+    "top": [
+     "Config.from_envvar",
+     "Flask.run",
+     "Flask.update_template_context",
+     "find_app_by_string",
+     "FlaskGroup"
+    ]
+   }
+  },
+  {
+   "q": "Enable template auto-reloading in app.run()",
+   "accept": [
+    "Flask",
+    "ScriptInfo"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": true,
+    "words": [
+     "reloading",
+     "template"
+    ],
+    "top": [
+     "Flask.run",
+     "run_command",
+     "RequestContext.copy",
+     "Flask.update_template_context",
+     "explain_template_loading_attempts"
+    ]
+   }
+  },
+  {
+   "q": "python -m flask run raises RuntimeWarning",
+   "accept": [
+    "main"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": false,
+    "words": [
+     "RuntimeWarning",
+     "python"
+    ],
+    "top": [
+     "JSONTag.to_python",
+     "TagDict.to_python",
+     "TagTuple.to_python",
+     "TagBytes.to_python",
+     "TagMarkup.to_python"
+    ]
+   }
+  },
+  {
+   "q": "sessions not saved when streaming",
+   "accept": [
+    "RequestContext"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": false,
+    "words": [
+     "streaming",
+     "sessions"
+    ],
+    "top": [
+     "TestStreaming.test_streaming_with_context",
+     "TestStreaming.test_streaming_with_context_as_decorator",
+     "TestStreaming.test_streaming_with_context_and_custom_close",
+     "Flask.make_response",
+     "stream_template"
+    ]
+   }
+  },
+  {
+   "q": "Prevent setting `SERVER_NAME` and `SESSION_COOKIE_DOMAIN` to an IP address",
+   "accept": [
+    "SecureCookieSessionInterface"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": false,
+    "words": [
+     "SESSION_COOKIE_DOMAIN",
+     "SERVER_NAME"
+    ],
+    "top": [
+     "SessionInterface.get_cookie_domain",
+     "Flask",
+     "test_session_using_session_settings",
+     "Flask.create_url_adapter",
+     "Flask.run"
+    ]
+   }
+  },
+  {
+   "q": "Do not swallow exceptions if CLI fails to load",
+   "accept": [
+    "FlaskGroup"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": false,
+    "words": [
+     "exceptions",
+     "swallow"
+    ],
+    "top": [
+     "test_trapping_of_all_http_exceptions",
+     "MyAborter",
+     "My900Error",
+     "test_open_resource_exceptions",
+     "App.trap_http_exception"
+    ]
+   }
+  },
+  {
+   "q": "Fix unbound error",
+   "accept": [
+    "Flask"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": false,
+    "words": [
+     "unbound"
+    ],
+    "top": [
+     "test_request_locals"
+    ]
+   }
+  },
+  {
+   "q": "app.add_url_rule() should look for OPTIONS methods in a case-insensitive manner",
+   "accept": [
+    "Flask"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": false,
+    "words": [
+     "add_url_rule",
+     "insensitive"
+    ],
+    "top": [
+     "Blueprint.add_url_rule",
+     "Scaffold.add_url_rule",
+     "BlueprintSetupState.add_url_rule",
+     "App.add_url_rule",
+     "View"
+    ]
+   }
+  },
+  {
+   "q": "Clarify the after_request argument",
+   "accept": [
+    "Flask"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": false,
+    "words": [
+     "after_request",
+     "argument"
+    ],
+    "top": [
+     "Blueprint.after_app_request",
+     "Scaffold.after_request",
+     "test_async_before_after_request",
+     "test_before_after_request_order",
+     "after_request"
+    ]
+   }
+  },
+  {
+   "q": "before_app_first_request strange behaviour",
+   "accept": [
+    "Flask"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": false,
+    "words": [
+     "before_app_first_request",
+     "behaviour"
+    ],
+    "top": []
+   }
+  },
+  {
+   "q": "fix a etags bug when sending a file stream with a name",
+   "accept": [
+    "send_file"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": true,
+    "words": [
+     "sending",
+     "stream"
+    ],
+    "top": [
+     "send_file",
+     "stream_with_context",
+     "wsgi_errors_stream",
+     "stream_template",
+     "stream_template_string"
+    ]
+   }
+  },
+  {
+   "q": "Explicitly state that the jsonify method changes on request",
+   "accept": [
+    "Flask"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": false,
+    "words": [
+     "Explicitly",
+     "jsonify"
+    ],
+    "top": [
+     "jsonify",
+     "test_jsonify_basic_types",
+     "test_jsonify_uuid_types",
+     "test_jsonify_mimetype",
+     "test_jsonify_args_and_kwargs_check"
+    ]
+   }
+  },
+  {
+   "q": "@app.teardown_request function doesn't called in debug mode [NOT-A-BUG]",
+   "accept": [
+    "Flask"
+   ],
+   "find": {
+    "hit": false,
+    "top": []
+   },
+   "grep": {
+    "hit": true,
+    "words": [
+     "teardown_request",
+     "function"
+    ],
+    "top": [
+     "Flask.do_teardown_request",
+     "Scaffold.teardown_request",
+     "test_teardown_request_handler_error",
+     "test_teardown_request_handler",
+     "test_teardown_request_handler_debug_mode"
+    ]
+   }
+  }
+ ]
+}

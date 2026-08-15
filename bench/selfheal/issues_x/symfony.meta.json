@@ -1,0 +1,317 @@
+[
+ {
+  "sha": "1236323cd7",
+  "issue": 59318,
+  "is_pr": true,
+  "subject": "bug #59318 [Finder] Fix using `==` as default operator in `DateComparator` (MatTheCat)",
+  "q": "[Finder] Fix using `==` as default operator in `DateComparator`"
+ },
+ {
+  "sha": "133ce8a253",
+  "issue": 59271,
+  "is_pr": true,
+  "subject": "bug #59271 [TypeInfo] Fix PHPDoc resolving of union with mixed (mtarld)",
+  "q": "[TypeInfo] Fix PHPDoc resolving of union with mixed"
+ },
+ {
+  "sha": "c439a58e98",
+  "issue": 59012,
+  "is_pr": true,
+  "subject": "bug #59012 [PropertyInfo] Fix interface handling in `PhpStanTypeHelper` (janedbal)",
+  "q": "[PropertyInfo] Fix interface handling in `PhpStanTypeHelper`"
+ },
+ {
+  "sha": "27c0f65c02",
+  "issue": 59122,
+  "is_pr": true,
+  "subject": "bug #59122 [Notifier] fix desktop channel bus abstract arg (raphael-geffroy)",
+  "q": "[Notifier] fix desktop channel bus abstract arg"
+ },
+ {
+  "sha": "91835ef803",
+  "issue": 59124,
+  "is_pr": true,
+  "subject": "bug #59124 [FrameworkBundle] fix: notifier push channel bus abstract arg (raphael-geffroy)",
+  "q": "[FrameworkBundle] fix: notifier push channel bus abstract arg"
+ },
+ {
+  "sha": "51d824a91a",
+  "issue": 59069,
+  "is_pr": true,
+  "subject": "bug #59069 [Console] Fix division by 0 error (Rindula)",
+  "q": "[Console] Fix division by 0 error"
+ },
+ {
+  "sha": "6076b8799e",
+  "issue": 59099,
+  "is_pr": true,
+  "subject": "bug #59099 [sendgrid-mailer] Fix null check on region (AUDUL)",
+  "q": "[Mailer] [sendgrid-mailer] Fix null check on region"
+ },
+ {
+  "sha": "7a2d66a761",
+  "issue": 59023,
+  "is_pr": true,
+  "subject": "bug #59023 [HttpClient] Fix streaming and redirecting with NoPrivateNetworkHttpClient (nicolas-grekas)",
+  "q": "[HttpClient] Fix streaming and redirecting with NoPrivateNetworkHttpClient"
+ },
+ {
+  "sha": "4677f32c73",
+  "issue": 59013,
+  "is_pr": true,
+  "subject": "bug #59013 [HttpClient] Fix checking for private IPs before connecting (nicolas-grekas)",
+  "q": "[HttpClient] Fix checking for private IPs before connecting"
+ },
+ {
+  "sha": "9eea677637",
+  "issue": 58562,
+  "is_pr": true,
+  "subject": "bug #58562 [HttpClient] Close gracefull when the server closes the connection abruptly (discordier)",
+  "q": "[HttpClient] Close gracefull when the server closes the connection abruptly"
+ },
+ {
+  "sha": "e128d76b3d",
+  "issue": 58992,
+  "is_pr": true,
+  "subject": "minor #58992 [HttpClient] fix amphp/http-client 5 support (xabbuh)",
+  "q": "[HttpClient] fix amphp/http-client 5 support"
+ },
+ {
+  "sha": "ec691c8f41",
+  "issue": 58963,
+  "is_pr": true,
+  "subject": "bug #58963 [PropertyInfo] Fix write visibility for Asymmetric Visibility and Virtual Properties (xabbuh, pan93412)",
+  "q": "[PropertyInfo] Fix write visibility for Asymmetric Visibility and Virtual Properties"
+ },
+ {
+  "sha": "141d64a1db",
+  "issue": 58931,
+  "is_pr": true,
+  "subject": "minor #58931 CS: apply minor indentation fixes (keradus)",
+  "q": "CS: apply minor indentation fixes"
+ },
+ {
+  "sha": "76df9834cf",
+  "issue": 58956,
+  "is_pr": true,
+  "subject": "bug #58956 [DoctrineBridge] Fix `Connection::createSchemaManager()` for Doctrine DBAL v2 (neodevcode)",
+  "q": "[DoctrineBridge] Fix `Connection::createSchemaManager()` for Doctrine DBAL v2"
+ },
+ {
+  "sha": "c909b7efdc",
+  "issue": 58953,
+  "is_pr": true,
+  "subject": "bug #58953 [HttpClient] Fix computing stats for PUSH with Amp (nicolas-grekas)",
+  "q": "[HttpClient] Fix computing stats for PUSH with Amp"
+ },
+ {
+  "sha": "cfb39c52bb",
+  "issue": 58917,
+  "is_pr": true,
+  "subject": "bug #58917 [OptionsResolver] Allow Union/Intersection Types in Resolved Closures (zanbaldwin)",
+  "q": "[OptionsResolver] Allow Union/Intersection Types in Resolved Closures"
+ },
+ {
+  "sha": "b65ff9fcf4",
+  "issue": 58924,
+  "is_pr": true,
+  "subject": "bug #58924 [HttpClient] Fix empty hosts in option \"resolve\" (nicolas-grekas)",
+  "q": "[HttpClient] Fix empty hosts in option \"resolve\""
+ },
+ {
+  "sha": "d4e3ba6867",
+  "issue": 58867,
+  "is_pr": true,
+  "subject": "minor #58867 [Messenger] fix version check to include dev versions (xabbuh)",
+  "q": "[Messenger] fix version check to include dev versions"
+ },
+ {
+  "sha": "75fa917a5a",
+  "issue": 58866,
+  "is_pr": true,
+  "subject": "bug #58866 [Validator] fix compatibility with PHP < 8.2.4 (xabbuh)",
+  "q": "[Validator] fix compatibility with PHP < 8.2.4"
+ },
+ {
+  "sha": "81eeb62b07",
+  "issue": 58862,
+  "is_pr": true,
+  "subject": "bug #58862 [Notifier] Fix GoIpTransport (nicolas-grekas)",
+  "q": "[Notifier] Fix GoIpTransport"
+ },
+ {
+  "sha": "9cfedd8436",
+  "issue": 58860,
+  "is_pr": true,
+  "subject": "bug #58860 [HttpClient] Fix catching some invalid Location headers (nicolas-grekas)",
+  "q": "[HttpClient] Fix catching some invalid Location headers"
+ },
+ {
+  "sha": "31bd80754b",
+  "issue": 58828,
+  "is_pr": true,
+  "subject": "bug #58828 [PhpUnitBridge] fix dumping tests to skip with data providers (xabbuh)",
+  "q": "[PhpUnitBridge] fix dumping tests to skip with data providers"
+ },
+ {
+  "sha": "16087db3dd",
+  "issue": 58842,
+  "is_pr": true,
+  "subject": "bug #58842 [Routing] Fix: lost priority when defining hosts in configuration (BeBlood)",
+  "q": "[Routing] Fix: lost priority when defining hosts in configuration"
+ },
+ {
+  "sha": "90e3135bc8",
+  "issue": 58850,
+  "is_pr": true,
+  "subject": "bug #58850 [HttpClient] fix PHP 7.2 compatibility (xabbuh)",
+  "q": "[HttpClient] fix PHP 7.2 compatibility"
+ },
+ {
+  "sha": "7a672e807e",
+  "issue": 58823,
+  "is_pr": true,
+  "subject": "bug #58823 [TwigBridge] Fix emojify as function in Undefined Handler (smnandre)",
+  "q": "[TwigBridge] Fix emojify as function in Undefined Handler"
+ },
+ {
+  "sha": "8dabfd75e1",
+  "issue": 56868,
+  "is_pr": true,
+  "subject": "bug #56868 [Serializer] fixed object normalizer for a class with `cancel` method (er1z)",
+  "q": "[Serializer] fixed object normalizer for a class with `cancel` method"
+ },
+ {
+  "sha": "c15a195dda",
+  "issue": 58601,
+  "is_pr": true,
+  "subject": "bug #58601 [RateLimiter] Fix bucket size reduced when previously created with bigger size (Orkin)",
+  "q": "[RateLimiter] Fix bucket size reduced when previously created with bigger size"
+ },
+ {
+  "sha": "6fb51638c3",
+  "issue": 58658,
+  "is_pr": true,
+  "subject": "bug #58658 [Twitter][Notifier] Fix post INIT upload (matyo91)",
+  "q": "[Notifier] [Twitter] Fix post INIT upload"
+ },
+ {
+  "sha": "91acfa82df",
+  "issue": 58763,
+  "is_pr": true,
+  "subject": "bug #58763 [Messenger][RateLimiter] fix additional message handled when using a rate limiter (Jean-Beru)",
+  "q": "[Messenger][RateLimiter] fix additional message handled when using a rate limiter"
+ },
+ {
+  "sha": "f0223a22f2",
+  "issue": 58804,
+  "is_pr": true,
+  "subject": "bug #58804 [Serializer][TypeInfo] fix support for phpstan/phpdoc-parser 2 (xabbuh)",
+  "q": "[Serializer][TypeInfo] fix support for phpstan/phpdoc-parser 2"
+ },
+ {
+  "sha": "05ab01090e",
+  "issue": 58800,
+  "is_pr": true,
+  "subject": "bug #58800 [PropertyInfo] fix support for phpstan/phpdoc-parser 2 (xabbuh)",
+  "q": "[PropertyInfo] fix support for phpstan/phpdoc-parser 2"
+ },
+ {
+  "sha": "e1da961f23",
+  "issue": 58772,
+  "is_pr": true,
+  "subject": "bug #58772 [DoctrineBridge] Backport detection fix of Xml/Yaml driver in DoctrineExtension (MatTheCat)",
+  "q": "[DoctrineBridge] Backport detection fix of Xml/Yaml driver in DoctrineExtension"
+ },
+ {
+  "sha": "d2ba257846",
+  "issue": 58757,
+  "is_pr": true,
+  "subject": "bug #58757 [RateLimiter] Fix DateInterval normalization (danydev)",
+  "q": "[RateLimiter] Fix DateInterval normalization"
+ },
+ {
+  "sha": "4829c8263f",
+  "issue": 58712,
+  "is_pr": true,
+  "subject": "bug #58712 [HttpFoundation] Fix support for `\\SplTempFileObject` in `BinaryFileResponse` (elementaire)",
+  "q": "[HttpFoundation] Fix support for `\\SplTempFileObject` in `BinaryFileResponse`"
+ },
+ {
+  "sha": "5ebc4c3c26",
+  "issue": 58753,
+  "is_pr": true,
+  "subject": "bug #58753 [Cache] Fix clear() when using Predis (nicolas-grekas)",
+  "q": "[Cache] Fix clear() when using Predis"
+ },
+ {
+  "sha": "5865f285ab",
+  "issue": 58752,
+  "is_pr": true,
+  "subject": "bug #58752 [Process] Fix escaping /X arguments on Windows (nicolas-grekas)",
+  "q": "[Process] Fix escaping /X arguments on Windows"
+ },
+ {
+  "sha": "44ce9faf2e",
+  "issue": 58711,
+  "is_pr": true,
+  "subject": "bug #58711 [Process] Fix handling empty path found in the PATH env var with ExecutableFinder (nicolas-grekas)",
+  "q": "[Process] Fix handling empty path found in the PATH env var with ExecutableFinder"
+ },
+ {
+  "sha": "22df28a5b8",
+  "issue": 58704,
+  "is_pr": true,
+  "subject": "bug #58704 [HttpClient] fix for HttpClientDataCollector fails if proc_open is disabled via php.ini (ZaneCEO)",
+  "q": "[HttpClient] fix for HttpClientDataCollector fails if proc_open is disabled via php.ini"
+ },
+ {
+  "sha": "48980a2f05",
+  "issue": 58700,
+  "is_pr": false,
+  "subject": "fix for HttpClientDataCollector fails if proc_open is disabled via php.ini . Closes #58700",
+  "q": "HttpClientDataCollector fails if proc_open is disabled via php.ini"
+ },
+ {
+  "sha": "6d85dab2b5",
+  "issue": 58670,
+  "is_pr": true,
+  "subject": "bug #58670 [TwigBridge] fix merge (xabbuh)",
+  "q": "[TwigBridge] fix merge"
+ },
+ {
+  "sha": "003ccbfd54",
+  "issue": 58638,
+  "is_pr": true,
+  "subject": "bug #58638 [FrameworkBundle] fix null store handling in XML configs (xabbuh)",
+  "q": "[FrameworkBundle] fix null store handling in XML configs"
+ },
+ {
+  "sha": "52a280e8f4",
+  "issue": 58518,
+  "is_pr": true,
+  "subject": "bug #58518 [FrameworkBundle] Fix `NullStore` registration (HypeMC)",
+  "q": "[FrameworkBundle] Fix `NullStore` registration"
+ },
+ {
+  "sha": "8096a42499",
+  "issue": 58615,
+  "is_pr": true,
+  "subject": "bug #58615 [Validator] [Choice] Fix callback option if not array returned (symfonyaml)",
+  "q": "[Validator] [Choice] Fix callback option if not array returned"
+ },
+ {
+  "sha": "155ac0d0aa",
+  "issue": 58631,
+  "is_pr": true,
+  "subject": "bug #58631 [DependencyInjection] Fix parsing nested AutowireInline attributes (nicolas-grekas)",
+  "q": "[DependencyInjection] Fix parsing nested AutowireInline attributes"
+ },
+ {
+  "sha": "cacaf9f3cf",
+  "issue": 58617,
+  "is_pr": true,
+  "subject": "bug #58617 [DependencyInjection] Fix replacing abstract arguments with bindings (nicolas-grekas)",
+  "q": "[DependencyInjection] Fix replacing abstract arguments with bindings"
+ }
+]

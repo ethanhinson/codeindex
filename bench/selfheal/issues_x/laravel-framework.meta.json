@@ -1,0 +1,422 @@
+[
+ {
+  "sha": "6291298992",
+  "issue": 54127,
+  "is_pr": true,
+  "subject": "fix: Don't set newLineWritten to true unless verbosity allows output (#54127)",
+  "q": "fix: Don't set newLineWritten to true unless verbosity allows output"
+ },
+ {
+  "sha": "6c9e29f1e4",
+  "issue": 54006,
+  "is_pr": true,
+  "subject": "11.x improve resend transport response handling - fix (#54006)",
+  "q": "11.x improve resend transport response handling - fix"
+ },
+ {
+  "sha": "620f7176e6",
+  "issue": 53872,
+  "is_pr": true,
+  "subject": "[11.x] Fixes `Illuminate\\Http\\Response` to output empty string if `$content` is set to `null` (#53872)",
+  "q": "[11.x] Fixes `Illuminate\\Http\\Response` to output empty string if `$content` is set to `null`"
+ },
+ {
+  "sha": "5331525a04",
+  "issue": 53974,
+  "is_pr": true,
+  "subject": "[11.x] Fix cached health endpoint not working when in maintenance mode (#53974)",
+  "q": "[11.x] Fix cached health endpoint not working when in maintenance mode"
+ },
+ {
+  "sha": "1f73ec9131",
+  "issue": 53962,
+  "is_pr": true,
+  "subject": "fixed get next job method (#53962)",
+  "q": "Fix: (Queue Worker) firing the JobPopped event when $popCallbacks returns null"
+ },
+ {
+  "sha": "452600514d",
+  "issue": 53941,
+  "is_pr": true,
+  "subject": "[11.x] Fix client path value in file uploads (#53941)",
+  "q": "[11.x] Fix client path value in file uploads"
+ },
+ {
+  "sha": "32b68242d7",
+  "issue": 53945,
+  "is_pr": true,
+  "subject": "[11.x] Fix inspecting columns of raw indexes (#53945)",
+  "q": "[11.x] Fix inspecting columns of raw indexes"
+ },
+ {
+  "sha": "a30619310d",
+  "issue": 53275,
+  "is_pr": true,
+  "subject": "[11.x] fix: allows injection using multiple interfaces with the same concrete implementation (#53275)",
+  "q": "[11.x] fix: allows injection using multiple interfaces with the same concrete implementation"
+ },
+ {
+  "sha": "275539a1fd",
+  "issue": 53879,
+  "is_pr": true,
+  "subject": "[11.x] Fix mutator access in `loadMissing` (#53879)",
+  "q": "[11.x] Fix attribute mutator access in `loadMissing`"
+ },
+ {
+  "sha": "03654809bd",
+  "issue": 53839,
+  "is_pr": true,
+  "subject": "Fixed Enum usage in whereHasMorph condition when morph attribute casting (#53839)",
+  "q": "Fixed Enum usage in whereHasMorph condition when morph attribute casting"
+ },
+ {
+  "sha": "5ed48d361c",
+  "issue": 53763,
+  "is_pr": true,
+  "subject": "[11.x] Fix the RateLimiter issue when using dynamic keys (#53763)",
+  "q": "[11.x] Fix the RateLimiter issue when using dynamic keys"
+ },
+ {
+  "sha": "8848cc8566",
+  "issue": 53693,
+  "is_pr": true,
+  "subject": "[11.x] Fix database reconnecting logic (#53693)",
+  "q": "[11.x] Fix database reconnecting logic"
+ },
+ {
+  "sha": "1d320311ed",
+  "issue": 53687,
+  "is_pr": true,
+  "subject": "Fix Resend transport headers bug (#53687)",
+  "q": "[11.x] Fix `ResendTransport` missing custom headers"
+ },
+ {
+  "sha": "285d4b7ca1",
+  "issue": 53680,
+  "is_pr": true,
+  "subject": "[11.x] Fix `withoutOverlapping` for grouped scheduled closures (#53680)",
+  "q": "[11.x] Fix `withoutOverlapping` for grouped scheduled closures"
+ },
+ {
+  "sha": "cee8695406",
+  "issue": 53659,
+  "is_pr": true,
+  "subject": "Fix SyntaxError on Vite prefetch with empty assets (#53659)",
+  "q": "[11.x] Fix `SyntaxError` on Vite prefetch with empty assets"
+ },
+ {
+  "sha": "d8438ecf51",
+  "issue": 53626,
+  "is_pr": true,
+  "subject": "[11.x] Fix attribute inheritance for nested scheduled groups (#53626)",
+  "q": "[11.x] Fix attribute inheritance for nested scheduled groups"
+ },
+ {
+  "sha": "ba260b7ea3",
+  "issue": 53538,
+  "is_pr": true,
+  "subject": "[11.x] Fix: Improve Request Port Extraction Handling in ServeCommand.php to Prevent Artisan Command Failures  (#53538)",
+  "q": "[11.x] Fix: Improve Request Port Extraction Handling in ServeCommand.php to Prevent Artisan Command Failures"
+ },
+ {
+  "sha": "47e5f7646d",
+  "issue": 53504,
+  "is_pr": true,
+  "subject": "Fix issue where overwriting middleware variable when setting middleware priority (#53504)",
+  "q": "Fix issue where overwriting middleware variable when setting middleware priority"
+ },
+ {
+  "sha": "377ba1dbfc",
+  "issue": 53514,
+  "is_pr": true,
+  "subject": "Fix extensions of contextual bindings (#53514)",
+  "q": "[11.x] Fix extensions of contextual bindings"
+ },
+ {
+  "sha": "7ccb4dc680",
+  "issue": 53455,
+  "is_pr": true,
+  "subject": "[10.x] Fix append and prepend batch to chain (#53455)",
+  "q": "[10.x] Fix append and prepend batch to chain"
+ },
+ {
+  "sha": "37f96f1d6b",
+  "issue": 53416,
+  "is_pr": true,
+  "subject": "Fix validation message when there is a parameter with escaped dot \"\\.\" (#53416)",
+  "q": "Fix validation message when there is a parameter with escaped dot \"\\.\""
+ },
+ {
+  "sha": "71dfdc0c29",
+  "issue": 53442,
+  "is_pr": true,
+  "subject": "Fix schema foreign ID support for tables with non-standard primary key (#53442)",
+  "q": "Fix schema foreign ID support for tables with non-standard primary key"
+ },
+ {
+  "sha": "7745f030bf",
+  "issue": 53335,
+  "is_pr": true,
+  "subject": "[11.x] Fix fluent syntax for HasManyThrough when combining HasMany followed by HasOne (#53335)",
+  "q": "[11.x] Fix fluent syntax for HasManyThrough when combining HasMany followed by HasOne"
+ },
+ {
+  "sha": "47a69538cd",
+  "issue": 53439,
+  "is_pr": true,
+  "subject": "[11.x] Fix error event listener in Vite prefetching (#53439)",
+  "q": "[11.x] Fix error event listener in Vite prefetching"
+ },
+ {
+  "sha": "a8363e4ece",
+  "issue": 53264,
+  "is_pr": true,
+  "subject": "[11.x] Fix integrity constraint violation on failed_jobs_uuid_unique (#53264)",
+  "q": "[11.x] Fix integrity constraint violation on failed_jobs_uuid_unique"
+ },
+ {
+  "sha": "8a876b6978",
+  "issue": 53331,
+  "is_pr": true,
+  "subject": "[11.x] Fix `trans_choice()` when translation replacement include `|` separator (#53331)",
+  "q": "[11.x] Fix `trans_choice()` when translation replacement include `|` separator"
+ },
+ {
+  "sha": "5a9886c8f8",
+  "issue": 53204,
+  "is_pr": true,
+  "subject": "[11.x] Fix handling exceptions thrown in eval()'d code (#53204)",
+  "q": "[11.x] Fix handling exceptions thrown in eval()'d code"
+ },
+ {
+  "sha": "f7e2fabf6f",
+  "issue": 53206,
+  "is_pr": true,
+  "subject": "[11.x] Fixes handling `Js::from(collect());` (#53206)",
+  "q": "[11.x] Fixes handling `Js::from(collect());`"
+ },
+ {
+  "sha": "935cea4b4b",
+  "issue": 53174,
+  "is_pr": true,
+  "subject": "Fix trim getting discarded in `ViewMakeCommand` (#53174)",
+  "q": "[11.x] Fix trim getting discarded in `ViewMakeCommand`"
+ },
+ {
+  "sha": "1d7e000619",
+  "issue": 53142,
+  "is_pr": true,
+  "subject": "fix: make model command with deep folder path - has incorrect import HasFactory class path (#53142)",
+  "q": "fix: make model command with folder path - factory incorrect import path"
+ },
+ {
+  "sha": "c004ffc033",
+  "issue": 53103,
+  "is_pr": true,
+  "subject": "[11.x] Fix determining pivot timestamp column name(s) when parent relation missing one or both of timestamps (#53103)",
+  "q": "[11.x] Fix determining pivot timestamp column name(s) when parent relation missing one or both of timestamps"
+ },
+ {
+  "sha": "a143a77a4b",
+  "issue": 53076,
+  "is_pr": true,
+  "subject": "[11.x] Fixes regression with `queue:work` Command (#53076)",
+  "q": "[11.x] Fixes regression with `queue:work` Command"
+ },
+ {
+  "sha": "782bee0c69",
+  "issue": 53071,
+  "is_pr": false,
+  "subject": "Fix laravel/framework#53071 (#53072)",
+  "q": "Symfony\\Component\\Console\\Exception\\InvalidArgumentException"
+ },
+ {
+  "sha": "bc02689195",
+  "issue": 53052,
+  "is_pr": true,
+  "subject": "[11.x] Fixes `make:model` for Form Requests (#53052)",
+  "q": "[11.x] Fixes `make:model` for Form Requests"
+ },
+ {
+  "sha": "39a60f1e71",
+  "issue": 52974,
+  "is_pr": true,
+  "subject": "[11.x] Fixes function loading conflicts when using `@include('vendor/autoload.php')` via Laravel Envoy (#52974)",
+  "q": "[11.x] Fixes function loading conflicts when using `@include('vendor/autoload.php')` via Laravel Envoy"
+ },
+ {
+  "sha": "7aabb89601",
+  "issue": 52889,
+  "is_pr": true,
+  "subject": "[11.x] Fixes trust proxy `REMOTE_ADDR` not working in Swoole (#52889)",
+  "q": "[11.x] Fixes trust proxy `REMOTE_ADDR` not working in Swoole"
+ },
+ {
+  "sha": "86fa45e0e3",
+  "issue": 52924,
+  "is_pr": true,
+  "subject": "[11.x] Fix make:listener command (#52924)",
+  "q": "[11.x] Fix make:listener command"
+ },
+ {
+  "sha": "d76b2f1553",
+  "issue": 52903,
+  "is_pr": true,
+  "subject": "Fix for not automatically registering commands in App\\Console\\Commands (#52903)",
+  "q": "[11.x] Fix for not automatically registering commands in App\\Console\\Commands"
+ },
+ {
+  "sha": "fbef34c77b",
+  "issue": 52788,
+  "is_pr": true,
+  "subject": "[Fix] Using correct concurrency configuration index name (#52788)",
+  "q": "[11.x] Using Correct `Concurrency` Configuration Index Name"
+ },
+ {
+  "sha": "da28aabb59",
+  "issue": 52738,
+  "is_pr": true,
+  "subject": "[11.x] Fix issue where `$name` variable in non base config file becomes it's key (#52738)",
+  "q": "[11.x] Fix issue where `$name` variable in non base config file becomes it's key"
+ },
+ {
+  "sha": "a9a080f51f",
+  "issue": 52781,
+  "is_pr": true,
+  "subject": "[11.x] Fixes out of memory issue running `route:cache` with ServeFile (#52781)",
+  "q": "[11.x] Fixes out of memory issue running `route:cache` with ServeFile"
+ },
+ {
+  "sha": "58c2053201",
+  "issue": 52748,
+  "is_pr": true,
+  "subject": "Fix arguments passed to artisan commands that start with 'env' (#52748)",
+  "q": "Fix arguments passed to artisan commands that start with 'env'"
+ },
+ {
+  "sha": "dd64ab7c2f",
+  "issue": 52761,
+  "is_pr": true,
+  "subject": "[11.x] Fixed attempt to call `Application::routesAreCached()` when application doesn't implements `CachesRoutes` contract. (#52761)",
+  "q": "[11.x] Fixed attempt to call `Application::routesAreCached()` when application doesn't implements `CachesRoutes` contract."
+ },
+ {
+  "sha": "f9696a7d7f",
+  "issue": 52705,
+  "is_pr": true,
+  "subject": "fix etag headers for binary file responses (#52705)",
+  "q": "[11.x] Fix etag headers for binary file responses"
+ },
+ {
+  "sha": "2714be7440",
+  "issue": 52678,
+  "is_pr": true,
+  "subject": "[11.x] Fix alter table expressions on SQLite (#52678)",
+  "q": "[11.x] Fix alter table expressions on SQLite"
+ },
+ {
+  "sha": "4153267b88",
+  "issue": 52627,
+  "is_pr": true,
+  "subject": "Fix Apostrophe Handling in SeeInOrder.php and Enhance Test Coverage (#52627)",
+  "q": "Fix Apostrophe Handling in SeeInOrder.php and Enhance Test Coverage"
+ },
+ {
+  "sha": "85165d7b15",
+  "issue": 52436,
+  "is_pr": false,
+  "subject": "[11.x] Fix for #52436 artisan schema:dump infinite recursion (#52492)",
+  "q": "Potential infinite recursion when executing `schema:dump`"
+ },
+ {
+  "sha": "0138d780cb",
+  "issue": 52415,
+  "is_pr": true,
+  "subject": "fix: prevent casting empty string to array from triggering json error (#52415)",
+  "q": "[10.x] fix: prevent casting empty string to array from triggering json error"
+ },
+ {
+  "sha": "64c45e0c76",
+  "issue": 52393,
+  "is_pr": true,
+  "subject": "Fix Http Client Pool requests that have no response (#52393)",
+  "q": "[11.x] Fix Http Client Pool requests that have no response"
+ },
+ {
+  "sha": "e1e7cd18a3",
+  "issue": 52389,
+  "is_pr": true,
+  "subject": "fix: Request::json() json errors when decoding empty string (#52389)",
+  "q": "[10.x] backport #52204"
+ },
+ {
+  "sha": "702cb8801f",
+  "issue": 52318,
+  "is_pr": true,
+  "subject": "[11.x] Fixes through() relationship (#52318)",
+  "q": "[11.x] Fixes through() relationship"
+ },
+ {
+  "sha": "c2eb31872a",
+  "issue": 52227,
+  "is_pr": true,
+  "subject": "fix(database): fully qualify morph columns when using WHERE clauses (#52227)",
+  "q": "[11.x] Fully qualify morph columns when using WHERE clauses"
+ },
+ {
+  "sha": "18b9bad2bf",
+  "issue": 52297,
+  "is_pr": true,
+  "subject": "[11.x] Fix Bcrypt/Argon/Argon2I Hashers not checking database field for nullish value before checking hash compatibility (#52297)",
+  "q": "[11.x] Fix Bcrypt/Argon/Argon2I Hashers not checking database field for nullish value before checking hash compatibility"
+ },
+ {
+  "sha": "82e9dbce22",
+  "issue": 52293,
+  "is_pr": true,
+  "subject": "fix: Model/JsonResource::toJson should not fail with prior json errors (#52293)",
+  "q": "[10.x] backport #52188"
+ },
+ {
+  "sha": "9e781c2f12",
+  "issue": 52280,
+  "is_pr": true,
+  "subject": "[11.x] Fix explicit route binding for broadcast routes (#52280)",
+  "q": "[11.x] Fix explicit route binding for broadcast routes"
+ },
+ {
+  "sha": "59795194e8",
+  "issue": 52275,
+  "is_pr": true,
+  "subject": "[11.x] Fix SQLite schema dumps missing most tables (#52275)",
+  "q": "[11.x] Fix SQLite schema dumps missing most tables"
+ },
+ {
+  "sha": "c898498e15",
+  "issue": 52117,
+  "is_pr": true,
+  "subject": "[11.x] Fix 'pushProcessor method not found on LoggerInterface' error (#52117)",
+  "q": "[11.x] Fix 'pushProcessor method not found on LoggerInterface' error"
+ },
+ {
+  "sha": "094d4eb3cb",
+  "issue": 52135,
+  "is_pr": true,
+  "subject": "[11.x] Fix SQLite schema dumps containing internal `sqlite_*` objects (#52135)",
+  "q": "[11.x] Fix SQLite schema dumps containing internal `sqlite_*` objects"
+ },
+ {
+  "sha": "1225a2ff8c",
+  "issue": 52088,
+  "is_pr": true,
+  "subject": "fix: dont use web middleware on health endpoint (#52088)",
+  "q": "[11.x] fix: dont use web middleware on health endpoint"
+ },
+ {
+  "sha": "96712ba63e",
+  "issue": 52094,
+  "is_pr": true,
+  "subject": "Fix PHP_CLI_SERVER_WORKERS warning by applying the same fix as 11.x (#52094)",
+  "q": "[10.x] Fix PHP_CLI_SERVER_WORKERS warning by suppressing it"
+ }
+]

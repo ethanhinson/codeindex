@@ -1,0 +1,417 @@
+{
+ "repo": "flask",
+ "split": "tuning",
+ "fixture_commit": "ab8149664182b662453a563161aa89013c806dc9",
+ "binary_sha256_16": "b7d2cdb1bf08df59",
+ "params": {
+  "cards": "contrast-no-neighbors",
+  "lambda": 0.3
+ },
+ "n": 25,
+ "hits": 19,
+ "hit5_pct": 76.0,
+ "results": [
+  {
+   "q": "register a url route for a view function",
+   "hit": true,
+   "top": [
+    "App.add_url_rule",
+    "Scaffold.route",
+    "View.as_view",
+    "View",
+    "Scaffold.add_url_rule"
+   ],
+   "accept": [
+    "route",
+    "add_url_rule",
+    "Scaffold.route"
+   ]
+  },
+  {
+   "q": "how a request gets dispatched to its view function",
+   "hit": true,
+   "top": [
+    "MethodView",
+    "View",
+    "Flask.full_dispatch_request",
+    "MethodView.dispatch_request",
+    "View.dispatch_request"
+   ],
+   "accept": [
+    "dispatch_request",
+    "full_dispatch_request",
+    "wsgi_app",
+    "Flask.dispatch_request",
+    "Flask.full_dispatch_request",
+    "Flask.wsgi_app"
+   ]
+  },
+  {
+   "q": "redirect the user to another page",
+   "hit": true,
+   "top": [
+    "redirect",
+    "redirect",
+    "App.redirect",
+    "test_redirect_with_app",
+    "SecureCookieSessionInterface.save_session"
+   ],
+   "accept": [
+    "redirect"
+   ]
+  },
+  {
+   "q": "build the url for an endpoint by name",
+   "hit": true,
+   "top": [
+    "Flask.url_for",
+    "url_for",
+    "test_url_mapping",
+    "test_full_url_request",
+    "_endpoint_from_view_func"
+   ],
+   "accept": [
+    "url_for",
+    "Flask.url_for"
+   ]
+  },
+  {
+   "q": "render an html template with variables",
+   "hit": true,
+   "top": [
+    "render_template",
+    "render_template_string",
+    "get_template_attribute",
+    "_render",
+    "stream_template_string"
+   ],
+   "accept": [
+    "render_template",
+    "render_template_string"
+   ]
+  },
+  {
+   "q": "keep user data across requests in a session",
+   "hit": true,
+   "top": [
+    "SecureCookieSessionInterface.save_session",
+    "SessionInterface.should_set_cookie",
+    "SessionInterface.open_session",
+    "SessionInterface.save_session",
+    "load_logged_in_user"
+   ],
+   "accept": [
+    "SecureCookieSession",
+    "SecureCookieSessionInterface",
+    "open_session",
+    "save_session",
+    "SessionMixin"
+   ]
+  },
+  {
+   "q": "run a function before every request",
+   "hit": true,
+   "top": [
+    "Scaffold.before_request",
+    "Scaffold.after_request",
+    "before_request1",
+    "after_this_request",
+    "before_request3"
+   ],
+   "accept": [
+    "before_request",
+    "Scaffold.before_request",
+    "Flask.preprocess_request",
+    "preprocess_request"
+   ]
+  },
+  {
+   "q": "register a handler for a specific http error like 404",
+   "hit": true,
+   "top": [
+    "Flask.handle_http_exception",
+    "Scaffold.register_error_handler",
+    "Scaffold.errorhandler",
+    "TestGenericHandlers.test_handle_generic_http",
+    "test_error_handler_http_subclass"
+   ],
+   "accept": [
+    "errorhandler",
+    "register_error_handler",
+    "handle_http_exception",
+    "Scaffold.errorhandler"
+   ]
+  },
+  {
+   "q": "abort the request with an http error status",
+   "hit": true,
+   "top": [
+    "abort",
+    "Flask.finalize_request",
+    "App.make_aborter",
+    "Flask.handle_http_exception",
+    "Flask.raise_routing_exception"
+   ],
+   "accept": [
+    "abort",
+    "make_aborter"
+   ]
+  },
+  {
+   "q": "flash a one time message shown on the next page",
+   "hit": true,
+   "top": [
+    "flash",
+    "get_flashed_messages",
+    "show_server_banner",
+    "Blueprint.record_once",
+    "test_flashes"
+   ],
+   "accept": [
+    "flash",
+    "get_flashed_messages"
+   ]
+  },
+  {
+   "q": "split an application into reusable route groups",
+   "hit": false,
+   "top": [
+    "Scaffold.route",
+    "Scaffold._method_route",
+    "FlaskGroup",
+    "Scaffold.post",
+    "App"
+   ],
+   "accept": [
+    "Blueprint",
+    "register_blueprint",
+    "BlueprintSetupState"
+   ]
+  },
+  {
+   "q": "safely send a file from a directory as the response",
+   "hit": true,
+   "top": [
+    "send_from_directory",
+    "Flask.send_static_file",
+    "send_file",
+    "Blueprint.send_static_file",
+    "Flask.get_send_file_max_age"
+   ],
+   "accept": [
+    "send_file",
+    "send_from_directory"
+   ]
+  },
+  {
+   "q": "return a json response from a view",
+   "hit": true,
+   "top": [
+    "jsonify",
+    "Flask.make_response",
+    "view",
+    "view",
+    "JSONProvider.response"
+   ],
+   "accept": [
+    "jsonify",
+    "JSONProvider.response",
+    "DefaultJSONProvider.response"
+   ]
+  },
+  {
+   "q": "load app configuration from an object or file",
+   "hit": false,
+   "top": [
+    "app",
+    "Flask.app_context",
+    "Config.get_namespace",
+    "test_config_from_object",
+    "test_config_from_pyfile"
+   ],
+   "accept": [
+    "from_object",
+    "from_pyfile",
+    "from_envvar",
+    "from_prefixed_env",
+    "Config.from_object",
+    "Config.from_pyfile"
+   ]
+  },
+  {
+   "q": "start the built in development server",
+   "hit": false,
+   "top": [
+    "internal_server_error",
+    "internal_server_error",
+    "internal_server_error",
+    "test_server_name_subdomain",
+    "create_app"
+   ],
+   "accept": [
+    "run",
+    "Flask.run"
+   ]
+  },
+  {
+   "q": "push an application context to use the app outside a request",
+   "hit": true,
+   "top": [
+    "Flask.app_context",
+    "RequestContext.push",
+    "AppContext.push",
+    "AppContext",
+    "Flask.request_context"
+   ],
+   "accept": [
+    "app_context",
+    "AppContext",
+    "Flask.app_context",
+    "AppContext.push"
+   ]
+  },
+  {
+   "q": "the object that holds request state during handling",
+   "hit": false,
+   "top": [
+    "Flask.full_dispatch_request",
+    "MethodView",
+    "copy_current_request_context",
+    "Flask.dispatch_request",
+    "SessionInterface.open_session"
+   ],
+   "accept": [
+    "RequestContext",
+    "request_context",
+    "Flask.request_context",
+    "RequestContext.push"
+   ]
+  },
+  {
+   "q": "keep the request context alive while streaming a response",
+   "hit": true,
+   "top": [
+    "stream_with_context",
+    "stream_with_context",
+    "TestStreaming.test_streaming_with_context",
+    "has_request_context",
+    "Flask.request_context"
+   ],
+   "accept": [
+    "stream_with_context"
+   ]
+  },
+  {
+   "q": "modify the response after the view runs",
+   "hit": false,
+   "top": [
+    "view",
+    "Flask.make_response",
+    "view",
+    "Flask.dispatch_request",
+    "MethodView.dispatch_request"
+   ],
+   "accept": [
+    "after_request",
+    "process_response",
+    "Scaffold.after_request",
+    "Flask.process_response"
+   ]
+  },
+  {
+   "q": "clean up resources when the request ends",
+   "hit": true,
+   "top": [
+    "abort",
+    "Flask.finalize_request",
+    "Flask.full_dispatch_request",
+    "Flask.preprocess_request",
+    "Flask.do_teardown_request"
+   ],
+   "accept": [
+    "teardown_request",
+    "teardown_appcontext",
+    "do_teardown_request",
+    "do_teardown_appcontext"
+   ]
+  },
+  {
+   "q": "add custom command line commands to the app",
+   "hit": true,
+   "top": [
+    "with_appcontext",
+    "run_command",
+    "custom_command",
+    "FlaskGroup.list_commands",
+    "shell_command"
+   ],
+   "accept": [
+    "AppGroup",
+    "FlaskGroup",
+    "with_appcontext"
+   ]
+  },
+  {
+   "q": "make test requests against the app in unit tests",
+   "hit": false,
+   "top": [
+    "TestRoutes.invoke",
+    "CustomRequestGlobals",
+    "CustomRequestGlobals.__init__",
+    "app_forbidden",
+    "app_forbidden"
+   ],
+   "accept": [
+    "test_client",
+    "FlaskClient",
+    "Flask.test_client",
+    "EnvironBuilder"
+   ]
+  },
+  {
+   "q": "register a custom filter usable inside templates",
+   "hit": true,
+   "top": [
+    "test_add_template_filter",
+    "test_add_template_filter",
+    "test_add_template_filter_with_name",
+    "App.add_template_filter",
+    "test_add_template_filter_with_template"
+   ],
+   "accept": [
+    "template_filter",
+    "add_template_filter"
+   ]
+  },
+  {
+   "q": "automatic response for options requests",
+   "hit": true,
+   "top": [
+    "Flask.make_default_options_response",
+    "test_provide_automatic_options_attr",
+    "Flask.full_dispatch_request",
+    "Flask.preprocess_request",
+    "test_view_provide_automatic_options_attr"
+   ],
+   "accept": [
+    "make_default_options_response",
+    "Flask.make_default_options_response"
+   ]
+  },
+  {
+   "q": "turn a view's return value into a response object",
+   "hit": true,
+   "top": [
+    "Flask.make_response",
+    "Flask.dispatch_request",
+    "view",
+    "view",
+    "make_response"
+   ],
+   "accept": [
+    "make_response",
+    "Flask.make_response"
+   ]
+  }
+ ]
+}

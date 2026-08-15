@@ -1,0 +1,450 @@
+{
+ "repo": "wordpress",
+ "split": "runtime-gate",
+ "fixture_commit": "a82874058f58575dbba64ce09b6dcbd43ccf5fdc",
+ "binary_sha256_16": "4c03e4119259f8e7",
+ "params": null,
+ "n": 28,
+ "hits": 25,
+ "hit5_pct": 89.3,
+ "results": [
+  {
+   "q": "what code runs when a post is published",
+   "hit": true,
+   "top": [
+    "wp_publish_post",
+    "_publish_post_hook",
+    "WP_Query.the_post",
+    "wp_xmlrpc_server.mt_publishPost",
+    "check_and_publish_future_post"
+   ],
+   "accept": [
+    "wp_publish_post",
+    "_publish_post_hook",
+    "wp_transition_post_status",
+    "_transition_post_status"
+   ]
+  },
+  {
+   "q": "what runs the scheduled cron events when the cron endpoint fires",
+   "hit": true,
+   "top": [
+    "wp_next_scheduled",
+    "wp_get_scheduled_event",
+    "wp_schedule_event",
+    "wp_schedule_single_event",
+    "_wp_cron"
+   ],
+   "accept": [
+    "wp_cron",
+    "_wp_cron",
+    "spawn_cron",
+    "wp_doing_cron"
+   ]
+  },
+  {
+   "q": "what code runs on schedule to delete expired transients",
+   "hit": true,
+   "top": [
+    "delete_expired_transients",
+    "delete_transient",
+    "delete_site_transient",
+    "set_transient",
+    "Featured_Content.delete_transient"
+   ],
+   "accept": [
+    "delete_expired_transients"
+   ]
+  },
+  {
+   "q": "what code checks the username and password when someone signs in",
+   "hit": true,
+   "top": [
+    "wp_authenticate_username_password",
+    "wp_signon",
+    "wp_auth_check",
+    "wp_authenticate_application_password",
+    "wp_check_password"
+   ],
+   "accept": [
+    "wp_authenticate_username_password",
+    "wp_authenticate_email_password",
+    "wp_authenticate",
+    "wp_signon"
+   ]
+  },
+  {
+   "q": "what converts double line breaks into paragraphs when post content is displayed",
+   "hit": true,
+   "top": [
+    "wpautop",
+    "autop",
+    "Tests_Formatting_wpHtmlSplit.data_whole_posts",
+    "PHPMailer.stripTrailingBreaks",
+    "Tests_Formatting_wpAutop.test_that_wpautop_adds_a_paragraph_after_multiple_br"
+   ],
+   "accept": [
+    "wpautop"
+   ]
+  },
+  {
+   "q": "what turns straight quotes into curly smart quotes in displayed text",
+   "hit": true,
+   "top": [
+    "wp_specialchars_decode",
+    "_wp_specialchars",
+    "wptexturize",
+    "WP_Font_Utils.maybe_add_quotes",
+    "stripslashes_deep"
+   ],
+   "accept": [
+    "wptexturize"
+   ]
+  },
+  {
+   "q": "how shortcodes in post content get replaced with their output",
+   "hit": true,
+   "top": [
+    "do_shortcode",
+    "strip_shortcodes",
+    "WP_Embed.run_shortcode",
+    "do_shortcodes_in_html_tags",
+    "shortcode_unautop"
+   ],
+   "accept": [
+    "do_shortcode",
+    "do_shortcode_tag",
+    "get_shortcode_regex",
+    "add_shortcode"
+   ]
+  },
+  {
+   "q": "what code handles the heartbeat ajax request in the admin",
+   "hit": true,
+   "top": [
+    "wp_ajax_heartbeat",
+    "enqueue",
+    "wp_ajax_nopriv_heartbeat",
+    "wp_ajax_health_check_dotorg_communication",
+    "initialize"
+   ],
+   "accept": [
+    "wp_ajax_heartbeat",
+    "wp_ajax_nopriv_heartbeat"
+   ]
+  },
+  {
+   "q": "how rest api requests get dispatched once the rewrite rule matches",
+   "hit": false,
+   "top": [
+    "rest_api_register_rewrites",
+    "WP_REST_Server.match_request_to_handler",
+    "rest_api_init",
+    "WP_REST_Response.set_matched_route",
+    "WP_REST_Request.get_url_params"
+   ],
+   "accept": [
+    "rest_api_loaded",
+    "WP_REST_Server.serve_request",
+    "WP_REST_Server.dispatch",
+    "rest_get_server"
+   ]
+  },
+  {
+   "q": "what redirects front end urls to their canonical form",
+   "hit": true,
+   "top": [
+    "redirect_canonical",
+    "redirect_guess_404_permalink",
+    "wp_get_canonical_url",
+    "wp_redirect_admin_locations",
+    "WP_Rewrite.using_permalinks"
+   ],
+   "accept": [
+    "redirect_canonical"
+   ]
+  },
+  {
+   "q": "what prints the enqueued scripts and styles into the page head",
+   "hit": true,
+   "top": [
+    "wp_print_head_scripts",
+    "print_head_scripts",
+    "wp_enqueue_stored_styles",
+    "_print_styles",
+    "print_admin_styles"
+   ],
+   "accept": [
+    "wp_print_head_scripts",
+    "wp_enqueue_scripts",
+    "wp_print_styles"
+   ]
+  },
+  {
+   "q": "what runs on schedule to check for wordpress core plugin and theme updates",
+   "hit": true,
+   "top": [
+    "WP_Site_Health.detect_plugin_theme_auto_update_issues",
+    "get_core_updates",
+    "wp_update_themes",
+    "wp_schedule_update_checks",
+    "WP_Site_Health.get_test_plugin_theme_auto_updates"
+   ],
+   "accept": [
+    "wp_version_check",
+    "wp_update_plugins",
+    "wp_update_themes"
+   ]
+  },
+  {
+   "q": "what code recalculates a post's comment count when comments change",
+   "hit": true,
+   "top": [
+    "wp_count_comments",
+    "wp_update_comment_count_now",
+    "wp_defer_comment_counting",
+    "wp_update_comment_count",
+    "get_comment_count"
+   ],
+   "accept": [
+    "wp_update_comment_count",
+    "wp_update_comment_count_now"
+   ]
+  },
+  {
+   "q": "what code balances mismatched html tags in comment text before display",
+   "hit": false,
+   "top": [
+    "WP_HTML_Tag_Processor.get_full_comment_text",
+    "getContainingTagInfo",
+    "Tests_Blocks_RenderReusableCommentTemplate.test_render_block_core_comment_content_converts_to_html",
+    "Tests_Interactivity_API_WpInteractivityAPIWPText.test_wp_text_fails_with_unbalanced_and_same_tags_inside_content",
+    "TwentyNineteen_Walker_Comment.html5_comment"
+   ],
+   "accept": [
+    "balanceTags",
+    "force_balance_tags"
+   ]
+  },
+  {
+   "q": "how the main query parses the requested url into query variables",
+   "hit": true,
+   "top": [
+    "WP.parse_request",
+    "build_query",
+    "add_query_arg",
+    "WP_REST_Request.get_query_params",
+    "WP_Site_Query.parse_query"
+   ],
+   "accept": [
+    "WP.parse_request",
+    "WP_Query.parse_query",
+    "WP.main",
+    "WP_Query.get_posts"
+   ]
+  },
+  {
+   "q": "locate a template file in the child or parent theme and load it",
+   "hit": true,
+   "top": [
+    "get_query_template",
+    "locate_template",
+    "WP_Theme.get_template_directory",
+    "get_parent_theme_file_path",
+    "get_parent_theme_file_uri"
+   ],
+   "accept": [
+    "locate_template",
+    "load_template",
+    "get_query_template",
+    "get_index_template"
+   ]
+  },
+  {
+   "q": "insert or update a post in the database",
+   "hit": true,
+   "top": [
+    "edit_post",
+    "wp_insert_post",
+    "WP_REST_Posts_Controller.prepare_item_for_database",
+    "wp_after_insert_post",
+    "wp_update_post"
+   ],
+   "accept": [
+    "wp_insert_post",
+    "wp_update_post"
+   ]
+  },
+  {
+   "q": "handle a new comment submitted from the comment form",
+   "hit": true,
+   "top": [
+    "wp_handle_comment_submission",
+    "init",
+    "comment_form",
+    "submitFormHandler",
+    "addPlaceHolder"
+   ],
+   "accept": [
+    "wp_handle_comment_submission",
+    "wp_new_comment",
+    "wp_allow_comment"
+   ]
+  },
+  {
+   "q": "register a custom post type",
+   "hit": true,
+   "top": [
+    "register_post_type",
+    "unregister_post_type",
+    "WP_Post_Type.register_taxonomies",
+    "WP_Post_Type.register_meta_boxes",
+    "WP_Post_Type.set_props"
+   ],
+   "accept": [
+    "register_post_type",
+    "WP_Post_Type"
+   ]
+  },
+  {
+   "q": "add a javascript file so it loads on the page",
+   "hit": false,
+   "top": [
+    "addScript",
+    "wp_enqueue_scripts",
+    "options_permalink_add_js",
+    "wp_default_packages_inline_scripts",
+    "wp_default_scripts"
+   ],
+   "accept": [
+    "wp_enqueue_script",
+    "wp_register_script"
+   ]
+  },
+  {
+   "q": "verify a nonce sent with a form submission",
+   "hit": true,
+   "top": [
+    "wp_verify_nonce",
+    "wp_nonce_field",
+    "wp_nonce_ays",
+    "wp_nonce_url",
+    "signup_nonce_check"
+   ],
+   "accept": [
+    "wp_verify_nonce",
+    "check_admin_referer",
+    "check_ajax_referer"
+   ]
+  },
+  {
+   "q": "check whether the current user has a capability",
+   "hit": true,
+   "top": [
+    "current_user_can",
+    "user_can",
+    "current_user_can_for_site",
+    "user_can_for_site",
+    "wp_get_current_user"
+   ],
+   "accept": [
+    "current_user_can",
+    "WP_User.has_cap",
+    "user_can"
+   ]
+  },
+  {
+   "q": "sanitize a text field submitted by a user",
+   "hit": true,
+   "top": [
+    "sanitize_text_field",
+    "_sanitize_text_fields",
+    "sanitize_post",
+    "sanitize_post_field",
+    "sanitize_user"
+   ],
+   "accept": [
+    "sanitize_text_field",
+    "_sanitize_text_fields"
+   ]
+  },
+  {
+   "q": "escape output for use in an html attribute",
+   "hit": true,
+   "top": [
+    "esc_attr",
+    "esc_html",
+    "tag_escape",
+    "attribute_escape",
+    "wp_xmlrpc_server.escape"
+   ],
+   "accept": [
+    "esc_attr",
+    "esc_html"
+   ]
+  },
+  {
+   "q": "store and retrieve values in the object cache",
+   "hit": true,
+   "top": [
+    "WP_Object_Cache.get",
+    "WP_Object_Cache",
+    "WP_Object_Cache.set_multiple",
+    "WP_Object_Cache.add",
+    "WP_Object_Cache.get_multiple"
+   ],
+   "accept": [
+    "wp_cache_set",
+    "wp_cache_get",
+    "WP_Object_Cache.set",
+    "WP_Object_Cache.get"
+   ]
+  },
+  {
+   "q": "update an option stored in the database",
+   "hit": true,
+   "top": [
+    "update_site_option",
+    "update_option",
+    "update_network_option",
+    "add_option",
+    "update_blog_option"
+   ],
+   "accept": [
+    "update_option",
+    "add_option"
+   ]
+  },
+  {
+   "q": "hash a user password for storage and check it at login",
+   "hit": true,
+   "top": [
+    "wp_check_password",
+    "PasswordHash.CheckPassword",
+    "wp_update_user",
+    "check_password_reset_key",
+    "PasswordHash.PasswordHash"
+   ],
+   "accept": [
+    "wp_hash_password",
+    "wp_check_password"
+   ]
+  },
+  {
+   "q": "create the resized image sizes when an image is uploaded",
+   "hit": true,
+   "top": [
+    "image_resize_dimensions",
+    "image_make_intermediate_size",
+    "image_resize",
+    "image_downsize",
+    "add_image_size"
+   ],
+   "accept": [
+    "wp_create_image_subsizes",
+    "wp_generate_attachment_metadata",
+    "image_make_intermediate_size"
+   ]
+  }
+ ]
+}

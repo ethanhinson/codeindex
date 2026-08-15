@@ -1,0 +1,452 @@
+{
+ "repo": "prometheus",
+ "split": "heldout",
+ "fixture_commit": "7086161a93b262aa0949dbf2aba15a5a7b13e0a3",
+ "binary_sha256_16": "44b2be5618b3ba8d",
+ "params": {
+  "cards": "contrast-no-neighbors",
+  "lambda": 0.3,
+  "frozen": true,
+  "one_shot": true
+ },
+ "n": 26,
+ "hits": 16,
+ "hit5_pct": 61.5,
+ "results": [
+  {
+   "q": "scrape metrics from a discovered target",
+   "hit": false,
+   "top": [
+    "scrapeMetrics.Unregister",
+    "TargetsGatherer",
+    "MetricMetadata",
+    "ScrapeProtocol",
+    "newScrapeMetrics"
+   ],
+   "accept": [
+    "scrapeLoop",
+    "scrapePool",
+    "scrapeAndReport",
+    "targetScraper",
+    "scrapeLoop.run",
+    "scrapePool.sync"
+   ]
+  },
+  {
+   "q": "evaluate alerting and recording rules on a schedule",
+   "hit": true,
+   "top": [
+    "AlertingRule.GetEvaluationDuration",
+    "AlertingRule.SetEvaluationDuration",
+    "AlertingRule.Eval",
+    "AlertingRule.SetEvaluationTimestamp",
+    "AlertingRule.GetEvaluationTimestamp"
+   ],
+   "accept": [
+    "Group.Eval",
+    "AlertingRule.Eval",
+    "RecordingRule.Eval",
+    "Group.run",
+    "Manager.Update"
+   ]
+  },
+  {
+   "q": "parse a promql expression into an ast",
+   "hit": false,
+   "top": [
+    "evaluator.eval",
+    "StepInvariantExpr.String",
+    "Expressions",
+    "AggregateExpr.PromQLExpr",
+    "AggregateExpr.Type"
+   ],
+   "accept": [
+    "ParseExpr",
+    "NewParser",
+    "parseGenerated",
+    "Parse"
+   ]
+  },
+  {
+   "q": "execute a promql query over the stored samples",
+   "hit": false,
+   "top": [
+    "loadCmd.set",
+    "test.execEval",
+    "RunTest",
+    "sample",
+    "query.Exec"
+   ],
+   "accept": [
+    "Engine.exec",
+    "NewInstantQuery",
+    "NewRangeQuery",
+    "evaluator.eval",
+    "Engine.NewInstantQuery",
+    "Engine.NewRangeQuery"
+   ]
+  },
+  {
+   "q": "send firing alerts to the alertmanager",
+   "hit": true,
+   "top": [
+    "Manager.Alertmanagers",
+    "newAlertmanagerSet",
+    "Manager.sendAll",
+    "alertmanager",
+    "alertmanagerSet.configHash"
+   ],
+   "accept": [
+    "sendAll",
+    "Manager.sendAll",
+    "sendOne",
+    "Notify"
+   ]
+  },
+  {
+   "q": "discover scrape targets from service discovery",
+   "hit": false,
+   "top": [
+    "Manager.TargetsActive",
+    "TargetsGatherer",
+    "scrapePool.ActiveTargets",
+    "targetScraper.scrape",
+    "TargetRetriever"
+   ],
+   "accept": [
+    "Discoverer",
+    "Manager.ApplyConfig",
+    "Manager.Run",
+    "updater"
+   ]
+  },
+  {
+   "q": "append new samples into local storage",
+   "hit": false,
+   "top": [
+    "addSample",
+    "writeHandler.appendV1Samples",
+    "mockAppendable.AppendCTZeroSample",
+    "headAppender.AppendCTZeroSample",
+    "samples"
+   ],
+   "accept": [
+    "headAppender.Append",
+    "DB.Appender",
+    "Head.Appender",
+    "appender.Append"
+   ]
+  },
+  {
+   "q": "compact storage blocks into larger ones",
+   "hit": true,
+   "top": [
+    "LeveledCompactor.Compact",
+    "ExpandChunks",
+    "DB.Compact",
+    "CreateBlock",
+    "CompactBlockMetas"
+   ],
+   "accept": [
+    "LeveledCompactor.Compact",
+    "Compact",
+    "compactHead",
+    "DB.Compact",
+    "LeveledCompactor.write"
+   ]
+  },
+  {
+   "q": "write and replay the write ahead log",
+   "hit": true,
+   "top": [
+    "NewWriteStorage",
+    "WL.Log",
+    "klogv1Writer.Write",
+    "WriteTo",
+    "writeToMock.Append"
+   ],
+   "accept": [
+    "WL.Log",
+    "Watcher.Run",
+    "Checkpoint",
+    "WL.Repair",
+    "loadWAL",
+    "Watcher"
+   ]
+  },
+  {
+   "q": "send samples to a remote storage endpoint",
+   "hit": true,
+   "top": [
+    "sendSamples",
+    "protoToSamples",
+    "shards.sendSamples",
+    "MockWriteClient.Endpoint",
+    "TestSampleDelivery"
+   ],
+   "accept": [
+    "QueueManager",
+    "QueueManager.Append",
+    "WriteStorage",
+    "sendSamples",
+    "shards.enqueue"
+   ]
+  },
+  {
+   "q": "load and validate the yaml configuration file",
+   "hit": true,
+   "top": [
+    "Load",
+    "LoadFile",
+    "calculateChecksum",
+    "GenerateChecksum",
+    "RegisterConfig"
+   ],
+   "accept": [
+    "LoadFile",
+    "Load",
+    "Config.Validate",
+    "reloadConfig",
+    "Config.UnmarshalYAML"
+   ]
+  },
+  {
+   "q": "expose metrics of one prometheus to be scraped by another",
+   "hit": false,
+   "top": [
+    "MetricFamily.GetMetric",
+    "PushMetrics",
+    "MetricFamily.Descriptor",
+    "Metric.GetSummary",
+    "MetricFamily.GetName"
+   ],
+   "accept": [
+    "federation",
+    "Handler.federation"
+   ]
+  },
+  {
+   "q": "the http api endpoint that runs a query",
+   "hit": true,
+   "top": [
+    "API.query",
+    "API.queryRange",
+    "API.queryExemplars",
+    "API.parseQuery",
+    "extractQueryOpts"
+   ],
+   "accept": [
+    "API.query",
+    "API.queryRange",
+    "apiFuncResult"
+   ]
+  },
+  {
+   "q": "relabel targets before scraping using rules",
+   "hit": true,
+   "top": [
+    "mutateSampleLabels",
+    "Target.SetDiscoveredLabels",
+    "Target.DiscoveredLabels",
+    "Target.Labels",
+    "PopulateLabels"
+   ],
+   "accept": [
+    "Process",
+    "PopulateLabels",
+    "ProcessBuilder"
+   ]
+  },
+  {
+   "q": "merge series from multiple queriers into one result",
+   "hit": true,
+   "top": [
+    "makeMergeSeriesSet",
+    "makeSeries",
+    "memSeries.append",
+    "mergeGenericQuerier.Select",
+    "seriesData"
+   ],
+   "accept": [
+    "NewMergeQuerier",
+    "mergeGenericQuerier",
+    "NewMergeSeriesSet"
+   ]
+  },
+  {
+   "q": "select series matching label matchers",
+   "hit": true,
+   "top": [
+    "querier.Select",
+    "Matcher.Matches",
+    "mergeGenericQuerier.Select",
+    "matches",
+    "Labels.MatchLabels"
+   ],
+   "accept": [
+    "Select",
+    "PostingsForMatchers",
+    "blockQuerier.Select"
+   ]
+  },
+  {
+   "q": "keep active alerts and their state for the ui",
+   "hit": true,
+   "top": [
+    "AlertingRule.State",
+    "AlertingRule.currentAlerts",
+    "AlertState",
+    "AlertingRule.ForEachActiveAlert",
+    "AlertingRule.ActiveAlerts"
+   ],
+   "accept": [
+    "ActiveAlerts",
+    "AlertingRule.ActiveAlerts",
+    "Alert",
+    "sendAlerts",
+    "AlertingRule.State"
+   ]
+  },
+  {
+   "q": "delete old data past the retention period",
+   "hit": true,
+   "top": [
+    "Head.Truncate",
+    "Head.truncateMemory",
+    "DefaultBlocksToDelete",
+    "Head.truncateWAL",
+    "DB.Compact"
+   ],
+   "accept": [
+    "Truncate",
+    "Head.Truncate",
+    "deleteBlocks"
+   ]
+  },
+  {
+   "q": "read chunks of a series from a block",
+   "hit": false,
+   "top": [
+    "blockBaseSeriesSet",
+    "blockIndexReader.Series",
+    "Head.chunkFromSeries",
+    "blockSeriesSet",
+    "Block.Chunks"
+   ],
+   "accept": [
+    "ChunkReader",
+    "Chunk",
+    "blockChunkReader"
+   ]
+  },
+  {
+   "q": "the index mapping label values to series",
+   "hit": false,
+   "top": [
+    "mapLabelsToNumbers",
+    "Reader.LabelValueFor",
+    "SeriesEntry.Labels",
+    "seriesMergerAdapter.Merge",
+    "headIndexReader.LabelValueFor"
+   ],
+   "accept": [
+    "Postings",
+    "MemPostings",
+    "Reader.Postings",
+    "Writer.AddSeries"
+   ]
+  },
+  {
+   "q": "record rules write their result back as new series",
+   "hit": true,
+   "top": [
+    "NewRecordingRule",
+    "RecordingRule",
+    "Group.setLastEvaluation",
+    "ruleImporter.importAll",
+    "RecordingRule.Query"
+   ],
+   "accept": [
+    "RecordingRule.Eval",
+    "RecordingRule",
+    "Group.Eval"
+   ]
+  },
+  {
+   "q": "web ui handler serving the console pages",
+   "hit": true,
+   "top": [
+    "Handler.Run",
+    "Handler.consoles",
+    "Handler.SetReady",
+    "Handler.consolesPath",
+    "StatusPage"
+   ],
+   "accept": [
+    "Handler",
+    "Handler.Run",
+    "New",
+    "consoles"
+   ]
+  },
+  {
+   "q": "check scrape target health up or down",
+   "hit": true,
+   "top": [
+    "targetScraper.scrape",
+    "Target.Health",
+    "TargetsGatherer",
+    "Manager.TargetsActive",
+    "targetScraper.readResponse"
+   ],
+   "accept": [
+    "Target.Health",
+    "TargetHealth"
+   ]
+  },
+  {
+   "q": "stale markers when a target disappears",
+   "hit": true,
+   "top": [
+    "scrapeLoop.updateStaleMarkers",
+    "IsStaleNaN",
+    "scrapeLoop.disableEndOfRunStalenessMarkers",
+    "testLoop.disableEndOfRunStalenessMarkers",
+    "TestScrapeLoopRunCreatesStaleMarkersOnFailedScrapeForTimestampedMetrics"
+   ],
+   "accept": [
+    "IsStaleNaN"
+   ]
+  },
+  {
+   "q": "limit how many samples a query can load",
+   "hit": false,
+   "top": [
+    "QuerySamples.UpdatePeak",
+    "limitAppender",
+    "ErrTooManySamples",
+    "bucketLimitAppender",
+    "getLimits"
+   ],
+   "accept": [
+    "checkAndExpandSeriesSet"
+   ]
+  },
+  {
+   "q": "exemplars stored alongside samples",
+   "hit": false,
+   "top": [
+    "sampleRing.samples",
+    "generateSamples",
+    "addSample",
+    "sampleRing.at",
+    "Encoder.Exemplars"
+   ],
+   "accept": [
+    "AppendExemplar",
+    "CircularExemplarStorage",
+    "ExemplarQuerier"
+   ]
+  }
+ ]
+}

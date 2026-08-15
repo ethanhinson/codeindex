@@ -1,0 +1,469 @@
+{
+ "repo": "gin",
+ "commit": "75ccf94d605a05fe24817fc2f166f6f2959d5cea",
+ "split": "tuning",
+ "provenance": "Drafted from framework documentation knowledge by claude-fable-5 on 2026-07-11; answers verified against the pinned index via symbol-table existence lookup only (no search runs); frozen before diffusion/contrast mechanisms were measured. | expansion x2, drafted from framework documentation knowledge, verified by symbol-table lookup only, frozen before any measurement, 2026-07-12. Original questions copied verbatim.",
+ "questions": [
+  {
+   "q": "serve static files from a directory over http",
+   "accept": [
+    "Static",
+    "StaticFS",
+    "StaticFile",
+    "RouterGroup.Static",
+    "RouterGroup.StaticFS",
+    "RouterGroup.StaticFile"
+   ]
+  },
+  {
+   "q": "bind the incoming json request body onto a struct",
+   "accept": [
+    "ShouldBindJSON",
+    "BindJSON",
+    "ShouldBind",
+    "ShouldBindWith",
+    "MustBindWith",
+    "Context.ShouldBindJSON",
+    "Context.BindJSON"
+   ]
+  },
+  {
+   "q": "send a json response to the client",
+   "accept": [
+    "JSON",
+    "IndentedJSON",
+    "PureJSON",
+    "SecureJSON",
+    "AsciiJSON",
+    "Context.JSON"
+   ]
+  },
+  {
+   "q": "group several routes under a common url prefix",
+   "accept": [
+    "Group",
+    "RouterGroup.Group"
+   ]
+  },
+  {
+   "q": "register middleware that runs for every request",
+   "accept": [
+    "Use",
+    "Engine.Use",
+    "RouterGroup.Use"
+   ]
+  },
+  {
+   "q": "stop processing the request from inside middleware",
+   "accept": [
+    "Abort",
+    "AbortWithStatus",
+    "AbortWithStatusJSON",
+    "AbortWithError",
+    "Context.Abort"
+   ]
+  },
+  {
+   "q": "read a path parameter like the id in /users/:id",
+   "accept": [
+    "Param",
+    "Context.Param",
+    "Params.Get",
+    "Params.ByName"
+   ]
+  },
+  {
+   "q": "read a query string parameter with a fallback default",
+   "accept": [
+    "Query",
+    "DefaultQuery",
+    "GetQuery",
+    "Context.Query",
+    "Context.DefaultQuery"
+   ]
+  },
+  {
+   "q": "figure out the real client ip address behind proxies",
+   "accept": [
+    "ClientIP",
+    "RemoteIP",
+    "Context.ClientIP",
+    "Context.RemoteIP"
+   ]
+  },
+  {
+   "q": "set a cookie on the http response",
+   "accept": [
+    "SetCookie",
+    "Context.SetCookie"
+   ]
+  },
+  {
+   "q": "recover from a panic in a handler and return a 500",
+   "accept": [
+    "Recovery",
+    "RecoveryWithWriter",
+    "CustomRecovery",
+    "CustomRecoveryWithWriter"
+   ]
+  },
+  {
+   "q": "log each request with latency and status to the console",
+   "accept": [
+    "Logger",
+    "LoggerWithConfig",
+    "LoggerWithFormatter",
+    "LoggerWithWriter"
+   ]
+  },
+  {
+   "q": "load html templates so handlers can render them",
+   "accept": [
+    "LoadHTMLGlob",
+    "LoadHTMLFiles",
+    "Engine.LoadHTMLGlob",
+    "Engine.LoadHTMLFiles",
+    "SetHTMLTemplate"
+   ]
+  },
+  {
+   "q": "receive an uploaded file from a multipart form",
+   "accept": [
+    "FormFile",
+    "MultipartForm",
+    "SaveUploadedFile",
+    "Context.FormFile",
+    "Context.MultipartForm"
+   ]
+  },
+  {
+   "q": "redirect the client to a different url",
+   "accept": [
+    "Redirect",
+    "Context.Redirect"
+   ]
+  },
+  {
+   "q": "start the server with tls certificates",
+   "accept": [
+    "RunTLS",
+    "Engine.RunTLS"
+   ]
+  },
+  {
+   "q": "pick the response format based on the accept header",
+   "accept": [
+    "Negotiate",
+    "NegotiateFormat",
+    "Context.Negotiate",
+    "Context.NegotiateFormat"
+   ]
+  },
+  {
+   "q": "register one handler for all http methods on a path",
+   "accept": [
+    "Any",
+    "RouterGroup.Any",
+    "Handle",
+    "RouterGroup.Handle"
+   ]
+  },
+  {
+   "q": "stream server sent events to the client",
+   "accept": [
+    "Stream",
+    "SSEvent",
+    "Context.Stream",
+    "Context.SSEvent"
+   ]
+  },
+  {
+   "q": "store a value on the request context and read it back later",
+   "accept": [
+    "Set",
+    "Get",
+    "MustGet",
+    "Context.Set",
+    "Context.Get",
+    "Context.MustGet"
+   ]
+  },
+  {
+   "q": "serve a single file when a route is hit",
+   "accept": [
+    "File",
+    "Context.File",
+    "StaticFile",
+    "FileAttachment"
+   ]
+  },
+  {
+   "q": "customize the handler for unmatched routes",
+   "accept": [
+    "NoRoute",
+    "NoMethod",
+    "Engine.NoRoute",
+    "Engine.NoMethod"
+   ]
+  },
+  {
+   "q": "run the server on a unix domain socket or existing listener",
+   "accept": [
+    "RunUnix",
+    "RunListener",
+    "RunFd",
+    "Engine.RunUnix",
+    "Engine.RunListener"
+   ]
+  },
+  {
+   "q": "read the raw request body bytes",
+   "accept": [
+    "GetRawData",
+    "Context.GetRawData"
+   ]
+  },
+  {
+   "q": "protect routes with http basic authentication",
+   "accept": [
+    "BasicAuth",
+    "BasicAuthForRealm"
+   ]
+  },
+  {
+   "q": "configure which proxies to trust for forwarded headers",
+   "accept": [
+    "SetTrustedProxies",
+    "Engine.SetTrustedProxies",
+    "isTrustedProxy"
+   ]
+  },
+  {
+   "q": "bind query string parameters onto a struct",
+   "accept": [
+    "ShouldBindQuery",
+    "BindQuery",
+    "Context.ShouldBindQuery",
+    "Context.BindQuery"
+   ]
+  },
+  {
+   "q": "bind uri path parameters onto struct fields",
+   "accept": [
+    "ShouldBindUri",
+    "BindUri",
+    "Context.ShouldBindUri",
+    "Context.BindUri"
+   ]
+  },
+  {
+   "q": "bind request headers onto a struct",
+   "accept": [
+    "ShouldBindHeader",
+    "BindHeader",
+    "Context.ShouldBindHeader"
+   ]
+  },
+  {
+   "q": "bind a toml or yaml request body onto a struct",
+   "accept": [
+    "ShouldBindTOML",
+    "ShouldBindYAML",
+    "BindTOML",
+    "BindYAML",
+    "Context.ShouldBindTOML",
+    "Context.ShouldBindYAML"
+   ]
+  },
+  {
+   "q": "bind the request body more than once by caching it",
+   "accept": [
+    "ShouldBindBodyWith",
+    "ShouldBindBodyWithJSON",
+    "ShouldBindBodyWithYAML",
+    "Context.ShouldBindBodyWith"
+   ]
+  },
+  {
+   "q": "render an html template as the response",
+   "accept": [
+    "HTML",
+    "Context.HTML"
+   ]
+  },
+  {
+   "q": "return a formatted plain text response",
+   "accept": [
+    "String",
+    "Context.String"
+   ]
+  },
+  {
+   "q": "respond with raw bytes and a custom content type",
+   "accept": [
+    "Data",
+    "DataFromReader",
+    "Context.Data",
+    "Context.DataFromReader"
+   ]
+  },
+  {
+   "q": "respond with xml yaml or protobuf instead of json",
+   "accept": [
+    "XML",
+    "YAML",
+    "TOML",
+    "ProtoBuf",
+    "Context.XML",
+    "Context.YAML",
+    "Context.ProtoBuf"
+   ]
+  },
+  {
+   "q": "copy the request context to use safely inside a goroutine",
+   "accept": [
+    "Copy",
+    "Context.Copy"
+   ]
+  },
+  {
+   "q": "switch the framework between debug release and test mode",
+   "accept": [
+    "SetMode",
+    "Mode",
+    "IsDebugging"
+   ]
+  },
+  {
+   "q": "attach an error to the context and collect errors from middleware",
+   "accept": [
+    "Error",
+    "Context.Error",
+    "errorMsgs.ByType"
+   ]
+  },
+  {
+   "q": "list all registered routes with their handler names",
+   "accept": [
+    "Routes",
+    "Engine.Routes",
+    "RoutesInfo",
+    "iterate",
+    "nameOfFunction"
+   ]
+  },
+  {
+   "q": "use a standard net/http handler as a gin handler",
+   "accept": [
+    "WrapF",
+    "WrapH"
+   ]
+  },
+  {
+   "q": "read a header from the incoming request",
+   "accept": [
+    "GetHeader",
+    "Context.GetHeader",
+    "requestHeader"
+   ]
+  },
+  {
+   "q": "set the http response status code without a body",
+   "accept": [
+    "Status",
+    "Context.Status"
+   ]
+  },
+  {
+   "q": "how the radix tree matches an incoming url to a registered route",
+   "accept": [
+    "getValue",
+    "addRoute",
+    "node.getValue",
+    "node.addRoute",
+    "findCaseInsensitivePath"
+   ]
+  },
+  {
+   "q": "register custom template functions and change template delimiters",
+   "accept": [
+    "SetFuncMap",
+    "Delims",
+    "Engine.SetFuncMap",
+    "Engine.Delims"
+   ]
+  },
+  {
+   "q": "create a fake context for unit testing handlers",
+   "accept": [
+    "CreateTestContext",
+    "CreateTestContextOnly"
+   ]
+  },
+  {
+   "q": "read form values from a post request body",
+   "accept": [
+    "PostForm",
+    "DefaultPostForm",
+    "GetPostForm",
+    "PostFormArray",
+    "Context.PostForm",
+    "Context.DefaultPostForm"
+   ]
+  },
+  {
+   "q": "get the matched route pattern like /user/:id inside a handler",
+   "accept": [
+    "FullPath",
+    "Context.FullPath"
+   ]
+  },
+  {
+   "q": "control the samesite attribute of cookies being set",
+   "accept": [
+    "SetSameSite",
+    "Context.SetSameSite"
+   ]
+  },
+  {
+   "q": "serve a file from a custom http filesystem",
+   "accept": [
+    "FileFromFS",
+    "Context.FileFromFS",
+    "StaticFS"
+   ]
+  },
+  {
+   "q": "use the gin context as a standard go context with deadline and values",
+   "accept": [
+    "Context.Deadline",
+    "Context.Done",
+    "Context.Err",
+    "Context.Value"
+   ]
+  },
+  {
+   "q": "plug in a custom struct validator for binding",
+   "accept": [
+    "StructValidator",
+    "defaultValidator",
+    "ValidateStruct",
+    "defaultValidator.ValidateStruct"
+   ]
+  },
+  {
+   "q": "re-enter the router to handle a rewritten request internally",
+   "accept": [
+    "HandleContext",
+    "Engine.HandleContext"
+   ]
+  },
+  {
+   "q": "force the connection to download the response as a named file",
+   "accept": [
+    "FileAttachment",
+    "Context.FileAttachment"
+   ]
+  }
+ ]
+}

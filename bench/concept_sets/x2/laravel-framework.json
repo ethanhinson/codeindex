@@ -1,0 +1,499 @@
+{
+ "repo": "laravel-framework",
+ "commit": "5d964a15efc8fffcb175aed3976796c0420bcf99",
+ "split": "tuning",
+ "provenance": "Drafted from framework documentation knowledge by claude-fable-5 on 2026-07-11; answers verified against the pinned index via symbol-table existence lookup only (no search runs); frozen before diffusion/contrast mechanisms were measured. | expansion x2, drafted from framework documentation knowledge, verified by symbol-table lookup only, frozen before any measurement, 2026-07-12. Original questions copied verbatim.",
+ "questions": [
+  {
+   "q": "roll back the last batch of database migrations",
+   "accept": [
+    "rollback",
+    "rollbackMigrations",
+    "RollbackCommand",
+    "Migrator.rollback"
+   ]
+  },
+  {
+   "q": "run the pending database migrations",
+   "accept": [
+    "Migrator.run",
+    "runPending",
+    "MigrateCommand",
+    "runUp"
+   ]
+  },
+  {
+   "q": "define the columns of a new database table",
+   "accept": [
+    "Blueprint",
+    "Builder.create",
+    "Blueprint.build"
+   ]
+  },
+  {
+   "q": "add a where condition to a database query",
+   "accept": [
+    "Builder.where",
+    "Builder.orWhere"
+   ]
+  },
+  {
+   "q": "persist a model instance to the database",
+   "accept": [
+    "Model.save",
+    "performInsert",
+    "performUpdate",
+    "Model.saveOrFail"
+   ]
+  },
+  {
+   "q": "declare that a model has many related child models",
+   "accept": [
+    "hasMany",
+    "HasMany",
+    "HasOneOrMany",
+    "newHasMany"
+   ]
+  },
+  {
+   "q": "declare the inverse relation where a model belongs to a parent",
+   "accept": [
+    "belongsTo",
+    "BelongsTo",
+    "newBelongsTo"
+   ]
+  },
+  {
+   "q": "push a job onto the queue for background processing",
+   "accept": [
+    "dispatch",
+    "PendingDispatch",
+    "Queue.push",
+    "Dispatcher.dispatch",
+    "dispatchToQueue"
+   ]
+  },
+  {
+   "q": "retry jobs that previously failed",
+   "accept": [
+    "RetryCommand",
+    "retryJob",
+    "FailedJobProviderInterface"
+   ]
+  },
+  {
+   "q": "fire an event and notify its listeners",
+   "accept": [
+    "Dispatcher.dispatch",
+    "Dispatcher.listen",
+    "invokeListeners",
+    "Dispatcher.until"
+   ]
+  },
+  {
+   "q": "validate incoming request data against rules",
+   "accept": [
+    "Validator",
+    "validate",
+    "ValidatesRequests",
+    "FormRequest",
+    "Validator.passes",
+    "Validator.fails"
+   ]
+  },
+  {
+   "q": "hash a user password for storage",
+   "accept": [
+    "BcryptHasher",
+    "HashManager",
+    "BcryptHasher.make",
+    "Argon2IdHasher",
+    "AbstractHasher"
+   ]
+  },
+  {
+   "q": "encrypt a value and decrypt it later",
+   "accept": [
+    "Encrypter",
+    "Encrypter.encrypt",
+    "Encrypter.decrypt",
+    "encryptString",
+    "decryptString"
+   ]
+  },
+  {
+   "q": "register a route with the router",
+   "accept": [
+    "Router.get",
+    "Router.post",
+    "Router.addRoute",
+    "RouteRegistrar",
+    "Router.match"
+   ]
+  },
+  {
+   "q": "resolve a model instance from a route parameter automatically",
+   "accept": [
+    "ImplicitRouteBinding",
+    "substituteImplicitBindings",
+    "resolveRouteBinding"
+   ]
+  },
+  {
+   "q": "pass the request through the middleware chain",
+   "accept": [
+    "Pipeline",
+    "Pipeline.then",
+    "sendRequestThroughRouter",
+    "Pipeline.through"
+   ]
+  },
+  {
+   "q": "send an email message",
+   "accept": [
+    "Mailer.send",
+    "Mailable",
+    "Mailer",
+    "Mailable.send",
+    "SendQueuedMailable"
+   ]
+  },
+  {
+   "q": "cache a computed value and reuse it until it expires",
+   "accept": [
+    "remember",
+    "Repository.remember",
+    "rememberForever",
+    "Repository.get"
+   ]
+  },
+  {
+   "q": "schedule recurring console tasks like cron",
+   "accept": [
+    "Schedule",
+    "Schedule.command",
+    "ScheduleRunCommand",
+    "Schedule.call"
+   ]
+  },
+  {
+   "q": "define a custom artisan console command",
+   "accept": [
+    "Command",
+    "GeneratorCommand",
+    "Command.execute"
+   ]
+  },
+  {
+   "q": "bind an implementation into the service container and resolve it",
+   "accept": [
+    "Container.bind",
+    "Container.make",
+    "Container.resolve",
+    "Container.singleton"
+   ]
+  },
+  {
+   "q": "register services when the framework boots",
+   "accept": [
+    "ServiceProvider",
+    "ServiceProvider.register",
+    "registerConfiguredProviders"
+   ]
+  },
+  {
+   "q": "compile blade templates into php",
+   "accept": [
+    "BladeCompiler",
+    "BladeCompiler.compile",
+    "compileString",
+    "compileStatements"
+   ]
+  },
+  {
+   "q": "paginate query results into pages",
+   "accept": [
+    "paginate",
+    "Paginator",
+    "LengthAwarePaginator",
+    "CursorPaginator",
+    "Builder.paginate"
+   ]
+  },
+  {
+   "q": "run several database statements in one transaction",
+   "accept": [
+    "transaction",
+    "beginTransaction",
+    "ManagesTransactions"
+   ]
+  },
+  {
+   "q": "soft delete models instead of removing rows",
+   "accept": [
+    "SoftDeletes",
+    "SoftDeletingScope",
+    "runSoftDelete",
+    "restore"
+   ]
+  },
+  {
+   "q": "broadcast an event to websocket channels",
+   "accept": [
+    "BroadcastManager",
+    "ShouldBroadcast",
+    "BroadcastEvent",
+    "PusherBroadcaster",
+    "Broadcaster"
+   ]
+  },
+  {
+   "q": "define private and presence channels with authorization",
+   "accept": [
+    "PrivateChannel",
+    "PresenceChannel",
+    "Channel",
+    "verifyUserCanAccessChannel"
+   ]
+  },
+  {
+   "q": "rate limit how many requests a client can make",
+   "accept": [
+    "RateLimiter",
+    "ThrottleRequests",
+    "Limit",
+    "RateLimiter.attempt",
+    "RateLimiter.tooManyAttempts"
+   ]
+  },
+  {
+   "q": "store and retrieve files on local or cloud disks",
+   "accept": [
+    "FilesystemManager",
+    "FilesystemAdapter",
+    "FilesystemManager.disk",
+    "FilesystemAdapter.put",
+    "FilesystemAdapter.get"
+   ]
+  },
+  {
+   "q": "translate strings into the user's locale with pluralization",
+   "accept": [
+    "Translator",
+    "Translator.get",
+    "Translator.choice",
+    "MessageSelector"
+   ]
+  },
+  {
+   "q": "send a notification via mail database or other channels",
+   "accept": [
+    "NotificationSender",
+    "ChannelManager",
+    "MailChannel",
+    "DatabaseChannel",
+    "RoutesNotifications"
+   ]
+  },
+  {
+   "q": "authorize an action using gates and policies",
+   "accept": [
+    "Gate",
+    "Gate.define",
+    "Gate.allows",
+    "Gate.authorize",
+    "Gate.policy",
+    "AuthorizesRequests"
+   ]
+  },
+  {
+   "q": "log a user in by checking their credentials",
+   "accept": [
+    "SessionGuard",
+    "SessionGuard.attempt",
+    "AuthManager",
+    "StatefulGuard"
+   ]
+  },
+  {
+   "q": "apply a global scope to every query of a model",
+   "accept": [
+    "addGlobalScope",
+    "Scope",
+    "HasGlobalScopes.addGlobalScope",
+    "SoftDeletingScope.apply",
+    "Scope.apply"
+   ]
+  },
+  {
+   "q": "define accessors and mutators for model attributes",
+   "accept": [
+    "Attribute",
+    "castAttribute",
+    "HasAttributes.castAttribute",
+    "mutateAttribute",
+    "HasAttributes.mutateAttribute",
+    "Attribute.make"
+   ]
+  },
+  {
+   "q": "transform arrays fluently with the collection api",
+   "accept": [
+    "Collection",
+    "Collection.map",
+    "Collection.filter",
+    "Collection.pluck"
+   ]
+  },
+  {
+   "q": "manipulate strings fluently like slugs and case changes",
+   "accept": [
+    "Str",
+    "Stringable",
+    "Str.slug",
+    "Str.of",
+    "Str.camel"
+   ]
+  },
+  {
+   "q": "make outgoing http requests with the built in http client",
+   "accept": [
+    "PendingRequest",
+    "PendingRequest.get",
+    "PendingRequest.post",
+    "PendingRequest.send",
+    "Factory.fake"
+   ]
+  },
+  {
+   "q": "dispatch a batch of jobs and track its progress",
+   "accept": [
+    "Batch",
+    "PendingBatch",
+    "BatchRepository",
+    "DatabaseBatchRepository"
+   ]
+  },
+  {
+   "q": "chain jobs so they run one after another",
+   "accept": [
+    "PendingChain",
+    "chain",
+    "dispatchNextJobInChain",
+    "Queueable.chain"
+   ]
+  },
+  {
+   "q": "generate fake model instances for tests with factories",
+   "accept": [
+    "HasFactory",
+    "Factory.create",
+    "Factory.make",
+    "Factory.definition"
+   ]
+  },
+  {
+   "q": "seed the database with initial records",
+   "accept": [
+    "Seeder",
+    "Seeder.call",
+    "SeedCommand"
+   ]
+  },
+  {
+   "q": "create signed urls that cannot be tampered with",
+   "accept": [
+    "signedRoute",
+    "temporarySignedRoute",
+    "hasValidSignature",
+    "UrlGenerator.signedRoute",
+    "ValidateSignature"
+   ]
+  },
+  {
+   "q": "put the application into maintenance mode",
+   "accept": [
+    "DownCommand",
+    "UpCommand",
+    "PreventRequestsDuringMaintenance",
+    "FileBasedMaintenanceMode",
+    "MaintenanceModeManager"
+   ]
+  },
+  {
+   "q": "eager load relationships to avoid n plus one queries",
+   "accept": [
+    "Builder.with",
+    "eagerLoadRelations",
+    "eagerLoadRelation",
+    "loadMissing"
+   ]
+  },
+  {
+   "q": "process a large table in chunks or lazily",
+   "accept": [
+    "chunk",
+    "chunkById",
+    "BuildsQueries.chunk",
+    "lazy",
+    "cursor",
+    "Builder.cursor"
+   ]
+  },
+  {
+   "q": "insert or update rows in a single atomic upsert",
+   "accept": [
+    "upsert",
+    "Builder.upsert"
+   ]
+  },
+  {
+   "q": "flash data to the session for only the next request",
+   "accept": [
+    "Store.flash",
+    "flash",
+    "Store.now",
+    "flashInput",
+    "Store.keep"
+   ]
+  },
+  {
+   "q": "queue a cookie to be attached to the outgoing response",
+   "accept": [
+    "CookieJar",
+    "CookieJar.queue",
+    "CookieJar.make",
+    "AddQueuedCookiesToResponse"
+   ]
+  },
+  {
+   "q": "render a view template with bound data",
+   "accept": [
+    "View.render",
+    "Factory.make",
+    "View.with",
+    "renderContents"
+   ]
+  },
+  {
+   "q": "attach and detach records on a many to many relation",
+   "accept": [
+    "belongsToMany",
+    "BelongsToMany",
+    "attach",
+    "detach",
+    "sync",
+    "InteractsWithPivotTable.attach"
+   ]
+  },
+  {
+   "q": "observe model lifecycle events like creating and deleting",
+   "accept": [
+    "observe",
+    "registerObserver",
+    "ObservedBy",
+    "HasEvents.observe"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,453 @@
+{
+ "repo": "prometheus",
+ "commit": "7086161a93b262aa0949dbf2aba15a5a7b13e0a3",
+ "split": "heldout",
+ "provenance": "Drafted from framework documentation knowledge by claude-fable-5 on 2026-07-11; answers verified against the pinned index via symbol-table existence lookup only (no search runs); frozen before diffusion/contrast mechanisms were measured. | expansion x2, drafted from framework documentation knowledge, verified by symbol-table lookup only, frozen before any measurement, 2026-07-12. Original questions copied verbatim.",
+ "questions": [
+  {
+   "q": "scrape metrics from a discovered target",
+   "accept": [
+    "scrapeLoop",
+    "scrapePool",
+    "scrapeAndReport",
+    "targetScraper",
+    "scrapeLoop.run",
+    "scrapePool.sync"
+   ]
+  },
+  {
+   "q": "evaluate alerting and recording rules on a schedule",
+   "accept": [
+    "Group.Eval",
+    "AlertingRule.Eval",
+    "RecordingRule.Eval",
+    "Group.run",
+    "Manager.Update"
+   ]
+  },
+  {
+   "q": "parse a promql expression into an ast",
+   "accept": [
+    "ParseExpr",
+    "NewParser",
+    "parseGenerated",
+    "Parse"
+   ]
+  },
+  {
+   "q": "execute a promql query over the stored samples",
+   "accept": [
+    "Engine.exec",
+    "NewInstantQuery",
+    "NewRangeQuery",
+    "evaluator.eval",
+    "Engine.NewInstantQuery",
+    "Engine.NewRangeQuery"
+   ]
+  },
+  {
+   "q": "send firing alerts to the alertmanager",
+   "accept": [
+    "sendAll",
+    "Manager.sendAll",
+    "sendOne",
+    "Notify"
+   ]
+  },
+  {
+   "q": "discover scrape targets from service discovery",
+   "accept": [
+    "Discoverer",
+    "Manager.ApplyConfig",
+    "Manager.Run",
+    "updater"
+   ]
+  },
+  {
+   "q": "append new samples into local storage",
+   "accept": [
+    "headAppender.Append",
+    "DB.Appender",
+    "Head.Appender",
+    "appender.Append"
+   ]
+  },
+  {
+   "q": "compact storage blocks into larger ones",
+   "accept": [
+    "LeveledCompactor.Compact",
+    "Compact",
+    "compactHead",
+    "DB.Compact",
+    "LeveledCompactor.write"
+   ]
+  },
+  {
+   "q": "write and replay the write ahead log",
+   "accept": [
+    "WL.Log",
+    "Watcher.Run",
+    "Checkpoint",
+    "WL.Repair",
+    "loadWAL",
+    "Watcher"
+   ]
+  },
+  {
+   "q": "send samples to a remote storage endpoint",
+   "accept": [
+    "QueueManager",
+    "QueueManager.Append",
+    "WriteStorage",
+    "sendSamples",
+    "shards.enqueue"
+   ]
+  },
+  {
+   "q": "load and validate the yaml configuration file",
+   "accept": [
+    "LoadFile",
+    "Load",
+    "Config.Validate",
+    "reloadConfig",
+    "Config.UnmarshalYAML"
+   ]
+  },
+  {
+   "q": "expose metrics of one prometheus to be scraped by another",
+   "accept": [
+    "federation",
+    "Handler.federation"
+   ]
+  },
+  {
+   "q": "the http api endpoint that runs a query",
+   "accept": [
+    "API.query",
+    "API.queryRange",
+    "apiFuncResult"
+   ]
+  },
+  {
+   "q": "relabel targets before scraping using rules",
+   "accept": [
+    "Process",
+    "PopulateLabels",
+    "ProcessBuilder"
+   ]
+  },
+  {
+   "q": "merge series from multiple queriers into one result",
+   "accept": [
+    "NewMergeQuerier",
+    "mergeGenericQuerier",
+    "NewMergeSeriesSet"
+   ]
+  },
+  {
+   "q": "select series matching label matchers",
+   "accept": [
+    "Select",
+    "PostingsForMatchers",
+    "blockQuerier.Select"
+   ]
+  },
+  {
+   "q": "keep active alerts and their state for the ui",
+   "accept": [
+    "ActiveAlerts",
+    "AlertingRule.ActiveAlerts",
+    "Alert",
+    "sendAlerts",
+    "AlertingRule.State"
+   ]
+  },
+  {
+   "q": "delete old data past the retention period",
+   "accept": [
+    "Truncate",
+    "Head.Truncate",
+    "deleteBlocks"
+   ]
+  },
+  {
+   "q": "read chunks of a series from a block",
+   "accept": [
+    "ChunkReader",
+    "Chunk",
+    "blockChunkReader"
+   ]
+  },
+  {
+   "q": "the index mapping label values to series",
+   "accept": [
+    "Postings",
+    "MemPostings",
+    "Reader.Postings",
+    "Writer.AddSeries"
+   ]
+  },
+  {
+   "q": "record rules write their result back as new series",
+   "accept": [
+    "RecordingRule.Eval",
+    "RecordingRule",
+    "Group.Eval"
+   ]
+  },
+  {
+   "q": "web ui handler serving the console pages",
+   "accept": [
+    "Handler",
+    "Handler.Run",
+    "New",
+    "consoles"
+   ]
+  },
+  {
+   "q": "check scrape target health up or down",
+   "accept": [
+    "Target.Health",
+    "TargetHealth"
+   ]
+  },
+  {
+   "q": "stale markers when a target disappears",
+   "accept": [
+    "IsStaleNaN"
+   ]
+  },
+  {
+   "q": "limit how many samples a query can load",
+   "accept": [
+    "checkAndExpandSeriesSet"
+   ]
+  },
+  {
+   "q": "exemplars stored alongside samples",
+   "accept": [
+    "AppendExemplar",
+    "CircularExemplarStorage",
+    "ExemplarQuerier"
+   ]
+  },
+  {
+   "q": "where promql functions like rate and increase are implemented",
+   "accept": [
+    "funcRate",
+    "funcIncrease",
+    "extrapolatedRate",
+    "funcDelta"
+   ]
+  },
+  {
+   "q": "keep the most recent samples in memory in the tsdb head block",
+   "accept": [
+    "Head",
+    "memSeries",
+    "headAppender",
+    "stripeSeries",
+    "getOrCreate"
+   ]
+  },
+  {
+   "q": "checkpoint the write ahead log so it can be truncated",
+   "accept": [
+    "Checkpoint",
+    "DeleteCheckpoints",
+    "LastCheckpoint"
+   ]
+  },
+  {
+   "q": "flush head chunks to disk as memory mapped chunk files",
+   "accept": [
+    "ChunkDiskMapper",
+    "WriteChunk",
+    "mmappedChunk",
+    "IterateAllChunks",
+    "ChunkDiskMapper.WriteChunk"
+   ]
+  },
+  {
+   "q": "serve remote read requests from other prometheus servers",
+   "accept": [
+    "NewReadHandler",
+    "readHandler",
+    "StreamChunkedReadResponses",
+    "NegotiateResponseType"
+   ]
+  },
+  {
+   "q": "ingest opentelemetry metrics through the otlp endpoint",
+   "accept": [
+    "NewOTLPWriteHandler",
+    "otlpWriteHandler",
+    "PrometheusConverter",
+    "FromMetrics"
+   ]
+  },
+  {
+   "q": "append native histogram samples to storage",
+   "accept": [
+    "AppendHistogram",
+    "appendHistogram",
+    "HistogramAppender",
+    "AppendFloatHistogram"
+   ]
+  },
+  {
+   "q": "evaluate a promql expression step by step over a time range",
+   "accept": [
+    "rangeEval",
+    "evaluator",
+    "evalSubquery",
+    "execEvalStmt"
+   ]
+  },
+  {
+   "q": "speed up matching label values against a regex",
+   "accept": [
+    "FastRegexMatcher",
+    "NewFastRegexMatcher",
+    "optimizeConcatRegex",
+    "findSetMatches"
+   ]
+  },
+  {
+   "q": "mark deleted series ranges with tombstones",
+   "accept": [
+    "MemTombstones",
+    "Intervals",
+    "AddInterval",
+    "CleanTombstones"
+   ]
+  },
+  {
+   "q": "accept out of order samples within a configured time window",
+   "accept": [
+    "OOOChunk",
+    "NewOOOChunk",
+    "oooHeadChunk"
+   ]
+  },
+  {
+   "q": "discover pods and endpoints in kubernetes to scrape",
+   "accept": [
+    "Endpoints",
+    "EndpointSlice",
+    "Pod",
+    "Node",
+    "Ingress"
+   ]
+  },
+  {
+   "q": "the http api endpoints listing label names and values",
+   "accept": [
+    "labelNames",
+    "labelValues",
+    "API.labelNames",
+    "API.labelValues"
+   ]
+  },
+  {
+   "q": "compute a quantile from classic histogram buckets",
+   "accept": [
+    "funcHistogramQuantile",
+    "ensureMonotonicAndIgnoreSmallDeltas"
+   ]
+  },
+  {
+   "q": "parse and evaluate subqueries inside promql",
+   "accept": [
+    "SubqueryExpr",
+    "evalSubquery",
+    "subqueryTimes"
+   ]
+  },
+  {
+   "q": "snapshot in memory head data on clean shutdown",
+   "accept": [
+    "ChunkSnapshot",
+    "DeleteChunkSnapshots",
+    "LastChunkSnapshot",
+    "loadChunkSnapshot"
+   ]
+  },
+  {
+   "q": "isolate concurrent appends from queries in the tsdb",
+   "accept": [
+    "isolation",
+    "isolationState",
+    "lowWatermark",
+    "newIsolation"
+   ]
+  },
+  {
+   "q": "load blocks from disk on startup and when new ones appear",
+   "accept": [
+    "reloadBlocks",
+    "OpenBlock",
+    "openBlocks",
+    "DB.reloadBlocks"
+   ]
+  },
+  {
+   "q": "shard samples across queues for remote write",
+   "accept": [
+    "QueueManager",
+    "calculateDesiredShards",
+    "runShard",
+    "shards"
+   ]
+  },
+  {
+   "q": "apply a reloaded configuration file to running components",
+   "accept": [
+    "ApplyConfig",
+    "Manager.ApplyConfig",
+    "reloadConfig",
+    "Handler.ApplyConfig"
+   ]
+  },
+  {
+   "q": "parse the text exposition format of scraped metrics",
+   "accept": [
+    "PromParser",
+    "OpenMetricsParser",
+    "ProtobufParser"
+   ]
+  },
+  {
+   "q": "expand template annotations in alert rules",
+   "accept": [
+    "NewTemplateExpander",
+    "Expander",
+    "Expander.Expand"
+   ]
+  },
+  {
+   "q": "walk the promql ast visiting every node",
+   "accept": [
+    "Walk",
+    "Inspect",
+    "Visitor"
+   ]
+  },
+  {
+   "q": "track currently running queries in the active query log",
+   "accept": [
+    "ActiveQueryTracker",
+    "NewActiveQueryTracker"
+   ]
+  },
+  {
+   "q": "compress samples with xor encoding inside chunks",
+   "accept": [
+    "XORChunk",
+    "xorAppender",
+    "xorIterator",
+    "NewXORChunk"
+   ]
+  }
+ ]
+}

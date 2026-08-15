@@ -1,0 +1,275 @@
+{
+ "repo": "flask",
+ "commit": "ab8149664182b662453a563161aa89013c806dc9",
+ "split": "issues-closed",
+ "provenance": "Mined from closed GitHub issues/PRs by bench/selfheal/issues_corpus.py on 2026-07-12: fix-ish commit subjects referencing (#N) in the deepened pinned clone (git log, 5039 commits); accept sets are tier=0 symbols whose [start_line,end_line] in the CURRENT index overlap the commit's new-side changed ranges (1-4 source files, <=10 symbols); questions are the verbatim GitHub issue/PR titles (REST API, unauthenticated, cached in .issue_cache.json); titles literally containing a mapped symbol name were dropped as locate-class.",
+ "questions": [
+  {
+   "q": "fix super call in list comprehension",
+   "accept": [
+    "_validate_key"
+   ]
+  },
+  {
+   "q": "fix missing quote in `--key` error message",
+   "accept": [
+    "CertParamType",
+    "CertParamType.convert"
+   ]
+  },
+  {
+   "q": "fix use of `importlib.util.find_spec`",
+   "accept": [
+    "get_root_path"
+   ]
+  },
+  {
+   "q": "Allow pathlib.Path for template_folder",
+   "accept": [
+    "Flask",
+    "Flask.run"
+   ]
+  },
+  {
+   "q": "re-add flag to skip unguarded app.run from CLI",
+   "accept": [
+    "Flask",
+    "Flask.full_dispatch_request",
+    "load_dotenv"
+   ]
+  },
+  {
+   "q": "Fix callback order for nested blueprints",
+   "accept": [
+    "Flask",
+    "Flask.handle_http_exception",
+    "Flask.preprocess_request"
+   ]
+  },
+  {
+   "q": "`static_folder` can be a `pathlib.Path` object",
+   "accept": [
+    "Flask",
+    "Flask.create_jinja_environment"
+   ]
+  },
+  {
+   "q": "Use compat fspath instead of os.fspath in static_folder",
+   "accept": [
+    "__getattr__"
+   ]
+  },
+  {
+   "q": "Fix wrapped view function comparison",
+   "accept": [
+    "Flask",
+    "Flask.url_for"
+   ]
+  },
+  {
+   "q": "Stop change CWD to .env/.flaskenv location",
+   "accept": [
+    "FlaskGroup",
+    "FlaskGroup._load_plugin_commands",
+    "FlaskGroup.list_commands"
+   ]
+  },
+  {
+   "q": "Move python properties to decorator syntax",
+   "accept": [
+    "Flask",
+    "Flask.test_cli_runner",
+    "Flask.handle_http_exception",
+    "Flask.handle_exception",
+    "Flask.log_exception",
+    "RequestContext",
+    "RequestContext.__init__"
+   ]
+  },
+  {
+   "q": "Define reloader extra_files in `flask run` CLI",
+   "accept": [
+    "show_server_banner",
+    "CertParamType",
+    "CertParamType.convert"
+   ]
+  },
+  {
+   "q": "load_dotenv returns true even if no file exists",
+   "accept": [
+    "FlaskGroup",
+    "FlaskGroup._load_plugin_commands",
+    "FlaskGroup.get_command"
+   ]
+  },
+  {
+   "q": "Improve warning about dev server use in production",
+   "accept": [
+    "FlaskGroup",
+    "FlaskGroup.list_commands"
+   ]
+  },
+  {
+   "q": "Fixes issue #2824 flask --version",
+   "accept": [
+    "locate_app",
+    "get_version"
+   ]
+  },
+  {
+   "q": "Fix DeprecationWarning on collections import in flask.sessions",
+   "accept": [
+    "SessionMixin"
+   ]
+  },
+  {
+   "q": "copy_current_request_context copies old session object",
+   "accept": [
+    "after_this_request",
+    "AppContext",
+    "AppContext.__exit__",
+    "RequestContext",
+    "RequestContext.__init__"
+   ]
+  },
+  {
+   "q": "[Fixed 2823] Checking if .env is file before prompting to install dotenv",
+   "accept": [
+    "FlaskGroup",
+    "FlaskGroup.__init__"
+   ]
+  },
+  {
+   "q": "AttributeError: 'module' object has no attribute 'SSLContext'",
+   "accept": [
+    "FlaskGroup",
+    "FlaskGroup.make_context",
+    "FlaskGroup.parse_args"
+   ]
+  },
+  {
+   "q": "Minor session serializer fixes.",
+   "accept": [
+    "TaggedJSONSerializer",
+    "TaggedJSONSerializer.__init__",
+    "TaggedJSONSerializer.register"
+   ]
+  },
+  {
+   "q": "fix variable substitution in error message",
+   "accept": [
+    "prepare_import"
+   ]
+  },
+  {
+   "q": "Enable template auto-reloading in app.run()",
+   "accept": [
+    "Flask",
+    "Flask.test_client",
+    "Flask.test_cli_runner",
+    "Flask.handle_http_exception",
+    "Flask.handle_exception",
+    "Flask.dispatch_request",
+    "Flask.full_dispatch_request",
+    "ScriptInfo",
+    "ScriptInfo.__init__",
+    "ScriptInfo.load_app"
+   ]
+  },
+  {
+   "q": "python -m flask run raises RuntimeWarning",
+   "accept": [
+    "FlaskGroup",
+    "FlaskGroup.list_commands"
+   ]
+  },
+  {
+   "q": "sessions not saved when streaming",
+   "accept": [
+    "RequestContext",
+    "RequestContext.__init__",
+    "RequestContext.copy"
+   ]
+  },
+  {
+   "q": "Prevent setting `SERVER_NAME` and `SESSION_COOKIE_DOMAIN` to an IP address",
+   "accept": [
+    "SecureCookieSessionInterface",
+    "SecureCookieSessionInterface.open_session"
+   ]
+  },
+  {
+   "q": "Do not swallow exceptions if CLI fails to load",
+   "accept": [
+    "ScriptInfo",
+    "ScriptInfo.load_app"
+   ]
+  },
+  {
+   "q": "Fix unbound error",
+   "accept": [
+    "Flask",
+    "Flask.update_template_context"
+   ]
+  },
+  {
+   "q": "Clitest update",
+   "accept": [
+    "find_best_app"
+   ]
+  },
+  {
+   "q": "app.add_url_rule() should look for OPTIONS methods in a case-insensitive manner",
+   "accept": [
+    "Flask",
+    "Flask.async_to_sync"
+   ]
+  },
+  {
+   "q": "Clarify the after_request argument",
+   "accept": [
+    "Flask",
+    "Flask.make_response"
+   ]
+  },
+  {
+   "q": "before_app_first_request strange behaviour",
+   "accept": [
+    "Flask",
+    "Flask.wsgi_app"
+   ]
+  },
+  {
+   "q": "Fix relative send_from_directory for package apps",
+   "accept": [
+    "get_root_path"
+   ]
+  },
+  {
+   "q": "fix a etags bug when sending a file stream with a name",
+   "accept": [
+    "send_from_directory"
+   ]
+  },
+  {
+   "q": "GET params discarded by flask test client, when using full url",
+   "accept": [
+    "EnvironBuilder"
+   ]
+  },
+  {
+   "q": "Explicitly state that the jsonify method changes on request",
+   "accept": [
+    "Flask",
+    "Flask.get_send_file_max_age"
+   ]
+  },
+  {
+   "q": "@app.teardown_request function doesn't called in debug mode [NOT-A-BUG]",
+   "accept": [
+    "Flask",
+    "Flask.make_response"
+   ]
+  }
+ ]
+}

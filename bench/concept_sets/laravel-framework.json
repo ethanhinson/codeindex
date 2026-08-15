@@ -1,0 +1,241 @@
+{
+ "repo": "laravel-framework",
+ "commit": "5d964a15efc8fffcb175aed3976796c0420bcf99",
+ "split": "tuning",
+ "provenance": "Drafted from framework documentation knowledge by claude-fable-5 on 2026-07-11; answers verified against the pinned index via symbol-table existence lookup only (no search runs); frozen before diffusion/contrast mechanisms were measured.",
+ "questions": [
+  {
+   "q": "roll back the last batch of database migrations",
+   "accept": [
+    "rollback",
+    "rollbackMigrations",
+    "RollbackCommand",
+    "Migrator.rollback"
+   ]
+  },
+  {
+   "q": "run the pending database migrations",
+   "accept": [
+    "Migrator.run",
+    "runPending",
+    "MigrateCommand",
+    "runUp"
+   ]
+  },
+  {
+   "q": "define the columns of a new database table",
+   "accept": [
+    "Blueprint",
+    "Builder.create",
+    "Blueprint.build"
+   ]
+  },
+  {
+   "q": "add a where condition to a database query",
+   "accept": [
+    "Builder.where",
+    "Builder.orWhere"
+   ]
+  },
+  {
+   "q": "persist a model instance to the database",
+   "accept": [
+    "Model.save",
+    "performInsert",
+    "performUpdate",
+    "Model.saveOrFail"
+   ]
+  },
+  {
+   "q": "declare that a model has many related child models",
+   "accept": [
+    "hasMany",
+    "HasMany",
+    "HasOneOrMany",
+    "newHasMany"
+   ]
+  },
+  {
+   "q": "declare the inverse relation where a model belongs to a parent",
+   "accept": [
+    "belongsTo",
+    "BelongsTo",
+    "newBelongsTo"
+   ]
+  },
+  {
+   "q": "push a job onto the queue for background processing",
+   "accept": [
+    "dispatch",
+    "PendingDispatch",
+    "Queue.push",
+    "Dispatcher.dispatch",
+    "dispatchToQueue"
+   ]
+  },
+  {
+   "q": "retry jobs that previously failed",
+   "accept": [
+    "RetryCommand",
+    "retryJob",
+    "FailedJobProviderInterface"
+   ]
+  },
+  {
+   "q": "fire an event and notify its listeners",
+   "accept": [
+    "Dispatcher.dispatch",
+    "Dispatcher.listen",
+    "invokeListeners",
+    "Dispatcher.until"
+   ]
+  },
+  {
+   "q": "validate incoming request data against rules",
+   "accept": [
+    "Validator",
+    "validate",
+    "ValidatesRequests",
+    "FormRequest",
+    "Validator.passes",
+    "Validator.fails"
+   ]
+  },
+  {
+   "q": "hash a user password for storage",
+   "accept": [
+    "BcryptHasher",
+    "HashManager",
+    "BcryptHasher.make",
+    "Argon2IdHasher",
+    "AbstractHasher"
+   ]
+  },
+  {
+   "q": "encrypt a value and decrypt it later",
+   "accept": [
+    "Encrypter",
+    "Encrypter.encrypt",
+    "Encrypter.decrypt",
+    "encryptString",
+    "decryptString"
+   ]
+  },
+  {
+   "q": "register a route with the router",
+   "accept": [
+    "Router.get",
+    "Router.post",
+    "Router.addRoute",
+    "RouteRegistrar",
+    "Router.match"
+   ]
+  },
+  {
+   "q": "resolve a model instance from a route parameter automatically",
+   "accept": [
+    "ImplicitRouteBinding",
+    "substituteImplicitBindings",
+    "resolveRouteBinding"
+   ]
+  },
+  {
+   "q": "pass the request through the middleware chain",
+   "accept": [
+    "Pipeline",
+    "Pipeline.then",
+    "sendRequestThroughRouter",
+    "Pipeline.through"
+   ]
+  },
+  {
+   "q": "send an email message",
+   "accept": [
+    "Mailer.send",
+    "Mailable",
+    "Mailer",
+    "Mailable.send",
+    "SendQueuedMailable"
+   ]
+  },
+  {
+   "q": "cache a computed value and reuse it until it expires",
+   "accept": [
+    "remember",
+    "Repository.remember",
+    "rememberForever",
+    "Repository.get"
+   ]
+  },
+  {
+   "q": "schedule recurring console tasks like cron",
+   "accept": [
+    "Schedule",
+    "Schedule.command",
+    "ScheduleRunCommand",
+    "Schedule.call"
+   ]
+  },
+  {
+   "q": "define a custom artisan console command",
+   "accept": [
+    "Command",
+    "GeneratorCommand",
+    "Command.execute"
+   ]
+  },
+  {
+   "q": "bind an implementation into the service container and resolve it",
+   "accept": [
+    "Container.bind",
+    "Container.make",
+    "Container.resolve",
+    "Container.singleton"
+   ]
+  },
+  {
+   "q": "register services when the framework boots",
+   "accept": [
+    "ServiceProvider",
+    "ServiceProvider.register",
+    "registerConfiguredProviders"
+   ]
+  },
+  {
+   "q": "compile blade templates into php",
+   "accept": [
+    "BladeCompiler",
+    "BladeCompiler.compile",
+    "compileString",
+    "compileStatements"
+   ]
+  },
+  {
+   "q": "paginate query results into pages",
+   "accept": [
+    "paginate",
+    "Paginator",
+    "LengthAwarePaginator",
+    "CursorPaginator",
+    "Builder.paginate"
+   ]
+  },
+  {
+   "q": "run several database statements in one transaction",
+   "accept": [
+    "transaction",
+    "beginTransaction",
+    "ManagesTransactions"
+   ]
+  },
+  {
+   "q": "soft delete models instead of removing rows",
+   "accept": [
+    "SoftDeletes",
+    "SoftDeletingScope",
+    "runSoftDelete",
+    "restore"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,300 @@
+{
+ "repo": "symfony",
+ "commit": "fca27be5c0bf49f5ab5d274c42d8235ec1d3ae02",
+ "split": "issues-heldout",
+ "provenance": "Mined from closed GitHub issues/PRs by bench/selfheal/issues_expand.py (mapping v2 + hygiene fixes a/b/c) on 2026-07-12: fix-ish commit subjects referencing (#N) in the deepened pinned clone (72507 commits, newest-first, 1-4 source files, <=10 symbols); accept sets are tier=0 symbols resolved BY NAME from git hunk-header function context (builtin golang/python/php drivers, custom ts xfuncname) and added definition lines, within the same changed file; comment-only hunks do not attribute; line-span overlap only for hunks with no name context AND files byte-identical to HEAD. Questions are verbatim GitHub issue/PR titles (REST API, cached in .issue_cache.json); titles containing a mapped symbol name (locate-class) or matching the refactor/lint/typo/docstring/style/fmt/cleanup/annotation/spelling substring deny-list were dropped.",
+ "questions": [
+  {
+   "q": "[Finder] Fix using `==` as default operator in `DateComparator`",
+   "accept": [
+    "DateComparator.__construct"
+   ]
+  },
+  {
+   "q": "[TypeInfo] Fix PHPDoc resolving of union with mixed",
+   "accept": [
+    "StringTypeResolver.getTypeFromNode"
+   ]
+  },
+  {
+   "q": "[PropertyInfo] Fix interface handling in `PhpStanTypeHelper`",
+   "accept": [
+    "PhpStanTypeHelper.extractTypes"
+   ]
+  },
+  {
+   "q": "[Notifier] fix desktop channel bus abstract arg",
+   "accept": [
+    "FrameworkExtension.registerNotifierConfiguration"
+   ]
+  },
+  {
+   "q": "[FrameworkBundle] fix: notifier push channel bus abstract arg",
+   "accept": [
+    "FrameworkExtension.registerNotifierConfiguration"
+   ]
+  },
+  {
+   "q": "[Console] Fix division by 0 error",
+   "accept": [
+    "ProgressBar.getRemaining"
+   ]
+  },
+  {
+   "q": "[Mailer] [sendgrid-mailer] Fix null check on region",
+   "accept": [
+    "SendgridSmtpTransport.__construct"
+   ]
+  },
+  {
+   "q": "[HttpClient] Fix streaming and redirecting with NoPrivateNetworkHttpClient",
+   "accept": [
+    "NoPrivateNetworkHttpClient.request",
+    "HttpClientTestCase.tearDownAfterClass"
+   ]
+  },
+  {
+   "q": "[HttpClient] Fix checking for private IPs before connecting",
+   "accept": [
+    "NativeHttpClient.request",
+    "NoPrivateNetworkHttpClient",
+    "NoPrivateNetworkHttpClient.__construct",
+    "NoPrivateNetworkHttpClient.request",
+    "NoPrivateNetworkHttpClient.withOptions",
+    "NoPrivateNetworkHttpClient.reset",
+    "NoPrivateNetworkHttpClient.dnsResolve",
+    "NoPrivateNetworkHttpClient.ipCheck",
+    "CurlResponse.__construct"
+   ]
+  },
+  {
+   "q": "[HttpClient] Close gracefull when the server closes the connection abruptly",
+   "accept": [
+    "CurlResponse.perform"
+   ]
+  },
+  {
+   "q": "[HttpClient] fix amphp/http-client 5 support",
+   "accept": [
+    "AmpResponseV5.__construct"
+   ]
+  },
+  {
+   "q": "[PropertyInfo] Fix write visibility for Asymmetric Visibility and Virtual Properties",
+   "accept": [
+    "ReflectionExtractor.isAllowedProperty",
+    "ReflectionExtractor.getWriteVisiblityForProperty"
+   ]
+  },
+  {
+   "q": "CS: apply minor indentation fixes",
+   "accept": [
+    "TemplateAttributeListener.onKernelView",
+    "MailchimpRequestParser.doParse"
+   ]
+  },
+  {
+   "q": "[DoctrineBridge] Fix `Connection::createSchemaManager()` for Doctrine DBAL v2",
+   "accept": [
+    "AbstractSchemaListener.getIsSameDatabaseChecker"
+   ]
+  },
+  {
+   "q": "[HttpClient] Fix computing stats for PUSH with Amp",
+   "accept": [
+    "AmpResponseV4.getPushedResponse",
+    "AmpResponseV5.getPushedResponse"
+   ]
+  },
+  {
+   "q": "[OptionsResolver] Allow Union/Intersection Types in Resolved Closures",
+   "accept": [
+    "OptionsResolver.setDefault"
+   ]
+  },
+  {
+   "q": "[HttpClient] Fix empty hosts in option \"resolve\"",
+   "accept": [
+    "HttpClientTrait.mergeDefaultOptions"
+   ]
+  },
+  {
+   "q": "[Messenger] fix version check to include dev versions",
+   "accept": [
+    "Connection.__construct"
+   ]
+  },
+  {
+   "q": "[Validator] fix compatibility with PHP < 8.2.4",
+   "accept": [
+    "NoSuspiciousCharactersValidator.validate"
+   ]
+  },
+  {
+   "q": "[Notifier] Fix GoIpTransport",
+   "accept": [
+    "GoIpTransport.doSend"
+   ]
+  },
+  {
+   "q": "[HttpClient] Fix catching some invalid Location headers",
+   "accept": [
+    "CurlHttpClient.createRedirectResolver",
+    "NativeHttpClient.createRedirectResolver"
+   ]
+  },
+  {
+   "q": "[PhpUnitBridge] fix dumping tests to skip with data providers",
+   "accept": [
+    "SymfonyTestsListenerTrait.addSkippedTest"
+   ]
+  },
+  {
+   "q": "[Routing] Fix: lost priority when defining hosts in configuration",
+   "accept": [
+    "HostTrait.addHost"
+   ]
+  },
+  {
+   "q": "[HttpClient] fix PHP 7.2 compatibility",
+   "accept": [
+    "NoPrivateNetworkHttpClient.request"
+   ]
+  },
+  {
+   "q": "[TwigBridge] Fix emojify as function in Undefined Handler",
+   "accept": [
+    "UndefinedCallableHandler"
+   ]
+  },
+  {
+   "q": "[Serializer] fixed object normalizer for a class with `cancel` method",
+   "accept": [
+    "AttributeLoader.loadClassMetadata",
+    "GetSetMethodNormalizer.isGetMethod",
+    "GetSetMethodNormalizer.isSetMethod",
+    "ObjectNormalizer.extractAttributes"
+   ]
+  },
+  {
+   "q": "[RateLimiter] Fix bucket size reduced when previously created with bigger size",
+   "accept": [
+    "TokenBucketLimiter.reserve"
+   ]
+  },
+  {
+   "q": "[Notifier] [Twitter] Fix post INIT upload",
+   "accept": [
+    "TwitterTransport.uploadMedia"
+   ]
+  },
+  {
+   "q": "[Messenger][RateLimiter] fix additional message handled when using a rate limiter",
+   "accept": [
+    "Worker.run",
+    "Worker.rateLimit"
+   ]
+  },
+  {
+   "q": "[Serializer][TypeInfo] fix support for phpstan/phpdoc-parser 2",
+   "accept": [
+    "TypeContextFactory.collectTemplates",
+    "StringTypeResolver.__construct"
+   ]
+  },
+  {
+   "q": "[PropertyInfo] fix support for phpstan/phpdoc-parser 2",
+   "accept": [
+    "PhpStanExtractor.__construct"
+   ]
+  },
+  {
+   "q": "[DoctrineBridge] Backport detection fix of Xml/Yaml driver in DoctrineExtension",
+   "accept": [
+    "AbstractDoctrineExtension.registerMappingDrivers"
+   ]
+  },
+  {
+   "q": "[RateLimiter] Fix DateInterval normalization",
+   "accept": [
+    "RateLimiterFactory.configureOptions",
+    "TimeUtil.dateIntervalToSeconds"
+   ]
+  },
+  {
+   "q": "[HttpFoundation] Fix support for `\\SplTempFileObject` in `BinaryFileResponse`",
+   "accept": [
+    "BinaryFileResponse.setAutoLastModified",
+    "BinaryFileResponse.prepare"
+   ]
+  },
+  {
+   "q": "[Cache] Fix clear() when using Predis",
+   "accept": [
+    "RedisTrait.doClear"
+   ]
+  },
+  {
+   "q": "[Process] Fix escaping /X arguments on Windows",
+   "accept": [
+    "Process.escapeArgument"
+   ]
+  },
+  {
+   "q": "[Process] Fix handling empty path found in the PATH env var with ExecutableFinder",
+   "accept": [
+    "ExecutableFinder.find"
+   ]
+  },
+  {
+   "q": "[HttpClient] fix for HttpClientDataCollector fails if proc_open is disabled via php.ini",
+   "accept": [
+    "HttpClientDataCollector.escapePayload"
+   ]
+  },
+  {
+   "q": "HttpClientDataCollector fails if proc_open is disabled via php.ini",
+   "accept": [
+    "HttpClientDataCollector.escapePayload"
+   ]
+  },
+  {
+   "q": "[TwigBridge] fix merge",
+   "accept": [
+    "StopwatchNode.__construct"
+   ]
+  },
+  {
+   "q": "[FrameworkBundle] fix null store handling in XML configs",
+   "accept": [
+    "FrameworkExtension.registerLockConfiguration"
+   ]
+  },
+  {
+   "q": "[FrameworkBundle] Fix `NullStore` registration",
+   "accept": [
+    "FrameworkExtension.registerLockConfiguration"
+   ]
+  },
+  {
+   "q": "[Validator] [Choice] Fix callback option if not array returned",
+   "accept": [
+    "ChoiceValidator.validate"
+   ]
+  },
+  {
+   "q": "[DependencyInjection] Fix parsing nested AutowireInline attributes",
+   "accept": [
+    "ResolveAutowireInlineAttributesPass",
+    "ResolveAutowireInlineAttributesPass.processValue",
+    "ResolveAutowireInlineAttributesPass.registerAutowireInlineAttributes"
+   ]
+  },
+  {
+   "q": "[DependencyInjection] Fix replacing abstract arguments with bindings",
+   "accept": [
+    "ResolveBindingsPass.processValue"
+   ]
+  }
+ ]
+}

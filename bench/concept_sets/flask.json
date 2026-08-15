@@ -1,0 +1,210 @@
+{
+ "repo": "flask",
+ "commit": "ab8149664182b662453a563161aa89013c806dc9",
+ "split": "tuning",
+ "provenance": "Drafted from framework documentation knowledge by claude-fable-5 on 2026-07-11; answers verified against the pinned index via symbol-table existence lookup only (no search runs); frozen before diffusion/contrast mechanisms were measured.",
+ "questions": [
+  {
+   "q": "register a url route for a view function",
+   "accept": [
+    "route",
+    "add_url_rule",
+    "Scaffold.route"
+   ]
+  },
+  {
+   "q": "how a request gets dispatched to its view function",
+   "accept": [
+    "dispatch_request",
+    "full_dispatch_request",
+    "wsgi_app",
+    "Flask.dispatch_request",
+    "Flask.full_dispatch_request",
+    "Flask.wsgi_app"
+   ]
+  },
+  {
+   "q": "redirect the user to another page",
+   "accept": [
+    "redirect"
+   ]
+  },
+  {
+   "q": "build the url for an endpoint by name",
+   "accept": [
+    "url_for",
+    "Flask.url_for"
+   ]
+  },
+  {
+   "q": "render an html template with variables",
+   "accept": [
+    "render_template",
+    "render_template_string"
+   ]
+  },
+  {
+   "q": "keep user data across requests in a session",
+   "accept": [
+    "SecureCookieSession",
+    "SecureCookieSessionInterface",
+    "open_session",
+    "save_session",
+    "SessionMixin"
+   ]
+  },
+  {
+   "q": "run a function before every request",
+   "accept": [
+    "before_request",
+    "Scaffold.before_request",
+    "Flask.preprocess_request",
+    "preprocess_request"
+   ]
+  },
+  {
+   "q": "register a handler for a specific http error like 404",
+   "accept": [
+    "errorhandler",
+    "register_error_handler",
+    "handle_http_exception",
+    "Scaffold.errorhandler"
+   ]
+  },
+  {
+   "q": "abort the request with an http error status",
+   "accept": [
+    "abort",
+    "make_aborter"
+   ]
+  },
+  {
+   "q": "flash a one time message shown on the next page",
+   "accept": [
+    "flash",
+    "get_flashed_messages"
+   ]
+  },
+  {
+   "q": "split an application into reusable route groups",
+   "accept": [
+    "Blueprint",
+    "register_blueprint",
+    "BlueprintSetupState"
+   ]
+  },
+  {
+   "q": "safely send a file from a directory as the response",
+   "accept": [
+    "send_file",
+    "send_from_directory"
+   ]
+  },
+  {
+   "q": "return a json response from a view",
+   "accept": [
+    "jsonify",
+    "JSONProvider.response",
+    "DefaultJSONProvider.response"
+   ]
+  },
+  {
+   "q": "load app configuration from an object or file",
+   "accept": [
+    "from_object",
+    "from_pyfile",
+    "from_envvar",
+    "from_prefixed_env",
+    "Config.from_object",
+    "Config.from_pyfile"
+   ]
+  },
+  {
+   "q": "start the built in development server",
+   "accept": [
+    "run",
+    "Flask.run"
+   ]
+  },
+  {
+   "q": "push an application context to use the app outside a request",
+   "accept": [
+    "app_context",
+    "AppContext",
+    "Flask.app_context",
+    "AppContext.push"
+   ]
+  },
+  {
+   "q": "the object that holds request state during handling",
+   "accept": [
+    "RequestContext",
+    "request_context",
+    "Flask.request_context",
+    "RequestContext.push"
+   ]
+  },
+  {
+   "q": "keep the request context alive while streaming a response",
+   "accept": [
+    "stream_with_context"
+   ]
+  },
+  {
+   "q": "modify the response after the view runs",
+   "accept": [
+    "after_request",
+    "process_response",
+    "Scaffold.after_request",
+    "Flask.process_response"
+   ]
+  },
+  {
+   "q": "clean up resources when the request ends",
+   "accept": [
+    "teardown_request",
+    "teardown_appcontext",
+    "do_teardown_request",
+    "do_teardown_appcontext"
+   ]
+  },
+  {
+   "q": "add custom command line commands to the app",
+   "accept": [
+    "AppGroup",
+    "FlaskGroup",
+    "with_appcontext"
+   ]
+  },
+  {
+   "q": "make test requests against the app in unit tests",
+   "accept": [
+    "test_client",
+    "FlaskClient",
+    "Flask.test_client",
+    "EnvironBuilder"
+   ]
+  },
+  {
+   "q": "register a custom filter usable inside templates",
+   "accept": [
+    "template_filter",
+    "add_template_filter"
+   ]
+  },
+  {
+   "q": "automatic response for options requests",
+   "accept": [
+    "make_default_options_response",
+    "Flask.make_default_options_response"
+   ]
+  },
+  {
+   "q": "turn a view's return value into a response object",
+   "accept": [
+    "make_response",
+    "Flask.make_response"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,317 @@
+[
+ {
+  "sha": "c8359fcd6b",
+  "issue": 15684,
+  "is_pr": true,
+  "subject": "Fix bug in lbl!~\".+\" shortcut (#15684)",
+  "q": "Fix bug in `lbl!~\".+\"` postings for matchers shortcut"
+ },
+ {
+  "sha": "7802ca263d",
+  "issue": 15560,
+  "is_pr": true,
+  "subject": "RuleDependencyController: Fix for indeterminate conditions (#15560)",
+  "q": "[BUGFIX] `RuleDependencyController`: Fix for indeterminate conditions"
+ },
+ {
+  "sha": "d8efb7169d",
+  "issue": 15489,
+  "is_pr": true,
+  "subject": "Merge pull request #15489 from yeya24/fix-always-scrape-classic-hist-reload",
+  "q": "hot reload always_scrape_classic_histograms and convert_classic_histo\u2026"
+ },
+ {
+  "sha": "36e0897f0f",
+  "issue": 15469,
+  "is_pr": true,
+  "subject": "[BUGFIX] PromQL: Fix behaviour of `changes()` for mix of histograms and floats (#15469)",
+  "q": "[BUGFIX] PromQL: Fix behaviour of `changes()` for mix of histograms and floats"
+ },
+ {
+  "sha": "c5c222e493",
+  "issue": 15399,
+  "is_pr": true,
+  "subject": "Merge pull request #15399 from prometheus/labels-utf8-fix",
+  "q": "Add support for utf8 names on /v1/label/:name/values endpoint"
+ },
+ {
+  "sha": "38bb6ece25",
+  "issue": 15432,
+  "is_pr": true,
+  "subject": "[BUGFIX] PromQL: Fix behaviour of some aggregations with histograms (#15432)",
+  "q": "[BUGFIX] PromQL: Fix behaviour of some aggregations with histograms"
+ },
+ {
+  "sha": "7996a13fdd",
+  "issue": 15403,
+  "is_pr": true,
+  "subject": "Merge pull request #15403 from bboreham/fix-rw-benchmark-startup",
+  "q": "[TESTS] Remote-Write: Fix BenchmarkStartup"
+ },
+ {
+  "sha": "40c3ba9fd4",
+  "issue": 15438,
+  "is_pr": true,
+  "subject": "fix promtool analyze block shows metric name with 0 cardinality (#15438)",
+  "q": "Fix promtool analyze block shows metric name with 0 cardinality"
+ },
+ {
+  "sha": "62e6e55c07",
+  "issue": 15413,
+  "is_pr": true,
+  "subject": "promql: fix issues with comparison binary operations with `bool` modifier and native histograms (#15413)",
+  "q": "promql: fix issues with comparison binary operations with `bool` modifier and native histograms"
+ },
+ {
+  "sha": "57a7a2939a",
+  "issue": 15389,
+  "is_pr": true,
+  "subject": "Merge pull request #15389 from jan--f/fix-appender-race-3.0",
+  "q": "[BUGFIX] TSDB: Fix race on stale values in headAppender (#15322)"
+ },
+ {
+  "sha": "003a2270e9",
+  "issue": 15322,
+  "is_pr": true,
+  "subject": "[BUGFIX] TSDB: Fix race on stale values in headAppender (#15322)",
+  "q": "[BUGFIX] TSDB: Fix race on stale values in headAppender"
+ },
+ {
+  "sha": "f9057544cb",
+  "issue": 13893,
+  "is_pr": true,
+  "subject": "Fix AllPostings added twice (#13893)",
+  "q": "Fix AllPostings added twice"
+ },
+ {
+  "sha": "d40b671cfe",
+  "issue": 15357,
+  "is_pr": true,
+  "subject": "Merge pull request #15357 from prometheus/alexg/fix-fallback-scrape-release-3.0",
+  "q": "scrape: stop erroring on empty scrapes"
+ },
+ {
+  "sha": "1a22b1d846",
+  "issue": 15251,
+  "is_pr": true,
+  "subject": "bugfix: Fix otlp translator switching colons to undescores (#15251)",
+  "q": "bugfix: Fix otlp translator switching colons to underscores in suffix adding mode"
+ },
+ {
+  "sha": "a6fd22b9d2",
+  "issue": 15250,
+  "is_pr": true,
+  "subject": "Merge pull request #15250 from yeya24/fix-round-delay-name-removal",
+  "q": "Fix round function not honoring delayed name removal flag"
+ },
+ {
+  "sha": "eb3b349024",
+  "issue": 15218,
+  "is_pr": true,
+  "subject": "fix(nhcb): created timestamp fails when keeping classic histograms (#15218)",
+  "q": "fix(nhcb): created timestamp fails when keeping classic histograms"
+ },
+ {
+  "sha": "469573b13b",
+  "issue": 15209,
+  "is_pr": true,
+  "subject": "fix(nhcb): do not return nhcb from parse if exponential is present (#15209)",
+  "q": "fix(nhcb): do not return nhcb from parse if exponential is present"
+ },
+ {
+  "sha": "5a4e4f6936",
+  "issue": 14941,
+  "is_pr": true,
+  "subject": "Fix stddev/stdvar when aggregating histograms, NaNs, and infinities (#14941)",
+  "q": "Fix stddev/stdvar when aggregating histograms, NaNs, and infinities"
+ },
+ {
+  "sha": "f1c57a95ed",
+  "issue": 14738,
+  "is_pr": true,
+  "subject": "change: No longer ingest OM _created as timeseries if feature-flag 'enable-ct-zero-ingestion' is enabled; fixed OM text CT conversion bug (#14738)",
+  "q": "[CHANGE] No longer ingest OM _created as timeseries if feature-flag 'created-timestamp-zero-ingestion' is enabled; fixed OM text CT conversion bug"
+ },
+ {
+  "sha": "7d6884e3eb",
+  "issue": 14985,
+  "is_pr": true,
+  "subject": "Merge pull request #14985 from bboreham/fix-sort-by-labels",
+  "q": "[Release 2.55] [BUGFIX] PromQL: make sort_by_label stable"
+ },
+ {
+  "sha": "0d22a91267",
+  "issue": 14874,
+  "is_pr": true,
+  "subject": "Merge pull request #14874 from krajorama/fix-panic-in-ooo-query2",
+  "q": "BUGFIX: TSDB: panic in chunk querier"
+ },
+ {
+  "sha": "482f1f608c",
+  "issue": 14880,
+  "is_pr": true,
+  "subject": "Merge pull request #14880 from prometheus/njpm/fix-utf8-config",
+  "q": "fix(utf8): propagate validationScheme config to scraping options"
+ },
+ {
+  "sha": "4ffb74dae4",
+  "issue": 14810,
+  "is_pr": true,
+  "subject": "Merge pull request #14810 from bboreham/fix-proto-parse-exemplar",
+  "q": "[BUGFIX] Protobuf scraping: reset exemplar position"
+ },
+ {
+  "sha": "f1d3c3f464",
+  "issue": 14809,
+  "is_pr": true,
+  "subject": "fix: Properly put OM text p.CreatedTimestamp behind feature flag (#14809) (#14815)",
+  "q": "fix: check ct ingestion before calling p.CreatedTimestamp"
+ },
+ {
+  "sha": "a77f5007f9",
+  "issue": 14766,
+  "is_pr": true,
+  "subject": "fix bug with metadata for rw2 (#14766)",
+  "q": "fix bug with metadata for rw2"
+ },
+ {
+  "sha": "9da75328ea",
+  "issue": 14736,
+  "is_pr": true,
+  "subject": "fix(utf8): ensure correct validation when legacy mode turned on (#14736)",
+  "q": "fix(utf8): ensure correct validation when legacy mode turned on"
+ },
+ {
+  "sha": "b09eaf8acd",
+  "issue": 14727,
+  "is_pr": true,
+  "subject": "Merge pull request #14727 from prometheus/owilliams/names-config-fix",
+  "q": "fix(utf8): fix config logic for name validation"
+ },
+ {
+  "sha": "9a74d53935",
+  "issue": 14693,
+  "is_pr": true,
+  "subject": "[BUGFIX] TSDB: Fix query overlapping in-order and ooo head  (#14693)",
+  "q": "[BUGFIX] TSDB: Fix query overlapping in-order and ooo head"
+ },
+ {
+  "sha": "27579c9148",
+  "issue": 14605,
+  "is_pr": true,
+  "subject": "Merge pull request #14605 from krajorama/fix-staleness-pool-corrupt",
+  "q": "Fix histogram pool poisoning bug chunkenc.Iterator"
+ },
+ {
+  "sha": "3a673cd0bc",
+  "issue": 14598,
+  "is_pr": true,
+  "subject": "Merge pull request #14598 from krajorama/fix-compaction-panic",
+  "q": "Fix: panic: runtime error: index out of range [4] with length 4"
+ },
+ {
+  "sha": "00ab05c3b9",
+  "issue": 14513,
+  "is_pr": true,
+  "subject": "Native histograms: fix spurios counter reset when merging recoded chunk to normal chunk (#14513)",
+  "q": "Native histograms: fix spurios counter reset when merging recoded chunk to normal chunk"
+ },
+ {
+  "sha": "d186caead5",
+  "issue": 14496,
+  "is_pr": true,
+  "subject": "Merge pull request #14496 from bboreham/fix-nil-primary (#14509)",
+  "q": "[BUGFIX] Storage: errors from a single secondary querier should be warnings."
+ },
+ {
+  "sha": "d4f098ae80",
+  "issue": 14517,
+  "is_pr": true,
+  "subject": "Fix relabel.Regexp zero value marshalling (#14517)",
+  "q": "Fix relabel.Regexp zero value marshalling"
+ },
+ {
+  "sha": "b1c106a9ce",
+  "issue": 14454,
+  "is_pr": true,
+  "subject": "Merge pull request #14454 from fpetkovski/fix-binop-hist-stats",
+  "q": "Fix decoding buckets for native histograms in binops"
+ },
+ {
+  "sha": "c5040c5ea9",
+  "issue": 10490,
+  "is_pr": true,
+  "subject": "Merge pull request #10490 from DrAuYueng/fix-docker-sd-service-missing",
+  "q": "[ENHANCEMENT] Docker SD: add MatchFirstNetwork for containers with multiple networks"
+ },
+ {
+  "sha": "00b110c65c",
+  "issue": 14078,
+  "is_pr": true,
+  "subject": "Fix data corruption in remote write if max_sample_age is applied (#14078)",
+  "q": "Fix data corruption in remote write if max_sample_age is applied"
+ },
+ {
+  "sha": "2aaf99dd0a",
+  "issue": 7406,
+  "is_pr": false,
+  "subject": "discovery: aws: expose Primary IPv6 addresses as label, partially fixes #7406 (#14156)",
+  "q": "How to use Prometheus EC2 SD with Multiple AWS EC2 interfaces"
+ },
+ {
+  "sha": "5c417684f8",
+  "issue": 14296,
+  "is_pr": true,
+  "subject": "Merge pull request #14296 from colega/fix-matcher-string-with-empty-label-name",
+  "q": "Fix `Matcher.String()` with empty label name"
+ },
+ {
+  "sha": "d3318c21a3",
+  "issue": 14287,
+  "is_pr": true,
+  "subject": "Merge pull request #14287 from krajorama/nhcb-suggest-fix",
+  "q": "native histograms: only reduce resolution for exponential histograms"
+ },
+ {
+  "sha": "5efc8dd27b",
+  "issue": 14302,
+  "is_pr": true,
+  "subject": "Merge pull request #14302 from yeya24/fix-check-ctx-cancel-count",
+  "q": "fix check context cancellation not incrementing count"
+ },
+ {
+  "sha": "8894d65cd6",
+  "issue": 14079,
+  "is_pr": true,
+  "subject": "Fix head stats and hooks when replaying a corrupted snapshot (#14079)",
+  "q": "Fix head stats and hooks when replaying a corrupted snapshot"
+ },
+ {
+  "sha": "fabcd7e7c6",
+  "issue": 14116,
+  "is_pr": true,
+  "subject": "fix(api): Send warnings only if the limit is really exceeded (#14116)",
+  "q": "fix(api): Send warnings only if the limit is really exceeded"
+ },
+ {
+  "sha": "2524a91591",
+  "issue": 14059,
+  "is_pr": true,
+  "subject": "Fix FastRegexMatcher matching multibyte runes with . (#14059)",
+  "q": "Fix FastRegexMatcher matching multibyte runes with dot matcher `.`"
+ },
+ {
+  "sha": "93be83069e",
+  "issue": 14051,
+  "is_pr": true,
+  "subject": "Merge pull request #14051 from prometheus/resolve-conflicts-2.52",
+  "q": "Merge `release-2.52` back to main"
+ },
+ {
+  "sha": "f7e923c3bb",
+  "issue": 13941,
+  "is_pr": true,
+  "subject": "fix(scaleway-sd): use public IPs if no private IP present (#13941)",
+  "q": "fix(scaleway-sd): use public IPs if no private IP present"
+ }
+]

@@ -1,0 +1,339 @@
+{
+ "header": {
+  "experiment": "v9-btt-private-tickets",
+  "generated_seed": 9191,
+  "repo_pins": {
+   "btt-api": {
+    "path": "bench/repos/btt-api",
+    "commit": "059d408b58497d62e8a2b2c4803f1379c38e2981"
+   }
+  },
+  "model": "claude-sonnet-4-6",
+  "thresholds": {
+   "metric": "success (accept match in SYMBOLS, word-boundary) + median paired total_cost_usd delta",
+   "green": "success_delta >= +15pp AND median paired cost delta <= +20% AND adoption >= 70%",
+   "yellow": "success_delta >= +8pp; OR success parity (>= -3pp) with savings >= 20%",
+   "red": "otherwise"
+  },
+  "n_tasks": 24,
+  "reps": 2,
+  "registered_before_any_run": true,
+  "context": "private application code (Drupal 7 shell, PSR-4 custom modules); queries are real JIRA ticket titles; retrieval-level: search 22.5% / grep-control 7.5% / find 0%. arm-A absolute success is itself a primary finding (OSS v8 ceiling was 100%)."
+ },
+ "tasks": [
+  {
+   "id": "ticket-RES-1518",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"1453 followup End to end testing for LMPM and RevMax\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "rc_vrbo_integration_feed"
+    ],
+    "question": "1453 followup End to end testing for LMPM and RevMax"
+   }
+  },
+  {
+   "id": "ticket-PP-4098",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"Booking.com - Backend \u201cto adjust existing source items to use data sent by the user\u201d\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "PropertyLicenseSourceItemTest",
+     "RoomLicenseSourceItemTest"
+    ],
+    "question": "Booking.com - Backend \u201cto adjust existing source items to use data sent by the user\u201d"
+   }
+  },
+  {
+   "id": "ticket-GDE-481",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"test 4955 or prod - Booking.com - Update frontend for Booking.com so that booking.com meta data url is used just like Airbnb and Google url's\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "ListingMetadata",
+     "OpenPropertyWork",
+     "rc_bdc_schema",
+     "rc_bdc_update_7076"
+    ],
+    "question": "test 4955 or prod - Booking.com - Update frontend for Booking.com so that booking.com meta data url is used just like Airbnb and Google url's"
+   }
+  },
+  {
+   "id": "ticket-AD-6384",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"Investigate rate generation for Rentals United\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "PricesFullSourceItem",
+     "PricesSourceItem"
+    ],
+    "question": "Investigate rate generation for Rentals United"
+   }
+  },
+  {
+   "id": "ticket-PP-4014",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"Booking.com - Property type mapping isn't working correctly?\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "InventoryGuestRoomBuilder"
+    ],
+    "question": "Booking.com - Property type mapping isn't working correctly?"
+   }
+  },
+  {
+   "id": "ticket-GDE-872",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"test pr5150 - Demand Channel - Ensure that if demand channel integration is updated, we rebuild rates publications for all properties using the channel\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "FakeOrganizationHandler",
+     "rc_channels_entity_update",
+     "rc_channels_get_items"
+    ],
+    "question": "test pr5150 - Demand Channel - Ensure that if demand channel integration is updated, we rebuild rates publications for all properties using the channel"
+   }
+  },
+  {
+   "id": "ticket-RES-1031",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"VRM Create Custom Charge for Price Adjustments - BDC\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "Builder",
+     "RcBdcReservationEntity",
+     "RcBdcReservationEntityController"
+    ],
+    "question": "VRM Create Custom Charge for Price Adjustments - BDC"
+   }
+  },
+  {
+   "id": "ticket-AD-4972",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"Make a UI for Vrbo/HomeToGo for a max nights, by default set to 31\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "HaxmlListingConfigProvider",
+     "LodgingRateLosContentSourceItem",
+     "VrboOrderTest"
+    ],
+    "question": "Make a UI for Vrbo/HomeToGo for a max nights, by default set to 31"
+   }
+  },
+  {
+   "id": "ticket-GDE-724",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"test pr5116 - Booking.com - Invalid validation error about children allowed?\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "PropertySettingsSourceItem",
+     "RoomsApiSourceItem"
+    ],
+    "question": "test pr5116 - Booking.com - Invalid validation error about children allowed?"
+   }
+  },
+  {
+   "id": "ticket-PP-4051",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"VRM BDC v2 Error On Booking - Better Stack Alerts\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "QuoteSourceItem"
+    ],
+    "question": "VRM BDC v2 Error On Booking - Better Stack Alerts"
+   }
+  },
+  {
+   "id": "ticket-PP-4308",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"Airbnb - Version Update - Update GET listings call\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "ApiHeadersHelper",
+     "ApiHeadersHelperTest",
+     "ListingRepository"
+    ],
+    "question": "Airbnb - Version Update - Update GET listings call"
+   }
+  },
+  {
+   "id": "ticket-AD-7702",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"Update Booking.com roomrates endpoint to version 1.1\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "BdcHeadersHelperTest",
+     "RcBdcClient",
+     "RcBdcHeadersHelper"
+    ],
+    "question": "Update Booking.com roomrates endpoint to version 1.1"
+   }
+  },
+  {
+   "id": "ticket-PP-1612",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"Pet fee for Streamline, Rentals United and Marriott doesn't work; need to potentially add an additional logic where we take pet amount and pass it to Streamline in MRDC\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "BookAndCancelTest",
+     "Order"
+    ],
+    "question": "Pet fee for Streamline, Rentals United and Marriott doesn't work; need to potentially add an additional logic where we take pet amount and pass it to Streamline in MRDC"
+   }
+  },
+  {
+   "id": "ticket-RES-892",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"LiveRez Support for Quotehold\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "UpdateVrboBooking",
+     "VrboOrderBuilderBooking"
+    ],
+    "question": "LiveRez Support for Quotehold"
+   }
+  },
+  {
+   "id": "ticket-AD-1779",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"Empty comparison handling creates errors\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "ApiCollectionQueryHandler"
+    ],
+    "question": "Empty comparison handling creates errors"
+   }
+  },
+  {
+   "id": "ticket-PP-3256",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"Clarity tracking, adding code to head\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "boost_admin_preprocess_page",
+     "rc_channels_partner_app_embed_page"
+    ],
+    "question": "Clarity tracking, adding code to head"
+   }
+  },
+  {
+   "id": "ticket-RES-1032",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"VRM - Support for channel marketing source id in orderQuote / BDC\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "RcBdcReservationEntity"
+    ],
+    "question": "VRM - Support for channel marketing source id in orderQuote / BDC"
+   }
+  },
+  {
+   "id": "ticket-AD-5965",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"Hotfix: Airbnb listings: Need to send the node deactivation_reason when we set has_availability to false\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "ListingPublicationTypeHelper"
+    ],
+    "question": "Hotfix: Airbnb listings: Need to send the node deactivation_reason when we set has_availability to false"
+   }
+  },
+  {
+   "id": "ticket-AD-4883",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"Grooming: Oddities with failed payment/reservation emails\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "BookingConfirmationResource",
+     "_rc_airbnb_webhook_payout_notification",
+     "rc_boost_core_send_failure_notice"
+    ],
+    "question": "Grooming: Oddities with failed payment/reservation emails"
+   }
+  },
+  {
+   "id": "ticket-AD-4129",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"100 update listing mapping calls from XML > REST\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "ApiClientRepository",
+     "ListingRepository"
+    ],
+    "question": "100 update listing mapping calls from XML > REST"
+   }
+  },
+  {
+   "id": "ticket-GDE-1155",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"test pr5308 - Demand Channel - GDE-1107 follow up - debug endpoint issues\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "AbstractSPSCheckoutService",
+     "DemandChannelController",
+     "SPSCheckoutService"
+    ],
+    "question": "test pr5308 - Demand Channel - GDE-1107 follow up - debug endpoint issues"
+   }
+  },
+  {
+   "id": "ticket-AD-4120",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"UI/UX 47: Airbnb: Batch Calendar Operations: Set limits to the payload.\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "CalendarBatchOperationsSourceItem"
+    ],
+    "question": "UI/UX 47: Airbnb: Batch Calendar Operations: Set limits to the payload."
+   }
+  },
+  {
+   "id": "ticket-RES-1437",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"Update RNS API client and reservation required params\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "VrboBooking"
+    ],
+    "question": "Update RNS API client and reservation required params"
+   }
+  },
+  {
+   "id": "ticket-GDE-342",
+   "type": "ticket",
+   "repo": "btt-api",
+   "prompt": "In the repository at {REPO_PATH}, locate the code responsible for this ticket: \"Booking.com - Email Errors - BetterStack - A Booking.com reservation failed to reach a pms and also failed to send an email\". Answer with a 'SYMBOLS:' section listing the 1-3 primary function/method/class names, and a 'LOCATIONS:' section with file:line for each, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+   "ground_truth": {
+    "accept": [
+     "LoggerFactory",
+     "RcBdcReservationEntity",
+     "rc_bdc_sps_configure"
+    ],
+    "question": "Booking.com - Email Errors - BetterStack - A Booking.com reservation failed to reach a pms and also failed to send an email"
+   }
+  }
+ ]
+}

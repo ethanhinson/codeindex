@@ -1,0 +1,454 @@
+{
+ "repo": "gin",
+ "split": "tuning",
+ "fixture_commit": "75ccf94d605a05fe24817fc2f166f6f2959d5cea",
+ "binary_sha256_16": "f24fddce4873e4b9",
+ "params": null,
+ "n": 26,
+ "hits": 22,
+ "hit5_pct": 84.6,
+ "results": [
+  {
+   "q": "serve static files from a directory over http",
+   "hit": true,
+   "top": [
+    "RouterGroup.StaticFS",
+    "Dir",
+    "RouterGroup.StaticFileFS",
+    "RouterGroup.StaticFile",
+    "RouterGroup.staticFileHandler"
+   ],
+   "accept": [
+    "Static",
+    "StaticFS",
+    "StaticFile",
+    "RouterGroup.Static",
+    "RouterGroup.StaticFS",
+    "RouterGroup.StaticFile"
+   ]
+  },
+  {
+   "q": "bind the incoming json request body onto a struct",
+   "hit": true,
+   "top": [
+    "jsonBinding.BindBody",
+    "Context.JSON",
+    "jsonBinding",
+    "requestWithBody",
+    "Context.MustBindWith"
+   ],
+   "accept": [
+    "ShouldBindJSON",
+    "BindJSON",
+    "ShouldBind",
+    "ShouldBindWith",
+    "MustBindWith",
+    "Context.ShouldBindJSON",
+    "Context.BindJSON"
+   ]
+  },
+  {
+   "q": "send a json response to the client",
+   "hit": true,
+   "top": [
+    "Context.JSON",
+    "IndentedJSON.WriteContentType",
+    "responseWriter.WriteHeaderNow",
+    "responseWriter",
+    "JSON.WriteContentType"
+   ],
+   "accept": [
+    "JSON",
+    "IndentedJSON",
+    "PureJSON",
+    "SecureJSON",
+    "AsciiJSON",
+    "Context.JSON"
+   ]
+  },
+  {
+   "q": "group several routes under a common url prefix",
+   "hit": true,
+   "top": [
+    "RouterGroup.Group",
+    "RouterGroup.Handle",
+    "iterate",
+    "RouterGroup.combineHandlers",
+    "RouterGroup"
+   ],
+   "accept": [
+    "Group",
+    "RouterGroup.Group"
+   ]
+  },
+  {
+   "q": "register middleware that runs for every request",
+   "hit": true,
+   "top": [
+    "Engine.Use",
+    "Use",
+    "RouterGroup.Use",
+    "RouterGroup.Handle",
+    "Context.Next"
+   ],
+   "accept": [
+    "Use",
+    "Engine.Use",
+    "RouterGroup.Use"
+   ]
+  },
+  {
+   "q": "stop processing the request from inside middleware",
+   "hit": true,
+   "top": [
+    "Engine.Use",
+    "Use",
+    "Context.Abort",
+    "RouterGroup.Handle",
+    "Context.Next"
+   ],
+   "accept": [
+    "Abort",
+    "AbortWithStatus",
+    "AbortWithStatusJSON",
+    "AbortWithError",
+    "Context.Abort"
+   ]
+  },
+  {
+   "q": "read a path parameter like the id in /users/:id",
+   "hit": true,
+   "top": [
+    "Context.Param",
+    "RouterGroup.GET",
+    "Context.AddParam",
+    "joinPaths",
+    "Context.FullPath"
+   ],
+   "accept": [
+    "Param",
+    "Context.Param",
+    "Params.Get",
+    "Params.ByName"
+   ]
+  },
+  {
+   "q": "read a query string parameter with a fallback default",
+   "hit": true,
+   "top": [
+    "Context.DefaultQuery",
+    "node.getValue",
+    "Context.GetQuery",
+    "Engine",
+    "Context"
+   ],
+   "accept": [
+    "Query",
+    "DefaultQuery",
+    "GetQuery",
+    "Context.Query",
+    "Context.DefaultQuery"
+   ]
+  },
+  {
+   "q": "figure out the real client ip address behind proxies",
+   "hit": true,
+   "top": [
+    "Engine.Run",
+    "Context.ClientIP",
+    "Engine.RunListener",
+    "Engine.RunTLS",
+    "Engine.isTrustedProxy"
+   ],
+   "accept": [
+    "ClientIP",
+    "RemoteIP",
+    "Context.ClientIP",
+    "Context.RemoteIP"
+   ]
+  },
+  {
+   "q": "set a cookie on the http response",
+   "hit": true,
+   "top": [
+    "responseWriter.WriteHeaderNow",
+    "Context.Cookie",
+    "Context.SetCookie",
+    "responseWriter.Flush",
+    "responseWriter.Written"
+   ],
+   "accept": [
+    "SetCookie",
+    "Context.SetCookie"
+   ]
+  },
+  {
+   "q": "recover from a panic in a handler and return a 500",
+   "hit": true,
+   "top": [
+    "RecoveryWithWriter",
+    "CustomRecoveryWithWriter",
+    "Recovery",
+    "CustomRecovery",
+    "Context.Error"
+   ],
+   "accept": [
+    "Recovery",
+    "RecoveryWithWriter",
+    "CustomRecovery",
+    "CustomRecoveryWithWriter"
+   ]
+  },
+  {
+   "q": "log each request with latency and status to the console",
+   "hit": true,
+   "top": [
+    "LogFormatterParams.StatusCodeColor",
+    "LogFormatterParams.MethodColor",
+    "LoggerWithFormatter",
+    "consoleColorModeValue",
+    "DisableConsoleColor"
+   ],
+   "accept": [
+    "Logger",
+    "LoggerWithConfig",
+    "LoggerWithFormatter",
+    "LoggerWithWriter"
+   ]
+  },
+  {
+   "q": "load html templates so handlers can render them",
+   "hit": true,
+   "top": [
+    "HTMLDebug.loadTemplate",
+    "TestContextRenderHTML",
+    "HTMLRender",
+    "HTMLProduction.Instance",
+    "Engine.SetHTMLTemplate"
+   ],
+   "accept": [
+    "LoadHTMLGlob",
+    "LoadHTMLFiles",
+    "Engine.LoadHTMLGlob",
+    "Engine.LoadHTMLFiles",
+    "SetHTMLTemplate"
+   ]
+  },
+  {
+   "q": "receive an uploaded file from a multipart form",
+   "hit": true,
+   "top": [
+    "setByMultipartFormFile",
+    "Context.FormFile",
+    "Context.MultipartForm",
+    "setArrayOfMultipartFormFiles",
+    "Context.SaveUploadedFile"
+   ],
+   "accept": [
+    "FormFile",
+    "MultipartForm",
+    "SaveUploadedFile",
+    "Context.FormFile",
+    "Context.MultipartForm"
+   ]
+  },
+  {
+   "q": "redirect the client to a different url",
+   "hit": true,
+   "top": [
+    "redirectRequest",
+    "Redirect.Render",
+    "redirectFixedPath",
+    "Redirect",
+    "redirectTrailingSlash"
+   ],
+   "accept": [
+    "Redirect",
+    "Context.Redirect"
+   ]
+  },
+  {
+   "q": "start the server with tls certificates",
+   "hit": true,
+   "top": [
+    "Engine.RunTLS",
+    "setupHTMLFiles",
+    "RunTLS",
+    "ResponseWriter",
+    "Context"
+   ],
+   "accept": [
+    "RunTLS",
+    "Engine.RunTLS"
+   ]
+  },
+  {
+   "q": "pick the response format based on the accept header",
+   "hit": false,
+   "top": [
+    "responseWriter.WriteHeaderNow",
+    "responseWriter.WriteHeader",
+    "ResponseWriter",
+    "responseWriter",
+    "parseAccept"
+   ],
+   "accept": [
+    "Negotiate",
+    "NegotiateFormat",
+    "Context.Negotiate",
+    "Context.NegotiateFormat"
+   ]
+  },
+  {
+   "q": "register one handler for all http methods on a path",
+   "hit": true,
+   "top": [
+    "RouterGroup.Handle",
+    "RouterGroup.handle",
+    "RouterGroup.Any",
+    "Engine.Use",
+    "node.addRoute"
+   ],
+   "accept": [
+    "Any",
+    "RouterGroup.Any",
+    "Handle",
+    "RouterGroup.Handle"
+   ]
+  },
+  {
+   "q": "stream server sent events to the client",
+   "hit": true,
+   "top": [
+    "Context.SSEvent",
+    "Context.ClientIP",
+    "Context.Stream",
+    "Context.DataFromReader",
+    "ResponseWriter"
+   ],
+   "accept": [
+    "Stream",
+    "SSEvent",
+    "Context.Stream",
+    "Context.SSEvent"
+   ]
+  },
+  {
+   "q": "store a value on the request context and read it back later",
+   "hit": false,
+   "top": [
+    "Context.String",
+    "Context.requestHeader",
+    "Context.DataFromReader",
+    "Context",
+    "Context.GetHeader"
+   ],
+   "accept": [
+    "Set",
+    "Get",
+    "MustGet",
+    "Context.Set",
+    "Context.Get",
+    "Context.MustGet"
+   ]
+  },
+  {
+   "q": "serve a single file when a route is hit",
+   "hit": true,
+   "top": [
+    "RouterGroup.StaticFile",
+    "RouterGroup.Handle",
+    "RouterGroup.PUT",
+    "TestRouteStaticFile",
+    "RouterGroup.GET"
+   ],
+   "accept": [
+    "File",
+    "Context.File",
+    "StaticFile",
+    "FileAttachment"
+   ]
+  },
+  {
+   "q": "customize the handler for unmatched routes",
+   "hit": false,
+   "top": [
+    "RouterGroup.Handle",
+    "RouterGroup.handle",
+    "RouterGroup.combineHandlers",
+    "RouterGroup.GET",
+    "RouterGroup.OPTIONS"
+   ],
+   "accept": [
+    "NoRoute",
+    "NoMethod",
+    "Engine.NoRoute",
+    "Engine.NoMethod"
+   ]
+  },
+  {
+   "q": "run the server on a unix domain socket or existing listener",
+   "hit": true,
+   "top": [
+    "Engine.RunListener",
+    "Engine.RunUnix",
+    "Engine.Run",
+    "Engine.RunFd",
+    "RunUnix"
+   ],
+   "accept": [
+    "RunUnix",
+    "RunListener",
+    "RunFd",
+    "Engine.RunUnix",
+    "Engine.RunListener"
+   ]
+  },
+  {
+   "q": "read the raw request body bytes",
+   "hit": false,
+   "top": [
+    "rawStrToBytes",
+    "rawBytesToStr",
+    "Context.Data",
+    "Context.String",
+    "requestWithBody"
+   ],
+   "accept": [
+    "GetRawData",
+    "Context.GetRawData"
+   ]
+  },
+  {
+   "q": "protect routes with http basic authentication",
+   "hit": true,
+   "top": [
+    "RouterGroup.Any",
+    "BasicAuth",
+    "BasicAuthForRealm",
+    "RouterGroup.GET",
+    "RouterGroup.Handle"
+   ],
+   "accept": [
+    "BasicAuth",
+    "BasicAuthForRealm"
+   ]
+  },
+  {
+   "q": "configure which proxies to trust for forwarded headers",
+   "hit": true,
+   "top": [
+    "Engine.SetTrustedProxies",
+    "Context.ClientIP",
+    "Engine.isTrustedProxy",
+    "Engine.validateHeader",
+    "Engine.isUnsafeTrustedProxies"
+   ],
+   "accept": [
+    "SetTrustedProxies",
+    "Engine.SetTrustedProxies",
+    "isTrustedProxy"
+   ]
+  }
+ ]
+}

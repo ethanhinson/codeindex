@@ -1,0 +1,467 @@
+{
+ "repo": "symfony",
+ "split": "heldout",
+ "fixture_commit": "fca27be5c0bf49f5ab5d274c42d8235ec1d3ae02",
+ "binary_sha256_16": "44b2be5618b3ba8d",
+ "params": {
+  "cards": "contrast-no-neighbors",
+  "lambda": 0.3,
+  "frozen": true,
+  "one_shot": true
+ },
+ "n": 26,
+ "hits": 19,
+ "hit5_pct": 73.1,
+ "results": [
+  {
+   "q": "turn an http request into a response through the kernel",
+   "hit": true,
+   "top": [
+    "HttpKernelInterface",
+    "Kernel.handle",
+    "HttpClientKernel.handle",
+    "HttpKernel.handle",
+    "HttpKernel.filterResponse"
+   ],
+   "accept": [
+    "HttpKernel.handle",
+    "HttpKernel.handleRaw",
+    "Kernel.handle",
+    "HttpKernelInterface.handle"
+   ]
+  },
+  {
+   "q": "dispatch an event to all its listeners",
+   "hit": true,
+   "top": [
+    "EventDispatcherInterface.dispatch",
+    "EventDispatcherInterface.addListener",
+    "EventDispatcher.callListeners",
+    "TaggedMultiListener.onCustomEvent",
+    "TaggedMultiListener.onBazEvent"
+   ],
+   "accept": [
+    "EventDispatcher.dispatch",
+    "EventDispatcher.callListeners",
+    "TraceableEventDispatcher.dispatch"
+   ]
+  },
+  {
+   "q": "figure out which controller should handle the request",
+   "hit": true,
+   "top": [
+    "ControllerResolver.getController",
+    "ControllerEvent",
+    "ControllerResolver",
+    "RequestDataCollector.getController",
+    "Request.get"
+   ],
+   "accept": [
+    "ControllerResolver.getController",
+    "ControllerResolver",
+    "ControllerResolverInterface"
+   ]
+  },
+  {
+   "q": "match the request url against the routing table",
+   "hit": true,
+   "top": [
+    "RequestMatcherInterface.matchRequest",
+    "UrlMatcher.matchRequest",
+    "Router.matchRequest",
+    "RedirectableUrlMatcher.match",
+    "UrlMatcherTest.getUrlMatcher"
+   ],
+   "accept": [
+    "UrlMatcher.match",
+    "Router.match",
+    "UrlMatcher.matchCollection",
+    "RedirectableUrlMatcher.match"
+   ]
+  },
+  {
+   "q": "generate a url from a route name and parameters",
+   "hit": true,
+   "top": [
+    "UrlGenerator.generate",
+    "Router.generate",
+    "AbstractController.generateUrl",
+    "RoutingExtension.getUrl",
+    "CompiledUrlGenerator.generate"
+   ],
+   "accept": [
+    "UrlGenerator.generate",
+    "Router.generate",
+    "UrlGenerator.doGenerate",
+    "CompiledUrlGenerator.generate"
+   ]
+  },
+  {
+   "q": "compile the dependency injection container",
+   "hit": true,
+   "top": [
+    "ContainerBuilder.getCompiler",
+    "Container.isCompiled",
+    "Compiler.compile",
+    "ContainerBuilder.compile",
+    "Container.compile"
+   ],
+   "accept": [
+    "ContainerBuilder.compile",
+    "Compiler.compile",
+    "PhpDumper.dump"
+   ]
+  },
+  {
+   "q": "autowire service constructor arguments by type",
+   "hit": true,
+   "top": [
+    "Autowire.__construct",
+    "AutowireCallable",
+    "AutowireAttribute.__construct",
+    "AutowirePass.populateAvailableType",
+    "AutowireCallable.__construct"
+   ],
+   "accept": [
+    "AutowirePass",
+    "AutowirePass.process",
+    "AutowirePass.autowireCalls",
+    "AbstractRecursivePass"
+   ]
+  },
+  {
+   "q": "validate an object against its constraints",
+   "hit": false,
+   "top": [
+    "AbstractComparisonValidatorTestCase.createConstraint",
+    "ValidatorInterface.validateProperty",
+    "ContextualValidatorInterface.validate",
+    "ConstraintValidatorFactoryInterface.getInstance",
+    "Valid"
+   ],
+   "accept": [
+    "RecursiveValidator.validate",
+    "Validator.validate",
+    "ConstraintValidator",
+    "RecursiveContextualValidator.validate"
+   ]
+  },
+  {
+   "q": "serialize an object into json",
+   "hit": false,
+   "top": [
+    "SerializerRuntime.serialize",
+    "AbstractController.json",
+    "NativeJsonPayloadSerializer.serialize",
+    "AbstractString.jsonSerialize",
+    "JsonSerializableDummy.jsonSerialize"
+   ],
+   "accept": [
+    "Serializer.serialize",
+    "Serializer.normalize",
+    "JsonEncoder.encode",
+    "ObjectNormalizer",
+    "AbstractNormalizer"
+   ]
+  },
+  {
+   "q": "translate a message into the user's locale",
+   "hit": false,
+   "top": [
+    "MessageCatalogue.getLocale",
+    "Translator.getLocale",
+    "MessageCatalogueInterface.getLocale",
+    "Translator.setLocale",
+    "TranslatorTrait.setLocale"
+   ],
+   "accept": [
+    "Translator.trans",
+    "TranslatorInterface",
+    "MessageCatalogue.get",
+    "Translator.getCatalogue"
+   ]
+  },
+  {
+   "q": "cache values in a psr compatible pool",
+   "hit": false,
+   "top": [
+    "Psr6CacheClearer.hasPool",
+    "Psr6CacheClearer.getPool",
+    "Psr16AdapterTest.createCachePool",
+    "Psr6CacheClearer.clearPool",
+    "Psr16Cache.__construct"
+   ],
+   "accept": [
+    "AbstractAdapter",
+    "FilesystemAdapter",
+    "CacheItem",
+    "ArrayAdapter",
+    "ChainAdapter"
+   ]
+  },
+  {
+   "q": "define a console command with arguments and options",
+   "hit": true,
+   "top": [
+    "Command.addArgument",
+    "Command.setDefinition",
+    "Descriptor.describeCommand",
+    "Command.addOption",
+    "TextDescriptor.describeCommand"
+   ],
+   "accept": [
+    "Command",
+    "Command.execute",
+    "Command.configure",
+    "Application.run",
+    "Command.run",
+    "InputDefinition"
+   ]
+  },
+  {
+   "q": "build a form and handle its submission",
+   "hit": false,
+   "top": [
+    "AbstractBrowser.submit",
+    "AbstractBrowser.submitForm",
+    "AbstractController.createForm",
+    "RequestHandlerInterface.handleRequest",
+    "Form"
+   ],
+   "accept": [
+    "FormBuilder",
+    "Form.handleRequest",
+    "FormFactory.create",
+    "Form.submit",
+    "FormBuilderInterface"
+   ]
+  },
+  {
+   "q": "authenticate the user for the current request",
+   "hit": true,
+   "top": [
+    "AbstractPreAuthenticatedAuthenticator.onAuthenticationSuccess",
+    "AuthenticatorInterface.onAuthenticationSuccess",
+    "UserAuthenticatorInterface.authenticateUser",
+    "RememberMeAuthenticator.onAuthenticationSuccess",
+    "HttpBasicAuthenticator.onAuthenticationSuccess"
+   ],
+   "accept": [
+    "AuthenticatorInterface",
+    "AuthenticatorManager.authenticateRequest",
+    "AuthenticatorManager",
+    "TokenStorage.setToken",
+    "UserBadge"
+   ]
+  },
+  {
+   "q": "make an outgoing http request to another service",
+   "hit": false,
+   "top": [
+    "HttplugClient.sendAsyncRequest",
+    "HttpFoundationFactory.createRequest",
+    "AbstractApiTransport.doSendHttp",
+    "HttpOptions.setBody",
+    "AbstractHttpTransport.doSendHttp"
+   ],
+   "accept": [
+    "CurlHttpClient.request",
+    "HttpClient.create",
+    "NativeHttpClient.request",
+    "HttpClientInterface",
+    "AmpHttpClient.request"
+   ]
+  },
+  {
+   "q": "dispatch a message onto the message bus",
+   "hit": true,
+   "top": [
+    "DispatchAfterCurrentBusMiddleware",
+    "MessageBus.dispatch",
+    "MessageBusInterface.dispatch",
+    "RoutableMessageBus.dispatch",
+    "DispatchAfterCurrentBusStamp"
+   ],
+   "accept": [
+    "MessageBus.dispatch",
+    "MessageBusInterface",
+    "Envelope",
+    "HandleMessageMiddleware.handle"
+   ]
+  },
+  {
+   "q": "acquire a lock shared between processes",
+   "hit": true,
+   "top": [
+    "LockFactory.createLock",
+    "SharedLockStoreInterface.saveRead",
+    "BlockingSharedLockStoreInterface.waitAndSaveRead",
+    "SharedLockInterface.acquireRead",
+    "Lock"
+   ],
+   "accept": [
+    "LockFactory.createLock",
+    "Lock.acquire",
+    "Lock.release",
+    "SemaphoreStore",
+    "FlockStore"
+   ]
+  },
+  {
+   "q": "copy files and create directories on disk",
+   "hit": true,
+   "top": [
+    "Filesystem.mkdir",
+    "FilesystemTest.testCopyCreatesTargetDirectoryIfItDoesNotExist",
+    "Filesystem.mirror",
+    "FilesystemTest.testMkdirCreatesDirectoriesRecursively",
+    "FilesystemTest.testMkdirCreatesDirectoriesFromArray"
+   ],
+   "accept": [
+    "Filesystem.copy",
+    "Filesystem.mkdir",
+    "Filesystem.dumpFile",
+    "Filesystem.mirror"
+   ]
+  },
+  {
+   "q": "parse a yaml document into php values",
+   "hit": true,
+   "top": [
+    "Yaml.parse",
+    "Inline.parse",
+    "Parser",
+    "Parser.parseFile",
+    "Parser.parse"
+   ],
+   "accept": [
+    "Yaml.parse",
+    "Parser.parse",
+    "Yaml.parseFile",
+    "Inline.parse"
+   ]
+  },
+  {
+   "q": "load environment variables from a dotenv file",
+   "hit": true,
+   "top": [
+    "DotenvDumpCommand.loadEnv",
+    "Dotenv",
+    "Dotenv.populate",
+    "Dotenv.load",
+    "DotenvDumpCommand"
+   ],
+   "accept": [
+    "Dotenv.load",
+    "Dotenv.bootEnv",
+    "Dotenv.parse",
+    "Dotenv.populate"
+   ]
+  },
+  {
+   "q": "run an external process and capture its output",
+   "hit": true,
+   "top": [
+    "ProcessHelper.run",
+    "PhpProcess",
+    "Process.readPipesForOutput",
+    "Process.addOutput",
+    "Process.start"
+   ],
+   "accept": [
+    "Process.run",
+    "Process.start",
+    "Process.wait",
+    "Process.mustRun",
+    "Process.getOutput"
+   ]
+  },
+  {
+   "q": "subscribe a class to the events it listens for",
+   "hit": true,
+   "top": [
+    "EventSubscriberInterface",
+    "EventSubscriberInterface.getSubscribedEvents",
+    "EventDispatcher.addSubscriber",
+    "EventDispatcherInterface.addSubscriber",
+    "SubscriberService.getSubscribedEvents"
+   ],
+   "accept": [
+    "EventSubscriberInterface",
+    "getSubscribedEvents",
+    "RegisterListenersPass",
+    "addSubscriber"
+   ]
+  },
+  {
+   "q": "boot the kernel with its bundles and container",
+   "hit": false,
+   "top": [
+    "KernelTestCase.bootKernel",
+    "KernelWithoutBundles.build",
+    "KernelWithoutBundles.registerContainerConfiguration",
+    "KernelWithoutBundles",
+    "KernelTest.testBootSetsTheContainerToTheBundles"
+   ],
+   "accept": [
+    "Kernel.boot",
+    "Kernel.initializeContainer",
+    "Kernel.initializeBundles",
+    "Bundle.boot"
+   ]
+  },
+  {
+   "q": "start and use the session for the request",
+   "hit": true,
+   "top": [
+    "Request.setSession",
+    "RequestStack.getSession",
+    "Session.isStarted",
+    "SessionListener",
+    "Session.start"
+   ],
+   "accept": [
+    "Session.start",
+    "Session.set",
+    "NativeSessionStorage.start",
+    "SessionInterface",
+    "Session.get"
+   ]
+  },
+  {
+   "q": "rate limit how often an action can happen",
+   "hit": true,
+   "top": [
+    "Rate.perSecond",
+    "Rate.perMinute",
+    "Rate.perHour",
+    "RateLimit.isAccepted",
+    "Rate.perDay"
+   ],
+   "accept": [
+    "RateLimiterFactory.create",
+    "TokenBucketLimiter.consume",
+    "SlidingWindowLimiter.consume",
+    "LimiterInterface",
+    "RateLimit"
+   ]
+  },
+  {
+   "q": "store failed messenger messages for retry",
+   "hit": true,
+   "top": [
+    "FailedMessagesRetryCommand",
+    "FailedMessagesRetryCommand.retrySpecificIds",
+    "FailedMessagesRetryCommand.__construct",
+    "FailedMessagesRetryCommand.retrySpecificEnvelopes",
+    "SendFailedMessageForRetryListener"
+   ],
+   "accept": [
+    "SendFailedMessageForRetryListener",
+    "FailedMessagesRetryCommand",
+    "RetryStrategyInterface",
+    "MultiplierRetryStrategy.isRetryable"
+   ]
+  }
+ ]
+}

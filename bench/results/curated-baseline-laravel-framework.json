@@ -1,0 +1,453 @@
+{
+ "repo": "laravel-framework",
+ "split": "tuning",
+ "fixture_commit": "5d964a15efc8fffcb175aed3976796c0420bcf99",
+ "binary_sha256_16": "6511c64dde2ad336",
+ "params": null,
+ "n": 26,
+ "hits": 13,
+ "hit5_pct": 50.0,
+ "results": [
+  {
+   "q": "roll back the last batch of database migrations",
+   "hit": true,
+   "top": [
+    "Migrator.rollback",
+    "RefreshCommand.runRollback",
+    "RollbackCommand.handle",
+    "Migrator.resetMigrations",
+    "Migrator.rollbackMigrations"
+   ],
+   "accept": [
+    "rollback",
+    "rollbackMigrations",
+    "RollbackCommand",
+    "Migrator.rollback"
+   ]
+  },
+  {
+   "q": "run the pending database migrations",
+   "hit": true,
+   "top": [
+    "NoPendingMigrations",
+    "MigrateCommand.runMigrations",
+    "Migrator.runPending",
+    "Migrator.run",
+    "Migration"
+   ],
+   "accept": [
+    "Migrator.run",
+    "runPending",
+    "MigrateCommand",
+    "runUp"
+   ]
+  },
+  {
+   "q": "define the columns of a new database table",
+   "hit": false,
+   "top": [
+    "Blueprint.addColumnDefinition",
+    "ColumnDefinition",
+    "Builder.table",
+    "ForeignIdColumnDefinition",
+    "SQLiteGrammar.addPrimaryKeys"
+   ],
+   "accept": [
+    "Blueprint",
+    "Builder.create",
+    "Blueprint.build"
+   ]
+  },
+  {
+   "q": "add a where condition to a database query",
+   "hit": true,
+   "top": [
+    "Builder.addArrayOfWheres",
+    "Builder.where",
+    "Builder.whereNone",
+    "Builder.whereAny",
+    "Builder.whereNested"
+   ],
+   "accept": [
+    "Builder.where",
+    "Builder.orWhere"
+   ]
+  },
+  {
+   "q": "persist a model instance to the database",
+   "hit": true,
+   "top": [
+    "HasOneOrMany.saveMany",
+    "Model.save",
+    "HasOneOrMany.save",
+    "Model.saveOrFail",
+    "ModelInspectorTest.afterRefreshingDatabase"
+   ],
+   "accept": [
+    "Model.save",
+    "performInsert",
+    "performUpdate",
+    "Model.saveOrFail"
+   ]
+  },
+  {
+   "q": "declare that a model has many related child models",
+   "hit": false,
+   "top": [
+    "SupportsDefaultModels.newRelatedInstanceFor",
+    "BelongsToManyRelationship.createFor",
+    "HasOneThrough.newRelatedInstanceFor",
+    "HasRelationships.newRelatedThroughInstance",
+    "BelongsTo.newRelatedInstanceFor"
+   ],
+   "accept": [
+    "hasMany",
+    "HasMany",
+    "HasOneOrMany",
+    "newHasMany"
+   ]
+  },
+  {
+   "q": "declare the inverse relation where a model belongs to a parent",
+   "hit": false,
+   "top": [
+    "SupportsInverseRelations.inverse",
+    "MorphOneOrMany.getPossibleInverseRelations",
+    "SupportsInverseRelations.applyInverseRelationToModel",
+    "SupportsInverseRelations.getPossibleInverseRelations",
+    "SupportsInverseRelations.chaperone"
+   ],
+   "accept": [
+    "belongsTo",
+    "BelongsTo",
+    "newBelongsTo"
+   ]
+  },
+  {
+   "q": "push a job onto the queue for background processing",
+   "hit": false,
+   "top": [
+    "SyncQueue.push",
+    "QueueFake.push",
+    "JobProcessed",
+    "PendingDispatch.onQueue",
+    "Queue.pushOn"
+   ],
+   "accept": [
+    "dispatch",
+    "PendingDispatch",
+    "Queue.push",
+    "Dispatcher.dispatch",
+    "dispatchToQueue"
+   ]
+  },
+  {
+   "q": "retry jobs that previously failed",
+   "hit": true,
+   "top": [
+    "Job.retryUntil",
+    "Job.retryUntil",
+    "RetryCommand.retryJob",
+    "RetryCommand.getJobIds",
+    "RetryCommand.resetAttempts"
+   ],
+   "accept": [
+    "RetryCommand",
+    "retryJob",
+    "FailedJobProviderInterface"
+   ]
+  },
+  {
+   "q": "fire an event and notify its listeners",
+   "hit": false,
+   "top": [
+    "EventFake.listen",
+    "EventServiceProvider.listens",
+    "EventFake.hasListeners",
+    "EventGenerateCommand.makeEventAndListeners",
+    "EventGenerateCommand.makeListeners"
+   ],
+   "accept": [
+    "Dispatcher.dispatch",
+    "Dispatcher.listen",
+    "invokeListeners",
+    "Dispatcher.until"
+   ]
+  },
+  {
+   "q": "validate incoming request data against rules",
+   "hit": true,
+   "top": [
+    "ValidatesRequests.validate",
+    "...",
+    "ValidatorInterface.matches",
+    "MethodValidator.matches",
+    "SchemeValidator.matches"
+   ],
+   "accept": [
+    "Validator",
+    "validate",
+    "ValidatesRequests",
+    "FormRequest",
+    "Validator.passes",
+    "Validator.fails"
+   ]
+  },
+  {
+   "q": "hash a user password for storage",
+   "hit": false,
+   "top": [
+    "AuthenticateSession.storePasswordHashInSession",
+    "Str.password",
+    "Recaller.hash",
+    "UserProvider.rehashPasswordIfRequired",
+    "DatabaseUserProvider.rehashPasswordIfRequired"
+   ],
+   "accept": [
+    "BcryptHasher",
+    "HashManager",
+    "BcryptHasher.make",
+    "Argon2IdHasher",
+    "AbstractHasher"
+   ]
+  },
+  {
+   "q": "encrypt a value and decrypt it later",
+   "hit": true,
+   "top": [
+    "Encrypter.decrypt",
+    "StringEncrypter.decryptString",
+    "Encrypter.encrypt",
+    "Encrypter.decrypt",
+    "encrypt"
+   ],
+   "accept": [
+    "Encrypter",
+    "Encrypter.encrypt",
+    "Encrypter.decrypt",
+    "encryptString",
+    "decryptString"
+   ]
+  },
+  {
+   "q": "register a route with the router",
+   "hit": true,
+   "top": [
+    "RouteRegistrar.__construct",
+    "RouteRegistrar.registerRoute",
+    "RoutingServiceProvider.registerRouter",
+    "Router.setRoutes",
+    "RouteRegistrar"
+   ],
+   "accept": [
+    "Router.get",
+    "Router.post",
+    "Router.addRoute",
+    "RouteRegistrar",
+    "Router.match"
+   ]
+  },
+  {
+   "q": "resolve a model instance from a route parameter automatically",
+   "hit": false,
+   "top": [
+    "RouteBinding.forModel",
+    "Route.setParameter",
+    "Model.resolveSoftDeletableRouteBinding",
+    "Route.getMissing",
+    "Model.resolveRouteBindingQuery"
+   ],
+   "accept": [
+    "ImplicitRouteBinding",
+    "substituteImplicitBindings",
+    "resolveRouteBinding"
+   ]
+  },
+  {
+   "q": "pass the request through the middleware chain",
+   "hit": false,
+   "top": [
+    "PendingRequest.withMiddleware",
+    "PendingRequest.withRequestMiddleware",
+    "TrustProxies.setTrustedProxyIpAddressesToTheCallingIp",
+    "RequirePassword.handle",
+    "HandlePrecognitiveRequests.__construct"
+   ],
+   "accept": [
+    "Pipeline",
+    "Pipeline.then",
+    "sendRequestThroughRouter",
+    "Pipeline.through"
+   ]
+  },
+  {
+   "q": "send an email message",
+   "hit": false,
+   "top": [
+    "SentMessage",
+    "Mailer.sendSymfonyMessage",
+    "Message.getSymfonyMessage",
+    "TextMessage.__construct",
+    "SentMessage.__construct"
+   ],
+   "accept": [
+    "Mailer.send",
+    "Mailable",
+    "Mailer",
+    "Mailable.send",
+    "SendQueuedMailable"
+   ]
+  },
+  {
+   "q": "cache a computed value and reuse it until it expires",
+   "hit": false,
+   "top": [
+    "ArrayStore.calculateExpiration",
+    "MemcachedStore.put",
+    "ArrayStore.put",
+    "DatabaseStore.forgetIfExpired",
+    "MemcachedStore.putMany"
+   ],
+   "accept": [
+    "remember",
+    "Repository.remember",
+    "rememberForever",
+    "Repository.get"
+   ]
+  },
+  {
+   "q": "schedule recurring console tasks like cron",
+   "hit": false,
+   "top": [
+    "ScheduleRunCommand.repeatEvents",
+    "ScheduleRunCommand.runEvent",
+    "ScheduleRunCommand.shouldInterrupt",
+    "ScheduleRunCommand.runSingleServerEvent",
+    "ScheduleFinishCommand.handle"
+   ],
+   "accept": [
+    "Schedule",
+    "Schedule.command",
+    "ScheduleRunCommand",
+    "Schedule.call"
+   ]
+  },
+  {
+   "q": "define a custom artisan console command",
+   "hit": false,
+   "top": [
+    "Kernel.addCommands",
+    "Kernel.addCommandPaths",
+    "Application.call",
+    "Application.parseCommand",
+    "Application.__construct"
+   ],
+   "accept": [
+    "Command",
+    "GeneratorCommand",
+    "Command.execute"
+   ]
+  },
+  {
+   "q": "bind an implementation into the service container and resolve it",
+   "hit": false,
+   "top": [
+    "Container.bindMethod",
+    "Container.resolved",
+    "ContainerTest.testBindIfDoesRegisterIfServiceNotRegisteredYet",
+    "Container.bindIf",
+    "ContainerTest.testBindIfDoesntRegisterIfServiceAlreadyRegistered"
+   ],
+   "accept": [
+    "Container.bind",
+    "Container.make",
+    "Container.resolve",
+    "Container.singleton"
+   ]
+  },
+  {
+   "q": "register services when the framework boots",
+   "hit": true,
+   "top": [
+    "Application.register",
+    "ServiceProvider.register",
+    "Application.bootProvider",
+    "Application.registerDeferredProvider",
+    "Application.registerBaseServiceProviders"
+   ],
+   "accept": [
+    "ServiceProvider",
+    "ServiceProvider.register",
+    "registerConfiguredProviders"
+   ]
+  },
+  {
+   "q": "compile blade templates into php",
+   "hit": true,
+   "top": [
+    "BladeCompiler.compileString",
+    "BladeCompiler.__construct",
+    "CompilesEchos.addBladeCompilerVariable",
+    "BladeCompiler.compile",
+    "BladeCompiler.parseToken"
+   ],
+   "accept": [
+    "BladeCompiler",
+    "BladeCompiler.compile",
+    "compileString",
+    "compileStatements"
+   ]
+  },
+  {
+   "q": "paginate query results into pages",
+   "hit": true,
+   "top": [
+    "Builder.paginate",
+    "Builder.forPage",
+    "AbstractPaginator.withQueryString",
+    "AbstractPaginator.queryStringResolver",
+    "AbstractPaginator.addQuery"
+   ],
+   "accept": [
+    "paginate",
+    "Paginator",
+    "LengthAwarePaginator",
+    "CursorPaginator",
+    "Builder.paginate"
+   ]
+  },
+  {
+   "q": "run several database statements in one transaction",
+   "hit": true,
+   "top": [
+    "DatabaseTransactionRecord.executeCallbacks",
+    "DatabaseBatchRepository.transaction",
+    "DatabaseTransactionRecord.addCallback",
+    "DatabaseTransactionsManager.begin",
+    "DatabaseTransactionsManager.__construct"
+   ],
+   "accept": [
+    "transaction",
+    "beginTransaction",
+    "ManagesTransactions"
+   ]
+  },
+  {
+   "q": "soft delete models instead of removing rows",
+   "hit": true,
+   "top": [
+    "SoftDeletes.forceDestroy",
+    "SoftDeletes.forceDelete",
+    "SoftDeletes.forceDeleteQuietly",
+    "SoftDeletes.runSoftDelete",
+    "Builder.forceDelete"
+   ],
+   "accept": [
+    "SoftDeletes",
+    "SoftDeletingScope",
+    "runSoftDelete",
+    "restore"
+   ]
+  }
+ ]
+}

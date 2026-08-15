@@ -1,0 +1,196 @@
+{
+ "repo": "flask",
+ "commit": "ab8149664182b662453a563161aa89013c806dc9",
+ "split": "issues-closed",
+ "provenance": "Mined from closed GitHub issues/PRs by bench/selfheal/issues_corpus.py (mapping v2) on 2026-07-12: fix-ish commit subjects referencing (#N) in the deepened pinned clone (git log, 5039 commits, 1-4 source files, <=10 symbols); accept sets are tier=0 symbols resolved BY NAME from git hunk-header function context (xfuncname) and added definition lines, within the same changed file; line-span overlap used only for commits with no function context AND files byte-identical to HEAD (drift-proof). Questions are the verbatim GitHub issue/PR titles (REST API, cached in .issue_cache.json, zero new network calls); titles literally containing a mapped symbol name were dropped as locate-class.",
+ "questions": [
+  {
+   "q": "fix super call in list comprehension",
+   "accept": [
+    "SeparatedPathType"
+   ]
+  },
+  {
+   "q": "fix missing quote in `--key` error message",
+   "accept": [
+    "_validate_key"
+   ]
+  },
+  {
+   "q": "fix use of `importlib.util.find_spec`",
+   "accept": [
+    "get_root_path"
+   ]
+  },
+  {
+   "q": "Allow pathlib.Path for template_folder",
+   "accept": [
+    "Flask",
+    "Blueprint"
+   ]
+  },
+  {
+   "q": "re-add flag to skip unguarded app.run from CLI",
+   "accept": [
+    "Flask",
+    "FlaskGroup"
+   ]
+  },
+  {
+   "q": "Fix callback order for nested blueprints",
+   "accept": [
+    "Flask"
+   ]
+  },
+  {
+   "q": "`static_folder` can be a `pathlib.Path` object",
+   "accept": [
+    "Flask",
+    "Blueprint"
+   ]
+  },
+  {
+   "q": "Fix wrapped view function comparison",
+   "accept": [
+    "Flask"
+   ]
+  },
+  {
+   "q": "Stop change CWD to .env/.flaskenv location",
+   "accept": [
+    "load_dotenv"
+   ]
+  },
+  {
+   "q": "Move python properties to decorator syntax",
+   "accept": [
+    "Flask",
+    "RequestContext"
+   ]
+  },
+  {
+   "q": "Define reloader extra_files in `flask run` CLI",
+   "accept": [
+    "_validate_key",
+    "run_command"
+   ]
+  },
+  {
+   "q": "Improve warning about dev server use in production",
+   "accept": [
+    "show_server_banner"
+   ]
+  },
+  {
+   "q": "Fixes issue #2824 flask --version",
+   "accept": [
+    "get_version"
+   ]
+  },
+  {
+   "q": "Fix DeprecationWarning on collections import in flask.sessions",
+   "accept": [
+    "SessionMixin"
+   ]
+  },
+  {
+   "q": "[Fixed 2823] Checking if .env is file before prompting to install dotenv",
+   "accept": [
+    "load_dotenv"
+   ]
+  },
+  {
+   "q": "AttributeError: 'module' object has no attribute 'SSLContext'",
+   "accept": [
+    "CertParamType",
+    "_validate_key"
+   ]
+  },
+  {
+   "q": "Minor session serializer fixes.",
+   "accept": [
+    "TaggedJSONSerializer",
+    "TaggedJSONSerializer.register"
+   ]
+  },
+  {
+   "q": "fix variable substitution in error message",
+   "accept": [
+    "locate_app"
+   ]
+  },
+  {
+   "q": "Enable template auto-reloading in app.run()",
+   "accept": [
+    "Flask",
+    "ScriptInfo"
+   ]
+  },
+  {
+   "q": "python -m flask run raises RuntimeWarning",
+   "accept": [
+    "main"
+   ]
+  },
+  {
+   "q": "sessions not saved when streaming",
+   "accept": [
+    "RequestContext"
+   ]
+  },
+  {
+   "q": "Prevent setting `SERVER_NAME` and `SESSION_COOKIE_DOMAIN` to an IP address",
+   "accept": [
+    "SecureCookieSessionInterface"
+   ]
+  },
+  {
+   "q": "Do not swallow exceptions if CLI fails to load",
+   "accept": [
+    "FlaskGroup"
+   ]
+  },
+  {
+   "q": "Fix unbound error",
+   "accept": [
+    "Flask"
+   ]
+  },
+  {
+   "q": "app.add_url_rule() should look for OPTIONS methods in a case-insensitive manner",
+   "accept": [
+    "Flask"
+   ]
+  },
+  {
+   "q": "Clarify the after_request argument",
+   "accept": [
+    "Flask"
+   ]
+  },
+  {
+   "q": "before_app_first_request strange behaviour",
+   "accept": [
+    "Flask"
+   ]
+  },
+  {
+   "q": "fix a etags bug when sending a file stream with a name",
+   "accept": [
+    "send_file"
+   ]
+  },
+  {
+   "q": "Explicitly state that the jsonify method changes on request",
+   "accept": [
+    "Flask"
+   ]
+  },
+  {
+   "q": "@app.teardown_request function doesn't called in debug mode [NOT-A-BUG]",
+   "accept": [
+    "Flask"
+   ]
+  }
+ ]
+}

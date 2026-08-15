@@ -1,0 +1,375 @@
+{
+ "repo": "btt-api",
+ "commit": "059d408b58497d62e8a2b2c4803f1379c38e2981",
+ "split": "private-tickets",
+ "provenance": "Real JIRA tickets (titles fetched by the repo owner); accept sets mined from fix-commit hunk headers mapped name-based against the index; parent-aware locate-class filter applied; frozen before any measurement, 2026-07-12.",
+ "questions": [
+  {
+   "q": "Empty comparison handling creates errors",
+   "accept": [
+    "ApiCollectionQueryHandler"
+   ],
+   "ticket": "AD-1779",
+   "desc": "We either need to ensure we don't append empty comparisons (category filter is the hardest one to solve for) in the browser or make sure we can handle the case where `ApiCollectionQueryHandler::processFilter` returns null. Right now, the logic is such that an empty condition is added even if `ApiCollectionQueryHandler::processFilter` returns null. Believe this is due to the use of pass by referenc"
+  },
+  {
+   "q": "UI/UX 47: Airbnb: Batch Calendar Operations: Set limits to the payload.",
+   "accept": [
+    "CalendarBatchOperationsSourceItem"
+   ],
+   "ticket": "AD-4120",
+   "desc": "This was confirmed by Ricardo in Asana, and recently added to the Airbnb documentations.\n\nFor the batch calendar operations API: https://developer.airbnb.com/reference/async-calendar-batch-operations set the following limits in our payload based on these documentations:\n\nCalendar validation\n\nRequests that send information for dates beyond 1125 days (3 years and 30 days) from the date of the reques"
+  },
+  {
+   "q": "100 update listing mapping calls from XML > REST",
+   "accept": [
+    "ApiClientRepository",
+    "ListingRepository"
+   ],
+   "ticket": "AD-4129",
+   "desc": "On the listing mapping page (for example: https://boost.rezfusion.com/v2/app/organizations/10/channels/1381/tools/listing-mapping ) when a connection is saved, the API call we make is the POST Create Listing Import. We need to update this to use the POST update listing REST endpoint (https://developer.airbnb.com/v2021.12.31/reference/updatelisting) for any listings that are REST enabled (via rest_"
+  },
+  {
+   "q": "UI/UX 53: Core? Payments not applied to certain LiveRez reservations",
+   "accept": [
+    "ListingContentSourceItem",
+    "QuoteSourceItem",
+    "ReservationOrderBuilder",
+    "v2_rc_airbnb_webhook_reservation_acceptance_confirmation"
+   ],
+   "ticket": "AD-4556",
+   "desc": "Ryan Beagley-Reiner  reported these reservations not having payments posted to them for Airbnb,\n\nA sample of reservations processed via Boost who have already departed, showing no payment (liveRez confirmation numbers):\n\n\t- 8668889\n\n\t- 8662183\n\n\t- 8661617\n\n\t- 8660660\n\n\t- 8654833\n\nI've found 3 reservations (again, Boost processed and now departed) that have payments processed, but all three are sho"
+  },
+  {
+   "q": "Grooming: Oddities with failed payment/reservation emails",
+   "accept": [
+    "BookingConfirmationResource",
+    "_rc_airbnb_webhook_payout_notification",
+    "rc_boost_core_send_failure_notice"
+   ],
+   "ticket": "AD-4883",
+   "desc": "Hi Dustin Butler !\n\nThe email for errors is working pretty well! But I have a couple questions.\n\n\t- I seem to be getting an email for random (or maybe all?) VRM Vrbo reservations.\n\nThe email say something like this\n\n[EXTERNAL]VRBO Post Booking Error - Reservation: 20631\n\nVRBO reservation 20631 was confirmed successfully in Virtual Resort Manager (VRM). The following error(s) occurred after the res"
+  },
+  {
+   "q": "Make a UI for Vrbo/HomeToGo for a max nights, by default set to 31",
+   "accept": [
+    "HaxmlListingConfigProvider",
+    "LodgingRateLosContentSourceItem",
+    "VrboOrderTest"
+   ],
+   "ticket": "AD-4972",
+   "desc": "Need to add a UI to extend\n\nDefault Max Nights\n\nfor Vrbo and HomeToGo\n\nAirbnb already has a field, and it controls how many days of pricing are generated for LOS.\n\nThis should work the same way but for Vrbo/HomeToGo LOS generation.\n\nExample property\n\nhttps://boost.rezfusion.com/v2/app/organizations/574/channels/778/listings/115614/overview"
+  },
+  {
+   "q": "RentalsUnited: Check on automated room configurations",
+   "accept": [
+    "ListingConfigReader",
+    "ListingConfigReaderTest",
+    "RoomConfigurator"
+   ],
+   "ticket": "AD-5596",
+   "desc": "Hi Bart Dziedzic\n\nUpdated ticket, need to grab room configs from PMS\u2019s\n\nI thought we had done it here,\n\nhttps://bluetent.atlassian.net/browse/AD-5050\n\nBut I guess that is different.\n\nWe should make the logic similar to Airbnb UI, where we show the current room config and allow the user to override,\n\nand we should make it like the Vrbo feed, how we generate the rooms.\n\nExample,\n\nhttps://boost.rezfu"
+  },
+  {
+   "q": "Hotfix: Airbnb listings: Need to send the node deactivation_reason when we set has_availability to false",
+   "accept": [
+    "ListingPublicationTypeHelper"
+   ],
+   "ticket": "AD-5965",
+   "desc": "Hi Bryson Fraley\n\nI chatted you in Teams a little bit about this.\n\nWe recently updated versions for Airbnb with Bart Dziedzic\n\nBut there was a feature I missed in the documentation for the update, and it\u2019s pretty important.\n\nhttps://developer.airbnb.com/reference/updatelisting\n\ndeactivation_reason\n\nstring\n\nThe reason for listing deactivation. Value should be one of the values from the GET Deactiva"
+  },
+  {
+   "q": "Implement the concrete SourceItem and all methods for 'houserules/properties' in Boost backend repo",
+   "accept": [
+    "PublicationEnqueuerTest"
+   ],
+   "ticket": "AD-6354",
+   "desc": "Same as summary"
+  },
+  {
+   "q": "Investigate rate generation for Rentals United",
+   "accept": [
+    "PricesFullSourceItem",
+    "PricesSourceItem"
+   ],
+   "ticket": "AD-6384",
+   "desc": "Hi Bart Dziedzic ,\n\nI just want to be sure I\u2019m thinking the right way.\n\nI see here,\n\nhttps://boost.rezfusion.com/v2/app/organizations/1158/channels/2330/listings/128664/overview\n\nhttps://boost.rezfusion.com/rescms/item/128664/channel/2330/ru_put_prices_full\n\nhttps://boost.rezfusion.com/rescms/item/128664/channel/2330/ru_put_prices\n\nthat we are not putting in prices to Rentals United.\n\nI was pretty"
+  },
+  {
+   "q": "Air conditioning amenity mapping for Google and Escapia not working as expected",
+   "accept": [
+    "ChannelEngineCategoryValueMapping"
+   ],
+   "ticket": "AD-6454",
+   "desc": "Hi Dheeraj.Dagar !\n\nCan you please look here?\n\nhttps://boost.rezfusion.com/v2/app/organizations/128/channels/131/listings/85404/overview\n\naccording to the raw item data it has the amenity for Air conditioning selected,\n\nhttps://boost.rezfusion.com/rescms/item/85404/rescms\n\nand it\u2019s mapped,\n\nhttps://boost.rezfusion.com/v2/app/organizations/128/channels/131/amenity-mapping\n\nbut it won\u2019t show up in t"
+  },
+  {
+   "q": "Update Booking.com roomrates endpoint to version 1.1",
+   "accept": [
+    "BdcHeadersHelperTest",
+    "RcBdcClient",
+    "RcBdcHeadersHelper"
+   ],
+   "ticket": "AD-7702",
+   "desc": "Hi Bart Dziedzic !\n\nWe updated availability endpoint to v1.1 but I missed the roomrates necessary update\u2026\n\nEmail from Booking.com:\n\nHi There \u2013\n\n\u00a0\n\nJust checking in on the deprecation and sunsetting dates coming up.\u00a0 I do show that Bluetent is using the 1.1 version for B.XML availability but has yet to migrate to version 1.1 of the B.XML roomrates endpoint.\u00a0 Reminder that this will be deprecated on"
+  },
+  {
+   "q": "test pr5308 - Demand Channel - GDE-1107 follow up - debug endpoint issues",
+   "accept": [
+    "AbstractSPSCheckoutService",
+    "DemandChannelController",
+    "SPSCheckoutService"
+   ],
+   "ticket": "GDE-1155",
+   "desc": "Conall sent a message:\n\ndebug worked but Bryson\u00a0Fraley\u00a0we may have an issue?\n\nplease see the debug,\n\nhttps://team-papoy.postman.co/workspace/SPS~600e394c-967a-408c-900f-b6ac65541682/request/39436878-6\u2026\n\n\u00a0\n\nplease see the listing,\n\nhttps://pr5301.api.rescmshost.com/v2/app/organizations/306/channels/3604/listings/77312/rates-avail\u2026\n\n\u00a0\n\nin the quote tool choose august 2 - 5,\n\n\u00a0\n\nin the debug payload,"
+  },
+  {
+   "q": "hotfix - Demand Channel - PHP syntax error? Causing /initiate to fail",
+   "accept": [
+    "IDAInitiateReservationPayload"
+   ],
+   "ticket": "GDE-1252",
+   "desc": "Hello\n\nPlease see here,\n\nhttps://inhabitstay.com/property/breckenridge-co-left-name-middle-name-and-then-end-of-the-name\n\ntry to select any dates, and try to \u2018Begin checkout\u2019 and you will see an error immediatly,\n\nPOST: https://inhabitstay.com/api/boost/initiate\n\nEthan mentioned in chat,\n\nI think this might be a PHP compat issue on Boost\n\nERROR: Boost checkout initiation failed {\"tenant\":\"friendsa"
+  },
+  {
+   "q": "test pr4908 - Booking.com CAPI - Backend - Create publication type helper class/PublicationTypeHelper for policy-api",
+   "accept": [
+    "CancelPolicySourceItemTest",
+    "ListingPublisherTest",
+    "SyncInitialPropertyContentWork"
+   ],
+   "ticket": "GDE-129",
+   "desc": ""
+  },
+  {
+   "q": "test pr4885 - Booking.com - Property-API  Property Details inserted into Automatic Queue Update Process",
+   "accept": [
+    "ListingPublisher",
+    "ListingUpdateStatusValidator",
+    "ListingUpdateStatusValidatorTest"
+   ],
+   "ticket": "GDE-182",
+   "desc": "Updated documentation from Bryson\n\nhttps://github.com/PropertyBrands/btt-site-d7-api-api.rescmshost.com/blob/master/sites/all/modules/rescms/rc_bdc/src/Queue/Jobs/ListingAutoUpdateSync/README.md\n\nBased on this documentation,\n\n\t- Step 1\n\nThe Hotel Status will be fetched from the OTA_HotelSearch call and the resulting Hotel Status will be stored in Boost.\n\nAfter this we should do a GET to [https://s"
+  },
+  {
+   "q": "Marriott - HVMB - Minor adjustments and bug fix to LOS that we are sending to Marriott",
+   "accept": [
+    "LosPricesBuilder",
+    "LosPricesBuilderTest",
+    "LosPricingCollectionSourceItemTest",
+    "LosPricingSourceItemTest"
+   ],
+   "ticket": "GDE-270",
+   "desc": "made an update for Marriott LOS but missed something.\n\nmentioned\n\nthink I see a bug where we're not including the unavailable dates in the publication if the pricing starts with unavailable dates. So right now pricing starts at 2025-08-18, so we don't include any unavailable dates before that. If the reservation was for a date after 2025-08-18, I don't think there would be any issue.\n\nso for this "
+  },
+  {
+   "q": "Booking.com - Email Errors - BetterStack - A Booking.com reservation failed to reach a pms and also failed to send an email",
+   "accept": [
+    "LoggerFactory",
+    "RcBdcReservationEntity",
+    "rc_bdc_sps_configure"
+   ],
+   "ticket": "GDE-342",
+   "desc": "Original ticket here,\n\nhttps://bluetent.atlassian.net/browse/PP-4352\n\nwas generated from report here,\n\nhttps://bluetent.atlassian.net/browse/PP-4210\n\nsuggested we make a separtae ticket to investigate this cause.\n\nCC Chris Mullen  and Ryan Beagley-Reiner"
+  },
+  {
+   "q": "Marriott - HVMB - Completely remove the field 'Days for policy' from front end and backend publications",
+   "accept": [
+    "ListingPoliciesSourceItem",
+    "ListingPoliciesSourceItemTest"
+   ],
+   "ticket": "GDE-356",
+   "desc": "Hello!\n\nFor this field, we can just completely remove it from the front end and backend. It doesn\u2019t do anything.\n\nThe field,\n\nhttps://boost.rezfusion.com/v2/app/organizations/574/channels/3052/settings\n\nDays for policy\n\nhttps://boost.rezfusion.com/v2/app/organizations/574/channels/3052/listings\n\nhttps://boost.rezfusion.com/v2/app/organizations/574/channels/3052/listings/134125/overview\n\nand the pu"
+  },
+  {
+   "q": "test 4955 or prod - Booking.com - Update frontend for Booking.com so that booking.com meta data url is used just like Airbnb and Google url's",
+   "accept": [
+    "ListingMetadata",
+    "OpenPropertyWork",
+    "rc_bdc_schema",
+    "rc_bdc_update_7076"
+   ],
+   "ticket": "GDE-481",
+   "desc": "Talked about this during sprint planning,\n\nwith property details API we do a GET to Booking.com where we get back the listing url,\n\nGET: https://supply-xml.booking.com/property-api/properties/14556277\n\n\u2026\n\n\u00a0 \"url\": \"https://booking.com/hotel/us/notchbrook-5-apt.en.html\",\n\nwe need to update the BoostV2 user interface so that we generate a link to the property.\n\nSo for this account, for this property"
+  },
+  {
+   "q": "test pr5116 - Booking.com - Invalid validation error about children allowed?",
+   "accept": [
+    "PropertySettingsSourceItem",
+    "RoomsApiSourceItem"
+   ],
+   "ticket": "GDE-724",
+   "desc": "Hello!\n\nPlease see this property,\n\nhttps://boost.rezfusion.com/v2/app/organizations/574/channels/2348/listings/167840/overview\n\nhas a validation error,\n\n\t- PropertySettings - ChildrenPolicies - Allow Children\n\n\t-\nValue should be true\nERROR\n\nI don\u2019t think this is a valid error.\n\nI checked the publication and it says\n\nhttps://boost.rezfusion.com/rescms/item/167840/channel/2348/bdc_property_api_prope"
+  },
+  {
+   "q": "test pr5150 - Demand Channel - Ensure that if demand channel integration is updated, we rebuild rates publications for all properties using the channel",
+   "accept": [
+    "FakeOrganizationHandler",
+    "rc_channels_entity_update",
+    "rc_channels_get_items"
+   ],
+   "ticket": "GDE-872",
+   "desc": ""
+  },
+  {
+   "q": "Pet fee for Streamline, Rentals United and Marriott doesn't work; need to potentially add an additional logic where we take pet amount and pass it to Streamline in MRDC",
+   "accept": [
+    "BookAndCancelTest",
+    "Order"
+   ],
+   "ticket": "PP-1612",
+   "desc": "Need to investigate,\n\n<?xml version=\"1.0\"?>\n<methodCall>\n  <methodName>MakeReservationDistributionChannel</methodName>\n  <params>\n    <unit_id>756464</unit_id>\n    <startdate>04/15/2024</startdate>\n    <enddate>04/17/2024</enddate>\n    <occupants>2</occupants>\n    <occupants_small>0</occupants_small>\n    <first_name>Zephyr</first_name>\n    <last_name>Blue</last_name>\n    <email>yuliya.popchenkova@"
+  },
+  {
+   "q": "Automatic Queue Update: Step 9: Continue the publication posting process with property profile photo with https://supply-xml.booking.com/property-profile/properties/{propertyId}/photo",
+   "accept": [
+    "ListingPublisher",
+    "PropertyProfilePhotoPublicationTypeHelperTest",
+    "PropertyProfilePublicationTypeHelperTest"
+   ],
+   "ticket": "PP-3067",
+   "desc": "Once the process in https://bluetent.atlassian.net/browse/PP-3066  is finished, then\n\n\t- We should check if anything was ever sent in the previous upload. Because, if a \u2018property profile\u2019 doesn\u2019t exist, we cannot put a photo. The profile must exist.\n\n\t- If the property profile has ever been sent, then we should check if the photo exists or has changed. If the photo does not exist, or the photo is "
+  },
+  {
+   "q": "Clarity tracking, adding code to head",
+   "accept": [
+    "boost_admin_preprocess_page",
+    "rc_channels_partner_app_embed_page"
+   ],
+   "ticket": "PP-3256",
+   "desc": "Code exported from Clarity,\n\n<script type=\"text/javascript\">\n    (function(c,l,a,r,i,t,y){\n        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};\n        t=l.createElement(r);t.async=1;t.src=\"https://www.clarity.ms/tag/\"+i;\n        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);\n    })(window, document, \"clarity\", \"script\", \"n4r10yrqcp\");\n</script>\n\nthings we need to ad"
+  },
+  {
+   "q": "Publication Service - Haxml - Remove some more validations for non Vrbo (and HomeToGo?) connections",
+   "accept": [
+    "LodgingConfigContentSourceItem",
+    "LodgingConfigIndexSourceItem"
+   ],
+   "ticket": "PP-3508",
+   "desc": "Hello!\n\nDustin Butler, in a previous ticket, changed some of the validations we have for Haxml depending on what kind of Haxml connection it is.\n\nCurrently in Boost, we have this example (which I am manually fixing now)\n\nhttps://haxml.rezfusion.com/vacaymyway/4.2/2787/lodging/configuration-index.xml\n\n<?xml version=\"1.0\"?>\n<serverError>\n    <message>Call to a member function getPaymentCardDescripto"
+  },
+  {
+   "q": "Booking.com - What does this error mean, Invalid resource type: array",
+   "accept": [
+    "PropertyLicensesPublicationTypeHelper",
+    "RoomLicensesPublicationTypeHelper"
+   ],
+   "ticket": "PP-3779",
+   "desc": "Hi\n\nCan we tell why the system has this message?\n\nhttps://boost.rezfusion.com/v2/app/organizations/574/jobs/268666\n\nhttps://boost.rezfusion.com/v2/app/organizations/574/jobs/268667\n\nseems I can recreate it by doing \u2018Import/Sync\u2019 for this property,\n\nhttps://boost.rezfusion.com/v2/app/organizations/574/channels/2348/listings\n\nlooked in Logs but can\u2019t tell anything from there,\n\nfields @timestamp, @me"
+  },
+  {
+   "q": "Marriott - HVMB - Research and potentially implement password policies and restrictions",
+   "accept": [
+    "rc_boost_order_log_trace",
+    "rc_channels_form_alter"
+   ],
+   "ticket": "PP-3989",
+   "desc": "Found by Bart here,\n\n\t- https://www.drupal.org/project/password_policy\u00a0(supports enforcing restrictions on user passwords by defining password policies.)\n\nTicket is to spend time researching the possibility of implementing this, and if it makes sense, to implement in this ticket.\n\nAccording to Marriott,\n\n\t- Password Length- Min 8 characters for user and 12 for admins\n\n\t- Password changes every 90 "
+  },
+  {
+   "q": "Booking.com - Property type mapping isn't working correctly?",
+   "accept": [
+    "InventoryGuestRoomBuilder"
+   ],
+   "ticket": "PP-4014",
+   "desc": "Hello!\n\nI saw this in production but had to manually fix it.\n\nPlease see here,\n\nAmenity mapping\n\nProperty Type.Apartment \u2192 Escapia Amenity.Apartment\n\nand\n\nRoom Type.Apartment \u2192 Escapia Amenity.Apartment\n\nIt shows correctly in the UI here\n\nhttps://pr4539.api.rescmshost.com/v2/app/organizations/1327/channels/3117/amenity-mapping\n\nbut the publication is wrong for Description.Text\n\nhttps://pr4539.api."
+  },
+  {
+   "q": "VRM BDC v2 Error On Booking - Better Stack Alerts",
+   "accept": [
+    "QuoteSourceItem"
+   ],
+   "ticket": "PP-4051",
+   "desc": "Been getting a better stack alert for each VRM booking.  Found that the derived fees sent to the engine do not have a Charge property causing an exception\n\n$chargeMarkup = $fee->getCharge()->getMarkupTotal();\n\nDid some debugging on the quote source item and have a potential fix."
+  },
+  {
+   "q": "Booking.com - Backend \u201cto adjust existing source items to use data sent by the user\u201d",
+   "accept": [
+    "PropertyLicenseSourceItemTest",
+    "RoomLicenseSourceItemTest"
+   ],
+   "ticket": "PP-4098",
+   "desc": "From this ticket,\n\nBackend \u201cto adjust existing source items to use data sent by the user\u201d  3-5SP  update license and room license source items and their validation logic, and sync licenses process."
+  },
+  {
+   "q": "Airbnb - Version Update - Update GET listings call",
+   "accept": [
+    "ApiHeadersHelper",
+    "ApiHeadersHelperTest",
+    "ListingRepository"
+   ],
+   "ticket": "PP-4308",
+   "desc": "Hi Kamil Modzelewski !\n\nSeems we are still using the old version header with the update,\n\n[https://www.airbnb.com/partner-portal/364/diagnostics/events?qf=\n\n{\"versions\"%3A[\"2023.06.30\"]}\n|https://www.airbnb.com/partner-portal/364/diagnostics/events?qf=%7B%22versions%22%3A%5B%222023.06.30%22%5D%7D]\n\ncan see it by going here,\n\nhttps://boost.rezfusion.com/v2/app/organizations/122/channels/1360/tools/"
+  },
+  {
+   "q": "PP-39 - Booking.com - Need to remove the rule 'Don't send Booking.com data if listing is 'BDC Listing Active'",
+   "accept": [
+    "ListingStatusHandler",
+    "ListingStatusHandlerTest",
+    "rc_bdc_rc_channels_channel_config_alter"
+   ],
+   "ticket": "PP-4416",
+   "desc": "Hello\n\nIn an older ticket, we made it so that a series of rules would be followed to not send data from BoostV2 if a listing was connected in V1\n\nWe need to remove the logic for one of these rules,\n\nBDC Listing Active\n\nIt seems that when a property is added to BoostV1, this option is just selected by default or something?\n\nExample,\n\nhttps://boost.rezfusion.com/rescms/item/190940/edit\n\nI have since"
+  },
+  {
+   "q": "New description: Make cron job for Bryson's clean up script, Old description: Continue debugging Redis Queues",
+   "accept": [
+    "drush_rc_boost_core_frontend_queues_run",
+    "rc_boost_core_drush_command"
+   ],
+   "ticket": "PP-836",
+   "desc": "The logging we added in https://bluetent.atlassian.net/browse/AD-6078 is not picking up any errors/bugs. However, the issue is still happening where queue items are getting \u201cstuck\u201d.\n\nWe need to continue to debug this or try to implement some sort of fix."
+  },
+  {
+   "q": "VRM Create Custom Charge for Price Adjustments - BDC",
+   "accept": [
+    "Builder",
+    "RcBdcReservationEntity",
+    "RcBdcReservationEntityController"
+   ],
+   "ticket": "RES-1031",
+   "desc": "[10:53 AM] Michelle Smith\n\nHi Jamie Hunt\u00a0& Jason Landa, is there any time frame for when we will be able to have the custom charges automatically created for the price adjustments for Booking.com like we have with Airbnb & Vrbo?"
+  },
+  {
+   "q": "VRM - Support for channel marketing source id in orderQuote / BDC",
+   "accept": [
+    "RcBdcReservationEntity"
+   ],
+   "ticket": "RES-1032",
+   "desc": "Current BDC/VRM process is to call orderQuote() to generate an $order that is used during the orderSubmit process.  There are certain rent adjustments that are tied to a specific marketing source id.\n\nExample: For Booe realty the bdc marketing source id 36 applies a linens rent adjustment to the quote\n\nPass the channel_source parameters to rc_core_quote() and update orderQuote() to do a marketing "
+  },
+  {
+   "q": "Update RNS API client and reservation required params",
+   "accept": [
+    "VrboBooking"
+   ],
+   "ticket": "RES-1437",
+   "desc": "dev notes :\n\n\t- we will need to make some modifications to the RNS engine to get the set of ChannelSourceNames using API and map our boost channel params to the corresponding one to send in with new reservations in the ChannelSourceName param\n\n\t\t- we should be able to leave the existing source of call logic alone (or remove it I guess since it should/will be redundant)\n\n\t\t- we need to make sure an"
+  },
+  {
+   "q": "1453 followup End to end testing for LMPM and RevMax",
+   "accept": [
+    "rc_vrbo_integration_feed"
+   ],
+   "ticket": "RES-1518",
+   "desc": "We need to test this integration end to end in order to sign off on this project as completed."
+  },
+  {
+   "q": "LiveRez Support for Quotehold",
+   "accept": [
+    "UpdateVrboBooking",
+    "VrboOrderBuilderBooking"
+   ],
+   "ticket": "RES-892",
+   "desc": "[11:45 AM] Sina Floyd Jason Landa\u00a0we have a partner that is set up to use Quotehold for Vrbo but the reservations are coming back in as approved. Should they come back in as pending?\u00a0 http://bluepacificvacationrentals.com  | Blue Pacific Vacation Rentals | 12858 Transaction example: 8159393\n\nJamie: on POST /reservations/channel/booking it looks like we can set status to \u201capproved\u201d or \u201cpending\u201d but"
+  },
+  {
+   "q": "Markup in Comments - LiveRez",
+   "accept": [
+    "RcVrboOrderEntity"
+   ],
+   "ticket": "RES-965",
+   "desc": "Maybe in the comments since there is not another place to put it?\n\nFeature Request to have rent markup amount sent to PMS as a separate line item for bookings\n\nWho is experiencing the issue?\n\nCascara Vacation Rentals, a LiveRez client that takes most of their bookings on VRBO, is requesting this.\n\nCurrent Behavior\n\nThe rent amount that is charged on the channel comes back into the PMS as the full "
+  }
+ ]
+}

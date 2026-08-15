@@ -1,0 +1,253 @@
+{
+ "repo": "wordpress",
+ "commit": "a82874058f58575dbba64ce09b6dcbd43ccf5fdc",
+ "split": "runtime-gate",
+ "provenance": "Drafted from platform documentation knowledge (WordPress actions/filters/cron/REST/templates; Drupal hooks/entity API/render/routing/plugins/config/queue) by claude-fable-5 on 2026-07-12; answers verified against the pinned index via symbol-table existence lookup only (no search runs); hook field marks answers reached through string-keyed dispatch; frozen before any runtime-evidence ingestion runs.",
+ "questions": [
+  {
+   "q": "what code runs when a post is published",
+   "hook": true,
+   "accept": [
+    "wp_publish_post",
+    "_publish_post_hook",
+    "wp_transition_post_status",
+    "_transition_post_status"
+   ]
+  },
+  {
+   "q": "what runs the scheduled cron events when the cron endpoint fires",
+   "hook": true,
+   "accept": [
+    "wp_cron",
+    "_wp_cron",
+    "spawn_cron",
+    "wp_doing_cron"
+   ]
+  },
+  {
+   "q": "what code runs on schedule to delete expired transients",
+   "hook": true,
+   "accept": [
+    "delete_expired_transients"
+   ]
+  },
+  {
+   "q": "what code checks the username and password when someone signs in",
+   "hook": true,
+   "accept": [
+    "wp_authenticate_username_password",
+    "wp_authenticate_email_password",
+    "wp_authenticate",
+    "wp_signon"
+   ]
+  },
+  {
+   "q": "what converts double line breaks into paragraphs when post content is displayed",
+   "hook": true,
+   "accept": [
+    "wpautop"
+   ]
+  },
+  {
+   "q": "what turns straight quotes into curly smart quotes in displayed text",
+   "hook": true,
+   "accept": [
+    "wptexturize"
+   ]
+  },
+  {
+   "q": "how shortcodes in post content get replaced with their output",
+   "hook": true,
+   "accept": [
+    "do_shortcode",
+    "do_shortcode_tag",
+    "get_shortcode_regex",
+    "add_shortcode"
+   ]
+  },
+  {
+   "q": "what code handles the heartbeat ajax request in the admin",
+   "hook": true,
+   "accept": [
+    "wp_ajax_heartbeat",
+    "wp_ajax_nopriv_heartbeat"
+   ]
+  },
+  {
+   "q": "how rest api requests get dispatched once the rewrite rule matches",
+   "hook": true,
+   "accept": [
+    "rest_api_loaded",
+    "WP_REST_Server.serve_request",
+    "WP_REST_Server.dispatch",
+    "rest_get_server"
+   ]
+  },
+  {
+   "q": "what redirects front end urls to their canonical form",
+   "hook": true,
+   "accept": [
+    "redirect_canonical"
+   ]
+  },
+  {
+   "q": "what prints the enqueued scripts and styles into the page head",
+   "hook": true,
+   "accept": [
+    "wp_print_head_scripts",
+    "wp_enqueue_scripts",
+    "wp_print_styles"
+   ]
+  },
+  {
+   "q": "what runs on schedule to check for wordpress core plugin and theme updates",
+   "hook": true,
+   "accept": [
+    "wp_version_check",
+    "wp_update_plugins",
+    "wp_update_themes"
+   ]
+  },
+  {
+   "q": "what code recalculates a post's comment count when comments change",
+   "hook": true,
+   "accept": [
+    "wp_update_comment_count",
+    "wp_update_comment_count_now"
+   ]
+  },
+  {
+   "q": "what code balances mismatched html tags in comment text before display",
+   "hook": true,
+   "accept": [
+    "balanceTags",
+    "force_balance_tags"
+   ]
+  },
+  {
+   "q": "how the main query parses the requested url into query variables",
+   "hook": false,
+   "accept": [
+    "WP.parse_request",
+    "WP_Query.parse_query",
+    "WP.main",
+    "WP_Query.get_posts"
+   ]
+  },
+  {
+   "q": "locate a template file in the child or parent theme and load it",
+   "hook": false,
+   "accept": [
+    "locate_template",
+    "load_template",
+    "get_query_template",
+    "get_index_template"
+   ]
+  },
+  {
+   "q": "insert or update a post in the database",
+   "hook": false,
+   "accept": [
+    "wp_insert_post",
+    "wp_update_post"
+   ]
+  },
+  {
+   "q": "handle a new comment submitted from the comment form",
+   "hook": false,
+   "accept": [
+    "wp_handle_comment_submission",
+    "wp_new_comment",
+    "wp_allow_comment"
+   ]
+  },
+  {
+   "q": "register a custom post type",
+   "hook": false,
+   "accept": [
+    "register_post_type",
+    "WP_Post_Type"
+   ]
+  },
+  {
+   "q": "add a javascript file so it loads on the page",
+   "hook": false,
+   "accept": [
+    "wp_enqueue_script",
+    "wp_register_script"
+   ],
+   "pruned": [
+    "WP_Scripts.enqueue"
+   ]
+  },
+  {
+   "q": "verify a nonce sent with a form submission",
+   "hook": false,
+   "accept": [
+    "wp_verify_nonce",
+    "check_admin_referer",
+    "check_ajax_referer"
+   ]
+  },
+  {
+   "q": "check whether the current user has a capability",
+   "hook": false,
+   "accept": [
+    "current_user_can",
+    "WP_User.has_cap",
+    "user_can"
+   ]
+  },
+  {
+   "q": "sanitize a text field submitted by a user",
+   "hook": false,
+   "accept": [
+    "sanitize_text_field",
+    "_sanitize_text_fields"
+   ]
+  },
+  {
+   "q": "escape output for use in an html attribute",
+   "hook": false,
+   "accept": [
+    "esc_attr",
+    "esc_html"
+   ]
+  },
+  {
+   "q": "store and retrieve values in the object cache",
+   "hook": false,
+   "accept": [
+    "wp_cache_set",
+    "wp_cache_get",
+    "WP_Object_Cache.set",
+    "WP_Object_Cache.get"
+   ]
+  },
+  {
+   "q": "update an option stored in the database",
+   "hook": false,
+   "accept": [
+    "update_option",
+    "add_option"
+   ]
+  },
+  {
+   "q": "hash a user password for storage and check it at login",
+   "hook": false,
+   "accept": [
+    "wp_hash_password",
+    "wp_check_password"
+   ]
+  },
+  {
+   "q": "create the resized image sizes when an image is uploaded",
+   "hook": false,
+   "accept": [
+    "wp_create_image_subsizes",
+    "wp_generate_attachment_metadata",
+    "image_make_intermediate_size"
+   ]
+  }
+ ]
+}

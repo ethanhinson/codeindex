@@ -1,0 +1,455 @@
+{
+ "repo": "drupal",
+ "split": "runtime-gate",
+ "fixture_commit": "0f9b2c320c20d0cbafef18764fac8e957a84071f",
+ "binary_sha256_16": "4c03e4119259f8e7",
+ "params": null,
+ "n": 28,
+ "hits": 13,
+ "hit5_pct": 46.4,
+ "results": [
+  {
+   "q": "how cron invokes each module's cron hook",
+   "hit": true,
+   "top": [
+    "Cron.invokeCronHandlers",
+    "hook_cron",
+    "AutomatedCronHooks",
+    "_update_cron_notify",
+    "AutomatedCron.__construct"
+   ],
+   "accept": [
+    "Cron.run",
+    "Cron.invokeCronHandlers",
+    "ModuleHandler.invokeAll"
+   ]
+  },
+  {
+   "q": "how a module hook gets invoked by name across all modules",
+   "hit": false,
+   "top": [
+    "ModuleHandlerInterface.invokeAllWith",
+    "ModuleHandlerInterface.invokeAll",
+    "module_test_hook_info",
+    "hook_modules_installed",
+    "ModuleHandlerInterface.getName"
+   ],
+   "accept": [
+    "ModuleHandler.invokeAll",
+    "ModuleHandler.invoke",
+    "ModuleHandler.invokeAllWith"
+   ]
+  },
+  {
+   "q": "what lets other modules react when an entity is saved or deleted",
+   "hit": false,
+   "top": [
+    "ContentModerationState.realSave",
+    "EntityReferenceItem.hasNewEntity",
+    "EntityOperations.entityPredelete",
+    "EntityInterface.postDelete",
+    "EntityInterface.postSave"
+   ],
+   "accept": [
+    "EntityStorageBase.invokeHook",
+    "ContentEntityStorageBase.invokeHook",
+    "ModuleHandler.invokeAll"
+   ]
+  },
+  {
+   "q": "how the controller string from a route definition becomes a callable",
+   "hit": false,
+   "top": [
+    "Router",
+    "FormController.getFormArgument",
+    "RouteProvider",
+    "Link.createFromRoute",
+    "RouteMatchValueResolver"
+   ],
+   "accept": [
+    "ControllerResolver.getController",
+    "ControllerResolver"
+   ]
+  },
+  {
+   "q": "how form validate and submit handlers get executed",
+   "hit": true,
+   "top": [
+    "FormValidator.executeValidateHandlers",
+    "FormValidatorInterface.executeValidateHandlers",
+    "FormBuilder.executeValidateHandlers",
+    "FormSubmitterInterface.executeSubmitHandlers",
+    "FormStateInterface.setValidateHandlers"
+   ],
+   "accept": [
+    "FormSubmitter.executeSubmitHandlers",
+    "FormValidator.executeValidateHandlers",
+    "FormBuilder.processForm"
+   ]
+  },
+  {
+   "q": "how queued items are claimed and processed by their worker plugins",
+   "hit": true,
+   "top": [
+    "QueueWorkerInterface.processItem",
+    "QueueWorkerBase",
+    "QueueWorkerManager.processDefinition",
+    "QueueWorkerManager",
+    "QueueWorkerManagerInterface"
+   ],
+   "accept": [
+    "Cron.processQueues",
+    "QueueWorkerManager",
+    "DatabaseQueue.claimItem",
+    "QueueWorkerInterface.processItem"
+   ]
+  },
+  {
+   "q": "instantiate a plugin from its id and configuration",
+   "hit": true,
+   "top": [
+    "PluginManagerBase.createInstance",
+    "ConfigActionManager.createInstance",
+    "DefaultSingleLazyPluginCollection.addInstanceId",
+    "FactoryInterface.createInstance",
+    "DefaultLazyPluginCollection.addInstanceId"
+   ],
+   "accept": [
+    "PluginManagerBase.createInstance",
+    "DefaultFactory.createInstance",
+    "ContainerFactory.createInstance",
+    "DefaultPluginManager"
+   ]
+  },
+  {
+   "q": "how a theme hook and its preprocess functions turn into markup",
+   "hit": false,
+   "top": [
+    "hook_preprocess",
+    "template_preprocess",
+    "hook_preprocess_HOOK",
+    "hook_theme_registry_alter",
+    "olivero_preprocess_field"
+   ],
+   "accept": [
+    "ThemeManager.render",
+    "Registry.get",
+    "ThemeManager.buildThemeHookSuggestions"
+   ]
+  },
+  {
+   "q": "how route access checker services decide if the user may access a route",
+   "hit": false,
+   "top": [
+    "AccessInterface",
+    "AccessCheckInterface",
+    "AccessCheckInterface.applies",
+    "AccessManagerInterface.check",
+    "Url.access"
+   ],
+   "accept": [
+    "AccessManager.check",
+    "AccessManager.checkNamedRoute"
+   ]
+  },
+  {
+   "q": "what event subscriber serves dynamic page cache hits before rendering",
+   "hit": true,
+   "top": [
+    "DynamicPageCacheSubscriber",
+    "DynamicPageCacheSubscriber.onRequest",
+    "FinishResponseSubscriber.setResponseNotCacheable",
+    "DynamicPageCacheSubscriber.shouldCacheResponse",
+    "DynamicPageCacheSubscriber.onResponse"
+   ],
+   "accept": [
+    "DynamicPageCacheSubscriber.onRequest",
+    "DynamicPageCacheSubscriber.onResponse",
+    "DynamicPageCacheSubscriber"
+   ]
+  },
+  {
+   "q": "what code runs when a user logs in so modules can react",
+   "hit": true,
+   "top": [
+    "user_login_finalize",
+    "user_logout",
+    "LoggingBeginner.__construct",
+    "UserLoginTest.testGlobalLoginFloodControl",
+    "DbLogTest.doUser"
+   ],
+   "accept": [
+    "user_login_finalize",
+    "UserLoginForm.submitForm"
+   ]
+  },
+  {
+   "q": "how batch operations are processed across requests",
+   "hit": true,
+   "top": [
+    "_batch_process",
+    "batch_process",
+    "_batch_do",
+    "BatchMemory",
+    "_node_access_rebuild_batch_operation"
+   ],
+   "accept": [
+    "_batch_process",
+    "batch_process",
+    "_batch_finished"
+   ]
+  },
+  {
+   "q": "how an email is built and sent through the mail plugin system",
+   "hit": false,
+   "top": [
+    "MailManagerInterface",
+    "MailManager",
+    "MailInterface.mail",
+    "SymfonyMailer",
+    "PhpMail"
+   ],
+   "accept": [
+    "MailManager.mail",
+    "MailManager.doMail",
+    "PhpMail.mail"
+   ]
+  },
+  {
+   "q": "how block plugins are built and rendered into the page",
+   "hit": false,
+   "top": [
+    "DisplayPluginBase.usesExposedFormInBlock",
+    "Block.blockSettings",
+    "BlockInterface.getPlugin",
+    "Block.usesExposedFormInBlock",
+    "MainContentBlockPluginInterface"
+   ],
+   "accept": [
+    "BlockViewBuilder.view",
+    "BlockViewBuilder.preRender"
+   ]
+  },
+  {
+   "q": "how plugin definitions are discovered from php attributes in module namespaces",
+   "hit": true,
+   "top": [
+    "Plugin",
+    "Plugin",
+    "DefaultPluginManager.__construct",
+    "AttributeClassDiscovery.getPluginNamespaces",
+    "AttributeClassDiscovery.getProviderFromNamespace"
+   ],
+   "accept": [
+    "DefaultPluginManager.getDefinitions",
+    "AttributeClassDiscovery",
+    "AttributeDiscoveryWithAnnotations"
+   ]
+  },
+  {
+   "q": "load an entity by its id from storage",
+   "hit": true,
+   "top": [
+    "EntityStorageBase.load",
+    "EntityStorageInterface.load",
+    "EntityStorageInterface.loadMultiple",
+    "ContentEntityNullStorage.load",
+    "EntityStorageBase.loadMultiple"
+   ],
+   "accept": [
+    "EntityStorageBase.load",
+    "EntityStorageBase.loadMultiple",
+    "EntityTypeManager.getStorage"
+   ]
+  },
+  {
+   "q": "turn a render array into html markup",
+   "hit": false,
+   "top": [
+    "Renderer",
+    "Section.toRenderArray",
+    "RenderElementBase",
+    "HtmlTag",
+    "PlainTextOutput.renderFromHtml"
+   ],
+   "accept": [
+    "Renderer.render",
+    "Renderer.doRender",
+    "Renderer.renderRoot"
+   ]
+  },
+  {
+   "q": "read values from a configuration object",
+   "hit": false,
+   "top": [
+    "QueryFactory.getValues",
+    "ConfigMapperInterface.getConfigData",
+    "ConfigBase.getName",
+    "ConfigCrudEvent.getConfig",
+    "Config.getOriginal"
+   ],
+   "accept": [
+    "ConfigFactory.get",
+    "Config.get"
+   ]
+  },
+  {
+   "q": "save a configuration object to storage",
+   "hit": false,
+   "top": [
+    "ConfigEntityBase.save",
+    "ConfigEntityStorage.save",
+    "StorageInterface",
+    "ConfigEntityStorageInterface.createFromStorageRecord",
+    "SimpleConfigSectionStorage.save"
+   ],
+   "accept": [
+    "Config.save",
+    "DatabaseStorage.write",
+    "CachedStorage.write"
+   ]
+  },
+  {
+   "q": "add an item to a queue for later processing",
+   "hit": true,
+   "top": [
+    "DatabaseQueue.delayItem",
+    "QueueInterface.createItem",
+    "QueueWorkerInterface.processItem",
+    "QueueInterface",
+    "QueueInterface.releaseItem"
+   ],
+   "accept": [
+    "DatabaseQueue.createItem",
+    "QueueInterface.createItem"
+   ]
+  },
+  {
+   "q": "invalidate cached data by cache tags",
+   "hit": true,
+   "top": [
+    "Cache.invalidateTags",
+    "CacheTagsChecksumTrait.doInvalidateTags",
+    "CacheTagsInvalidatorInterface.invalidateTags",
+    "CacheTagsInvalidator.addInvalidator",
+    "CacheTagsInvalidator.invalidateTags"
+   ],
+   "accept": [
+    "Cache.invalidateTags",
+    "CacheTagsInvalidator.invalidateTags",
+    "CacheTagsInvalidatorInterface.invalidateTags"
+   ]
+  },
+  {
+   "q": "check whether an account has a permission",
+   "hit": false,
+   "top": [
+    "AccountInterface.hasPermission",
+    "AccessResult.allowedIfHasPermission",
+    "PermissionChecker",
+    "AccessResult.allowedIfHasPermissions",
+    "PermissionCheckerInterface.hasPermission"
+   ],
+   "accept": [
+    "AccountProxy.hasPermission",
+    "UserSession.hasPermission",
+    "Role.hasPermission",
+    "PermissionChecker.hasPermission"
+   ]
+  },
+  {
+   "q": "resolve a url path alias to its internal system path",
+   "hit": true,
+   "top": [
+    "UrlMatcher",
+    "PathAliasInterface.setPath",
+    "PathAlias.getPath",
+    "AliasPathProcessor.processInbound",
+    "AliasManager.getPathByAlias"
+   ],
+   "accept": [
+    "AliasManager.getPathByAlias",
+    "AliasRepository.lookupByAlias"
+   ]
+  },
+  {
+   "q": "translate a string into the current language",
+   "hit": false,
+   "top": [
+    "TranslationInterface.translateString",
+    "TranslationManager.getStringTranslation",
+    "TranslationManager.translateString",
+    "StaticTranslation.getStringTranslation",
+    "TranslatorInterface.getStringTranslation"
+   ],
+   "accept": [
+    "TranslationManager.translate",
+    "StringTranslationTrait.t",
+    "TranslatableMarkup"
+   ]
+  },
+  {
+   "q": "log a message through the logging system",
+   "hit": true,
+   "top": [
+    "LoggerChannel.log",
+    "SysLog",
+    "LogMessageParser",
+    "SysLog.log",
+    "RfcLoggerTrait.log"
+   ],
+   "accept": [
+    "LoggerChannel.log",
+    "LoggerChannelFactory.get",
+    "DbLog.log"
+   ]
+  },
+  {
+   "q": "build a database select query with conditions",
+   "hit": false,
+   "top": [
+    "ConditionFundamentals",
+    "SelectInterface.havingCondition",
+    "ConditionInterface",
+    "Select.havingConditions",
+    "QueryConditionTrait"
+   ],
+   "accept": [
+    "Condition.condition",
+    "Connection.select"
+   ]
+  },
+  {
+   "q": "build the add or edit form for an entity",
+   "hit": false,
+   "top": [
+    "EntityForm.buildEntity",
+    "EntityFormInterface.buildEntity",
+    "ContentEntityForm.addRevisionableFormFields",
+    "EntityFormDisplayEditForm.create",
+    "EntityFormModeAddForm"
+   ],
+   "accept": [
+    "EntityFormBuilder.getForm",
+    "EntityForm.buildForm",
+    "EntityForm.form"
+   ]
+  },
+  {
+   "q": "validate an entity's field values against constraints",
+   "hit": false,
+   "top": [
+    "EntityHasFieldConstraint",
+    "EntityHasFieldConstraintValidator.validate",
+    "EntityUntranslatableFieldsConstraintValidator.__construct",
+    "EntityHasFieldConstraintValidator",
+    "EntityUntranslatableFieldsConstraintValidator.validate"
+   ],
+   "accept": [
+    "ContentEntityBase.validate",
+    "TypedData.validate",
+    "EntityConstraintViolationList"
+   ]
+  }
+ ]
+}

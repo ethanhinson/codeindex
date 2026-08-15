@@ -1,0 +1,397 @@
+{
+ "repo": "nest",
+ "commit": "d0fb875e23e3e6baae8537efd41d54709acade0c",
+ "split": "tuning",
+ "provenance": "Drafted from framework documentation knowledge by claude-fable-5 on 2026-07-11; answers verified against the pinned index via symbol-table existence lookup only (no search runs); frozen before diffusion/contrast mechanisms were measured. | expansion x2, drafted from framework documentation knowledge, verified by symbol-table lookup only, frozen before any measurement, 2026-07-12. Original questions copied verbatim.",
+ "questions": [
+  {
+   "q": "mark a class as a provider that can be injected",
+   "accept": [
+    "Injectable"
+   ]
+  },
+  {
+   "q": "mark a class as an http request controller",
+   "accept": [
+    "Controller"
+   ]
+  },
+  {
+   "q": "declare a route method that handles get requests",
+   "accept": [
+    "createMappingDecorator",
+    "RequestMapping"
+   ]
+  },
+  {
+   "q": "read a path parameter inside a handler",
+   "accept": [
+    "Param"
+   ]
+  },
+  {
+   "q": "read the parsed request body in a handler",
+   "accept": [
+    "Body"
+   ]
+  },
+  {
+   "q": "group providers and controllers into a unit",
+   "accept": [
+    "Module"
+   ]
+  },
+  {
+   "q": "throw an error meaning the resource was not found",
+   "accept": [
+    "NotFoundException"
+   ]
+  },
+  {
+   "q": "the base class all http errors derive from",
+   "accept": [
+    "HttpException"
+   ]
+  },
+  {
+   "q": "decide whether a request is allowed to proceed",
+   "accept": [
+    "UseGuards",
+    "GuardsConsumer",
+    "GuardsContextCreator"
+   ]
+  },
+  {
+   "q": "wrap handler execution to run logic before and after",
+   "accept": [
+    "UseInterceptors",
+    "InterceptorsConsumer",
+    "InterceptorsContextCreator"
+   ]
+  },
+  {
+   "q": "transform and validate handler arguments",
+   "accept": [
+    "UsePipes",
+    "ValidationPipe",
+    "PipesConsumer"
+   ]
+  },
+  {
+   "q": "catch thrown exceptions and shape the error response",
+   "accept": [
+    "ExceptionFilter",
+    "Catch",
+    "UseFilters",
+    "BaseExceptionFilter",
+    "ExceptionsHandler"
+   ]
+  },
+  {
+   "q": "bootstrap and start the application",
+   "accept": [
+    "NestFactoryStatic",
+    "NestApplication"
+   ]
+  },
+  {
+   "q": "resolve a provider's dependencies and construct it",
+   "accept": [
+    "Injector",
+    "NestContainer",
+    "InstanceLoader",
+    "InstanceWrapper"
+   ]
+  },
+  {
+   "q": "build your own decorator that extracts data from the request",
+   "accept": [
+    "createParamDecorator"
+   ]
+  },
+  {
+   "q": "handle a microservice message by pattern",
+   "accept": [
+    "MessagePattern",
+    "EventPattern"
+   ]
+  },
+  {
+   "q": "receive websocket messages in a gateway class",
+   "accept": [
+    "WebSocketGateway",
+    "SubscribeMessage"
+   ]
+  },
+  {
+   "q": "apply middleware to selected routes of a module",
+   "accept": [
+    "MiddlewareModule"
+   ]
+  },
+  {
+   "q": "run code when a module finishes initializing",
+   "accept": [
+    "callModuleInitHook"
+   ]
+  },
+  {
+   "q": "prefix every route in the app with a base path",
+   "accept": [
+    "setGlobalPrefix"
+   ]
+  },
+  {
+   "q": "read custom metadata attached by decorators",
+   "accept": [
+    "Reflector",
+    "SetMetadata"
+   ]
+  },
+  {
+   "q": "return a specific http status code from a handler",
+   "accept": [
+    "HttpCode"
+   ]
+  },
+  {
+   "q": "stream a file back as the response",
+   "accept": [
+    "StreamableFile"
+   ]
+  },
+  {
+   "q": "expose multiple versions of the same route",
+   "accept": [
+    "enableVersioning",
+    "RouterModule"
+   ]
+  },
+  {
+   "q": "load a module lazily at runtime",
+   "accept": [
+    "LazyModuleLoader"
+   ]
+  },
+  {
+   "q": "scan module imports to build the dependency graph",
+   "accept": [
+    "DependenciesScanner",
+    "scanForModules"
+   ]
+  },
+  {
+   "q": "give a provider request scoped lifetime instead of singleton",
+   "accept": [
+    "ContextIdFactory",
+    "createContextId",
+    "getByRequest"
+   ]
+  },
+  {
+   "q": "create a testing module to unit test providers",
+   "accept": [
+    "TestingModule",
+    "TestingModuleBuilder",
+    "createTestingModule",
+    "Test.createTestingModule"
+   ]
+  },
+  {
+   "q": "replace a real provider with a mock in tests",
+   "accept": [
+    "overrideProvider",
+    "TestingModuleBuilder.overrideProvider",
+    "useMocker"
+   ]
+  },
+  {
+   "q": "fetch a provider instance from the container at runtime",
+   "accept": [
+    "NestApplicationContext.get",
+    "NestApplicationContext.resolve",
+    "InstanceLinksHost",
+    "resolvePerContext"
+   ]
+  },
+  {
+   "q": "break a circular dependency between two providers",
+   "accept": [
+    "forwardRef",
+    "isForwardReference",
+    "DependenciesScanner.isForwardReference"
+   ]
+  },
+  {
+   "q": "build a configurable dynamic module with forRoot options",
+   "accept": [
+    "ConfigurableModuleBuilder",
+    "ConfigurableModuleBuilder.build",
+    "ConfigurableModuleBuilder.setExtras"
+   ]
+  },
+  {
+   "q": "make a module global so it does not need importing",
+   "accept": [
+    "Global",
+    "isGlobalModule",
+    "addGlobalModule"
+   ]
+  },
+  {
+   "q": "run cleanup logic when the application shuts down",
+   "accept": [
+    "enableShutdownHooks",
+    "callAppShutdownHook",
+    "callModuleDestroyHook"
+   ]
+  },
+  {
+   "q": "enable cross origin requests for the http app",
+   "accept": [
+    "enableCors",
+    "NestApplication.enableCors"
+   ]
+  },
+  {
+   "q": "handle multipart file uploads in a controller",
+   "accept": [
+    "FileInterceptor",
+    "FilesInterceptor",
+    "UploadedFile",
+    "MulterModule",
+    "AnyFilesInterceptor"
+   ]
+  },
+  {
+   "q": "strip sensitive fields when serializing responses",
+   "accept": [
+    "ClassSerializerInterceptor",
+    "SerializeOptions"
+   ]
+  },
+  {
+   "q": "access the underlying request generically inside a guard or filter",
+   "accept": [
+    "ExecutionContextHost",
+    "switchToHttp"
+   ]
+  },
+  {
+   "q": "parse and validate a route param as an integer or uuid",
+   "accept": [
+    "ParseIntPipe",
+    "ParseUUIDPipe",
+    "ParseBoolPipe",
+    "ParseFloatPipe"
+   ]
+  },
+  {
+   "q": "supply a default value when a query param is missing",
+   "accept": [
+    "DefaultValuePipe",
+    "DefaultValuePipe.transform"
+   ]
+  },
+  {
+   "q": "signal that the caller is not authenticated or lacks permission",
+   "accept": [
+    "UnauthorizedException",
+    "ForbiddenException"
+   ]
+  },
+  {
+   "q": "log messages with the built in logger service",
+   "accept": [
+    "Logger",
+    "ConsoleLogger",
+    "useLogger"
+   ]
+  },
+  {
+   "q": "create a standalone application context without an http server",
+   "accept": [
+    "createApplicationContext",
+    "NestApplicationContext",
+    "NestFactoryStatic.createApplicationContext"
+   ]
+  },
+  {
+   "q": "attach a microservice listener to an existing http application",
+   "accept": [
+    "connectMicroservice",
+    "NestApplication.connectMicroservice",
+    "NestMicroservice"
+   ]
+  },
+  {
+   "q": "send a message from one service to a microservice and await the reply",
+   "accept": [
+    "ClientsModule",
+    "ClientProxyFactory",
+    "ClientTCP"
+   ]
+  },
+  {
+   "q": "push server sent events from a controller route",
+   "accept": [
+    "Sse",
+    "SseStream"
+   ]
+  },
+  {
+   "q": "render a server side template view from a handler",
+   "accept": [
+    "Render",
+    "setBaseViewsDir",
+    "setViewEngine"
+   ]
+  },
+  {
+   "q": "redirect the client from a handler using a decorator",
+   "accept": [
+    "Redirect",
+    "RouterResponseController.redirect",
+    "ExpressAdapter.redirect"
+   ]
+  },
+  {
+   "q": "set a static response header on a route",
+   "accept": [
+    "Header",
+    "ExpressAdapter.setHeader",
+    "RouterResponseController.setHeaders"
+   ]
+  },
+  {
+   "q": "read query string parameters in a handler",
+   "accept": [
+    "Query",
+    "createPipesRouteParamDecorator",
+    "RouteParamsFactory.exchangeKeyForValue"
+   ]
+  },
+  {
+   "q": "swap express for fastify as the underlying http platform",
+   "accept": [
+    "FastifyAdapter",
+    "ExpressAdapter"
+   ]
+  },
+  {
+   "q": "start an interactive repl session with the app's providers",
+   "accept": [
+    "repl",
+    "ReplContext"
+   ]
+  },
+  {
+   "q": "enumerate providers and controllers with their metadata at runtime",
+   "accept": [
+    "DiscoveryService",
+    "DiscoveryModule",
+    "MetadataScanner"
+   ]
+  }
+ ]
+}

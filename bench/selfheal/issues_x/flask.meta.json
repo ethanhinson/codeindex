@@ -1,0 +1,275 @@
+[
+ {
+  "sha": "d7209a9570",
+  "issue": 5393,
+  "is_pr": true,
+  "subject": "fix super call in list comprehension (#5393)",
+  "q": "fix super call in list comprehension"
+ },
+ {
+  "sha": "05eebe36ab",
+  "issue": 5344,
+  "is_pr": true,
+  "subject": "fix missing quote in `--key` error message (#5344)",
+  "q": "fix missing quote in `--key` error message"
+ },
+ {
+  "sha": "4be9f52142",
+  "issue": 5161,
+  "is_pr": true,
+  "subject": "fix use of `importlib.util.find_spec` (#5161)",
+  "q": "fix use of `importlib.util.find_spec`"
+ },
+ {
+  "sha": "631b6dd546",
+  "issue": 4921,
+  "is_pr": true,
+  "subject": "Merge pull request #4921 from ivanovmg/fix/template_folder",
+  "q": "Allow pathlib.Path for template_folder"
+ },
+ {
+  "sha": "6d637f0fdb",
+  "issue": 4230,
+  "is_pr": true,
+  "subject": "Merge pull request #4230 from matipau/blueprint-fix",
+  "q": "Fix callback order for nested blueprints"
+ },
+ {
+  "sha": "06cf349bb8",
+  "issue": 4152,
+  "is_pr": true,
+  "subject": "Merge pull request #4152 from Yourun-proger/fix",
+  "q": "`static_folder` can be a `pathlib.Path` object"
+ },
+ {
+  "sha": "a40c381ffd",
+  "issue": 3560,
+  "is_pr": true,
+  "subject": "Merge pull request #3560 from greyli/fix-env-chdir",
+  "q": "Stop change CWD to .env/.flaskenv location"
+ },
+ {
+  "sha": "cd4023d9d2",
+  "issue": 3237,
+  "is_pr": true,
+  "subject": "Merge pull request #3237 from scrosby/fix-3218",
+  "q": "Move python properties to decorator syntax"
+ },
+ {
+  "sha": "2c68f86336",
+  "issue": 3157,
+  "is_pr": true,
+  "subject": "Merge pull request #3157 from fantix/fix-test-client-teardown",
+  "q": "Fix teardown bug in FlaskClient"
+ },
+ {
+  "sha": "2308cba407",
+  "issue": 2897,
+  "is_pr": false,
+  "subject": "Fix #2897 - Add `extra_files` option to `flask run` CLI",
+  "q": "Define reloader extra_files in `flask run` CLI"
+ },
+ {
+  "sha": "e2f4b53396",
+  "issue": 3168,
+  "is_pr": false,
+  "subject": "Fix dev-server warning message readability (#3168)",
+  "q": "Improve warning about dev server use in production"
+ },
+ {
+  "sha": "232e5c81bc",
+  "issue": 2825,
+  "is_pr": true,
+  "subject": "Merge pull request #2825 from eso31/fix-2824-issue",
+  "q": "Fixes issue #2824 flask --version"
+ },
+ {
+  "sha": "717f9d33ca",
+  "issue": 3054,
+  "is_pr": true,
+  "subject": "Merge pull request #3054 from tirkarthi/fix-py37-warnings",
+  "q": "Fix DeprecationWarning on collections import in flask.sessions"
+ },
+ {
+  "sha": "b2ec6a33a2",
+  "issue": 2827,
+  "is_pr": true,
+  "subject": "Merge pull request #2827 from schafle/fix-2823",
+  "q": "[Fixed 2823] Checking if .env is file before prompting to install dotenv"
+ },
+ {
+  "sha": "401d7f9bb2",
+  "issue": 2789,
+  "is_pr": true,
+  "subject": "Merge pull request #2789 from briehanlombaard/fix-sslcontext-attribute-error",
+  "q": "AttributeError: 'module' object has no attribute 'SSLContext'"
+ },
+ {
+  "sha": "a6a6810d56",
+  "issue": 2748,
+  "is_pr": true,
+  "subject": "Merge pull request #2748 from pallets/fix-bp-route",
+  "q": "Fix blueprint route for \"\""
+ },
+ {
+  "sha": "324b4ea255",
+  "issue": 2711,
+  "is_pr": true,
+  "subject": "Merge pull request #2711 from pope1ni/session-serializer-fixes",
+  "q": "Minor session serializer fixes."
+ },
+ {
+  "sha": "641fdeaf98",
+  "issue": 2398,
+  "is_pr": true,
+  "subject": "Merge pull request #2398 from miguelgrinberg/app-not-found-error-fix",
+  "q": "fix variable substitution in error message"
+ },
+ {
+  "sha": "fa7e8d6073",
+  "issue": 2357,
+  "is_pr": false,
+  "subject": "be smarter about adding \".cli\" to reloader command python -m flask.cli raises an import warning on > 2.6 it's only needed on 2.6, \"flask\" works otherwise closes #2357",
+  "q": "python -m flask run raises RuntimeWarning"
+ },
+ {
+  "sha": "6637e20174",
+  "issue": 1348,
+  "is_pr": false,
+  "subject": "only open session if request hasn't been pushed yet closes #1348",
+  "q": "sessions not saved when streaming"
+ },
+ {
+  "sha": "b8eba0a3fa",
+  "issue": 2345,
+  "is_pr": false,
+  "subject": "use existing response.vary property to set vary header closes #2345",
+  "q": "Use existing response.vary property to set vary header"
+ },
+ {
+  "sha": "c3d49e29ea",
+  "issue": 2007,
+  "is_pr": false,
+  "subject": "show warning if session cookie domain is ip closes #2007",
+  "q": "Prevent setting `SERVER_NAME` and `SESSION_COOKIE_DOMAIN` to an IP address"
+ },
+ {
+  "sha": "5b7fd9ad88",
+  "issue": 2208,
+  "is_pr": false,
+  "subject": "Print a stacktrace on CLI error (closes #2208)",
+  "q": "Do not swallow exceptions if CLI fails to load"
+ },
+ {
+  "sha": "88500f5cc7",
+  "issue": 1806,
+  "is_pr": true,
+  "subject": "Forward ported CLI tests from Flask-CLI and fixed a bug with the CLI's name. (#1806)",
+  "q": "Forward ported CLI tests from Flask-CLI and fixed a bug with the CLI's name."
+ },
+ {
+  "sha": "554c5b965a",
+  "issue": 1477,
+  "is_pr": false,
+  "subject": "Fix #1477",
+  "q": "Remove Blueprint.view_functions"
+ },
+ {
+  "sha": "2506c0b9a9",
+  "issue": 930,
+  "is_pr": true,
+  "subject": "Fixed sending etags for file streams with a name.  This fixes #930.",
+  "q": "fix a etags bug when sending a file stream with a name"
+ },
+ {
+  "sha": "8339cb3508",
+  "issue": 535,
+  "is_pr": true,
+  "subject": "Added support for unicode json dumping.  This fixes #535",
+  "q": "Add `JSON_ASCII` option to remove unneeded decoding on client side"
+ },
+ {
+  "sha": "3bec75d230",
+  "issue": 447,
+  "is_pr": true,
+  "subject": "Set the content-length header for sendfile.  Fixes #447",
+  "q": "Added content length to xsendfile"
+ },
+ {
+  "sha": "d628df6ab6",
+  "issue": 351,
+  "is_pr": false,
+  "subject": "Store session after callbacks.  This fixes #351",
+  "q": "session is saved before @after_request callbacks"
+ },
+ {
+  "sha": "6dccf77546",
+  "issue": 310,
+  "is_pr": false,
+  "subject": "PERMANENT_SESSION_LIFETIME can now be an integer.  This fixes #310",
+  "q": "Switch to primitive types in the config"
+ },
+ {
+  "sha": "7155f11a72",
+  "issue": 294,
+  "is_pr": false,
+  "subject": "Added HTTP exception trapping.  This should fix #294",
+  "q": "Traceback logs not available for POST requests"
+ },
+ {
+  "sha": "ea7a172077",
+  "issue": 258,
+  "is_pr": false,
+  "subject": "Test that dotted names work.  This fixes #258",
+  "q": "Make Tests for bluprints with dotted Names"
+ },
+ {
+  "sha": "7242abcfb2",
+  "issue": 234,
+  "is_pr": false,
+  "subject": "Extend the logging from the dynamically set logger class.  This fixes #234",
+  "q": "logging improperly extending directly from Logger class"
+ },
+ {
+  "sha": "04e70bd5c7",
+  "issue": 174,
+  "is_pr": false,
+  "subject": "Add teardown_request decorator. Fixes issue #174",
+  "q": "after_request behavior regarding exceptions"
+ },
+ {
+  "sha": "0bf777ed81",
+  "issue": 164,
+  "is_pr": false,
+  "subject": "Do not use Date, use Last-Modified. This fixes #164",
+  "q": "Wrong \"Date\" http header, breaks clientside caching for static files, lots of 304 responses"
+ },
+ {
+  "sha": "4b65c7ed5a",
+  "issue": 148,
+  "is_pr": false,
+  "subject": "Added the ability to override the test client's class.  This fixes #148",
+  "q": "Allow custom TestClient"
+ },
+ {
+  "sha": "a3a72e2d8d",
+  "issue": 88,
+  "is_pr": false,
+  "subject": "Added middlewares to quickstart.  This fixes #88",
+  "q": "Documentation of server configuration and middleware inclusion"
+ },
+ {
+  "sha": "ed16ae2183",
+  "issue": 81,
+  "is_pr": false,
+  "subject": "Always register URL rules.  This fixes #81",
+  "q": "Static URL rule not being added on GAE with static_dir handler"
+ },
+ {
+  "sha": "d12d73263f",
+  "issue": 82,
+  "is_pr": false,
+  "subject": "Reverse order of execution of post-request handlers.  This fixes #82",
+  "q": "The after_request handlers should be called in reverse order"
+ }
+]

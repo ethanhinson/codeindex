@@ -1,0 +1,478 @@
+{
+ "repo": "nest",
+ "commit": "d0fb875e23e3e6baae8537efd41d54709acade0c",
+ "split": "issues-closed",
+ "provenance": "Mined from closed GitHub issues/PRs by bench/selfheal/issues_expand.py (mapping v2 + hygiene fixes a/b/c) on 2026-07-12: fix-ish commit subjects referencing (#N) in the deepened pinned clone (16734 commits, newest-first, 1-4 source files, <=10 symbols); accept sets are tier=0 symbols resolved BY NAME from git hunk-header function context (builtin golang/python/php drivers, custom ts xfuncname) and added definition lines, within the same changed file; comment-only hunks do not attribute; line-span overlap only for hunks with no name context AND files byte-identical to HEAD. Questions are verbatim GitHub issue/PR titles (REST API, cached in .issue_cache.json); titles containing a mapped symbol name (locate-class) or matching the refactor/lint/typo/docstring/style/fmt/cleanup/annotation/spelling substring deny-list were dropped.",
+ "questions": [
+  {
+   "q": "fix(core): merge req context with tenant payload in the request instance",
+   "accept": [
+    "MiddlewareModule",
+    "MiddlewareModule.getContextId",
+    "RouterExplorer",
+    "RouterExplorer.getContextId",
+    "ListenersController",
+    "ListenersController.getContextId"
+   ]
+  },
+  {
+   "q": "fix(common): fallback to empty string for enums when validating (swc builder)",
+   "accept": [
+    "ValidationPipe.toEmptyIfNil"
+   ]
+  },
+  {
+   "q": "fix(core): dependencies not resolving for transient lazy providers",
+   "accept": [
+    "Module.isCustomProvider",
+    "Module.isTransientProvider"
+   ]
+  },
+  {
+   "q": "fix(common,core): align the logic of optional provider",
+   "accept": [
+    "isOptionalFactoryDependency",
+    "Injector.getFactoryProviderDependencies"
+   ]
+  },
+  {
+   "q": "fix(microservices): grpc client streaming bugs",
+   "accept": [
+    "ServerGrpc.getMessageHandler",
+    "ServerGrpc.createRequestStreamMethod",
+    "ServerGrpc.createStreamCallMethod",
+    "ServerGrpc.addHandler",
+    "ServerGrpc.createClient",
+    "ServerGrpc.bufferUntilDrained",
+    "drainBuffer"
+   ]
+  },
+  {
+   "q": "Streamed messages missed when using grpc client streaming with async guards",
+   "accept": [
+    "ServerGrpc.getMessageHandler",
+    "ServerGrpc.createRequestStreamMethod",
+    "ServerGrpc.createStreamCallMethod",
+    "ServerGrpc.addHandler",
+    "ServerGrpc.createClient"
+   ]
+  },
+  {
+   "q": "fix(microservices): include discarded rmq client options",
+   "accept": [
+    "ClientRMQ.createClient"
+   ]
+  },
+  {
+   "q": "fix(microservices): no messages emitted with mqtt when qos set",
+   "accept": [
+    "ClientMqtt",
+    "ClientMqtt.mergePacketOptions"
+   ]
+  },
+  {
+   "q": "fix(core): flaky durable provider, remove instance on error",
+   "accept": [
+    "InstanceWrapper.removeInstanceByContextId",
+    "InstanceWrapper.removeInstanceByInquirerId"
+   ]
+  },
+  {
+   "q": "Durable providers are unable to recover from errors being thrown",
+   "accept": [
+    "InstanceWrapper.removeInstanceByContextId",
+    "InstanceWrapper.removeInstanceByInquirerId"
+   ]
+  },
+  {
+   "q": "When using the MqttClient Proxy in MQTT 5.0, we must call the setProperties() to emit message",
+   "accept": [
+    "ClientMqtt",
+    "ClientMqtt.mergePacketOptions"
+   ]
+  },
+  {
+   "q": "fix(core): initialize internal core module on preview",
+   "accept": [
+    "InternalCoreModuleFactory.create"
+   ]
+  },
+  {
+   "q": "fix(fastify): uppercase http method names",
+   "accept": [
+    "FastifyAdapter.get",
+    "FastifyAdapter.post",
+    "FastifyAdapter.head",
+    "FastifyAdapter.put",
+    "FastifyAdapter.patch",
+    "FastifyAdapter.options",
+    "FastifyAdapter.search"
+   ]
+  },
+  {
+   "q": "fix(microservices): hold nats client connection promise ref",
+   "accept": [
+    "ClientNats",
+    "ClientNats.close",
+    "ClientNats.connect"
+   ]
+  },
+  {
+   "q": "microservices: multiple NATS clients created blocking application shutdown",
+   "accept": [
+    "ClientNats",
+    "ClientNats.connect"
+   ]
+  },
+  {
+   "q": "fix(core): unhandled promise rejection in interceptors consumer",
+   "accept": [
+    "InterceptorsConsumer",
+    "InterceptorsConsumer.intercept",
+    "nextFn"
+   ]
+  },
+  {
+   "q": "fix(core): when using forward references on `exports` array",
+   "accept": [
+    "DependenciesScanner.insertExportedProvider"
+   ]
+  },
+  {
+   "q": "fix(core): possible memory leak when using server side events",
+   "accept": [
+    "RouterResponseController",
+    "RouterResponseController.sse",
+    "SseStream",
+    "SseStream.writeMessage"
+   ]
+  },
+  {
+   "q": "feat(fastify): Do not crash if enableVersioning is not used",
+   "accept": [
+    "FastifyAdapter",
+    "FastifyAdapter.empty"
+   ]
+  },
+  {
+   "q": "Nest crash when RouteConstraints is used without app versioning enabled",
+   "accept": [
+    "FastifyAdapter.empty"
+   ]
+  },
+  {
+   "q": "fix(core): break reference chain to instance object",
+   "accept": [
+    "ContextUtils.getContextFactory"
+   ]
+  },
+  {
+   "q": "fix(core): middleware is not executed for root route when global prefix is set",
+   "accept": [
+    "RouteInfoPathExtractor",
+    "RouteInfoPathExtractor.extractPathsFrom"
+   ]
+  },
+  {
+   "q": "fix(microservices): fix rabbitmq no-assert not being applied correctly",
+   "accept": [
+    "ClientRMQ.constructor",
+    "ClientRMQ.setupChannel",
+    "ServerRMQ.constructor",
+    "ServerRMQ.setupChannel"
+   ]
+  },
+  {
+   "q": "fix(common): fix stacktrace regex",
+   "accept": [
+    "ConsoleLogger",
+    "ConsoleLogger.isStackFormat"
+   ]
+  },
+  {
+   "q": "fix(microservices): fix redundant code to emit error",
+   "accept": [
+    "ServerGrpc.createStreamServiceMethod"
+   ]
+  },
+  {
+   "q": "fix(core): when having multiple versions on middleware routes builder",
+   "accept": [
+    "Header",
+    "MiddlewareBuilder.exclude",
+    "RouteInfoPathExtractor",
+    "RouteInfoPathExtractor.extractPathsFrom",
+    "RouteInfoPathExtractor.extractPathFrom",
+    "RouteInfoPathExtractor.isAWildcard",
+    "RouteInfoPathExtractor.extractNonWildcardPathsFrom",
+    "RouteInfoPathExtractor.extractVersionPathFrom",
+    "RouterResponseController.setHeaders"
+   ]
+  },
+  {
+   "q": "feat(microservices): add type for rmq connection options",
+   "accept": [
+    "ClientRMQ.constructor",
+    "ClientRMQ.createClient",
+    "ServerRMQ.constructor",
+    "ServerRMQ.createClient"
+   ]
+  },
+  {
+   "q": "fix(packages/microservices): pass inboxPrefix as argument to createInbox",
+   "accept": [
+    "ClientNats.publish"
+   ]
+  },
+  {
+   "q": "fix: generate unique hashes for dynamic modules, and clients",
+   "accept": [
+    "InternalModuleClass",
+    "ClientsModule.register"
+   ]
+  },
+  {
+   "q": "fix(microservices): grpc client closing",
+   "accept": [
+    "ClientGrpcProxy.close"
+   ]
+  },
+  {
+   "q": "fix(microservices): fix backpressure with integration test",
+   "accept": [
+    "ServerGrpc.writeObservableToGrpc",
+    "ServerGrpc.next"
+   ]
+  },
+  {
+   "q": "fix(core): when the discoverable decorator was not used on calling `getProviders`/`getControllers`",
+   "accept": [
+    "DiscoverableMetaHostCollection.getProvidersByMetaKey",
+    "DiscoverableMetaHostCollection.getControllersByMetaKey"
+   ]
+  },
+  {
+   "q": "fix(common): when passing class functions to logger methods",
+   "accept": [
+    "ConsoleLogger.stringifyMessage",
+    "RoutesMapper.getRouteInfoFromController"
+   ]
+  },
+  {
+   "q": "fix: allow for filters to be aware of the pattern for websockets",
+   "accept": [
+    "WsContextCreator",
+    "WsContextCreator.create",
+    "WsProxy.create"
+   ]
+  },
+  {
+   "q": "fix(ws): fix incorrect host pattern on messages",
+   "accept": [
+    "WsAdapter.bindMessageHandler"
+   ]
+  },
+  {
+   "q": "fix(grpc): will properly write to streams",
+   "accept": [
+    "ServerGrpc.writeObservableToGrpc"
+   ]
+  },
+  {
+   "q": "Guard undefined Redis options",
+   "accept": [
+    "ServerRedis.bindEvents",
+    "ServerRedis.getMessageHandler"
+   ]
+  },
+  {
+   "q": "fix(common): fix custom multi file validator",
+   "accept": [
+    "constructor"
+   ]
+  },
+  {
+   "q": "fix(core): create completed field on settlement for better tracking",
+   "accept": [
+    "SettlementSignal",
+    "SettlementSignal.complete",
+    "SettlementSignal.error",
+    "SettlementSignal.isCycle"
+   ]
+  },
+  {
+   "q": "fix(core): allow importing providers from global modules in lazy modules",
+   "accept": [
+    "NestContainer.addModule",
+    "NestContainer.replaceModule",
+    "LazyModuleLoader.load",
+    "DependenciesScanner.scanForModules",
+    "DependenciesScanner.insertModule",
+    "DependenciesScanner.insertOrOverrideModule",
+    "DependenciesScanner.overrideModule"
+   ]
+  },
+  {
+   "q": "fix(core): apply middleware to versioned controllers (ctrl-level)",
+   "accept": [
+    "MiddlewareModule.register",
+    "RoutesMapper",
+    "RoutesMapper.constructor",
+    "RoutesMapper.mapRouteToRouteInfo",
+    "RoutesMapper.getRouteInfoFromController",
+    "toUndefinedIfNeural",
+    "toRouteInfo",
+    "RoutesMapper.getVersionMetadata"
+   ]
+  },
+  {
+   "q": "fix(common): loosen http exception cause type",
+   "accept": [
+    "HttpException.constructor"
+   ]
+  },
+  {
+   "q": "fix(microservices): check length of member partitions on group join",
+   "accept": [
+    "ClientKafka.setConsumerAssignments"
+   ]
+  },
+  {
+   "q": "feat(core): middleware runs once for matching route",
+   "accept": [
+    "MiddlewareBuilder.forRoutes",
+    "MiddlewareBuilder.getRoutesFlatList",
+    "MiddlewareBuilder.removeOverlappedRoutes",
+    "isOverlapped"
+   ]
+  },
+  {
+   "q": "fix(core): global prefix exclude when versioning is turned on",
+   "accept": [
+    "RoutePathFactory.isExcludedFromGlobalPrefix",
+    "RoutePathFactory.truncateVersionPrefixFromPath"
+   ]
+  },
+  {
+   "q": "fix(microservices): grpc-server handle async interceptors",
+   "accept": [
+    "ServerGrpc.createUnaryServiceMethod"
+   ]
+  },
+  {
+   "q": "fix(common): `ConsoleLogger` doesn't log stacktrace",
+   "accept": [
+    "ConsoleLogger.getContextAndStackAndMessagesToPrint",
+    "ConsoleLogger.isStackFormat",
+    "Logger.verbose",
+    "Logger.error"
+   ]
+  },
+  {
+   "q": "fix(microservices): allow falsy values in options",
+   "accept": [
+    "ClientKafka.constructor",
+    "getOptionsProp"
+   ]
+  },
+  {
+   "q": "fix(ws): mount multi `ws` servers on different paths",
+   "accept": [
+    "WsAdapter.create",
+    "WsAdapter.addWsServerToRegistry"
+   ]
+  },
+  {
+   "q": "Circular JSON TypeError in @nestjs/axios",
+   "accept": [
+    "UnknownDependenciesException",
+    "UnknownDependenciesException.constructor"
+   ]
+  },
+  {
+   "q": "fix(core): removed xxhash to fix #11071",
+   "accept": [
+    "ModuleTokenFactory.hashString",
+    "DeterministicUuidRegistry",
+    "DeterministicUuidRegistry.get"
+   ]
+  },
+  {
+   "q": "\"perf(core): change sha1 to xxhash\" commit broke runtime of Nest.js application on Ubuntu 20.04",
+   "accept": [
+    "ModuleTokenFactory.hashString",
+    "DeterministicUuidRegistry",
+    "DeterministicUuidRegistry.get"
+   ]
+  },
+  {
+   "q": "fix(core): unwrap forward ref in module compiler",
+   "accept": [
+    "ModuleCompiler.compile",
+    "ModuleCompiler.extractMetadata",
+    "ModuleCompiler.isDynamicModule"
+   ]
+  },
+  {
+   "q": "fix(microservices): messages emitted before kafka client is ready fail",
+   "accept": [
+    "ClientKafka",
+    "ClientKafka.close",
+    "ClientKafka.connect"
+   ]
+  },
+  {
+   "q": "fix(microservices): pull kafka retriable error from all handlers, laz\u2026",
+   "accept": [
+    "ListenersController.insertEntrypointDefinition",
+    "ListenersController.forkJoinHandlersIfAttached",
+    "ListenersController.createRequestScopedHandler",
+    "ListenersController.transformToObservable"
+   ]
+  },
+  {
+   "q": "fix(microservices): rmq should gracefully reconnect upon error",
+   "accept": [
+    "ClientRMQ",
+    "ClientRMQ.createChannel",
+    "ClientRMQ.createClient",
+    "ClientRMQ.convertConnectionToPromise",
+    "ClientRMQ.setupChannel",
+    "ClientRMQ.consumeChannel",
+    "ClientRMQ.handleError",
+    "ClientRMQ.handleDisconnectError",
+    "ClientRMQ.publish"
+   ]
+  },
+  {
+   "q": "Parse file pipe fix (multiple files validation)",
+   "accept": [
+    "ParseFilePipe.transform",
+    "ParseFilePipe.thereAreNoFilesIn"
+   ]
+  },
+  {
+   "q": "fix(core): process exit before shutdown hook end",
+   "accept": [
+    "NestApplicationContext.listenToShutdownSignals"
+   ]
+  },
+  {
+   "q": "fix(core,microservices): inject the context when the tree is not durable",
+   "accept": [
+    "MiddlewareModule.getContextId",
+    "RouterExplorer.createRequestScopedHandler",
+    "RouterExplorer.getContextId",
+    "ListenersController.createRequestScopedHandler",
+    "ListenersController.getContextId"
+   ]
+  },
+  {
+   "q": "fix(fastify): return the response on exception",
+   "accept": [
+    "RouterProxy.createProxy",
+    "RouterProxy.createExceptionLayerProxy"
+   ]
+  }
+ ]
+}
