@@ -13,8 +13,7 @@ Each recipe returns a JSON-able dict; `python3 recipes.py <recipe> <repo>
 <symbol>` prints it. Coverage measurement lives in measure_recipes.py.
 """
 from __future__ import annotations
-import json, re, subprocess, sys
-from pathlib import Path
+import json, subprocess, sys
 
 DEFAULT_BINARY = "codeindex"
 
@@ -30,6 +29,14 @@ def _run(binary, *args):
         return {}
 
 
+def _word_grep(binary, repo, symbol):
+    """Token references to `symbol` as a WORD (codeindex grep -w). Rename and
+    where-tested semantics are word-based; substring grep would let 'Decode'
+    hit 'NewDecoder'. Call-edge results are symbol-resolved upstream and never
+    need this."""
+    return _run(binary, "grep", repo, symbol, "-w")
+
+
 def is_test_file(path: str) -> bool:
     """Language-agnostic test-file heuristics (superset of build_tasks.py's)."""
     p = path.lower()
@@ -38,27 +45,6 @@ def is_test_file(path: str) -> bool:
             or p.startswith(("test/", "tests/"))
             or p.rsplit("/", 1)[-1].startswith("test_")
             or p.endswith("_test.py") or p.endswith("test.php"))
-
-
-def _word_sites(repo, symbol, groups):
-    """Keep only grep groups whose file really contains `symbol` as a word.
-    codeindex grep is substring-based ('Decode' hits 'NewDecoder'); rename and
-    where-tested semantics are word-based. One cheap file read per candidate —
-    deterministic glue, no model. Call-edge results are symbol-resolved
-    upstream and never need this."""
-    pat = re.compile(r"\b" + re.escape(symbol) + r"\b")
-    checked: dict[str, bool] = {}
-    out = []
-    for g in groups:
-        f = g["file"]
-        if f not in checked:
-            try:
-                checked[f] = bool(pat.search((Path(repo) / f).read_text(errors="ignore")))
-            except OSError:
-                checked[f] = False
-        if checked[f]:
-            out.append(g)
-    return out
 
 
 def impact(binary, repo, symbol):
@@ -72,12 +58,11 @@ def where_tested(binary, repo, symbol):
     test files that exercise the symbol without a resolvable call edge
     (fixtures, dynamic dispatch, string-based registration)."""
     callers = _run(binary, "callers", repo, symbol)
-    grep = _run(binary, "grep", repo, symbol)
+    grep = _word_grep(binary, repo, symbol)
     test_callers = [c for c in callers.get("callers", [])
                     if is_test_file(c["file"])]
-    test_sites = _word_sites(repo, symbol,
-                             [g for g in grep.get("groups", [])
-                              if is_test_file(g["file"])])
+    test_sites = [g for g in grep.get("groups", [])
+                  if is_test_file(g["file"])]
     files = list(dict.fromkeys([c["file"] for c in test_callers]
                                + [g["file"] for g in test_sites]))
     return {"symbol": symbol,
@@ -94,9 +79,9 @@ def rename_radius(binary, repo, symbol):
     three ops the same way fmt_union builds the navigation answer."""
     callers = _run(binary, "callers", repo, symbol)
     find = _run(binary, "find", repo, symbol)
-    grep = _run(binary, "grep", repo, symbol)
+    grep = _word_grep(binary, repo, symbol)
     exact = [r for r in find.get("results", []) if r.get("match") == "exact"]
-    token_sites = _word_sites(repo, symbol, grep.get("groups", []))
+    token_sites = grep.get("groups", [])
     files = list(dict.fromkeys(
         [d["file"] for d in callers.get("definitions", [])]
         + [c["file"] for c in callers.get("callers", [])]
@@ -117,11 +102,10 @@ def dead_code(binary, repo, symbol):
     and dynamic dispatch need a human/agent confirmation pass (the
     trust-vs-verify residual), so the recipe reports evidence, not certainty."""
     callers = _run(binary, "callers", repo, symbol)
-    grep = _run(binary, "grep", repo, symbol)
+    grep = _word_grep(binary, repo, symbol)
     def_files = {d["file"] for d in callers.get("definitions", [])}
-    outside = _word_sites(repo, symbol,
-                          [g for g in grep.get("groups", [])
-                           if g["file"] not in def_files])
+    outside = [g for g in grep.get("groups", [])
+               if g["file"] not in def_files]
     verdict = (len(callers.get("callers", [])) == 0 and not outside)
     return {"symbol": symbol,
             "definitions": callers.get("definitions", []),

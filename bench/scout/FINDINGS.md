@@ -342,3 +342,38 @@ the LLM sense. The pattern held one more time: structure + cheap glue. The
 residual where a model could still earn its keep narrows to: query
 REFORMULATION on top of search for the low repos (nest 65.4%), and the
 long-standing trust-vs-verify policy on ambiguous edges.
+
+## grep -w internalized; recipes re-measured; the union shipped as `nav` (2026-08-15 night)
+
+Two of the post-plan "sensible next moves" landed as product code, each with
+the measurement re-run rather than assumed:
+
+1. **`codeindex grep -w`** (word-boundary mode, rg `-w` semantics on both
+   backends: `-w` flag on the ripgrep path, `\b(?:...)\b` wrap on the
+   internal scan). `recipes.py` dropped its Python word-boundary post-filter
+   (`_word_sites`, one file read per candidate) for `_word_grep` — the
+   filter moved from bench glue into the engine, and became per-HIT instead
+   of per-file (strictly tighter: a substring-only group in a file that
+   word-matches elsewhere is now correctly excluded). Re-measured
+   `measure_recipes.py` on the same three task sets, same non-circular
+   file-level gt: **tasks_v6 n=6, tasks_lphp n=12, tasks_nest n=11 — all
+   P=R=F1=1.00**, identical to the pre-refactor run. Smoke scale check on
+   gin: `grep Handler` 238 raw hits substring -> 28 word hits, and
+   `combineHandlers`/`HandlerFunc` no longer pollute a `Handler` query.
+
+2. **`codeindex nav <repo> <anchor>`** — the measured over-retrieval union
+   (arm_c `--over-retrieve`, 100%/F1 0.95 = formatter ceiling, zero routing)
+   is now a product verb + MCP tool, not just bench code. One store open,
+   one pass: callers + find + grep (substring, exactly as measured), one
+   NavAnswer with the measured POLICY baked in — definitions fall back to
+   ALL exact-name owners from find, grep's enclosing-symbol attribution
+   stands in for callers when the graph has no call edges (flagged
+   `callers_from_grep`, disclosed in the text render). Text golden pinned in
+   query_test.go like every other verb; `--json` carries totals vs limited
+   lists per the contract.
+
+Deliberately NOT done: switching nav's grep to `-w` (the 100%/0.95 was
+measured with substring grep; changing the retrieval underneath the shipped
+shape without re-running the arm would be the exact leak the discipline
+section warns about), and adding nav to the plugin's prompt-note (its ~155
+token footprint is a measured artifact; a wording change needs an A/B).

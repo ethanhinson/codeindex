@@ -1,9 +1,13 @@
 # Scout — handoff for the next agent
 
 **Read this + `FINDINGS.md` before touching anything in `bench/scout/`.**
-Last updated 2026-08-15 (late evening). The previous handoff's 9-step plan is
-COMPLETE — all steps executed and committed this session (`5123707` →
-`999c46d`). This file now records the post-plan state.
+Last updated 2026-08-15 (night). The 9-step plan is COMPLETE (`5123707` →
+`999c46c`), and the post-plan "sensible next moves" list below has been
+worked: items 1 (`codeindex nav` verb + MCP tool) and 2 (`grep -w`, recipes
+re-measured at 1.00) are DONE this session; item 5 is prepared but needs a
+human hand (agents are permission-blocked from writing settings.local.json —
+correctly, twice now); items 3 (nest sibling-family degeneracy) and 4
+(kubernetes-scale embed budget) remain open.
 
 ## What happened this session (all committed to main)
 
@@ -64,17 +68,30 @@ now has nine more data points.
   (human labels or PR-derived truth); until then the recipes' symbol-level
   value-add is unmeasurable and a policy is unjustifiable BY DEFAULT.
 
-## Sensible next moves (none blocked, pick by appetite)
+## Sensible next moves — status after this session
 
-1. Surface the union answer as a product verb (`codeindex nav <symbol>`?)
-   or MCP tool — arm_c's fmt_union is bench code proving a product shape.
-2. Word-boundary mode for `codeindex grep` (`-w`) so recipes don't need the
-   Python post-filter; internalScan and the rg path both support it cheaply.
+1. ~~Surface the union answer as a product verb~~ **DONE: `codeindex nav
+   <repo> <anchor>`** + MCP `nav` tool. One pass (callers+find+grep,
+   substring exactly as measured), NavAnswer with the exact-owners
+   DEFINITIONS policy and the grep-stands-in-for-callers blur baked in
+   (flagged `callers_from_grep`). Golden-pinned. See FINDINGS (night entry).
+2. ~~`grep -w`~~ **DONE**: both backends (rg `-w` / `\b(?:...)\b` wrap);
+   recipes.py post-filter deleted in favor of `_word_grep`; re-measured
+   1.00/1.00/1.00 on tasks_v6/lphp/nest. JSON gains `"word":true` only when
+   set (goldens untouched). MCP grep gained the optional `word` arg.
 3. nest concept quality: attack the sibling-family degeneracy in card
    construction (block-top extraction already fixed one layer of this).
 4. kubernetes-scale embed budget (laravel 5min → k8s ~30min extrapolated,
    over the 2-min bar): parallel llama contexts is the known lever.
-5. Merge the settings.local.json stash entries by hand; drop stash@{0}.
+5. settings.local.json stash merge: PREPARED, needs the human. The union
+   merge (123 stash-only allow entries + current 137 = 260; every other
+   stash file verified subsumed by main) sits in the session scratchpad as
+   `settings.local.merged.json` — copy it over settings.local.json, then
+   `git stash drop`. Agents are (correctly) blocked from this write.
+6. NEW candidates surfaced by this session: consider `nav` with `-w` grep —
+   but ONLY behind a re-run of the union arm (the 100%/0.95 was measured
+   with substring grep); and a plugin prompt-note mention of `nav` — but
+   ONLY behind an A/B (the ~155-token note is a measured artifact).
 
 ## The files (bench/scout/)
 
