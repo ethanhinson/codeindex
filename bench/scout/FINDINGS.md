@@ -309,3 +309,36 @@ dead-code verdict — because the only gt for those is the index itself
 pure structure + cheap glue; nothing here justifies a learned policy. The
 residual is unchanged: trust-vs-verify on ambiguous edges, and attribution-
 level gt would need human labels or PR-derived truth to grade non-circularly.
+
+## Query formulation: cheap gates fail, but the shipped hybrid already answers (2026-08-15 evening)
+
+`measure_gates.py` ran NEXT_STEPS step 9's two gates against the
+human-curated concept sets (bench/concept_sets/<repo>.json, real vague
+intents, any-of-N accept, curated_bench matches() semantics), hit@5, all
+local. Reference column = `codeindex search` recorded on the SAME frozen
+fixtures (bench/results/curated-FROZEN-*.json):
+
+| repo | gate A: content-words + find | gate B: bge-base vs symbol names | shipped `search` |
+| --- | --- | --- | --- |
+| gin | 0.0% | 53.8% | 88.5% |
+| flask | 0.0% | 64.0% | 76.0% |
+| nest | 0.0% | 46.2% | 65.4% |
+| laravel | 0.0% | 61.5% | 76.9% |
+
+- Gate A is dead: find's lexical ladder cannot bridge intent -> name at all
+  (0% everywhere; consistent with the recorded find control on the
+  doc-derived concept class).
+- Gate B (the cheapest semantic lane: embed the query, embed tokenized
+  symbol names straight from graph.db, cosine top-5) lands 46-64% — real
+  signal, below the 80% bar.
+- The already-shipped hybrid (`codeindex search`: doc-context cards + graph
+  boosts + RRF fusion, local CPU llama) clears the gates' gap by +12 to +35
+  points on identical fixtures.
+
+Verdict: a distilled LLM for query formulation stays unjustified — but not
+because a cheap gate cleared 80%; because the shipped embedding+structure
+hybrid is the answer and it is already local, CPU-only, and model-free in
+the LLM sense. The pattern held one more time: structure + cheap glue. The
+residual where a model could still earn its keep narrows to: query
+REFORMULATION on top of search for the low repos (nest 65.4%), and the
+long-standing trust-vs-verify policy on ambiguous edges.
