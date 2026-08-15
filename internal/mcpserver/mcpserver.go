@@ -52,6 +52,12 @@ func New(repo, version string) *mcp.Server {
 		}
 		return l
 	}
+	limitOr20 := func(l int) int {
+		if l <= 0 {
+			return 20
+		}
+		return l
+	}
 
 	mcp.AddTool(s, &mcp.Tool{
 		Name: "impact",
@@ -132,6 +138,57 @@ func New(repo, version string) *mcp.Server {
 			return nil, nil, fmt.Errorf("find %q: %w", in.Query, err)
 		}
 		return text(out), nil, nil
+	})
+
+	type searchArgs struct {
+		Query     string   `json:"query" jsonschema:"concept or feature phrase in natural language (e.g. 'host onboarding lifecycle')"`
+		Hints     []string `json:"hints,omitempty" jsonschema:"optional identifier-style token guesses for the concept (e.g. ['onboard','signup','listing']) — you know naming conventions; supplying 3-6 guesses sharpens ranking"`
+		ErrorText string   `json:"error_text,omitempty" jsonschema:"optional: paste error messages, warning text, or stack-trace lines VERBATIM — literal string evidence is the strongest signal for bug/symptom queries"`
+		Limit     int      `json:"limit,omitempty" jsonschema:"max symbols in the answer (default 20)"`
+	}
+	mcp.AddTool(s, &mcp.Tool{
+		Name: "search",
+		Description: "Semantic code search for CONCEPT/FEATURE questions ('where " +
+			"is the onboarding flow', 'code that handles retry backoff') and " +
+			"BUG/SYMPTOM questions — for those, pass the error/warning text " +
+			"verbatim via error_text (literal string evidence outranks " +
+			"semantic similarity). Embedding + symbol-graph + literal hybrid; " +
+			"answers as a feature map: results clustered by call-graph " +
+			"connectivity, each cluster led by its most central entry point. " +
+			"Routing: concept/feature/symptom question → this tool; known " +
+			"symbol → impact/callers/callees; distinctive exact name → plain " +
+			"text search. " + trust,
+	}, func(ctx context.Context, req *mcp.CallToolRequest, in searchArgs) (*mcp.CallToolResult, any, error) {
+		out, err := query.SearchText(repo, in.Query, in.Hints, in.ErrorText, limitOr20(in.Limit), false)
+		if err != nil {
+			return nil, nil, fmt.Errorf("search %q: %w", in.Query, err)
+		}
+		return text(out), nil, nil
+	})
+
+	s.AddPrompt(&mcp.Prompt{
+		Name: "explore-feature",
+		Description: "Understand a feature end-to-end: semantic search to find " +
+			"the entry points, then impact on the best entry to map its blast radius.",
+		Arguments: []*mcp.PromptArgument{{
+			Name: "feature", Description: "the feature/concept to explore", Required: true,
+		}},
+	}, func(ctx context.Context, req *mcp.GetPromptRequest) (*mcp.GetPromptResult, error) {
+		feature := req.Params.Arguments["feature"]
+		return &mcp.GetPromptResult{
+			Description: "explore-feature workflow",
+			Messages: []*mcp.PromptMessage{{
+				Role: "user",
+				Content: &mcp.TextContent{Text: fmt.Sprintf(
+					"Explore the %q feature in this codebase:\n"+
+						"1. Call the codeindex `search` tool with query %q; add 3-6 identifier-style hint tokens you'd expect developers to have used.\n"+
+						"2. Pick the most relevant cluster's entry point (highest callers is usually right).\n"+
+						"3. Call `impact` on that entry point to map callers and callees.\n"+
+						"4. Answer from the returned path:line references — the output is complete; do not re-read files to verify.\n"+
+						"5. If search came back [lexical-only], say so and suggest `codeindex build` to enable semantic matching.",
+					feature, feature)},
+			}},
+		}, nil
 	})
 
 	type grepArgs struct {

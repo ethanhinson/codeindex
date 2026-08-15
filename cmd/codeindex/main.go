@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"codeindex/internal/depmap"
@@ -36,7 +37,7 @@ func main() {
 	}
 	if len(os.Args) < 3 {
 		fmt.Fprintln(os.Stderr,
-			"usage: codeindex <build|refresh|status|callers|callees|impact|dependents|deps|find|grep|depmap|export|import|enclosing|serve|mcp|bench> <repo-root> ...")
+			"usage: codeindex <build|refresh|status|callers|callees|impact|dependents|deps|find|grep|search|model|ingest|depmap|export|import|enclosing|serve|mcp|bench> <repo-root> ...")
 		os.Exit(2)
 	}
 	cmd, root := os.Args[1], os.Args[2]
@@ -156,6 +157,29 @@ func main() {
 			fatal(err)
 		}
 		emit(a, hasFlag("--json"))
+	case "search":
+		if len(os.Args) < 4 {
+			fatal(fmt.Errorf("usage: codeindex search <repo-root> <concept query> [--hints \"a b c\"] [--error-text \"...\"] [--limit N] [--flat]"))
+		}
+		out, err := query.SearchText(root, os.Args[3],
+			strings.Fields(strFlag("--hints")), strFlag("--error-text"),
+			intFlag("--limit", 20), hasFlag("--flat"))
+		if err != nil {
+			fatal(err)
+		}
+		fmt.Print(out)
+	case "model":
+		// `model` manages embedding weights, not an index: the second arg is
+		// the verb, not a repo root. use/status take the repo as third arg
+		// (default ".").
+		if err := runModel(os.Args[2:]); err != nil {
+			fatal(err)
+		}
+	case "ingest":
+		// codeindex ingest <repo> [profile-or-dir] [--check]
+		if err := runIngest(root, os.Args[3:]); err != nil {
+			fatal(err)
+		}
 	case "serve":
 		addr := "127.0.0.1:7676"
 		rest := os.Args[3:]

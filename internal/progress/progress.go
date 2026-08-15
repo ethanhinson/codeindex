@@ -17,7 +17,7 @@ import (
 // unknown (e.g. walking).
 type Event struct {
 	V     int    `json:"v"`
-	Phase string `json:"phase"` // walk | parse | write | resolve | done
+	Phase string `json:"phase"` // walk | parse | write | resolve | embed | done
 	Done  int    `json:"done"`
 	Total int    `json:"total"`
 }
@@ -140,6 +140,8 @@ func phaseVerb(p string) string {
 		return "writing"
 	case "resolve":
 		return "resolving"
+	case "embed":
+		return "embedding"
 	default:
 		return p
 	}

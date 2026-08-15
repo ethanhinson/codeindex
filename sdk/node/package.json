@@ -1,0 +1,8 @@
+{
+  "name": "@codeindex/agent",
+  "version": "0.1.0",
+  "description": "codeindex runtime-evidence agent: in-process CPU sampling (built-in V8 profiler) spooled as cxprof v1 for codeindex ingestion. Frames-only, fire-and-forget, kill switch via CODEINDEX_PROFILING=off.",
+  "main": "index.js",
+  "license": "MIT",
+  "engines": { "node": ">=18" }
+}

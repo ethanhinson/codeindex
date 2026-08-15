@@ -25,8 +25,13 @@ You need Go 1.24 or newer and a C toolchain (the tree-sitter and SQLite bindings
 ```sh
 git clone https://github.com/ethanhinson/codeindex.git
 cd codeindex
+./scripts/vendor-llama.sh   # one-time: builds the semantic-search inference engine (needs cmake)
 go build -o /usr/local/bin/codeindex ./cmd/codeindex
 ```
+
+To build without semantic search (no cmake, smaller binary), skip the vendor
+script and use `go build -tags nollama` — `search` then answers lexically and
+says so.
 
 Run the tests if you want to confirm the build:
 
@@ -68,6 +73,8 @@ codeindex dependents <repo> <anchor>      what depends on this file or package
 codeindex deps <repo> <anchor>            what this file or package depends on
 codeindex find <repo> <query>             symbol search (--kind, --path, --limit)
 codeindex grep <repo> <pattern>           pattern search over indexed symbols
+codeindex search <repo> "<concept>"       semantic concept search (--hints, --flat, --limit)
+codeindex model <pull|use|status>         manage embedding models (bundled default works offline)
 codeindex enclosing <repo> <file> <a>:<b> which symbol encloses these lines
 
 codeindex export <repo> <out.db>          compact index artifact for sharing
@@ -105,6 +112,50 @@ The full request/response contract — node and edge shapes, the `parent`
 disambiguator, and the versioning policy — is documented in
 [docs/graph-api.md](docs/graph-api.md).
 
+## Semantic search
+
+`codeindex search` answers concept and feature questions — "where does host
+onboarding live", "code that retries with backoff" — that symbol-name search
+cannot. It embeds every symbol's *card* (name tokens, signature, doc comment,
+path — contrast-weighted against the symbol's siblings so boilerplate
+families stay distinguishable), fuses vector similarity with the lexical
+`find` ladder, then lets the scores **diffuse over the call graph** at query
+time — the graph context no plain embedding index has. Results come back as
+a **feature map**: clusters over the diffused neighborhood, each led by its
+most central entry point.
+
+```sh
+codeindex search /path/to/repo "how are webhooks retried"
+codeindex search /path/to/repo "rate limiting" --hints "throttle limiter burst"
+```
+
+Everything runs locally on CPU: the inference engine (llama.cpp) is
+statically linked and a quantized embedding model (all-MiniLM-L6-v2, ~24 MB)
+is compiled into the binary — no downloads, no services, works air-gapped.
+The binary grows to ~48 MB as a result. Embedding happens during `build` and
+incrementally on save (only symbols whose card text changed); measured
+overhead is ~6–10 ms per symbol on the first build.
+
+Want a stronger model? Pull one into the cache and select it per repo:
+
+```sh
+codeindex model pull bge-small-en-v1.5-q8_0     # or any GGUF URL
+codeindex model use  bge-small-en-v1.5-q8_0 /path/to/repo
+codeindex build /path/to/repo                   # re-embeds under the new model
+```
+
+A hosted embedding API can be used instead via `.codeindex.json`:
+
+```json
+{ "embed": { "provider": "api", "model": "voyage-code-3", "api_key_env": "VOYAGE_API_KEY" } }
+```
+
+If embedding is unavailable (build tag `nollama`, corrupt model), `search`
+answers from the lexical lane and says so on its first line. Recall evidence:
+`bench/engine/FINDINGS-semantic-search.md` (the hybrid baseline) and
+`bench/engine/FINDINGS-diffusion-contrast.md` (diffusion + contrast gate,
+including one-shot held-out validation on prometheus/vscode/symfony).
+
 ## Using it with Claude Code
 
 The `plugin/` directory ships a Claude Code plugin with three pieces:
@@ -125,7 +176,7 @@ See `plugin/README.md` for details and the measurement history behind the design
 
 ## Using it with Cursor, VS Code, or Claude Desktop
 
-`codeindex mcp <repo>` serves `impact`, `callers`, and `callees` to any MCP client over stdio. The tool descriptions carry the usage guidance, so IDE agents pick up the discipline automatically.
+`codeindex mcp <repo>` serves `impact`, `callers`, `callees`, `dependents`, `find`, `grep`, and `search` to any MCP client over stdio, plus an `explore-feature` prompt that chains search → entry point → impact. The tool descriptions carry the usage guidance, so IDE agents pick up the discipline automatically. For clients that under-surface MCP prompts, copy the rules snippet from `docs/editor-rules-snippet.md` into `.cursor/rules`, `.github/copilot-instructions.md`, or `AGENTS.md`.
 
 Cursor (`.cursor/mcp.json` in the repo, or `~/.cursor/mcp.json` globally):
 

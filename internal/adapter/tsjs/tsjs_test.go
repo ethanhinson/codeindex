@@ -126,3 +126,34 @@ func TestJavaScriptAndTSX(t *testing.T) {
 		t.Errorf("tsx parse failed: %+v", pf)
 	}
 }
+
+// Abstract classes and enums are distinct tree-sitter node types; both must
+// index (the nest ModuleRef gap, FINDINGS-corpus-expansion).
+func TestAbstractClassAndEnum(t *testing.T) {
+	src := `
+export abstract class ModuleRef {
+  abstract get<T>(token: any): T;
+  resolve(): void {}
+}
+export enum Scope {
+  DEFAULT,
+  TRANSIENT,
+}
+`
+	pf := parse(t, "moduleref.ts", src)
+	byName := map[string]string{}
+	parents := map[string]string{}
+	for _, s := range pf.Symbols {
+		byName[s.Name] = string(s.Kind)
+		parents[s.Name] = s.Parent
+	}
+	if byName["ModuleRef"] != "type" {
+		t.Fatalf("abstract class not indexed as type: %v", byName)
+	}
+	if byName["Scope"] != "type" {
+		t.Fatalf("enum not indexed as type: %v", byName)
+	}
+	if parents["resolve"] != "ModuleRef" {
+		t.Fatalf("method parent inside abstract class = %q, want ModuleRef", parents["resolve"])
+	}
+}

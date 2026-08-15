@@ -45,3 +45,6 @@ bench/scout/*.jsonl
 bench/scout/judge_sample*.json
 bench/scout/__pycache__/
 bench/scout/.venv/
+
+# vendored llama.cpp (regenerate: scripts/vendor-llama.sh)
+/third_party/

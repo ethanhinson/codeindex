@@ -5,6 +5,7 @@
 package query
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,6 +15,7 @@ import (
 	"codeindex/internal/depmap"
 	"codeindex/internal/engine"
 	"codeindex/internal/graph"
+	codeindexruntime "codeindex/internal/runtime"
 	"codeindex/internal/search"
 )
 
@@ -95,7 +97,21 @@ func open(root string) (*graph.Store, error) {
 	if _, err := Fresh(root); err != nil {
 		return nil, err
 	}
-	return graph.Open(dbPath(root))
+	st, err := graph.Open(dbPath(root))
+	if err != nil {
+		return nil, err
+	}
+	// Runtime spool pickup rides the freshness contract: unseen profiles in
+	// .codeindex/runtime/ ingest before the query answers, exactly like
+	// changed files patch the index. Ledger-deduped, so the common case is
+	// a cheap directory scan.
+	mu.Lock()
+	_, ierr := codeindexruntime.IngestSpool(st, root)
+	mu.Unlock()
+	if ierr != nil {
+		fmt.Fprintf(os.Stderr, "codeindex: runtime spool ingestion: %v\n", ierr)
+	}
+	return st, nil
 }
 
 // Callers answers definitions + callers of an anchor ("name" or
@@ -485,8 +501,12 @@ func defRefs(defs []graph.Symbol) []DefRef {
 	for _, d := range defs {
 		out = append(out, DefRef{
 			Name: d.Name, Parent: d.Parent, QName: d.QName(), Kind: string(d.Kind),
-			File: d.File, Line: d.StartLine, Signature: d.Signature,
+			File: d.File, Line: d.StartLine, Signature: oneLine(d.Signature),
 		})
 	}
 	return out
 }
+
+// oneLine collapses whitespace runs (multi-line TS/PHP signatures) — the
+// output contract is one result per line.
+func oneLine(s string) string { return strings.Join(strings.Fields(s), " ") }

@@ -29,6 +29,7 @@ claude --plugin-dir /path/to/code-indexer/plugin
 | **Prompt note** (UserPromptSubmit hook) | Injects a ~155-token availability note per prompt in supported repos: the anchor rule + trust instruction. This is what drives adoption (measured: always-visible beats lazy skill). |
 | **Post-edit hook** | After the agent edits a function (any supported language) that has callers elsewhere, injects a ≤150-token note: symbol, caller count, where — once per symbol per session. |
 | **`/codeindex:impact <symbol>`** | Counts-first blast-radius summary (callers + callees) — run before modifying a symbol. |
+| **`/codeindex:explore <concept>`** | Feature exploration: semantic `search` feature map, then `impact` on the winning entry point. |
 
 (The v3 A/B gate measured the earlier skill + primitive-command apparatus as
 net-negative — ~3.1k-token footprint — so v4 deliberately ships without them.)
@@ -54,10 +55,16 @@ net-negative — ~3.1k-token footprint — so v4 deliberately ships without them
 
 ## MCP server (IDEs)
 
-`codeindex mcp <repo-root>` serves `impact`, `callers`, and `callees` over
-stdio to any MCP client. Tool descriptions carry the measured anchor rule and
-trust instruction, so IDE agents inherit the discipline automatically.
-Verified against a real client (Claude Code as MCP client).
+`codeindex mcp <repo-root>` serves `impact`, `callers`, `callees`,
+`dependents`, `find`, `grep`, and `search` over stdio to any MCP client, plus
+an `explore-feature` prompt (search → entry point → impact). Tool
+descriptions carry the measured anchor rule, the trust instruction, and the
+routing law (concept/feature question → `search`; known symbol →
+`impact`/`callers`; distinctive exact name → plain text search), so IDE
+agents inherit the discipline automatically. Verified against a real client
+(Claude Code as MCP client). For clients that under-surface MCP prompts,
+drop `docs/editor-rules-snippet.md` into `.cursor/rules` /
+`.github/copilot-instructions.md` / `AGENTS.md`.
 
 **Cursor** (`.cursor/mcp.json` in the repo, or global `~/.cursor/mcp.json`):
 

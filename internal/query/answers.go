@@ -7,6 +7,8 @@ package query
 import (
 	"fmt"
 	"strings"
+
+	"codeindex/internal/search"
 )
 
 // DefRef is a definition entry.
@@ -170,7 +172,13 @@ func (a *FindAnswer) Text() string {
 			r.QName, r.Kind, r.File, r.Line, callers, depTag(r.Dep, r.DepModified), r.Match)
 	}
 	if len(a.Results) == 0 {
-		fmt.Fprintf(&b, "  (no symbol matches — try plain grep for content search)\n")
+		// A multi-token miss is usually a concept/feature phrase, not a
+		// symbol name — route it to the tool that answers those.
+		if len(search.Tokenize(a.Query)) > 1 {
+			fmt.Fprintf(&b, "  (no symbol matches — this looks like a concept query; use `search` for feature/topic questions)\n")
+		} else {
+			fmt.Fprintf(&b, "  (no symbol matches — try plain grep for content search)\n")
+		}
 	}
 	return b.String()
 }

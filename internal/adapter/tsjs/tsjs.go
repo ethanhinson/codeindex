@@ -72,10 +72,17 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 			if name := n.ChildByFieldName("name"); name != nil {
 				spans = append(spans, common.Span(n, src, path, name.Content(src), "", graph.KindFunc, "body"))
 			}
-		case "class_declaration":
+		case "class_declaration", "abstract_class_declaration":
+			// abstract classes are a DISTINCT tree-sitter node type — missing
+			// them left symbols like nest's ModuleRef out of the graph
+			// entirely (found by curated-x2 authoring, FINDINGS-corpus-expansion).
 			if name := n.ChildByFieldName("name"); name != nil {
 				spans = append(spans, common.Span(n, src, path, name.Content(src), "", graph.KindType, "body"))
 				class = name.Content(src)
+			}
+		case "enum_declaration":
+			if name := n.ChildByFieldName("name"); name != nil {
+				spans = append(spans, common.Span(n, src, path, name.Content(src), "", graph.KindType, "body"))
 			}
 		case "extends_clause", "extends_type_clause":
 			// class A extends B / interface A extends B — identifier-ish children

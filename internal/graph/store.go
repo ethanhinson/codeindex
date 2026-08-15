@@ -35,7 +35,7 @@ type FileMeta struct {
 
 // schemaVersion is bumped on any schema change. The index is a derived
 // artifact: a version mismatch triggers delete-and-rebuild, not migration.
-const schemaVersion = 7 // v7: interned strings (strs + symbols_t/edges_t behind views)
+const schemaVersion = 9 // v9: observed runtime evidence (obs_edges/obs_heat/obs_meta/obs_ledger)
 
 // v7 interns repeated strings: symbols_t/edges_t hold integer references into
 // strs, while the `symbols` and `edges` VIEWs reconstruct the original TEXT
@@ -89,6 +89,25 @@ CREATE VIEW IF NOT EXISTS edges AS
   JOIN strs c ON c.id=t.confidence_id JOIN strs sf ON sf.id=t.src_file_id;
 CREATE TABLE IF NOT EXISTS merkle (
   path TEXT PRIMARY KEY, hash TEXT NOT NULL, size INTEGER NOT NULL, mtime INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS symvec (
+  symbol_id INTEGER PRIMARY KEY, hash TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_symvec_hash ON symvec(hash);
+CREATE TABLE IF NOT EXISTS vecs (
+  hash TEXT NOT NULL, model TEXT NOT NULL, vec BLOB NOT NULL, PRIMARY KEY(hash, model));
+CREATE TABLE IF NOT EXISTS vecmeta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS obs_edges (
+  src_key_id INTEGER NOT NULL, dst_key_id INTEGER NOT NULL,
+  weight INTEGER NOT NULL, indirect INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (src_key_id, dst_key_id, indirect));
+CREATE INDEX IF NOT EXISTS idx_obs_edges_dst ON obs_edges(dst_key_id);
+CREATE TABLE IF NOT EXISTS obs_heat (
+  key_id INTEGER PRIMARY KEY, leaf_samples INTEGER NOT NULL DEFAULT 0,
+  total_samples INTEGER NOT NULL DEFAULT 0, entry_samples INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE IF NOT EXISTS obs_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS obs_ledger (
+  path TEXT PRIMARY KEY, hash TEXT NOT NULL, ingested_at INTEGER NOT NULL,
+  lang TEXT, start INTEGER, end INTEGER, commit_id TEXT,
+  frames_total INTEGER NOT NULL DEFAULT 0, frames_resolved INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE IF NOT EXISTS sniffcache (
   path TEXT PRIMARY KEY, size INTEGER NOT NULL, mtime INTEGER NOT NULL, lang TEXT NOT NULL);
 `
@@ -994,6 +1013,13 @@ func (s *Store) RefreshMerkle(tx *sql.Tx, m FileMeta) error {
 func deleteFileGraph(tx *sql.Tx, path string) error {
 	if _, err := tx.Exec(
 		`DELETE FROM edges_t WHERE src_file_id=(SELECT id FROM strs WHERE s=?)`, path); err != nil {
+		return err
+	}
+	// Vector mappings die with their symbol rows (content-addressed vectors
+	// they pointed to are pruned at the end of the next build pass).
+	if _, err := tx.Exec(
+		`DELETE FROM symvec WHERE symbol_id IN
+		   (SELECT id FROM symbols_t WHERE file_id=(SELECT id FROM strs WHERE s=?))`, path); err != nil {
 		return err
 	}
 	_, err := tx.Exec(

@@ -27,6 +27,7 @@ type Stats struct {
 	FilesParsed int
 	Symbols     int
 	Deleted     int
+	Embedded    int // cards embedded this pass (cache misses only)
 }
 
 // parseAll parses the given files concurrently using a worker pool; done, if
@@ -144,6 +145,11 @@ func BuildWithProgress(root, dbPath string, rep progress.Reporter) (Stats, error
 		return Stats{}, err
 	}
 	if err := tx2.Commit(); err != nil {
+		return Stats{}, err
+	}
+	// Embedding runs after resolution so cards see final caller/callee edges.
+	st.Embedded, err = EmbedPass(store, root, nil, rep)
+	if err != nil {
 		return Stats{}, err
 	}
 	side.FinishCounts(st.FilesParsed, st.Symbols)
@@ -304,6 +310,20 @@ func PatchWithProgress(root, dbPath string, rep progress.Reporter) (Stats, error
 	}
 	if err := tx.Commit(); err != nil {
 		return Stats{}, err
+	}
+	// Re-embed only symbols from re-parsed files: their mappings died with
+	// PutFile's delete, and unchanged card text re-attaches via the
+	// content-addressed cache without touching the model. No changed files =
+	// no provider load — the per-query patch path stays cheap.
+	if len(ch.Changed) > 0 {
+		changedPaths := make([]string, len(ch.Changed))
+		for i, w := range ch.Changed {
+			changedPaths[i] = w.Meta.Path
+		}
+		st.Embedded, err = EmbedPass(store, root, changedPaths, rep)
+		if err != nil {
+			return Stats{}, err
+		}
 	}
 	side.FinishCounts(st.FilesParsed, st.Symbols)
 	return st, nil
