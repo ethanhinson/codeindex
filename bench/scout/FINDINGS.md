@@ -227,3 +227,33 @@ vague intent), multi-hop trajectories, and trust-vs-verify on ambiguous edges.
 Caveat that still stands: the symbol is extracted from the task id (all arms
 equally). Real tasks hand you an intent, not a symbol — that gate (noun-phrase
 + fuzzy find, bge similarity) is the next measurement.
+
+## Cross-language stress through the JSON path: Go == PHP == TS (2026-08-15 evening)
+
+The union pipeline (`--over-retrieve`) ran unchanged on laravel-framework
+(PHP, tasks_lphp n=24) and a freshly generated nest task set (TS,
+tasks_nest.json n=24, same build_tasks.py recipe as lphp):
+
+| Language / repo | success | F1 | comprehension F1 (non-circular gt) |
+| --- | --- | --- | --- |
+| Go (gin+prometheus, n=20) | 100% | 0.95 | 0.85 |
+| PHP (laravel, n=24) | 100% | 0.95 | 0.86 |
+| TS (nest, n=24) | 100% | 0.98 | 0.93 |
+
+ZERO schema breaks: no parser or JSON change was needed for either language.
+The one fix the PHP run forced was formatter POLICY, not parsing: laravel's
+`resource` has three exact-name owners (Gate, RouteRegistrar, Router) and the
+old top-def-only rule picked the wrong one (def_f1 0). fmt_union now emits
+EVERY match=="exact" result under DEFINITIONS (falling back to the top hit) —
+which also lifted Go comprehension 0.82 -> 0.85. Old caveat 2 (gin-tuned
+regex, "WILL break on format drift") is fully retired.
+
+Ground-truth provenance, stated honestly: occurrences / caller_attribution /
+edit_impact gt is INDEX-DERIVED (SQL over graph.db unambiguous edges — true
+for tasks_v6/lphp/nest alike), so arm C's ~1.0 there measures index-readback,
+not discovery; a broken-but-self-consistent index would still score. The
+non-circular anchors are (a) comprehension, whose gt is ripgrep and where the
+union answer scores 0.85-0.93, and (b) the v10 A/B, where an agent WITHOUT
+the index independently converged to the same caller answers. Residual F1
+gap on comprehension is index scope, not wrongness: gt counts references in
+CHANGELOG.md/README.md/config files the call-graph index does not cover.

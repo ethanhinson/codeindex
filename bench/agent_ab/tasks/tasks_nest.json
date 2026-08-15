@@ -1,0 +1,596 @@
+{
+  "header": {
+    "generated_seed": 1729,
+    "repo_pins": {
+      "nest": {
+        "slug": "nestjs/nest",
+        "commit": "v10.4.15"
+      }
+    },
+    "thresholds": {
+      "metric": "median paired reduction in total_cost_usd",
+      "green": "savings >= 30% AND success_delta >= -5pp AND adoption >= 70%",
+      "yellow": "savings 10-30%, OR adoption 40-70% with per-protocol savings >= 30%",
+      "red": "savings < 10% (ITT), OR success_delta < -5pp, OR adoption < 40% with per-protocol savings < 30%"
+    },
+    "v3_gate": null,
+    "v6_gate": null,
+    "n_tasks": 24,
+    "by_type": {
+      "comprehension": 6,
+      "localization": 0,
+      "caller_attribution": 0,
+      "edit_impact": 6,
+      "vague_find": 6,
+      "occurrences": 6
+    },
+    "note": "Prompts contain the literal {REPO_PATH}; the runner substitutes the resolved absolute clone path. Ground truth is arm-neutral (ripgrep / merged-PR files)."
+  },
+  "tasks": [
+    {
+      "id": "comp-nest-RequestFilter",
+      "type": "comprehension",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH}, where is 'RequestFilter' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'RequestFilter'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "integration/websockets/src/request.filter.ts:5"
+        ],
+        "files": [
+          "integration/websockets/src/app.gateway.ts",
+          "integration/websockets/src/request.filter.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "RequestFilter",
+        "n_defs": 1,
+        "n_files": 2,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-nest-InterceptorsContextCreator",
+      "type": "comprehension",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH}, where is 'InterceptorsContextCreator' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'InterceptorsContextCreator'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "packages/core/interceptors/interceptors-context-creator.ts:11"
+        ],
+        "files": [
+          "packages/core/helpers/external-context-creator.ts",
+          "packages/core/interceptors/interceptors-context-creator.ts",
+          "packages/core/router/router-execution-context.ts",
+          "packages/core/router/router-explorer.ts",
+          "packages/core/test/helpers/external-context-creator.spec.ts",
+          "packages/core/test/interceptors/interceptors-context-creator.spec.ts",
+          "packages/core/test/router/router-execution-context.spec.ts",
+          "packages/microservices/context/rpc-context-creator.ts",
+          "packages/microservices/microservices-module.ts",
+          "packages/microservices/test/context/rpc-context-creator.spec.ts",
+          "packages/websockets/context/ws-context-creator.ts",
+          "packages/websockets/socket-module.ts",
+          "packages/websockets/test/context/ws-context-creator.spec.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "InterceptorsContextCreator",
+        "n_defs": 1,
+        "n_files": 13,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-nest-InvalidSocketPortException",
+      "type": "comprehension",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH}, where is 'InvalidSocketPortException' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'InvalidSocketPortException'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "packages/websockets/errors/invalid-socket-port.exception.ts:3"
+        ],
+        "files": [
+          "packages/websockets/errors/invalid-socket-port.exception.ts",
+          "packages/websockets/test/web-sockets-controller.spec.ts",
+          "packages/websockets/web-sockets-controller.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "InvalidSocketPortException",
+        "n_defs": 1,
+        "n_files": 3,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "comp-nest-MetadataScanner",
+      "type": "comprehension",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH}, where is 'MetadataScanner' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'MetadataScanner'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "packages/core/metadata-scanner.ts:8"
+        ],
+        "files": [
+          "integration/discovery/src/webhooks.explorer.ts",
+          "packages/core/discovery/discovery-module.ts",
+          "packages/core/metadata-scanner.ts",
+          "packages/core/middleware/routes-mapper.ts",
+          "packages/core/nest-factory.ts",
+          "packages/core/repl/native-functions/methods-repl-fn.ts",
+          "packages/core/router/paths-explorer.ts",
+          "packages/core/router/router-explorer.ts",
+          "packages/core/router/routes-resolver.ts",
+          "packages/core/scanner.ts",
+          "packages/core/test/injector/lazy-module-loader/lazy-module-loader.spec.ts",
+          "packages/core/test/metadata-scanner.spec.ts",
+          "packages/core/test/router/paths-explorer.spec.ts",
+          "packages/core/test/router/router-explorer.spec.ts",
+          "packages/core/test/scanner.spec.ts",
+          "packages/microservices/listener-metadata-explorer.ts",
+          "packages/microservices/listeners-controller.ts",
+          "packages/microservices/test/listeners-controller.spec.ts",
+          "packages/microservices/test/listeners-metadata-explorer.spec.ts",
+          "packages/testing/test.ts",
+          "packages/testing/testing-module.builder.ts",
+          "packages/websockets/gateway-metadata-explorer.ts",
+          "packages/websockets/test/gateway-metadata-explorer.spec.ts",
+          "packages/websockets/test/web-sockets-controller.spec.ts",
+          "packages/websockets/web-sockets-controller.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "MetadataScanner",
+        "n_defs": 1,
+        "n_files": 25,
+        "bucket": "hot"
+      }
+    },
+    {
+      "id": "comp-nest-TestInjectable",
+      "type": "comprehension",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH}, where is 'TestInjectable' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'TestInjectable'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "integration/hooks/e2e/before-app-shutdown.spec.ts:7",
+          "integration/hooks/e2e/lifecycle-hook-order.spec.ts:13",
+          "integration/hooks/e2e/on-app-boostrap.spec.ts:7",
+          "integration/hooks/e2e/on-app-shutdown.spec.ts:7",
+          "integration/hooks/e2e/on-module-destroy.spec.ts:7",
+          "integration/hooks/e2e/on-module-init.spec.ts:7",
+          "integration/hooks/src/enable-shutdown-hooks-main.ts:12"
+        ],
+        "files": [
+          "integration/hooks/e2e/before-app-shutdown.spec.ts",
+          "integration/hooks/e2e/lifecycle-hook-order.spec.ts",
+          "integration/hooks/e2e/on-app-boostrap.spec.ts",
+          "integration/hooks/e2e/on-app-shutdown.spec.ts",
+          "integration/hooks/e2e/on-module-destroy.spec.ts",
+          "integration/hooks/e2e/on-module-init.spec.ts",
+          "integration/hooks/src/enable-shutdown-hooks-main.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "TestInjectable",
+        "n_defs": 7,
+        "n_files": 7,
+        "bucket": "hot"
+      }
+    },
+    {
+      "id": "comp-nest-AudioController",
+      "type": "comprehension",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH}, where is 'AudioController' defined? Give every definition as file:line. Then list every file (path relative to the repo root) that references 'AudioController'. Answer with a 'DEFINITIONS:' section of file:line entries and a 'FILES:' section of repo-relative paths, nothing else. Base every claim on evidence from the repository \u2014 do not answer from memory.",
+      "ground_truth": {
+        "definitions": [
+          "sample/26-queues/src/audio/audio.controller.ts:6"
+        ],
+        "files": [
+          "sample/26-queues/src/audio/audio.controller.ts",
+          "sample/26-queues/src/audio/audio.module.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "AudioController",
+        "n_defs": 1,
+        "n_files": 2,
+        "bucket": "clean"
+      }
+    },
+    {
+      "id": "vague-nest-RouterExceptionFilters",
+      "type": "vague_find",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"router exception\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "RouterExceptionFilters",
+        "definition": "packages/core/router/router-exception-filters.ts:14"
+      },
+      "meta": {
+        "symbol": "RouterExceptionFilters",
+        "hint": "router exception"
+      }
+    },
+    {
+      "id": "vague-nest-isRequestMethodAll",
+      "type": "vague_find",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"is method request\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "isRequestMethodAll",
+        "definition": "packages/core/router/utils/exclude-route.util.ts:5"
+      },
+      "meta": {
+        "symbol": "isRequestMethodAll",
+        "hint": "is method request"
+      }
+    },
+    {
+      "id": "vague-nest-ParseFilePipeBuilder",
+      "type": "vague_find",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"parse builder pipe\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "ParseFilePipeBuilder",
+        "definition": "packages/common/pipes/file/parse-file-pipe.builder.ts:16"
+      },
+      "meta": {
+        "symbol": "ParseFilePipeBuilder",
+        "hint": "parse builder pipe"
+      }
+    },
+    {
+      "id": "vague-nest-RouteParamsFactory",
+      "type": "vague_find",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"factory route\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "RouteParamsFactory",
+        "definition": "packages/core/router/route-params-factory.ts:4"
+      },
+      "meta": {
+        "symbol": "RouteParamsFactory",
+        "hint": "factory route"
+      }
+    },
+    {
+      "id": "vague-nest-PreconditionFailedException",
+      "type": "vague_find",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"failed precondition\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "PreconditionFailedException",
+        "definition": "packages/common/exceptions/precondition-failed.exception.ts:11"
+      },
+      "meta": {
+        "symbol": "PreconditionFailedException",
+        "hint": "failed precondition"
+      }
+    },
+    {
+      "id": "vague-nest-registerLoggerConfiguration",
+      "type": "vague_find",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH} there is a symbol whose name means roughly: \"configuration register\" (tokens may be reordered, incomplete, or use a synonym; naming convention unknown). Identify the exact symbol. Answer with 'NAME: <exactSymbolName>' and 'DEFINITION: <file>:<line>' on two lines, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "name": "registerLoggerConfiguration",
+        "definition": "packages/core/nest-factory.ts:284"
+      },
+      "meta": {
+        "symbol": "registerLoggerConfiguration",
+        "hint": "configuration register"
+      }
+    },
+    {
+      "id": "occur-nest-getClassScope",
+      "type": "occurrences",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'getClassScope' (exact name; not similarly-named functions, not the definition itself). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "addController\tpackages/core/injector/module.ts",
+          "addCustomClass\tpackages/core/injector/module.ts",
+          "addInjectable\tpackages/core/injector/module.ts",
+          "addProvider\tpackages/core/injector/module.ts",
+          "insertMiddleware\tpackages/core/middleware/container.ts",
+          "insertProvider\tpackages/core/scanner.ts",
+          "instantiateClass\tpackages/core/injector/module-ref.ts",
+          "isTransientProvider\tpackages/core/injector/module.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "getClassScope",
+        "n_callers": 8
+      }
+    },
+    {
+      "id": "occur-nest-switchToHttp",
+      "type": "occurrences",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'switchToHttp' (exact name; not similarly-named functions, not the definition itself). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "canActivate\tintegration/inspector/src/common/guards/roles.guard.ts",
+          "canActivate\tsample/01-cats-app/src/common/guards/roles.guard.ts",
+          "canActivate\tsample/10-fastify/src/common/guards/roles.guard.ts",
+          "canActivate\tsample/19-auth-jwt/src/auth/auth.guard.ts",
+          "catch\tintegration/inspector/src/common/filters/http-exception.filter.ts",
+          "catch\tsample/01-cats-app/src/common/filters/http-exception.filter.ts",
+          "intercept\tintegration/hello-world/e2e/interceptors.spec.ts",
+          "intercept\tpackages/platform-express/multer/interceptors/any-files.interceptor.ts",
+          "intercept\tpackages/platform-express/multer/interceptors/file-fields.interceptor.ts",
+          "intercept\tpackages/platform-express/multer/interceptors/file.interceptor.ts",
+          "intercept\tpackages/platform-express/multer/interceptors/files.interceptor.ts",
+          "intercept\tpackages/platform-express/multer/interceptors/no-files.interceptor.ts",
+          "trackBy\tsample/20-cache/src/common/http-cache.interceptor.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "switchToHttp",
+        "n_callers": 13
+      }
+    },
+    {
+      "id": "occur-nest-Version",
+      "type": "occurrences",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'Version' (exact name; not similarly-named functions, not the definition itself). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "AppV2Controller\tintegration/inspector/src/app-v2.controller.ts",
+          "MiddlewareController\tintegration/versioning/src/middleware.controller.ts",
+          "OverrideController\tintegration/versioning/src/override.controller.ts",
+          "OverridePartialController\tintegration/versioning/src/override-partial.controller.ts",
+          "Test\tpackages/common/test/decorators/version.decorator.spec.ts",
+          "Test\tpackages/core/test/middleware/builder.spec.ts",
+          "TestController\tintegration/hello-world/e2e/middleware-with-versioning.spec.ts",
+          "TestRoute\tpackages/core/test/middleware/routes-mapper.spec.ts",
+          "VersionedController\tpackages/core/test/middleware/routes-mapper.spec.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "Version",
+        "n_callers": 9
+      }
+    },
+    {
+      "id": "occur-nest-HostParam",
+      "type": "occurrences",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'HostParam' (exact name; not similarly-named functions, not the definition itself). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "asyncGreeting\tintegration/hello-world/src/host-array/host-array.controller.ts",
+          "asyncGreeting\tintegration/hello-world/src/host/host.controller.ts",
+          "greeting\tintegration/hello-world/src/host-array/host-array.controller.ts",
+          "greeting\tintegration/hello-world/src/host/host.controller.ts",
+          "localPipe\tintegration/hello-world/src/host-array/host-array.controller.ts",
+          "localPipe\tintegration/hello-world/src/host/host.controller.ts",
+          "streamGreeting\tintegration/hello-world/src/host-array/host-array.controller.ts",
+          "streamGreeting\tintegration/hello-world/src/host/host.controller.ts",
+          "test\tpackages/common/test/decorators/route-params.decorator.spec.ts",
+          "testUsingArray\tpackages/common/test/decorators/route-params.decorator.spec.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "HostParam",
+        "n_callers": 10
+      }
+    },
+    {
+      "id": "occur-nest-Query",
+      "type": "occurrences",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'Query' (exact name; not similarly-named functions, not the definition itself). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "CatsResolver\tsample/12-graphql-schema-first/src/cats/cats.resolver.ts",
+          "CatsResolvers\tintegration/graphql-schema-first/src/cats/cats.resolvers.ts",
+          "PostsResolver\tsample/31-graphql-federation-code-first/posts-application/src/posts/posts.resolver.ts",
+          "PostsResolver\tsample/32-graphql-federation-schema-first/posts-application/src/posts/posts.resolver.ts",
+          "PostsResolvers\tsample/22-graphql-prisma/src/posts/posts.resolvers.ts",
+          "RecipesResolver\tintegration/graphql-code-first/src/recipes/recipes.resolver.ts",
+          "RecipesResolver\tsample/23-graphql-code-first/src/recipes/recipes.resolver.ts",
+          "RecipesResolver\tsample/33-graphql-mercurius/src/recipes/recipes.resolver.ts",
+          "UsersResolver\tsample/31-graphql-federation-code-first/users-application/src/users/users.resolver.ts",
+          "UsersResolver\tsample/32-graphql-federation-schema-first/users-application/src/users/users.resolver.ts",
+          "[QUERY_VALUE]\tintegration/hello-world/e2e/middleware-fastify.spec.ts",
+          "call\tintegration/microservices/src/app.controller.ts",
+          "call\tintegration/microservices/src/mqtt/mqtt.controller.ts",
+          "call\tintegration/microservices/src/nats/nats.controller.ts",
+          "call\tintegration/microservices/src/redis/redis.controller.ts",
+          "call\tintegration/microservices/src/rmq/rmq.controller.ts",
+          "call\tintegration/microservices/src/tcp-tls/app.controller.ts",
+          "callWithClientUseClass\tintegration/microservices/src/app.controller.ts",
+          "callWithClientUseClass\tintegration/microservices/src/tcp-tls/app.controller.ts",
+          "callWithClientUseFactory\tintegration/microservices/src/app.controller.ts",
+          "callWithClientUseFactory\tintegration/microservices/src/tcp-tls/app.controller.ts",
+          "serializeError\tintegration/microservices/src/app.controller.ts",
+          "serializeError\tintegration/microservices/src/grpc/grpc.controller.ts",
+          "serializeError\tintegration/microservices/src/tcp-tls/app.controller.ts",
+          "test\tpackages/common/test/decorators/route-params.decorator.spec.ts",
+          "testUsingArray\tpackages/common/test/decorators/route-params.decorator.spec.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "Query",
+        "n_callers": 26
+      }
+    },
+    {
+      "id": "occur-nest-isEmpty",
+      "type": "occurrences",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'isEmpty' (exact name; not similarly-named functions, not the definition itself). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "create\tpackages/core/exceptions/external-exception-filter-context.ts",
+          "create\tpackages/core/router/router-exception-filters.ts",
+          "create\tpackages/microservices/context/exception-filters-context.ts",
+          "create\tpackages/websockets/context/exception-filters-context.ts",
+          "createConcreteContext\tpackages/core/exceptions/base-exception-filter-context.ts",
+          "createConcreteContext\tpackages/core/guards/guards-context-creator.ts",
+          "createConcreteContext\tpackages/core/interceptors/interceptors-context-creator.ts",
+          "createConcreteContext\tpackages/core/pipes/pipes-context-creator.ts",
+          "enableShutdownHooks\tpackages/core/nest-application-context.ts",
+          "getAllAndMerge\tpackages/core/services/reflector.service.ts",
+          "getMetadata\tpackages/core/router/router-execution-context.ts",
+          "getParamValue\tpackages/core/helpers/external-context-creator.ts",
+          "getParamValue\tpackages/core/router/router-execution-context.ts",
+          "getParamValue\tpackages/microservices/context/rpc-context-creator.ts",
+          "getParamValue\tpackages/websockets/context/ws-context-creator.ts",
+          "intercept\tpackages/core/interceptors/interceptors-consumer.ts",
+          "invokeCustomFilters\tpackages/core/exceptions/exceptions-handler.ts",
+          "invokeCustomFilters\tpackages/core/exceptions/external-exceptions-handler.ts",
+          "invokeCustomFilters\tpackages/microservices/exceptions/rpc-exceptions-handler.ts",
+          "invokeCustomFilters\tpackages/websockets/exceptions/ws-exceptions-handler.ts",
+          "thereAreNoFilesIn\tpackages/common/pipes/file/parse-file.pipe.ts",
+          "tryActivate\tpackages/core/guards/guards-consumer.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "isEmpty",
+        "n_callers": 22
+      }
+    },
+    {
+      "id": "editimp-nest-getIoAdapter",
+      "type": "edit_impact",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'getIoAdapter': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'getIoAdapter' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "close\tpackages/websockets/socket-module.ts",
+          "createSocketServer\tpackages/websockets/socket-server-provider.ts",
+          "getConnectionHandler\tpackages/websockets/web-sockets-controller.ts",
+          "getServerOfNamespace\tpackages/websockets/socket-server-provider.ts",
+          "initializeAdapter\tpackages/websockets/socket-module.ts",
+          "subscribeEvents\tpackages/websockets/web-sockets-controller.ts",
+          "subscribeMessages\tpackages/websockets/web-sockets-controller.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "getIoAdapter",
+        "n_callers": 7
+      }
+    },
+    {
+      "id": "editimp-nest-HostParam",
+      "type": "edit_impact",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'HostParam': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'HostParam' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "asyncGreeting\tintegration/hello-world/src/host-array/host-array.controller.ts",
+          "asyncGreeting\tintegration/hello-world/src/host/host.controller.ts",
+          "greeting\tintegration/hello-world/src/host-array/host-array.controller.ts",
+          "greeting\tintegration/hello-world/src/host/host.controller.ts",
+          "localPipe\tintegration/hello-world/src/host-array/host-array.controller.ts",
+          "localPipe\tintegration/hello-world/src/host/host.controller.ts",
+          "streamGreeting\tintegration/hello-world/src/host-array/host-array.controller.ts",
+          "streamGreeting\tintegration/hello-world/src/host/host.controller.ts",
+          "test\tpackages/common/test/decorators/route-params.decorator.spec.ts",
+          "testUsingArray\tpackages/common/test/decorators/route-params.decorator.spec.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "HostParam",
+        "n_callers": 10
+      }
+    },
+    {
+      "id": "editimp-nest-isDurable",
+      "type": "edit_impact",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'isDurable': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'isDurable' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "addController\tpackages/core/injector/module.ts",
+          "addCustomClass\tpackages/core/injector/module.ts",
+          "addInjectable\tpackages/core/injector/module.ts",
+          "addProvider\tpackages/core/injector/module.ts",
+          "insertMiddleware\tpackages/core/middleware/container.ts",
+          "instantiateClass\tpackages/core/injector/module-ref.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "isDurable",
+        "n_callers": 6
+      }
+    },
+    {
+      "id": "editimp-nest-isSymbol",
+      "type": "edit_impact",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'isSymbol': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'isSymbol' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "EventPattern\tpackages/microservices/decorators/event-pattern.decorator.ts",
+          "MessagePattern\tpackages/microservices/decorators/message-pattern.decorator.ts",
+          "UNKNOWN_EXPORT_MESSAGE\tpackages/core/errors/messages.ts",
+          "addCustomExportedProvider\tpackages/core/injector/module.ts",
+          "addDependencyMetadata\tpackages/core/injector/injector.ts",
+          "addExportedProvider\tpackages/core/injector/module.ts",
+          "getDependencyName\tpackages/core/errors/messages.ts",
+          "replacer\tpackages/core/injector/module-token-factory.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "isSymbol",
+        "n_callers": 8
+      }
+    },
+    {
+      "id": "editimp-nest-SubscribeMessage",
+      "type": "edit_impact",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'SubscribeMessage': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'SubscribeMessage' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "AckGateway\tintegration/websockets/src/ack.gateway.ts",
+          "ApplicationGateway\tintegration/websockets/src/app.gateway.ts",
+          "ChatGateway\tintegration/inspector/src/chat/chat.gateway.ts",
+          "CoreGateway\tintegration/websockets/src/core.gateway.ts",
+          "ErrorGateway\tintegration/websockets/src/error.gateway.ts",
+          "EventsGateway\tsample/02-gateways/src/events/events.gateway.ts",
+          "EventsGateway\tsample/16-gateways-ws/src/events/events.gateway.ts",
+          "ExamplePathGateway\tintegration/websockets/src/example-path.gateway.ts",
+          "NamespaceGateway\tintegration/websockets/src/namespace.gateway.ts",
+          "ServerGateway\tintegration/websockets/src/server.gateway.ts",
+          "Test\tpackages/websockets/test/gateway-metadata-explorer.spec.ts",
+          "TestGateway\tpackages/websockets/test/utils/subscribe-message.decorator.spec.ts",
+          "WsPathGateway\tintegration/websockets/src/ws-path.gateway.ts",
+          "WsPathGateway2\tintegration/websockets/src/ws-path2.gateway.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "SubscribeMessage",
+        "n_callers": 14
+      }
+    },
+    {
+      "id": "editimp-nest-createTestingModule",
+      "type": "edit_impact",
+      "repo": "nest",
+      "prompt": "In the repository at {REPO_PATH}, add this comment line as the FIRST line inside the body of function 'createTestingModule': '// audited for error handling'. Make that one edit. Then determine which functions are affected by changes to 'createTestingModule' (i.e. every function or method that CALLS it) so a reviewer knows what to re-test. Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else. Base every entry on evidence from the code.",
+      "ground_truth": {
+        "caller_pairs": [
+          "createApp\tintegration/hello-world/e2e/middleware.spec.ts",
+          "createAppWithVersioning\tintegration/hello-world/e2e/middleware-with-versioning.spec.ts",
+          "createNestApp\tintegration/websockets/e2e/gateway-ack.spec.ts",
+          "createNestApp\tintegration/websockets/e2e/gateway.spec.ts",
+          "createNestApp\tintegration/websockets/e2e/ws-gateway.spec.ts",
+          "createTestModule\tintegration/hello-world/e2e/guards.spec.ts",
+          "createTestModule\tintegration/hello-world/e2e/interceptors.spec.ts",
+          "startServer\tintegration/microservices/e2e/concurrent-kafka.spec.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "createTestingModule",
+        "n_callers": 8
+      }
+    }
+  ]
+}

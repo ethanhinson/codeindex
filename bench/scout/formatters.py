@@ -137,7 +137,11 @@ def fmt_union(raw_callers: str, raw_find: str, raw_grep: str) -> str:
         top = results[0]
         parts.append(f"{top['qname']} {top['file']}:{top['line']}")
         parts += [f"{r['qname']} {r['kind']} {r['file']}:{r['line']}" for r in results]
-        parts += ["DEFINITIONS:", f"{top['file']}:{top['line']}"]
+        # "where is X defined" wants EVERY definition: all exact-name matches
+        # (same bare name, different owners), not just the ranked winner.
+        exact = [r for r in results if r.get("match") == "exact"]
+        parts += ["DEFINITIONS:"]
+        parts += [f"{r['file']}:{r['line']}" for r in (exact or [top])]
     else:
         parts.append("DEFINITIONS:")
         for d in (callers or {}).get("definitions", []):
