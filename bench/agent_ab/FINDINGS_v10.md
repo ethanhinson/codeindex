@@ -6,7 +6,7 @@
 
 Prior A/B evidence (v1–v9) established the codeindex routing signal — structural
 tasks (caller-attribution, occurrences) win big with the index; comprehension/locate
-do not — but almost entirely on **Go** repos, plus one private Drupal-PHP corpus. The
+do not — but almost entirely on **Go** repos, plus one non-public PHP corpus. The
 open question driving a possible "Navigator" policy model was: **is the routing signal
 structural (a property of the task type) or memorized (a property of the tuning repos)?**
 If it holds across a language boundary where static call resolution is genuinely harder
