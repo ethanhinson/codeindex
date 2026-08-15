@@ -78,7 +78,12 @@ codeindex serve <repo> [--addr host:port] headless JSON graph API (default 127.0
 codeindex bench <repo> [out.json]         throughput benchmark and incremental-vs-full check
 ```
 
-Most query commands take `--limit N` (default 50).
+Most query commands take `--limit N` (default 50). All query commands
+(`callers`, `callees`, `impact`, `dependents`, `deps`, `find`, `grep`,
+`enclosing`) also take `--json` for structured machine output: the same answer
+as the text format, with full-count fields (`callers_total` vs the limited
+list) and explicit `ambiguous` flags, so downstream tools parse a schema
+instead of scraping text.
 
 ## Graph API: query the symbol graph over HTTP
 

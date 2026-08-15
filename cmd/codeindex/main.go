@@ -85,47 +85,38 @@ func main() {
 		}
 	case "query", "callers":
 		if len(os.Args) < 4 {
-			fatal(fmt.Errorf("usage: codeindex %s <repo-root> <symbol> [--limit N]", cmd))
+			fatal(fmt.Errorf("usage: codeindex %s <repo-root> <symbol> [--limit N] [--json]", cmd))
 		}
-		limit := 50
-		if len(os.Args) >= 6 && os.Args[4] == "--limit" {
-			fmt.Sscanf(os.Args[5], "%d", &limit)
-		}
-		if err := runQuery(root, os.Args[3], limit); err != nil {
+		a, err := query.Callers(root, os.Args[3], intFlag("--limit", 50))
+		if err != nil {
 			fatal(err)
 		}
+		emit(a, hasFlag("--json"))
 	case "impact":
 		if len(os.Args) < 4 {
-			fatal(fmt.Errorf("usage: codeindex impact <repo-root> <symbol> [--limit N]"))
+			fatal(fmt.Errorf("usage: codeindex impact <repo-root> <symbol> [--limit N] [--json]"))
 		}
-		limit := 50
-		for i := 4; i < len(os.Args)-1; i++ {
-			if os.Args[i] == "--limit" {
-				fmt.Sscanf(os.Args[i+1], "%d", &limit)
-			}
-		}
-		if err := runImpact(root, os.Args[3], limit); err != nil {
+		a, err := query.Impact(root, os.Args[3], intFlag("--limit", 50))
+		if err != nil {
 			fatal(err)
 		}
+		emit(a, hasFlag("--json"))
 	case "dependents", "deps":
 		if len(os.Args) < 4 {
-			fatal(fmt.Errorf("usage: codeindex %s <repo-root> <anchor> [--limit N]", cmd))
+			fatal(fmt.Errorf("usage: codeindex %s <repo-root> <anchor> [--limit N] [--json]", cmd))
 		}
-		limit := 50
-		if len(os.Args) >= 6 && os.Args[4] == "--limit" {
-			fmt.Sscanf(os.Args[5], "%d", &limit)
-		}
-		var out string
+		limit := intFlag("--limit", 50)
+		var a answer
 		var err error
 		if cmd == "dependents" {
-			out, err = query.DependentsText(root, os.Args[3], limit)
+			a, err = query.Dependents(root, os.Args[3], limit)
 		} else {
-			out, err = query.DepsText(root, os.Args[3], limit)
+			a, err = query.Deps(root, os.Args[3], limit)
 		}
 		if err != nil {
 			fatal(err)
 		}
-		fmt.Print(out)
+		emit(a, hasFlag("--json"))
 	case "depmap":
 		// codeindex depmap <dir> --namespace <ns> --version <v> -o <out.db>
 		var ns, ver, out string
@@ -149,38 +140,22 @@ func main() {
 		fmt.Printf("depmap %s@%s: %d files, %d symbols -> %s\n", ns, ver, nf, nsym, out)
 	case "find":
 		if len(os.Args) < 4 {
-			fatal(fmt.Errorf("usage: codeindex find <repo-root> <query> [--kind k] [--path p] [--limit N]"))
+			fatal(fmt.Errorf("usage: codeindex find <repo-root> <query> [--kind k] [--path p] [--limit N] [--json]"))
 		}
-		kind, path := "", ""
-		limit := 20
-		for i := 4; i < len(os.Args)-1; i++ {
-			switch os.Args[i] {
-			case "--kind":
-				kind = os.Args[i+1]
-			case "--path":
-				path = os.Args[i+1]
-			case "--limit":
-				fmt.Sscanf(os.Args[i+1], "%d", &limit)
-			}
-		}
-		out, err := query.FindText(root, os.Args[3], kind, path, limit)
+		a, err := query.Find(root, os.Args[3], strFlag("--kind"), strFlag("--path"), intFlag("--limit", 20))
 		if err != nil {
 			fatal(err)
 		}
-		fmt.Print(out)
+		emit(a, hasFlag("--json"))
 	case "grep":
 		if len(os.Args) < 4 {
-			fatal(fmt.Errorf("usage: codeindex grep <repo-root> <pattern> [--limit N]"))
+			fatal(fmt.Errorf("usage: codeindex grep <repo-root> <pattern> [--limit N] [--json]"))
 		}
-		limit := 30
-		if len(os.Args) >= 6 && os.Args[4] == "--limit" {
-			fmt.Sscanf(os.Args[5], "%d", &limit)
-		}
-		out, err := query.GrepText(root, os.Args[3], limit)
+		a, err := query.Grep(root, os.Args[3], intFlag("--limit", 30))
 		if err != nil {
 			fatal(err)
 		}
-		fmt.Print(out)
+		emit(a, hasFlag("--json"))
 	case "serve":
 		addr := "127.0.0.1:7676"
 		rest := os.Args[3:]
@@ -198,27 +173,27 @@ func main() {
 		}
 	case "callees":
 		if len(os.Args) < 4 {
-			fatal(fmt.Errorf("usage: codeindex callees <repo-root> <symbol> [--limit N]"))
+			fatal(fmt.Errorf("usage: codeindex callees <repo-root> <symbol> [--limit N] [--json]"))
 		}
-		limit := 50
-		if len(os.Args) >= 6 && os.Args[4] == "--limit" {
-			fmt.Sscanf(os.Args[5], "%d", &limit)
-		}
-		if err := runCallees(root, os.Args[3], limit); err != nil {
+		a, err := query.Callees(root, os.Args[3], intFlag("--limit", 50))
+		if err != nil {
 			fatal(err)
 		}
+		emit(a, hasFlag("--json"))
 	case "enclosing":
 		// codeindex enclosing <repo-root> <file> <start>:<end>
 		if len(os.Args) < 5 {
-			fatal(fmt.Errorf("usage: codeindex enclosing <repo-root> <file> <start>:<end>"))
+			fatal(fmt.Errorf("usage: codeindex enclosing <repo-root> <file> <start>:<end> [--json]"))
 		}
 		var start, end int
 		if _, err := fmt.Sscanf(os.Args[4], "%d:%d", &start, &end); err != nil {
 			fatal(fmt.Errorf("bad range %q (want start:end): %w", os.Args[4], err))
 		}
-		if err := runEnclosing(root, os.Args[3], start, end); err != nil {
+		a, err := query.Enclosing(root, os.Args[3], start, end)
+		if err != nil {
 			fatal(err)
 		}
+		emit(a, hasFlag("--json"))
 	default:
 		fatal(fmt.Errorf("unknown command %q", cmd))
 	}
@@ -237,6 +212,46 @@ func hasFlag(f string) bool {
 		}
 	}
 	return false
+}
+
+// intFlag returns the value following a flag anywhere in the args, or def.
+func intFlag(f string, def int) int {
+	for i := 4; i < len(os.Args)-1; i++ {
+		if os.Args[i] == f {
+			v := def
+			fmt.Sscanf(os.Args[i+1], "%d", &v)
+			return v
+		}
+	}
+	return def
+}
+
+// strFlag returns the value following a flag anywhere in the args, or "".
+func strFlag(f string) string {
+	for i := 4; i < len(os.Args)-1; i++ {
+		if os.Args[i] == f {
+			return os.Args[i+1]
+		}
+	}
+	return ""
+}
+
+// answer is any structured query result: text render for humans/agents, JSON
+// tags for machines.
+type answer interface{ Text() string }
+
+// emit prints an answer on stdout in the selected format. The cold-build
+// disclosure goes to stderr, so --json stdout is always parseable.
+func emit(a answer, asJSON bool) {
+	if asJSON {
+		b, err := json.MarshalIndent(a, "", "  ")
+		if err != nil {
+			fatal(err)
+		}
+		fmt.Println(string(b))
+		return
+	}
+	fmt.Print(a.Text())
 }
 
 // reporter picks the progress surface: JSONL on stdout when --progress was
@@ -532,60 +547,6 @@ func runBench(root, out string) error {
 			return err
 		}
 		fmt.Printf("wrote %s\n", out)
-	}
-	return nil
-}
-
-// runQuery prints the compact index answer for a symbol: its definition(s) and
-// callers as `path:line  signature` references — the plugin's output contract.
-func runQuery(root, name string, limit int) error {
-	out, err := query.CallersText(root, name, limit)
-	if err != nil {
-		return err
-	}
-	fmt.Print(out)
-	return nil
-}
-
-// runCallees prints what a symbol calls: each callee as a reference to its
-// definition (when resolved) plus the call-site line.
-func runCallees(root, name string, limit int) error {
-	out, err := query.CalleesText(root, name, limit)
-	if err != nil {
-		return err
-	}
-	fmt.Print(out)
-	return nil
-}
-
-// runImpact prints the counts-first blast-radius summary for a symbol.
-func runImpact(root, name string, limit int) error {
-	out, err := query.ImpactText(root, name, limit)
-	if err != nil {
-		return err
-	}
-	fmt.Print(out)
-	return nil
-}
-
-// runEnclosing prints the symbols overlapping a line range with caller counts —
-// the edit-hook's data source. Empty result prints nothing and exits 0.
-func runEnclosing(root, file string, start, end int) error {
-	if _, err := query.Fresh(root); err != nil {
-		return err
-	}
-	st, err := graph.Open(dbPath(root))
-	if err != nil {
-		return err
-	}
-	defer st.Close()
-	encl, err := st.EnclosingSymbols(file, start, end)
-	if err != nil {
-		return err
-	}
-	for _, e := range encl {
-		fmt.Printf("sym  %s  %s  %s:%d-%d  callers=%d external=%d\n",
-			e.Name, e.Kind, e.File, e.StartLine, e.EndLine, e.Callers, e.ExternalCallers)
 	}
 	return nil
 }

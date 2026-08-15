@@ -1,7 +1,120 @@
 # Scout — handoff for the next agent
 
 **Read this + `FINDINGS.md` before touching anything in `bench/scout/`.**
-Last updated 2026-08-15.
+Last updated 2026-08-15 (evening — supersedes the morning handoff's ordering;
+the morning context below is still accurate and worth reading).
+
+## Handoff 2026-08-15 evening: `--json` landed, tree state, and the plan
+
+### What just happened (uncommitted — commit it first, see step 1)
+
+`codeindex` now emits structured JSON from every query command: `callers`,
+`callees`, `impact`, `dependents`, `deps`, `find`, `grep`, `enclosing` all
+take `--json`. Design: each query builds ONE answer struct
+(`internal/query/answers.go`), rendered two ways — `Text()` is the historical
+format (a published contract: agent prompts and `bench/scout/formatters.py`
+parse it) and `encoding/json` is the machine format. One retrieval path, two
+renders — they cannot drift. The JSON carries what the regex formatters were
+reverse-engineering: `qname`/`file`/`line`, explicit `ambiguous` flags, dep
+provenance, `callers_total` alongside the limit-truncated list, `[]` never
+null. Cold-build disclosure goes to stderr, so `--json` stdout always parses.
+
+Verified two ways:
+- Byte-identity: old vs new binary diffed on 12 command/shape combinations
+  (gin + prometheus, incl. truncation, ambiguous flags, missing symbols,
+  file-vs-symbol deps) — ALL IDENTICAL.
+- `internal/query/query_test.go` pins the text format byte-for-byte with
+  golden strings on a fixture repo, plus JSON invariants (totals vs shown,
+  empty-array semantics). Change those goldens only deliberately, WITH the
+  downstream consumers.
+
+Modified (uncommitted): `internal/query/query.go` (rewritten as builders +
+thin `*Text` wrappers; MCP server untouched), new `internal/query/answers.go`
++ `query_test.go`, `cmd/codeindex/main.go` (`--json` flag, `emit()`, flag
+parsing fixed — `--limit` now works in any position), `internal/config/config.go`
+(see stash note), `go.mod`/`go.sum` (sqlite-vec dep), `README.md`, this file.
+
+### CRITICAL tree-state facts (cost real time to discover)
+
+1. **There is stashed WIP that will conflict with the new query.go/main.go.**
+   The untracked semantic-search files (`internal/search/semantic.go`,
+   `internal/embed/`, `internal/engine/embedpass.go`, `internal/query/searchtext.go`,
+   `internal/runtime/`, `internal/graph/vec.go|obs.go`, `cmd/codeindex/model.go|ingest.go`)
+   are HALF of a WIP; the other half sits in `git stash`:
+   - `stash@{0}` "pre-existing WIP tracked files" — schema v9 in
+     `internal/graph/store.go` (creates `vecs`/`symvec`/`obs_ledger` tables),
+     `mcpserver.go` (adds the `search` tool), `engine.go` (`Stats.Embedded`),
+     and **`internal/query/query.go` deltas**: (a) `oneLine()` collapsing
+     multi-line signatures in def lines, (b) runtime-spool ingestion inside
+     `open()`, (c) a concept-query hint in find's no-match message.
+   - `stash@{1}` "WIP semantic-search subcommand" — **`cmd/codeindex/main.go`**:
+     a `search` subcommand.
+   Both stashes conflict textually with the rewritten files. The deltas are
+   small — port them into the new structure by hand (oneLine belongs in
+   `defRefs`/`writeDefs`; spool ingest in `query.open()`; the find hint in
+   `FindAnswer.Text()`), do NOT try a mechanical `stash pop`.
+   `internal/config/config.go` was already restored byte-identical to the
+   stashed version, so that one merges clean.
+2. **Pre-existing test failures — not regressions.** `graph` (vec tests),
+   `search` (semantic tests), `runtime`, `mcpserver` (search_test), and
+   `engine` (vet: `Stats.Embedded`) fail because untracked WIP tests expect
+   the stashed code. They failed before the JSON work. Passing packages:
+   `query`, `config`, `adapter/*`, `depmap`, `embed`, `merkle`, `progress`,
+   `readmodel`, `webserver`, and the cmd build.
+3. **Bench indexes were schema v9, now rebuilt v7.** The committed binary is
+   schema v7; gin/prometheus indexes were v9 (built by a WIP binary) and were
+   rebuilt on first query. If you apply the stash (schema v9), the next query
+   rebuilds them again (~2-3 min each). Harmless, but don't mistake it for a hang.
+
+### The plan (in order)
+
+1. **Commit the JSON work** (~15 min). Two commits: (a) `config`+`go.mod`
+   tree-fix ("restore stashed config surface so the WIP files compile"),
+   (b) the query refactor + `--json` + tests + docs. Don't fold in the
+   untracked WIP files — they belong to the semantic-search change.
+2. **Integrate the stashed WIP** (~1-2 h, decision needed). Either port the
+   three query.go deltas + the `search` subcommand into the new structure and
+   drop the stashes, or decide the semantic-search experiment is benched and
+   leave the stashes alone (but then the untracked tests keep failing — the
+   honest alternative is moving the WIP to a branch). Ask Ethan if unclear;
+   `bench/engine/FINDINGS-semantic-search.md` has the experiment's status.
+3. **Port `formatters.py` (and `arm_c.py`) to `--json`** (~1 h). This deletes
+   the regex-parsing risk (old caveat 2) entirely. The formatter becomes:
+   read JSON, emit the grader's shape. While there, wire the retrieval calls
+   in `arm_c.py` to pass `--json`.
+4. **Make arm_c truly end-to-end** (~30 min, unchanged from morning plan).
+   Drive the tool from the CLASSIFIER's route, not the harness type. Report
+   the honest ~90% and see where routing errors actually cost answers.
+5. **Then try over-retrieval instead of better routing** (~1 h, new idea).
+   Retrieval is ~free (ms per CLI call). When classifier confidence is low —
+   or always, for the callers/grep blur (the 72% bucket) — run BOTH tools and
+   pick by which JSON answer is non-empty / matches the expected shape.
+   Hypothesis: end-to-end moves from ~90% toward the formatter ceiling with
+   no model. Measure against step 4's number.
+6. **Cross-language stress** (laravel PHP + a TS repo) through the JSON path.
+   Now a schema-contract test, not regex hardening. If PHP/TS output shapes
+   break the pipeline, the fix belongs in the JSON schema, not in parsers.
+7. **Reconcile the occurrences taxonomy** (unchanged: harness "occurrences"
+   means caller-attribution; generator's means literal token refs).
+8. **Multi-hop as deterministic recipes BEFORE any model.** Enumerate the
+   common trajectories (impact, dead-code, rename-radius, where-tested) as
+   fixed compositions of graph ops — `codeindex impact` and the
+   `codeindex:impact` skill are already this pattern. Measure coverage on
+   real multi-hop tasks; only the residual justifies a learned policy.
+9. **Query formulation: run the cheap gates first.** Before distilling
+   anything for "vague intent -> symbol": (a) noun-phrase extraction +
+   `codeindex find`'s fuzzy matching, (b) bge-base embedding similarity of
+   task vs symbol names (already local in `.venv`). If either clears ~80%,
+   the model is dead here too. Every time this project removed the model,
+   the task turned out to be structure + cheap glue — assume that until a
+   measured gate says otherwise.
+
+### Discipline reminder (it caught four fake 100%s)
+
+When a number looks too clean, find the leak BEFORE reporting it. Ask: "what
+would make this pass even if the thing under test were broken?" The JSON
+byte-identity diff and the golden tests exist so YOU can refactor without
+re-earning that trust — keep them green.
 
 ## What Scout is (one paragraph)
 
@@ -89,20 +202,11 @@ distilled/local LLM is plausibly justified:
 - **Trust-vs-verify on ambiguous edges**: PHP `[ambiguous]` callers (FINDINGS_v10
   finding 2) — when to trust the structural answer vs. read to confirm.
 
-## Recommended next steps (in order)
+## Recommended next steps (morning list — SUPERSEDED)
 
-1. **Make arm_c.py truly end-to-end** — drive the tool from the classifier's
-   route (not harness type), report the real ~90%, and see where routing errors
-   actually cost answers. Cheapest, highest-honesty next move. (~30 min, local.)
-2. **Stress the router + formatters cross-language** — run arm C on a laravel
-   (PHP) and a TS task set. If formatters break on PHP/TS output shapes, that's
-   the real robustness work, and it's deterministic-code work, not model work.
-3. **Reconcile the occurrences taxonomy** between generator and harness (caveat 3)
-   so cross-use stops silently mislabeling.
-4. **ONLY THEN consider a model** — and only for query formulation or multi-hop,
-   not routing. If you do: generate multi-hop teacher trajectories (Tier-2, does
-   not exist yet), and the honest baseline to beat is the classifier+formatter
-   pipeline, not the raw agent.
+Superseded by "The plan" in the evening handoff above, which absorbs these
+(arm_c end-to-end = step 4, cross-language = step 6, taxonomy = step 7,
+model-only-if-gates-fail = steps 8-9).
 
 ## Where the evidence lives
 

@@ -5,7 +5,6 @@
 package query
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -99,320 +98,395 @@ func open(root string) (*graph.Store, error) {
 	return graph.Open(dbPath(root))
 }
 
-// CallersText returns definitions + callers of an anchor ("name" or
-// "Type.method"/"Type::method") as reference lines with qualified names.
-func CallersText(root, anchor string, limit int) (string, error) {
+// Callers answers definitions + callers of an anchor ("name" or
+// "Type.method"/"Type::method"), plus the files referencing it (one-call
+// completeness: the def+callers answer usually pairs with "which files
+// reference X", so no follow-up probe is needed).
+func Callers(root, anchor string, limit int) (*CallersAnswer, error) {
 	name, parent := SplitAnchor(anchor)
 	st, err := open(root)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer st.Close()
-	var b strings.Builder
 
 	defs, err := st.Definitions(name, parent)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	for _, d := range defs {
-		fmt.Fprintf(&b, "def  %s  %s:%d  %s\n", d.QName(), d.File, d.StartLine, d.Signature)
-	}
-	if len(defs) == 0 {
-		fmt.Fprintf(&b, "def  %s: (not found in index)\n", anchor)
-	}
-
 	callers, err := st.Callers(name, parent)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	fmt.Fprintf(&b, "callers (%d):\n", len(callers))
-	for i, c := range callers {
-		if i >= limit {
-			fmt.Fprintf(&b, "  ... (+%d more; raise limit)\n", len(callers)-limit)
-			break
-		}
-		flag := ""
-		if c.Conf == graph.ConfAmbiguous {
-			flag = "  [ambiguous]"
-		}
-		fmt.Fprintf(&b, "  %s:%d  %s%s\n", c.File, c.Line, c.QName(), flag)
+	files, err := st.ReferencingFiles(name)
+	if err != nil {
+		return nil, err
 	}
 
-	// One-call completeness: the def+callers answer usually pairs with
-	// "which files reference X" — include it so no follow-up probe is needed.
-	files, err := st.ReferencingFiles(name)
+	a := &CallersAnswer{
+		Anchor:               anchor,
+		Definitions:          defRefs(defs),
+		CallersTotal:         len(callers),
+		Callers:              make([]CallerRef, 0),
+		ReferencedFilesTotal: len(files),
+		ReferencedFiles:      make([]string, 0),
+	}
+	for i, c := range callers {
+		if i >= limit {
+			break
+		}
+		a.Callers = append(a.Callers, CallerRef{
+			Name: c.Name, Parent: c.Parent, QName: c.QName(),
+			File: c.File, Line: c.Line, Ambiguous: c.Conf == graph.ConfAmbiguous,
+		})
+	}
+	for i, f := range files {
+		if i >= limit {
+			break
+		}
+		a.ReferencedFiles = append(a.ReferencedFiles, f)
+	}
+	return a, nil
+}
+
+// CallersText renders Callers in the stable text format.
+func CallersText(root, anchor string, limit int) (string, error) {
+	a, err := Callers(root, anchor, limit)
 	if err != nil {
 		return "", err
 	}
-	fmt.Fprintf(&b, "referenced in %d file(s):", len(files))
-	for i, f := range files {
-		if i >= limit {
-			fmt.Fprintf(&b, " ... (+%d more)", len(files)-limit)
-			break
-		}
-		fmt.Fprintf(&b, " %s", f)
-	}
-	fmt.Fprintf(&b, "\n")
-	return b.String(), nil
+	return a.Text(), nil
 }
 
-// depMarker renders provenance for a dep-resolved definition file.
-func depMarker(st *graph.Store, defFile string) string {
+// depInfo resolves provenance for a dep-resolved definition file:
+// ("namespace@version", locally-modified). Empty for project files.
+func depInfo(st *graph.Store, defFile string) (string, bool) {
 	if defFile == "" {
-		return ""
+		return "", false
 	}
 	ns, ver, modified, err := st.DepProvenance(defFile)
 	if err != nil || ns == "" {
-		return ""
+		return "", false
 	}
-	if modified {
-		return fmt.Sprintf("  [dep %s@%s modified]", ns, ver)
-	}
-	return fmt.Sprintf("  [dep %s@%s]", ns, ver)
+	return ns + "@" + ver, modified
 }
 
-// CalleesText returns what name calls, each resolved to its definition.
-func CalleesText(root, anchor string, limit int) (string, error) {
+// Callees answers what the anchor calls, each resolved to its definition.
+func Callees(root, anchor string, limit int) (*CalleesAnswer, error) {
 	name, parent := SplitAnchor(anchor)
 	st, err := open(root)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer st.Close()
 	callees, err := st.Callees(name, parent)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	var b strings.Builder
-	fmt.Fprintf(&b, "callees of %s (%d):\n", anchor, len(callees))
+	a := &CalleesAnswer{Anchor: anchor, Total: len(callees), Callees: make([]CalleeRef, 0)}
 	for i, c := range callees {
 		if i >= limit {
-			fmt.Fprintf(&b, "  ... (+%d more; raise limit)\n", len(callees)-limit)
 			break
 		}
-		target := "unresolved"
-		if c.DefFile != "" {
-			target = fmt.Sprintf("%s:%d", c.DefFile, c.DefLine)
-		}
-		flag := ""
-		if c.Conf == graph.ConfAmbiguous {
-			flag = "  [ambiguous]"
-		}
-		fmt.Fprintf(&b, "  %s  -> %s  @call:%d%s%s\n", c.QName(), target, c.CallLine, flag, depMarker(st, c.DefFile))
+		dep, modified := depInfo(st, c.DefFile)
+		a.Callees = append(a.Callees, CalleeRef{
+			Name: c.Name, Parent: c.DefParent, QName: c.QName(),
+			CallLine: c.CallLine, DefFile: c.DefFile, DefLine: c.DefLine,
+			Ambiguous: c.Conf == graph.ConfAmbiguous, Dep: dep, DepModified: modified,
+		})
 	}
-	return b.String(), nil
+	return a, nil
 }
 
-// FindText is ranked symbol search under partial knowledge (locate mode for
-// vague/common names — distinctive full names stay with plain grep).
-func FindText(root, q string, kind, path string, limit int) (string, error) {
-	st, err := open(root)
+// CalleesText renders Callees in the stable text format.
+func CalleesText(root, anchor string, limit int) (string, error) {
+	a, err := Callees(root, anchor, limit)
 	if err != nil {
 		return "", err
+	}
+	return a.Text(), nil
+}
+
+// Find is ranked symbol search under partial knowledge (locate mode for
+// vague/common names — distinctive full names stay with plain grep).
+func Find(root, q, kind, path string, limit int) (*FindAnswer, error) {
+	st, err := open(root)
+	if err != nil {
+		return nil, err
 	}
 	defer st.Close()
 	results, err := search.Find(st, q, search.Opts{Kind: kind, Path: path, Limit: limit})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	var b strings.Builder
-	fmt.Fprintf(&b, "find %q (%d):\n", q, len(results))
+	a := &FindAnswer{Query: q, Total: len(results), Results: make([]FindRef, 0, len(results))}
 	for _, r := range results {
-		callers := ""
-		if r.Callers > 0 {
-			callers = fmt.Sprintf("  callers=%d", r.Callers)
-		}
-		dep := ""
+		dep, modified := "", false
 		if r.Sym.Tier == 1 {
-			dep = depMarker(st, r.Sym.File)
+			dep, modified = depInfo(st, r.Sym.File)
 		}
-		fmt.Fprintf(&b, "  %s  %s  %s:%d%s%s  [%s]\n",
-			r.Sym.QName(), r.Sym.Kind, r.Sym.File, r.Sym.StartLine,
-			callers, dep, r.Match)
+		a.Results = append(a.Results, FindRef{
+			QName: r.Sym.QName(), Kind: string(r.Sym.Kind),
+			File: r.Sym.File, Line: r.Sym.StartLine,
+			Callers: r.Callers, Dep: dep, DepModified: modified, Match: r.Match,
+		})
 	}
-	if len(results) == 0 {
-		fmt.Fprintf(&b, "  (no symbol matches — try plain grep for content search)\n")
-	}
-	return b.String(), nil
+	return a, nil
 }
 
-// GrepText is enriched grep: content hits attributed to enclosing symbols,
-// deduped with counts, defs-first.
-func GrepText(root, pattern string, limit int) (string, error) {
-	st, err := open(root)
+// FindText renders Find in the stable text format.
+func FindText(root, q string, kind, path string, limit int) (string, error) {
+	a, err := Find(root, q, kind, path, limit)
 	if err != nil {
 		return "", err
+	}
+	return a.Text(), nil
+}
+
+// Grep is enriched grep: content hits attributed to enclosing symbols,
+// deduped with counts, defs-first.
+func Grep(root, pattern string, limit int) (*GrepAnswer, error) {
+	st, err := open(root)
+	if err != nil {
+		return nil, err
 	}
 	defer st.Close()
 	groups, raw, backend, err := search.Grep(st, root, pattern, limit)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	var b strings.Builder
-	fmt.Fprintf(&b, "grep %q: %d raw hits -> %d symbols/sites (%s)\n", pattern, raw, len(groups), backend)
+	a := &GrepAnswer{Pattern: pattern, RawHits: raw, Backend: backend, Groups: make([]GrepRef, 0, len(groups))}
 	for _, g := range groups {
-		name := "<outside any symbol>"
+		qname := ""
 		if g.Sym != nil {
-			name = g.Sym.QName()
+			qname = g.Sym.QName()
 		}
-		def := ""
-		if g.IsDef {
-			def = "  [definition]"
-		}
-		fmt.Fprintf(&b, "  %s  %s:%d  hits=%d%s\n", name, g.File, g.First.Line, g.Hits, def)
+		a.Groups = append(a.Groups, GrepRef{
+			QName: qname, File: g.File, Line: g.First.Line, Hits: g.Hits, IsDef: g.IsDef,
+		})
 	}
-	return b.String(), nil
+	return a, nil
 }
 
-// DependentsText returns who imports/extends/implements the anchor.
-func DependentsText(root, anchor string, limit int) (string, error) {
+// GrepText renders Grep in the stable text format.
+func GrepText(root, pattern string, limit int) (string, error) {
+	a, err := Grep(root, pattern, limit)
+	if err != nil {
+		return "", err
+	}
+	return a.Text(), nil
+}
+
+// Dependents answers who imports/extends/implements the anchor.
+func Dependents(root, anchor string, limit int) (*DependentsAnswer, error) {
 	name, _ := SplitAnchor(anchor)
 	st, err := open(root)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer st.Close()
 	deps, err := st.Dependents(name)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	var b strings.Builder
-	fmt.Fprintf(&b, "dependents of %s (%d):\n", anchor, len(deps))
+	a := &DependentsAnswer{Anchor: anchor, Total: len(deps), Dependents: make([]DependentRef, 0)}
 	for i, d := range deps {
 		if i >= limit {
-			fmt.Fprintf(&b, "  ... (+%d more; raise limit)\n", len(deps)-limit)
 			break
 		}
-		fmt.Fprintf(&b, "  %-10s %s:%d  %s\n", d.Kind, d.File, d.Line, d.QName())
+		a.Dependents = append(a.Dependents, DependentRef{
+			Kind: string(d.Kind), QName: d.QName(), File: d.File, Line: d.Line,
+		})
 	}
-	return b.String(), nil
+	return a, nil
 }
 
-// DepsText returns what the anchor depends on. File anchors list the file's
-// imports; symbol anchors list extends/implements (+ the file's imports, labeled).
-func DepsText(root, anchor string, limit int) (string, error) {
-	st, err := open(root)
+// DependentsText renders Dependents in the stable text format.
+func DependentsText(root, anchor string, limit int) (string, error) {
+	a, err := Dependents(root, anchor, limit)
 	if err != nil {
 		return "", err
 	}
+	return a.Text(), nil
+}
+
+// Deps answers what the anchor depends on. File anchors list the file's
+// imports; symbol anchors list extends/implements (+ the file's imports,
+// as a separate labeled section).
+func Deps(root, anchor string, limit int) (*DepsAnswer, error) {
+	st, err := open(root)
+	if err != nil {
+		return nil, err
+	}
 	defer st.Close()
 
-	var b strings.Builder
-	emit := func(label string, ds []graph.Dep) {
-		fmt.Fprintf(&b, "%s (%d):\n", label, len(ds))
+	a := &DepsAnswer{Anchor: anchor, Sections: make([]DepSection, 0)}
+	section := func(label string, ds []graph.Dep) {
+		s := DepSection{Label: label, Total: len(ds), Deps: make([]DepRef, 0)}
 		for i, d := range ds {
 			if i >= limit {
-				fmt.Fprintf(&b, "  ... (+%d more; raise limit)\n", len(ds)-limit)
 				break
 			}
-			target := d.Target
-			if d.DefFile != "" {
-				target = fmt.Sprintf("%s (%s:%d)", d.Target, d.DefFile, d.DefLine)
-			}
-			fmt.Fprintf(&b, "  %-10s %s  @%d\n", d.Kind, target, d.Line)
+			s.Deps = append(s.Deps, DepRef{
+				Kind: string(d.Kind), Target: d.Target,
+				DefFile: d.DefFile, DefLine: d.DefLine, Line: d.Line,
+			})
 		}
+		a.Sections = append(a.Sections, s)
 	}
 
 	if ok, err := st.HasFile(anchor); err != nil {
-		return "", err
+		return nil, err
 	} else if ok {
 		imports, err := st.FileImports(anchor)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
-		emit("imports of "+anchor, imports)
-		return b.String(), nil
+		section("imports of "+anchor, imports)
+		return a, nil
 	}
 
 	name, parent := SplitAnchor(anchor)
 	sd, err := st.SymbolDeps(name, parent)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	emit("deps of "+anchor, sd)
+	section("deps of "+anchor, sd)
 	// context: the defining file's imports
 	defs, err := st.Definitions(name, parent)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if len(defs) > 0 {
 		imports, err := st.FileImports(defs[0].File)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
-		emit("file imports ("+defs[0].File+")", imports)
+		section("file imports ("+defs[0].File+")", imports)
 	}
-	return b.String(), nil
+	return a, nil
 }
 
-// ImpactText composes a counts-first blast-radius summary: definitions,
-// callers, callees, dependents. States coverage honestly.
-func ImpactText(root, anchor string, limit int) (string, error) {
+// DepsText renders Deps in the stable text format.
+func DepsText(root, anchor string, limit int) (string, error) {
+	a, err := Deps(root, anchor, limit)
+	if err != nil {
+		return "", err
+	}
+	return a.Text(), nil
+}
+
+// impactCoverage states what edge kinds the impact summary covers.
+const impactCoverage = "call + import/extends/implements edges; type-usage references not included"
+
+// Impact composes a counts-first blast-radius summary: definitions, callers,
+// callees, dependents. States coverage honestly.
+func Impact(root, anchor string, limit int) (*ImpactAnswer, error) {
 	name, parent := SplitAnchor(anchor)
 	st, err := open(root)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer st.Close()
 
 	defs, err := st.Definitions(name, parent)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	callers, err := st.Callers(name, parent)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	callees, err := st.Callees(name, parent)
 	if err != nil {
-		return "", err
+		return nil, err
+	}
+	dependents, err := st.Dependents(name)
+	if err != nil {
+		return nil, err
 	}
 
-	dependents, err := st.Dependents(name)
+	a := &ImpactAnswer{
+		Anchor:          anchor,
+		Coverage:        impactCoverage,
+		Definitions:     defRefs(defs),
+		CallersTotal:    len(callers),
+		Callers:         make([]CallerRef, 0),
+		DependentsTotal: len(dependents),
+		Dependents:      make([]DependentRef, 0),
+		CalleesTotal:    len(callees),
+		Callees:         make([]CalleeRef, 0),
+	}
+	for i, c := range callers {
+		if i >= limit {
+			break
+		}
+		a.Callers = append(a.Callers, CallerRef{
+			Name: c.Name, Parent: c.Parent, QName: c.QName(),
+			File: c.File, Line: c.Line, Ambiguous: c.Conf == graph.ConfAmbiguous,
+		})
+	}
+	for i, d := range dependents {
+		if i >= limit {
+			break
+		}
+		a.Dependents = append(a.Dependents, DependentRef{
+			Kind: string(d.Kind), QName: d.QName(), File: d.File, Line: d.Line,
+		})
+	}
+	for i, c := range callees {
+		if i >= limit {
+			break
+		}
+		dep, modified := depInfo(st, c.DefFile)
+		a.Callees = append(a.Callees, CalleeRef{
+			Name: c.Name, Parent: c.DefParent, QName: c.QName(),
+			CallLine: c.CallLine, DefFile: c.DefFile, DefLine: c.DefLine,
+			Ambiguous: c.Conf == graph.ConfAmbiguous, Dep: dep, DepModified: modified,
+		})
+	}
+	return a, nil
+}
+
+// ImpactText renders Impact in the stable text format.
+func ImpactText(root, anchor string, limit int) (string, error) {
+	a, err := Impact(root, anchor, limit)
 	if err != nil {
 		return "", err
 	}
+	return a.Text(), nil
+}
 
-	var b strings.Builder
-	fmt.Fprintf(&b, "impact of %s: %d definition(s), %d caller(s), %d callee(s), %d dependent(s)\n",
-		anchor, len(defs), len(callers), len(callees), len(dependents))
-	fmt.Fprintf(&b, "(coverage: call + import/extends/implements edges; type-usage references not included)\n\n")
+// Enclosing answers which symbols overlap a line range, with caller counts —
+// the edit-hook's data source.
+func Enclosing(root, file string, start, end int) (*EnclosingAnswer, error) {
+	st, err := open(root)
+	if err != nil {
+		return nil, err
+	}
+	defer st.Close()
+	encl, err := st.EnclosingSymbols(file, start, end)
+	if err != nil {
+		return nil, err
+	}
+	a := &EnclosingAnswer{File: file, Start: start, End: end, Symbols: make([]EnclosingRef, 0, len(encl))}
+	for _, e := range encl {
+		a.Symbols = append(a.Symbols, EnclosingRef{
+			Name: e.Name, Parent: e.Parent, Kind: string(e.Kind), File: e.File,
+			StartLine: e.StartLine, EndLine: e.EndLine,
+			Callers: e.Callers, ExternalCallers: e.ExternalCallers,
+		})
+	}
+	return a, nil
+}
+
+func defRefs(defs []graph.Symbol) []DefRef {
+	out := make([]DefRef, 0, len(defs))
 	for _, d := range defs {
-		fmt.Fprintf(&b, "def  %s  %s:%d  %s\n", d.QName(), d.File, d.StartLine, d.Signature)
+		out = append(out, DefRef{
+			Name: d.Name, Parent: d.Parent, QName: d.QName(), Kind: string(d.Kind),
+			File: d.File, Line: d.StartLine, Signature: d.Signature,
+		})
 	}
-	if len(defs) == 0 {
-		fmt.Fprintf(&b, "def  %s: (not found in index)\n", anchor)
-	}
-	fmt.Fprintf(&b, "\ncallers — these break if %s's behavior/signature changes:\n", anchor)
-	for i, c := range callers {
-		if i >= limit {
-			fmt.Fprintf(&b, "  ... (+%d more)\n", len(callers)-limit)
-			break
-		}
-		flag := ""
-		if c.Conf == graph.ConfAmbiguous {
-			flag = "  [ambiguous]"
-		}
-		fmt.Fprintf(&b, "  %s:%d  %s%s\n", c.File, c.Line, c.QName(), flag)
-	}
-	fmt.Fprintf(&b, "\ndependents — who imports/extends/implements %s:\n", anchor)
-	for i, d := range dependents {
-		if i >= limit {
-			fmt.Fprintf(&b, "  ... (+%d more)\n", len(dependents)-limit)
-			break
-		}
-		fmt.Fprintf(&b, "  %-10s %s:%d  %s\n", d.Kind, d.File, d.Line, d.QName())
-	}
-	fmt.Fprintf(&b, "\ncallees — what %s depends on:\n", anchor)
-	for i, c := range callees {
-		if i >= limit {
-			fmt.Fprintf(&b, "  ... (+%d more)\n", len(callees)-limit)
-			break
-		}
-		if c.DefFile == "" {
-			continue // unresolved (stdlib/external) — noise in an impact summary
-		}
-		fmt.Fprintf(&b, "  %s  %s:%d%s\n", c.QName(), c.DefFile, c.DefLine, depMarker(st, c.DefFile))
-	}
-	return b.String(), nil
+	return out
 }
