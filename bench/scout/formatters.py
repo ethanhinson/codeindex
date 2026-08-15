@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Deterministic per-tool formatters: raw codeindex output -> the answer shape
-the harness grader expects. NO model — this is the "output normalization" step
-that arm-C exposed as the real seam. One small parser per (tool, task-type).
+"""Deterministic per-tool formatters: codeindex --json output -> the answer
+shape the harness grader expects. NO model, and since the --json rewrite NO
+regex over text output either — the JSON contract (internal/query/answers.go)
+carries qname/file/line/ambiguous explicitly, which is exactly what the old
+regexes were reverse-engineering.
 
 Grader contracts (from bench/agent_ab/grade.py), targeted precisely:
   - caller_attribution: a 'CALLERS' region; each caller line must have the
@@ -10,49 +12,48 @@ Grader contracts (from bench/agent_ab/grade.py), targeted precisely:
   - comprehension: 'DEFINITIONS:' section of file:line, then 'FILES:' section
     of repo-relative paths.
   - vague_find: the symbol name present + its file:line definition.
+
+Every formatter takes the raw stdout of `codeindex <tool> ... --json`. If the
+input does not parse as JSON (old binary, error text), the formatter returns
+it unchanged — never worse than passthrough.
 """
 from __future__ import annotations
-import re
+import json
 
-# codeindex caller line: "  <file>:<line>  <Parent.Name>|<Name>  [flags]"
-_CALLER = re.compile(r"^\s*([\w./\-]+\.(?:go|ts|tsx|js|jsx|py|php)):(\d+)\s+([\w.]+)")
-_DEF = re.compile(r"^def\s+([\w.]+)\s+([\w./\-]+\.(?:go|ts|tsx|js|jsx|py|php)):(\d+)")
-_FINDLINE = re.compile(r"^\s+([\w.]+)\s+\w+\s+([\w./\-]+\.(?:go|ts|tsx|js|jsx|py|php)):(\d+)")
-_GREPLINE = re.compile(r"^\s+([\w.]+)\s+([\w./\-]+\.(?:go|ts|tsx|js|jsx|py|php)):(\d+)")
 
-def _bare(name: str) -> str:
-    """Parent.Method -> Method (grader compares bare caller names)."""
-    return name.rsplit(".", 1)[-1]
+def _load(raw: str):
+    try:
+        v = json.loads(raw)
+        return v if isinstance(v, dict) else None
+    except (json.JSONDecodeError, TypeError):
+        return None
+
 
 def fmt_caller_attribution(raw: str) -> str:
-    """callers output -> 'CALLERS' block with 'Name file' per line (name first,
-    so the grader's last-identifier-before-file extraction picks the caller)."""
+    """callers --json -> 'CALLERS' block with 'Name file' per line (name first,
+    so the grader's last-identifier-before-file extraction picks the caller).
+    JSON 'name' is already the bare method (parent split off upstream)."""
+    a = _load(raw)
+    if a is None:
+        return raw
     out = ["CALLERS:"]
-    in_c = False
-    for ln in raw.splitlines():
-        if ln.startswith("callers ("):
-            in_c = True
-            continue
-        if in_c:
-            m = _CALLER.match(ln)
-            if m:
-                file, _line, name = m.group(1), m.group(2), m.group(3)
-                out.append(f"{_bare(name)} {file}")
+    for c in a.get("callers", []):
+        out.append(f"{c['name']} {c['file']}")
     return "\n".join(out) if len(out) > 1 else raw
 
+
 def fmt_comprehension(raw_find: str, raw_grep: str) -> str:
-    """Combine a def location (from find/callers 'def' line) + referencing files
-    (from grep) into DEFINITIONS/FILES sections."""
+    """find --json (def candidates) + grep --json (referencing files) ->
+    DEFINITIONS/FILES sections."""
+    find, grep = _load(raw_find), _load(raw_grep)
+    if find is None and grep is None:
+        return raw_find + "\n" + raw_grep
     defs, files = [], []
-    for ln in (raw_find + "\n" + raw_grep).splitlines():
-        m = _DEF.match(ln)
-        if m:
-            defs.append(f"{m.group(2)}:{m.group(3)}")
-        mf = _FINDLINE.match(ln) or _GREPLINE.match(ln)
-        if mf:
-            defs.append(f"{mf.group(2)}:{mf.group(3)}")  # candidate defs
-            files.append(mf.group(2))
-    # dedup, keep order
+    for r in (find or {}).get("results", []):
+        defs.append(f"{r['file']}:{r['line']}")
+        files.append(r["file"])
+    for g in (grep or {}).get("groups", []):
+        files.append(g["file"])
     defs = list(dict.fromkeys(defs))
     files = list(dict.fromkeys(files))
     parts = ["DEFINITIONS:"]
@@ -60,18 +61,21 @@ def fmt_comprehension(raw_find: str, raw_grep: str) -> str:
     parts += ["FILES:"] + files
     return "\n".join(parts)
 
+
 def fmt_vague_find(raw: str) -> str:
-    """find output already contains 'Name  kind  file:line' — pass through, but
-    ensure the top hit's name + file:line are on a clean line for the grader."""
-    for ln in raw.splitlines():
-        m = _FINDLINE.match(ln)
-        if m:
-            return f"{m.group(1)} {m.group(2)}:{m.group(3)}\n{raw}"
-    return raw
+    """find --json -> top hit's 'qname file:line' on a clean first line, then
+    the full ranked listing (name + location per hit)."""
+    a = _load(raw)
+    if a is None or not a.get("results"):
+        return raw
+    lines = [f"{r['qname']} {r['kind']} {r['file']}:{r['line']}" for r in a["results"]]
+    top = a["results"][0]
+    return f"{top['qname']} {top['file']}:{top['line']}\n" + "\n".join(lines)
+
 
 def format_answer(task_type: str, tool: str, raw: str, raw_aux: str = "") -> str:
-    """Dispatch: given the harness task type + routed tool + raw output(s),
-    return a grader-shaped answer."""
+    """Dispatch: given the harness task type + routed tool + raw --json
+    output(s), return a grader-shaped answer."""
     if task_type in ("caller_attribution", "occurrences", "edit_impact"):
         # harness 'occurrences' is semantically caller-attribution
         return fmt_caller_attribution(raw)

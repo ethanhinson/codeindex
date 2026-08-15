@@ -49,7 +49,9 @@ def run_tool(tool, repo, sym, binary):
     args = {"callers": ["callers", repo, sym],
             "grep": ["grep", repo, sym],
             "find": ["find", repo, sym, "--limit", "10"]}[tool]
-    return subprocess.run([binary, *args], capture_output=True, text=True).stdout
+    # --json: the formatters consume the structured contract, not text regexes
+    return subprocess.run([binary, *args, "--json"],
+                          capture_output=True, text=True).stdout
 
 def main():
     import argparse
