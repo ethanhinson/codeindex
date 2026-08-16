@@ -15,23 +15,15 @@ typedef struct {
 	const struct llama_vocab *vocab;
 	int n_ctx;
 	int dims;
+	int owns_model; // clones share the parent's model; only the owner frees it
 } ci_handle;
 
 static void ci_log_silent(enum ggml_log_level level, const char *text, void *user) {
 	(void)level; (void)text; (void)user;
 }
 
-void *ci_embed_load(const char *model_path, int n_threads) {
-	// Model-load/inference chatter would drown the CLI and MCP stderr.
-	llama_log_set(ci_log_silent, NULL);
-	llama_backend_init();
-
-	struct llama_model_params mp = llama_model_default_params();
-	struct llama_model *model = llama_model_load_from_file(model_path, mp);
-	if (model == NULL) {
-		return NULL;
-	}
-
+// ci_ctx_new builds an embedding context on an already-loaded model.
+static struct llama_context *ci_ctx_new(struct llama_model *model, int n_threads) {
 	struct llama_context_params cp = llama_context_default_params();
 	cp.embeddings = true;
 	// Batch geometry: many short card sequences packed per encode call.
@@ -45,20 +37,45 @@ void *ci_embed_load(const char *model_path, int n_threads) {
 	if (n_threads > 8) n_threads = 8;
 	cp.n_threads = n_threads;
 	cp.n_threads_batch = n_threads;
+	return llama_init_from_model(model, cp);
+}
 
-	struct llama_context *ctx = llama_init_from_model(model, cp);
-	if (ctx == NULL) {
-		llama_model_free(model);
-		return NULL;
-	}
-
+static ci_handle *ci_handle_new(struct llama_model *model, struct llama_context *ctx, int owns_model) {
 	ci_handle *h = calloc(1, sizeof(ci_handle));
 	h->model = model;
 	h->ctx = ctx;
 	h->vocab = llama_model_get_vocab(model);
 	h->n_ctx = (int)llama_n_ctx(ctx);
 	h->dims = llama_model_n_embd(model);
+	h->owns_model = owns_model;
 	return h;
+}
+
+void *ci_embed_load(const char *model_path, int n_threads) {
+	// Model-load/inference chatter would drown the CLI and MCP stderr.
+	llama_log_set(ci_log_silent, NULL);
+	llama_backend_init();
+
+	struct llama_model_params mp = llama_model_default_params();
+	struct llama_model *model = llama_model_load_from_file(model_path, mp);
+	if (model == NULL) {
+		return NULL;
+	}
+	struct llama_context *ctx = ci_ctx_new(model, n_threads);
+	if (ctx == NULL) {
+		llama_model_free(model);
+		return NULL;
+	}
+	return ci_handle_new(model, ctx, /*owns_model=*/1);
+}
+
+void *ci_embed_clone(void *handle, int n_threads) {
+	ci_handle *parent = (ci_handle *)handle;
+	struct llama_context *ctx = ci_ctx_new(parent->model, n_threads);
+	if (ctx == NULL) {
+		return NULL;
+	}
+	return ci_handle_new(parent->model, ctx, /*owns_model=*/0);
 }
 
 int ci_embed_dims(void *handle) {
@@ -201,6 +218,8 @@ void ci_embed_free(void *handle) {
 		return;
 	}
 	llama_free(h->ctx);
-	llama_model_free(h->model);
+	if (h->owns_model) {
+		llama_model_free(h->model);
+	}
 	free(h);
 }

@@ -12,6 +12,13 @@ extern "C" {
 // ci_embed_load returns an opaque handle, or NULL on failure.
 void *ci_embed_load(const char *model_path, int n_threads);
 
+// ci_embed_clone returns a new handle sharing the loaded model weights but
+// with its own llama_context (own thread pool, own state) — the unit of
+// embed parallelism. The clone must be freed before (or after) the parent;
+// the shared model is freed exactly once, by the loading handle's free.
+// Returns NULL on failure.
+void *ci_embed_clone(void *handle, int n_threads);
+
 // ci_embed_dims returns the embedding dimensionality of the loaded model.
 int ci_embed_dims(void *handle);
 

@@ -19,6 +19,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"sync"
 	"unsafe"
 )
@@ -37,13 +38,31 @@ var bundledID = sync.OnceValue(func() string {
 })
 
 // Local runs a GGUF embedding model in-process (llama.cpp, CPU). Safe for
-// concurrent use; calls are serialized per handle and parallelism comes from
-// ggml's thread pool.
+// concurrent use: a pool of llama contexts shares one loaded model, and
+// each Embed call checks a context out for its duration — within a context
+// parallelism comes from ggml's thread pool, across contexts from the pool.
 type local struct {
-	mu     sync.Mutex
-	handle unsafe.Pointer
-	id     string
-	dims   int
+	mu   sync.Mutex // guards close
+	free chan unsafe.Pointer
+	all  []unsafe.Pointer // all[0] owns the model; freed last
+	id   string
+	dims int
+}
+
+// poolConfig reads the embed-parallelism knobs. CODEINDEX_EMBED_CTX is the
+// number of llama contexts (default 1 — the historical configuration);
+// CODEINDEX_EMBED_THREADS is the ggml thread count per context (default
+// NumCPU, capped at 8 in the shim — small encoders lose to sync overhead
+// past that).
+func poolConfig() (ctxs, threads int) {
+	ctxs, threads = 1, runtime.NumCPU()
+	if v, err := strconv.Atoi(os.Getenv("CODEINDEX_EMBED_CTX")); err == nil && v > 0 && v <= 32 {
+		ctxs = v
+	}
+	if v, err := strconv.Atoi(os.Getenv("CODEINDEX_EMBED_THREADS")); err == nil && v > 0 {
+		threads = v
+	}
+	return ctxs, threads
 }
 
 // NewLocal opens the local provider. model "" loads the bundled weights
@@ -54,13 +73,29 @@ func NewLocal(model string) (Provider, error) {
 	if err != nil {
 		return nil, err
 	}
+	ctxs, threads := poolConfig()
 	cpath := C.CString(path)
 	defer C.free(unsafe.Pointer(cpath))
-	h := C.ci_embed_load(cpath, C.int(runtime.NumCPU()))
+	h := C.ci_embed_load(cpath, C.int(threads))
 	if h == nil {
 		return nil, fmt.Errorf("%w: failed to load model %s", ErrUnavailable, path)
 	}
-	return &local{handle: h, id: id, dims: int(C.ci_embed_dims(h))}, nil
+	l := &local{
+		free: make(chan unsafe.Pointer, ctxs),
+		all:  []unsafe.Pointer{h},
+		id:   id,
+		dims: int(C.ci_embed_dims(h)),
+	}
+	l.free <- h
+	for i := 1; i < ctxs; i++ {
+		c := C.ci_embed_clone(h, C.int(threads))
+		if c == nil {
+			break // partial pool still works; parallelism just degrades
+		}
+		l.all = append(l.all, c)
+		l.free <- c
+	}
+	return l, nil
 }
 
 // resolveModel maps a model spec to (gguf path, model ID), extracting the
@@ -110,18 +145,24 @@ func extractBundled() (string, error) {
 func (l *local) ID() string { return l.id }
 func (l *local) Dims() int  { return l.dims }
 
+// Concurrency reports how many Embed calls can make progress in parallel —
+// the pool size. Callers (EmbedPass) use it to size their worker fan-out.
+func (l *local) Concurrency() int { return cap(l.free) }
+
 func (l *local) Embed(ctx context.Context, texts []string) ([][]float32, error) {
 	if len(texts) == 0 {
 		return nil, nil
 	}
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	if l.handle == nil {
+	var h unsafe.Pointer
+	select {
+	case h = <-l.free:
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+	if h == nil { // closed
 		return nil, ErrUnavailable
 	}
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
+	defer func() { l.free <- h }()
 
 	ctexts := make([]*C.char, len(texts))
 	for i, t := range texts {
@@ -134,7 +175,7 @@ func (l *local) Embed(ctx context.Context, texts []string) ([][]float32, error) 
 	}()
 
 	flat := make([]float32, len(texts)*l.dims)
-	rc := C.ci_embed_batch(l.handle, (**C.char)(unsafe.Pointer(&ctexts[0])),
+	rc := C.ci_embed_batch(h, (**C.char)(unsafe.Pointer(&ctexts[0])),
 		C.int(len(texts)), (*C.float)(unsafe.Pointer(&flat[0])))
 	if rc != 0 {
 		return nil, fmt.Errorf("embed batch of %d: llama rc=%d", len(texts), int(rc))
@@ -152,9 +193,18 @@ func (l *local) Embed(ctx context.Context, texts []string) ([][]float32, error) 
 func (l *local) Close() error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	if l.handle != nil {
-		C.ci_embed_free(l.handle)
-		l.handle = nil
+	if l.all == nil {
+		return nil
 	}
+	// Reclaim every context (waits for in-flight Embeds), then free clones
+	// before the owner — the owner's free releases the shared model.
+	for range l.all {
+		<-l.free
+	}
+	close(l.free)
+	for i := len(l.all) - 1; i >= 0; i-- {
+		C.ci_embed_free(l.all[i])
+	}
+	l.all = nil
 	return nil
 }

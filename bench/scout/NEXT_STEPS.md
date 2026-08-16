@@ -88,8 +88,19 @@ now has nine more data points.
    65.4→76.9 gated behind CODEINDEX_ROLE_BOOST=1; gin/flask regressed —
    named cause: unbounded user-side votes; registered follow-up: vote
    saturation, fresh budget). See bench/engine/FINDINGS-residuals-roles.md.
-4. kubernetes-scale embed budget (laravel 5min → k8s ~30min extrapolated,
-   over the 2-min bar): parallel llama contexts is the known lever.
+4. kubernetes-scale embed budget: **implementation LANDED, sweep blocked
+   on environment** (2026-08-16 early morning). Parallel llama contexts
+   built: shared-model context pool (`CODEINDEX_EMBED_CTX`, default 1 =
+   historical behavior) + fan-out EmbedPass. Verified: pooled builds are
+   deterministic and BIT-IDENTICAL to serial (3× vec fingerprints match);
+   curated gin 88.5 on a pooled index. Timing: every overnight number was
+   environment-contaminated (macOS doze/E-core throttling — the pre-pool
+   CONTROL binary read 439s real on a 19s build; laravel "13m48s" vs
+   5m01s historical) and DISCARDED. Handoff: run
+   `bench/embed_pool_sweep.sh` on an awake, plugged-in machine (its
+   first run is a sanity gate vs the 17.8s gin baseline), pick the
+   shipped default, extrapolate vs the 2-min k8s bar. See
+   bench/engine/FINDINGS-embed-pool.md.
 5. ~~settings.local.json stash merge~~ **DONE** (commit `5ed8eda`, with
    Ethan approving the write): 123 stash-only allow entries + current 137 =
    260, every other stash file verified subsumed by main, stash@{0}

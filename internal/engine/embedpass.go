@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
+	"sync/atomic"
 
 	"codeindex/internal/config"
 	"codeindex/internal/embed"
@@ -453,29 +455,79 @@ func EmbedPass(store *graph.Store, root string, files []string, rep progress.Rep
 		}
 	}
 
-	for start := 0; start < len(missing); start += embedBatch {
-		end := start + embedBatch
-		if end > len(missing) {
-			end = len(missing)
-		}
-		texts := make([]string, end-start)
-		for i, h := range missing[start:end] {
-			texts[i] = textByHash[h]
-		}
-		vecs, err := prov.Embed(context.Background(), texts)
-		if err != nil {
-			return 0, fmt.Errorf("embed pass: %w", err)
-		}
-		for i, h := range missing[start:end] {
-			if err := store.PutVec(tx, h, prov.ID(), graph.QuantizeInt8(vecs[i])); err != nil {
+	// Fan out batches across the provider's concurrency (a pool of llama
+	// contexts for the local provider); a single collector owns the sqlite
+	// transaction — vectors are keyed by content hash, so write order is
+	// irrelevant. workers==1 degenerates to the historical serial loop.
+	workers := 1
+	if c, ok := prov.(interface{ Concurrency() int }); ok && c.Concurrency() > 1 {
+		workers = c.Concurrency()
+	}
+	type batchResult struct {
+		start  int
+		hashes []string
+		vecs   [][]float32
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	var next atomic.Int64
+	results := make(chan batchResult, workers)
+	errs := make(chan error, workers)
+	var wg sync.WaitGroup
+	for w := 0; w < workers; w++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for {
+				start := int(next.Add(int64(embedBatch))) - embedBatch
+				if start >= len(missing) || ctx.Err() != nil {
+					return
+				}
+				end := min(start+embedBatch, len(missing))
+				texts := make([]string, end-start)
+				for i, h := range missing[start:end] {
+					texts[i] = textByHash[h]
+				}
+				vecs, err := prov.Embed(ctx, texts)
+				if err != nil {
+					select {
+					case errs <- fmt.Errorf("embed pass: %w", err):
+					default:
+					}
+					cancel()
+					return
+				}
+				select {
+				case results <- batchResult{start: start, hashes: missing[start:end], vecs: vecs}:
+				case <-ctx.Done():
+					return
+				}
+			}
+		}()
+	}
+	go func() { wg.Wait(); close(results) }()
+
+	done := 0
+	for r := range results {
+		for i, h := range r.hashes {
+			if err := store.PutVec(tx, h, prov.ID(), graph.QuantizeInt8(r.vecs[i])); err != nil {
+				cancel()
+				for range results {
+				} // drain so the closer goroutine exits
 				return 0, err
 			}
 		}
-		embedded = end
+		done += len(r.hashes)
 		if rep != nil {
-			rep.Report(progress.Event{Phase: "embed", Done: end, Total: len(missing)})
+			rep.Report(progress.Event{Phase: "embed", Done: done, Total: len(missing)})
 		}
 	}
+	select {
+	case err := <-errs:
+		return 0, err
+	default:
+	}
+	embedded = done
 	for _, c := range cards {
 		if err := store.PutSymbolVec(tx, c.SymbolID, c.Hash); err != nil {
 			return 0, err
