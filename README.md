@@ -16,7 +16,7 @@ Go, TypeScript, JavaScript, Python, and PHP.
 
 Call resolution is name-based. When two symbols share a name, results carry an `[ambiguous]` flag so you know to verify by file before trusting them. Anonymous functions and lambdas are not indexed as symbols.
 
-Note: the measured token savings above come from Go repositories. The other languages use the same mechanics and pass the same engine validation, but have not been through the same agent experiments yet.
+Note: the agent A/B experiments behind the numbers above cover Go and PHP (the full task set was reproduced on laravel/framework, where the cost and correctness wins held — see the [published writeup](https://ethanhinson.github.io/codeindex/)). TypeScript and Python pass the same engine validation and the deterministic navigation benchmarks, but have not had their own agent A/B.
 
 ## Install
 
@@ -77,6 +77,7 @@ codeindex grep <repo> <pattern>           pattern search over indexed symbols (-
 codeindex search <repo> "<concept>"       semantic concept search (--hints, --flat, --limit)
 codeindex model <pull|use|status>         manage embedding models (bundled default works offline)
 codeindex enclosing <repo> <file> <a>:<b> which symbol encloses these lines
+codeindex ingest <repo> [file|dir]        ingest runtime profiles (cxprof JSONL; --check validates only)
 
 codeindex export <repo> <out.db>          compact index artifact for sharing
 codeindex import <repo> <artifact.db>     install an artifact, then patch local drift
@@ -92,6 +93,28 @@ Most query commands take `--limit N` (default 50). All query commands
 as the text format, with full-count fields (`callers_total` vs the limited
 list) and explicit `ambiguous` flags, so downstream tools parse a schema
 instead of scraping text.
+
+## How it actually gets used
+
+The routing below is measured, not aspirational — it is what the plugin's
+prompt note and the MCP tool descriptions teach agents, and every rule sits
+on its own measurement (the agent A/Bs and the navigation bench in `bench/`):
+
+- **You know a symbol and are about to change it** → `impact` (blast radius,
+  counts first) or `callers`. Structural questions are where the index wins
+  big; the output is complete and self-refreshing, so agents answer straight
+  from the `path:line` references without re-reading files.
+- **You know a symbol and want to orient** — where is it defined, who calls
+  it, which files reference it → `nav`. Each retrieval costs milliseconds, so
+  `nav` runs callers + find + grep in one pass and returns one union answer;
+  measured across Go/PHP/TS, this matches the best per-question tool every
+  time, with no deciding which tool to run. Grep matching is word-boundary,
+  so short names like `File` do not drown in superstrings.
+- **You have a concept, not a name** ("where does host onboarding live") →
+  `search`.
+- **You have a distinctive exact name and just need its location** → plain
+  grep. It is cheaper than any of these; `find`/`codeindex grep` are the
+  escalation when text search misses, not the first move.
 
 ## Graph API: query the symbol graph over HTTP
 
@@ -159,11 +182,12 @@ including one-shot held-out validation on prometheus/vscode/symfony).
 
 ## Using it with Claude Code
 
-The `plugin/` directory ships a Claude Code plugin with three pieces:
+The `plugin/` directory ships a Claude Code plugin with four pieces:
 
 - A per-prompt note that tells the agent the index exists and when to use it.
 - A post-edit hook that warns the agent when it edits a function with callers elsewhere (once per symbol per session, never blocks edits).
 - An `/codeindex:impact <symbol>` command for a quick blast-radius summary before changing something.
+- An `/codeindex:explore <concept>` command that chains semantic `search` into `impact` on the winning entry point.
 
 Install:
 
@@ -233,6 +257,17 @@ Resolved dependency symbols show `[dep namespace@version]` provenance, and
 locally modified dependency files overlay the attached map and are marked
 `modified`.
 
+## Runtime profiles
+
+Static call resolution can be enriched with what actually ran. Drop sampled
+stack profiles in the one-page [cxprof format](docs/cxprof-format.md)
+(`*.cxprof.jsonl`) into `<repo>/.codeindex/runtime/` and the next query
+ingests them automatically; `codeindex ingest <repo> <file|dir>` does it
+explicitly and `--check` validates a file without ingesting. Emitter SDKs for
+Go and Node live in `sdk/`, but the format is plain JSONL — anything that can
+write JSON lines can emit it. Sampled truth caveat: presence of a stack is
+evidence; absence proves nothing.
+
 ## Teams and CI
 
 Build the index once in CI, publish the artifact, and let everyone import it instead of building cold:
@@ -257,8 +292,9 @@ internal/readmodel   symbol read model behind the graph API
 internal/webserver   headless JSON graph API (codeindex serve)
 internal/mcpserver   MCP server
 internal/depmap      dependency map generation
-plugin/              Claude Code plugin (hooks and /impact command)
+plugin/              Claude Code plugin (hooks, /impact and /explore commands)
 editors/vscode       VS Code integration
+sdk/                 cxprof runtime-profile emitters (Go, Node)
 bench/               benchmarks and A/B experiment findings
-docs/                CI setup, the graph API contract, and design docs
+docs/                CI setup, the graph API contract, cxprof, and design docs
 ```

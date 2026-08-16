@@ -14,12 +14,16 @@ which tool.
 ---
 
 ```markdown
-## codeindex (MCP server: impact/callers/callees/dependents/find/grep/search)
+## codeindex (MCP server: nav/impact/callers/callees/dependents/find/grep/search)
 
 Routing — pick by what you HAVE, not what you want:
 - You have a CONCEPT or FEATURE question ("where does host onboarding
   live", "code that throttles retries") → `search`, with `hints`: 3-6
   identifier-style token guesses (you know naming conventions — use them).
+- You have a KNOWN symbol and want to ORIENT (where defined, who calls,
+  which files reference) → `nav`: one call returns all three, measured to
+  match the best per-question tool every time. Don't deliberate over which
+  tool fits — retrieval is milliseconds.
 - You have a KNOWN symbol and want its blast radius → `impact` (before
   modifying), `callers` (who uses it), `callees` (what it uses),
   `dependents` (imports/extends/implements).

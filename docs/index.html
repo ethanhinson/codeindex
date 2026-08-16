@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>codeindex — does a call-graph index actually help coding agents?</title>
-<meta name="description" content="A/B evidence that a call-graph index reduces coding-agent cost and improves correctness on structural code tasks — and that the effect is structural, holding across the Go/PHP language boundary.">
+<meta name="description" content="A/B evidence that a call-graph index reduces coding-agent cost and improves correctness on structural code tasks; the effect holds across the Go/PHP boundary, and deterministic over-retrieval replaces routing entirely.">
 <style>
   :root { --fg:#1a1a1a; --muted:#666; --line:#e5e5e5; --accent:#0b6; --bad:#c33; --code:#f6f8fa; }
   * { box-sizing:border-box; }
@@ -105,13 +105,47 @@ the repository or the language.</p>
 edit impact is a clean win (+60% cheaper, +13 points more correct). The lesson recorded
 in the findings: don't build a mechanism narrative on a 12-row cell.</p>
 
+<h2>Result 3 — you don't even need a router: over-retrieval hits the ceiling</h2>
+<p>Result 1 said the policy should route. The natural next question: route <em>with
+what</em>? A trained classifier (local embeddings + logistic regression) picking the
+right tool per task scored only <strong>70% end-to-end</strong> — its errors concentrate
+exactly in the caller-shaped tasks where the index matters most.</p>
+
+<p>The measured answer is simpler: don't decide. Each retrieval costs milliseconds, so
+run <em>all</em> of them — callers, symbol search, and word-boundary grep — and emit one
+union answer. That deterministic pipeline scores <strong>100% success, F1
+0.95–0.99</strong>, per-task identical to the best per-question tool, on all three
+languages tested (Go, PHP, TypeScript). No agent in the loop, no model, no routing —
+just structure plus cheap glue. It ships as a product verb, <code>codeindex nav</code>,
+and the four common multi-hop trajectories (impact, where-tested, rename-radius,
+dead-code) fall to the same treatment.</p>
+
+<table>
+  <thead><tr><th>Navigation pipeline</th><th class="num">Success</th><th class="num">Median F1</th></tr></thead>
+  <tbody>
+    <tr><td>classifier-routed tool choice (honest end-to-end)</td><td class="num">70%</td><td class="num">0.65</td></tr>
+    <tr><td>over-retrieval union (<code>nav</code>) — Go</td><td class="num win">100%</td><td class="num win">0.96</td></tr>
+    <tr><td>over-retrieval union (<code>nav</code>) — PHP · laravel</td><td class="num win">100%</td><td class="num win">0.95</td></tr>
+    <tr><td>over-retrieval union (<code>nav</code>) — TS · nest</td><td class="num win">100%</td><td class="num win">0.99</td></tr>
+  </tbody>
+</table>
+<p class="note">Every piece of the shipped pipeline sits behind its own measurement,
+including the final detail: <code>nav</code>'s grep only switched to word-boundary
+matching after a re-run showed it held 100% success and raised F1 on every task set
+(short anchors like <code>File</code> stop matching superstrings).</p>
+
 <h2>Why this matters</h2>
 <p>A large fraction of a coding agent's spend goes to <em>navigation</em> — locating the
-relevant code — not reasoning about it. If a deterministic call-graph index can construct
-the right context for the structural questions, the expensive model is invoked only when
-actual reasoning is required. And because the routing signal is structural rather than
-repo-specific, a small policy that learns <em>which retrieval move fits which task</em>
-should transfer across codebases and languages, rather than memorizing any one layout.</p>
+relevant code — not reasoning about it. This project set out expecting to train a small
+routing policy for that layer. The measurements kept refusing: the classifier router lost
+to running everything; cheap query-formulation gates lost to a local
+embedding+structure hybrid; at every gate where a model might have earned its way in,
+deterministic retrieval plus cheap glue matched or beat it. So the conclusion is stronger
+than "the index helps": for navigation-shaped questions, the expensive model can be kept
+out of the loop entirely, and invoked only where actual reasoning is required. What
+remains genuinely open for a model is narrow and named: query reformulation on the
+weakest semantic-search repos, and the trust-vs-verify call on
+<code>[ambiguous]</code> edges.</p>
 
 <footer>
   <p>Source and raw benchmark harness: <a href="https://github.com/ethanhinson/codeindex">github.com/ethanhinson/codeindex</a>.

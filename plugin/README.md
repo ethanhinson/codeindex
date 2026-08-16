@@ -12,8 +12,8 @@ boundary; the plugin's value depends on respecting it.
 
 - The `codeindex` binary on PATH (or `CODEINDEX_BIN` set):
   `go build -o /usr/local/bin/codeindex ./cmd/codeindex` (CGO; needs a C toolchain)
-- A Go repository (Go-only symbols for now). The index self-builds and
-  self-refreshes on every query — no manual build step.
+- A repository in a supported language: Go, TS/JS, Python, or PHP. The index
+  self-builds and self-refreshes on every query — no manual build step.
 
 ## Install
 
@@ -45,8 +45,10 @@ net-negative — ~3.1k-token footprint — so v4 deliberately ships without them
 - Languages: Go, TS/JS, Python, PHP (name-based resolution across all —
   `[ambiguous]` flags mark name collisions; verify those by file before
   trusting). Anonymous/lambda functions are not indexed as symbols.
-- Measured savings (−73%/−62%) are from Go-repo experiments; other languages
-  share the mechanics but are engine-validated only.
+- Agent A/B evidence covers Go and PHP (the laravel/framework reproduction
+  held the sign on every task type, with correctness UP on the hardest two).
+  TS and Python pass engine validation and the deterministic navigation
+  bench, but have no agent A/B of their own yet.
 - `/impact` covers call + import/extends/implements edges (type-usage
   references still excluded, disclosed in output).
 - Vendored dependencies: `codeindex depmap <dir> --namespace <ns> --version <v>
