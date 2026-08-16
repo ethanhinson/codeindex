@@ -49,15 +49,22 @@ type local struct {
 	dims int
 }
 
-// poolConfig reads the embed-parallelism knobs. CODEINDEX_EMBED_CTX is the
-// number of llama contexts (default 1 — the historical configuration);
-// CODEINDEX_EMBED_THREADS is the ggml thread count per context (default
-// NumCPU, capped at 8 in the shim — small encoders lose to sync overhead
-// past that).
+// poolConfig reads the embed-parallelism knobs, defaulting to the measured
+// sweet spot (bench/engine/FINDINGS-embed-pool.md, 2026-08-16 sweep): many
+// single-thread contexts beat one wide one — BLAS already multi-threads
+// inside each encode, so extra ggml threads mostly collide (2x8 measured
+// SLOWER than 1x8) while extra contexts fill scheduling gaps (laravel
+// embed 179s -> 98s). Defaults: contexts = min(8, NumCPU/2), 1 thread each
+// when pooled; CODEINDEX_EMBED_CTX / CODEINDEX_EMBED_THREADS override
+// (CTX=1 reproduces the historical serial configuration exactly).
 func poolConfig() (ctxs, threads int) {
-	ctxs, threads = 1, runtime.NumCPU()
+	ctxs = min(8, max(1, runtime.NumCPU()/2))
 	if v, err := strconv.Atoi(os.Getenv("CODEINDEX_EMBED_CTX")); err == nil && v > 0 && v <= 32 {
 		ctxs = v
+	}
+	threads = 1
+	if ctxs == 1 {
+		threads = runtime.NumCPU() // shim caps at 8
 	}
 	if v, err := strconv.Atoi(os.Getenv("CODEINDEX_EMBED_THREADS")); err == nil && v > 0 {
 		threads = v
