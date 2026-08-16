@@ -300,9 +300,11 @@ func GrepText(root, pattern string, limit int, word bool) (string, error) {
 // defined, who calls, which files reference). Retrieval is ~ms per op, so
 // running all three always beats deciding which one to run — measured
 // (bench/scout FINDINGS): the union matches the per-tool formatter ceiling
-// with zero routing. Grep is substring here, exactly as measured; when the
-// graph has no call edges for the anchor, grep's enclosing-symbol
-// attribution stands in for callers.
+// with zero routing. Grep is word-boundary here: the union arm was re-run
+// with -w on all three task sets (bench/scout FINDINGS, 2026-08-16) and
+// held 100% success with F1 up on every set — short anchors like `File`
+// stop matching superstrings. When the graph has no call edges for the
+// anchor, grep's enclosing-symbol attribution stands in for callers.
 func Nav(root, anchor string, limit int) (*NavAnswer, error) {
 	name, parent := SplitAnchor(anchor)
 	st, err := open(root)
@@ -323,7 +325,7 @@ func Nav(root, anchor string, limit int) (*NavAnswer, error) {
 	if err != nil {
 		return nil, err
 	}
-	groups, _, _, err := search.Grep(st, root, regexp.QuoteMeta(name), 0, false)
+	groups, _, _, err := search.Grep(st, root, regexp.QuoteMeta(name), 0, true)
 	if err != nil {
 		return nil, err
 	}

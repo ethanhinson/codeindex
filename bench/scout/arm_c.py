@@ -45,10 +45,12 @@ def parse_task(t):
     return sym, prompt
 
 # --- run a codeindex tool, return raw output as the "answer" ---
-def run_tool(tool, repo, sym, binary):
+def run_tool(tool, repo, sym, binary, word=False):
     args = {"callers": ["callers", repo, sym],
             "grep": ["grep", repo, sym],
             "find": ["find", repo, sym, "--limit", "10"]}[tool]
+    if tool == "grep" and word:
+        args = args + ["-w"]
     # --json: the formatters consume the structured contract, not text regexes
     return subprocess.run([binary, *args, "--json"],
                           capture_output=True, text=True).stdout
@@ -66,18 +68,27 @@ def main():
     ap.add_argument("--over-retrieve", action="store_true",
                     help="skip routing entirely: run callers+find+grep (all ~free) "
                          "and emit one union answer shaped for every grader")
+    ap.add_argument("--word-grep", action="store_true",
+                    help="union arm only: word-boundary grep (-w) instead of the "
+                         "substring grep the 100%%/0.95 was measured with")
     args = ap.parse_args()
-
-    print("training router (local embeddings)...", file=sys.stderr)
-    clf = train_router()
 
     data = json.load(open(HERE / args.tasks))
     tasks = data["tasks"]
     rows = []
-    # classify all task prompts in one batch
-    prompts = [t["prompt"] for t in tasks]
-    Xq = embed(prompts)
-    routes = clf.predict(Xq)
+    if args.over_retrieve:
+        # Union mode does zero routing, so don't train the router. (Also: the
+        # on-disk gin_tier1.jsonl predates the occurrences->token_refs rename
+        # and no longer matches PARA's class names — regenerate with
+        # gen_tier1.py before any routed run.)
+        routes = [None] * len(tasks)
+    else:
+        print("training router (local embeddings)...", file=sys.stderr)
+        clf = train_router()
+        # classify all task prompts in one batch
+        prompts = [t["prompt"] for t in tasks]
+        Xq = embed(prompts)
+        routes = clf.predict(Xq)
 
     for t, tool in zip(tasks, routes):
         sym, prompt = parse_task(t)
@@ -88,7 +99,8 @@ def main():
             # and let the union answer's section order satisfy each grader.
             answer = fmt_union(run_tool("callers", repo, sym, args.binary),
                                run_tool("find", repo, sym, args.binary),
-                               run_tool("grep", repo, sym, args.binary))
+                               run_tool("grep", repo, sym, args.binary,
+                                        word=args.word_grep))
         elif args.forced_tools:
             # Legacy: tool forced by harness type — tests the formatter, not
             # the router (caveat 1). Kept as the formatter-ceiling reference.

@@ -377,3 +377,41 @@ measured with substring grep; changing the retrieval underneath the shipped
 shape without re-running the arm would be the exact leak the discipline
 section warns about), and adding nav to the plugin's prompt-note (its ~155
 token footprint is a measured artifact; a wording change needs an A/B).
+
+## nav flipped to word-boundary grep — behind the re-run, as required (2026-08-16)
+
+The deliberately-not-done item above is now done, in the only order the
+discipline section allows: measurement first, flip second.
+
+`arm_c.py --over-retrieve` gained `--word-grep` (adds `-w` to the union's
+grep call; nothing else changes) and the union arm was re-run on all three
+task sets with a fresh main-built binary, substring vs word:
+
+| set | n | substring F1 / succ | word F1 / succ |
+| --- | --- | --- | --- |
+| tasks_v6 | 20 | 0.954 / 100% | 0.958 / 100% |
+| tasks_lphp | 24 | 0.953 / 100% | 0.954 / 100% |
+| tasks_nest | 24 | 0.981 / 100% | 0.992 / 100% |
+
+The substring arms reproduce the recorded 100%/0.95–0.98 exactly, so the
+comparison is apples-to-apples. Per-task diff (`compare_union_word.py`):
+word grep changes THREE tasks, all comprehension, all strictly UP —
+`comp-gin-File` 0.804→0.881, `comp-laravel-framework-resource` 0.62→0.655,
+`comp-nest-RequestFilter` 0.643→0.90. Exactly the predicted mechanism:
+short/common anchors stop matching superstrings (`File` no longer pulls
+`FileSystem`, etc.), so the FILES section sheds noise files. Zero tasks
+down, zero successes lost.
+
+Shipped: `Nav` now calls `search.Grep(..., word=true)` (`internal/query/
+query.go`), comment updated to cite this re-run. Full `go test ./...`
+green; the nav golden is unchanged (fixture anchors are whole words).
+
+Two incidental notes:
+- The on-disk `gin_tier1.jsonl` predates the `occurrences`→`token_refs`
+  rename and no longer matches PARA's class names, so router training
+  crashes. Union mode never routes, so `arm_c.py` now skips training under
+  `--over-retrieve`; any future ROUTED run must regenerate the corpus with
+  `gen_tier1.py` first.
+- Still NOT done, same reason as before: mentioning `nav` in the plugin
+  prompt-note (needs an A/B; the note's ~155-token footprint is a measured
+  artifact).

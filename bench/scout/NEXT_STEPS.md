@@ -1,13 +1,14 @@
 # Scout — handoff for the next agent
 
 **Read this + `FINDINGS.md` before touching anything in `bench/scout/`.**
-Last updated 2026-08-15 (night). The 9-step plan is COMPLETE (`5123707` →
-`999c46c`), and the post-plan "sensible next moves" list below has been
-worked: items 1 (`codeindex nav` verb + MCP tool), 2 (`grep -w`, recipes
-re-measured at 1.00), and 5 (settings merge committed with Ethan's approval,
-stash@{0} dropped — no stashes remain) are DONE; items 3 (nest
-sibling-family degeneracy) and 4 (kubernetes-scale embed budget) remain
-open.
+Last updated 2026-08-16. The 9-step plan is COMPLETE (`5123707` →
+`999c46c`), and the post-plan "sensible next moves" list below is fully
+worked: items 1–5 DONE (`nav` verb, `grep -w`, nest residuals, embed pool
+default-on, settings stash merge), and item 6's first candidate (`nav`
+flipped to `-w` grep behind a re-run of the union arm) is DONE too. The
+only remaining candidate is the plugin prompt-note mention of `nav`,
+gated behind an A/B. The k8s ≤2-min embed bar stays honestly open
+(~10.6min extrapolated).
 
 ## What happened this session (all committed to main)
 
@@ -103,10 +104,17 @@ now has nine more data points.
    Ethan approving the write): 123 stash-only allow entries + current 137 =
    260, every other stash file verified subsumed by main, stash@{0}
    dropped. The stash list is empty — the WIP-stash saga is fully closed.
-6. NEW candidates surfaced by this session: consider `nav` with `-w` grep —
-   but ONLY behind a re-run of the union arm (the 100%/0.95 was measured
-   with substring grep); and a plugin prompt-note mention of `nav` — but
-   ONLY behind an A/B (the ~155-token note is a measured artifact).
+6. NEW candidates surfaced by this session — first half DONE 2026-08-16:
+   ~~`nav` with `-w` grep~~ **DONE behind the required re-run**: union arm
+   re-measured substring-vs-word on all 3 sets (substring reproduced the
+   recorded scores; word held 100% success and raised F1 on every set —
+   only 3 tasks changed, all up, all short-anchor comprehension). Nav now
+   greps word-boundary; goldens unchanged, suite green. See FINDINGS
+   (2026-08-16 entry). Side effect: `arm_c.py --over-retrieve` no longer
+   trains the router (the on-disk gin_tier1.jsonl predates the
+   `token_refs` rename — regenerate before any ROUTED run). Remaining:
+   plugin prompt-note mention of `nav` — still ONLY behind an A/B (the
+   ~155-token note is a measured artifact).
 
 ## The files (bench/scout/)
 
