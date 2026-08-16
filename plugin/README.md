@@ -26,7 +26,7 @@ claude --plugin-dir /path/to/code-indexer/plugin
 
 | Piece | What it does |
 |---|---|
-| **Prompt note** (UserPromptSubmit hook) | Injects a ~155-token availability note per prompt in supported repos: the anchor rule + trust instruction. This is what drives adoption (measured: always-visible beats lazy skill). |
+| **Prompt note** (UserPromptSubmit hook) | Injects a ~190-token availability note per prompt in supported repos: the anchor rule (callers/callees + nav) + trust instruction. This is what drives adoption (measured: always-visible beats lazy skill; the nav sentence passed its own A/B before shipping). |
 | **Post-edit hook** | After the agent edits a function (any supported language) that has callers elsewhere, injects a ≤150-token note: symbol, caller count, where — once per symbol per session. |
 | **`/codeindex:impact <symbol>`** | Counts-first blast-radius summary (callers + callees) — run before modifying a symbol. |
 | **`/codeindex:explore <concept>`** | Feature exploration: semantic `search` feature map, then `impact` on the winning entry point. |

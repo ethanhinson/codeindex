@@ -1,14 +1,14 @@
 # Scout — handoff for the next agent
 
 **Read this + `FINDINGS.md` before touching anything in `bench/scout/`.**
-Last updated 2026-08-16. The 9-step plan is COMPLETE (`5123707` →
-`999c46c`), and the post-plan "sensible next moves" list below is fully
-worked: items 1–5 DONE (`nav` verb, `grep -w`, nest residuals, embed pool
-default-on, settings stash merge), and item 6's first candidate (`nav`
-flipped to `-w` grep behind a re-run of the union arm) is DONE too. The
-only remaining candidate is the plugin prompt-note mention of `nav`,
-gated behind an A/B. The k8s ≤2-min embed bar stays honestly open
-(~10.6min extrapolated).
+Last updated 2026-08-16 (evening). The 9-step plan is COMPLETE (`5123707`
+→ `999c46c`) and the post-plan "sensible next moves" list is FULLY CLOSED:
+items 1–5 (`nav` verb, `grep -w`, nest residuals, embed pool default-on,
+settings stash merge) plus both item-6 candidates (`nav` flipped to `-w`
+grep behind a union-arm re-run; the nav sentence added to the plugin
+prompt note behind its own A/B — see bench/agent_ab/FINDINGS_note_ab.md).
+Still honestly open elsewhere: the k8s ≤2-min embed bar (~10.6min
+extrapolated) and the role-boost vote-saturation follow-up.
 
 ## What happened this session (all committed to main)
 
@@ -112,9 +112,14 @@ now has nine more data points.
    greps word-boundary; goldens unchanged, suite green. See FINDINGS
    (2026-08-16 entry). Side effect: `arm_c.py --over-retrieve` no longer
    trains the router (the on-disk gin_tier1.jsonl predates the
-   `token_refs` rename — regenerate before any ROUTED run). Remaining:
-   plugin prompt-note mention of `nav` — still ONLY behind an A/B (the
-   ~155-token note is a measured artifact).
+   `token_refs` rename — regenerate before any ROUTED run).
+   ~~plugin prompt-note mention of `nav`~~ **DONE behind the required A/B
+   2026-08-16**: both arms = real plugin via --plugin-dir, only delta = one
+   nav sentence; 40/40 pairs on tasks_v6 (gin+prometheus): success Δ +0.0pp,
+   median paired cost Δ +0.4%, nav adopted selectively (7 calls, all
+   comprehension, ~5% cheaper there). Shipped byte-identical to the tested
+   variant. See bench/agent_ab/FINDINGS_note_ab.md. The sensible-next-moves
+   list is now FULLY CLOSED.
 
 ## The files (bench/scout/)
 
