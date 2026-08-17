@@ -143,6 +143,75 @@ index note may distract glm on collision tasks; watch in any rerun);
 65 runs logged ≥1 transient gateway error (retries succeeded; environment
 noise, not model failure).
 
+## Finding 6 — FLOOR SWEEP: the real MCP server lifts everything below glm;
+the capability floor is a 7B coder finetune (2026-08-17)
+
+Exploratory (no pre-registered verdict): `run_m5_floor.py`, 340/340 runs =
+5-model ladder × {shell control, treatment = the REAL `codeindex mcp` stdio
+server} × 34 dominate tasks, one-shot fuse, 600s cap. This is the first
+family to test the MCP surface every MCP-capable agent actually gets — the
+fuse campaign (Finding 5) tested fuse's builtin tool wrappers instead.
+Official table in `results/report_m5.md`; ladder resolves to glm-5.2 (cloud),
+qwen3-8b (cloud), qwen3-coder-30b (local), qwen-7b (local), qwen-coder-7b
+(local).
+
+| model | mcp | shell | lift | real-MCP adoption |
+|---|---:|---:|---:|---:|
+| glm-5.2 | 94.1% | 88.2% | +5.9pp | 31/34 |
+| qwen3-8b cloud | 85.3% | 17.6% | +67.6pp | 34/34 |
+| qwen3-coder-30b | 73.5% | 29.4% | +44.1pp | 34/34 |
+| qwen-7b | 58.8% | 17.6% | +41.2pp | 31/34 |
+| qwen-coder-7b | 32.4% | 0.0% | +32.4pp | 25/34 |
+
+The curve, read top to bottom:
+
+- **glm is at ceiling with or without the index** (+5.9pp is inside noise at
+  n=34). What the index buys the big model is efficiency, not correctness:
+  median 19.5k processed tokens vs 40k, 8.3 vs 9.5 turns.
+- **An 8B with the index ≈ the frontier model without it.** qwen3-8b+mcp
+  85.3% vs glm+shell 88.2%, at ~1/3 the tokens (14.4k vs 40k median) and 2.7
+  index calls / 3.6 turns per run. This sharpens Finding 5's compound claim
+  from 30B down to 8B — on the real MCP surface, not fuse builtins.
+- **Every model below glm is lifted +32 to +68pp.** Mechanism attribution
+  holds within mcp arms: runs that actually called the MCP tools succeeded
+  29/34 (qwen3-8b), 25/34 (30B), 19/31 (qwen-7b), 11/25 (qwen-coder-7b);
+  non-adopting runs went 1/12 combined across the small models. glm alone
+  succeeds without adopting (3/3) — it doesn't need the tool.
+- **The floor is qwen-coder-7b, and it fails BOTH ways**: it is the only
+  model that doesn't reliably adopt (25/34 despite the note; its 9
+  non-adopting runs went 0/9), and even when it adopts it converts only
+  11/25. Notably the CODER finetune of the 7B does far worse than the
+  generic qwen-7b (32.4% vs 58.8% with the index) — instruction-following,
+  not code knowledge, is what tool adoption runs on.
+- **The index makes small models righter, not honest**: false-confidence
+  among failures stays 60-80% in the small mcp arms (report table). At the
+  top it does both: glm+mcp 2 false-confident rows vs 8 for glm+shell,
+  qwen3-8b+mcp 1 vs 13.
+
+**Confound, discovered post-hoc (direction: inflates small-model lifts):**
+fuse's `disabled` tools are removed from EXECUTION but still ADVERTISED in
+the request tool list. Trace audit of all 340 runs: shell-arm models saw the
+builtin `codeindex_*` schemas, attempted them (glm 14/34 runs, qwen3-8b
+24/34, qwen-7b 21/34), and every attempt returned `tool "..." is disabled` —
+zero execution leaked (verified: 0 real MCP calls, 0 bash codeindex calls in
+all shell arms). So the control is index-aware-but-refused, not index-blind:
+control models burned turns on refusals, which depresses shell scores for
+turn-limited small models. glm shrugged it off (88.2% control), so the
+ceiling conclusion stands; treat the small-model deltas as upper bounds. In
+mcp arms the same audit shows adoption counts are essentially pure real-MCP
+calls (5 stray builtin attempts by qwen-coder-7b, rest zero), so the
+mechanism attribution is clean. A rerun with the builtins truly absent from
+the tool list is the obvious follow-up.
+
+**Infra residuals, recorded:** 23 runs initially died on environment, not
+model — a port-9090 metrics bind race with a long-lived interactive `fuse
+shell` on this machine, plus LM Studio MLX model-load failures. Two retry
+rounds recovered 19; the 4 survivors (all local-model shell arms on
+laravel/nest) grade as control failures, worth ≤3pp on two shell cells.
+Pre-retry snapshot: `results/runs_m5_floor.jsonl.bak-preretry`. The 1
+glm|shell 600s timeout is kept as a legitimate failure. Harness note for any
+rerun: don't leave an interactive fuse session holding the metrics port.
+
 ## Cost / next step
 
 Smoke spend: $0.57 + $0.58 (claude family), ~$0.02 cloud + $0 local ×2
@@ -156,6 +225,10 @@ Full campaign:
     # wall-time bound by the local 30B (keep LM Studio loaded; serialize)
     python3 bench/m5/run_m5_fuse.py --full
     python3 bench/m5/grade_m5.py --family fuse
+    # floor family: 5 models x 2 treatments x 34 dominate tasks = 340 runs,
+    # ~$0.10 cloud + $0 local; wall-time bound by the local models
+    python3 bench/m5/run_m5_floor.py --full
+    python3 bench/m5/grade_m5.py --family floor
     # combined report (evaluates whichever graded files exist)
     python3 bench/m5/gate_m5.py
 

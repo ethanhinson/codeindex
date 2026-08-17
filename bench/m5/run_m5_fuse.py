@@ -139,7 +139,9 @@ def parse_trace(path: Path) -> dict:
             for tc in tcs:
                 fn = tc.get("function", {})
                 name = fn.get("name", "")
-                if name.startswith("codeindex"):
+                # matches both fuse builtins (codeindex_*) and MCP tools
+                # (mcp:codeindex/*), plus bash invocations of the binary
+                if "codeindex" in name:
                     codeindex_calls += 1
                 elif name == "bash" and "codeindex" in fn.get("arguments", "").lower():
                     codeindex_calls += 1

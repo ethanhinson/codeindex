@@ -49,6 +49,21 @@
 - **compound index-attribution: PASS** (n=34) — small+index 64.7% vs small+shell 26.5% (delta 38.2pp, min +10pp)
 - (info) large+index 52.9% vs large+shell 38.2% — within-fuse replication of the claude-family GO direction, no verdict attached.
 
+## Floor sweep (model ladder × shell/mcp, dominate) — exploratory, no verdict
+
+| model | treatment | n | success | mean recall | false-conf | adoption | median tokens | timeouts |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| glm | mcp | 34 | 94.1% | 91.1% | 9.1% | 31/34 | 19536 | 0 |
+| glm | shell | 34 | 88.2% | 83.7% | 36.4% | 14/34 | 39956 | 1 |
+| qwen-cloud | mcp | 34 | 85.3% | 77.8% | 4.5% | 34/34 | 14428 | 0 |
+| qwen-cloud | shell | 34 | 17.6% | 14.2% | 59.1% | 24/34 | 15082 | 0 |
+| qwen-coder | mcp | 34 | 32.4% | 29.1% | 81.8% | 25/34 | 14806 | 0 |
+| qwen-coder | shell | 34 | 0.0% | 2.0% | 81.8% | 9/34 | 8728 | 0 |
+| qwen-local | mcp | 34 | 58.8% | 52.4% | 68.2% | 31/34 | 12498 | 0 |
+| qwen-local | shell | 34 | 17.6% | 20.0% | 31.8% | 21/34 | 12505 | 0 |
+| qwen3-coder | mcp | 34 | 73.5% | 67.7% | 36.4% | 34/34 | 40434 | 0 |
+| qwen3-coder | shell | 34 | 29.4% | 30.4% | 81.8% | 5/34 | 109430 | 1 |
+
 
 ## Honesty notes
 

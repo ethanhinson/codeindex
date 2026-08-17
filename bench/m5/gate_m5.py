@@ -255,6 +255,33 @@ def evaluate_compound(rows: list[dict], gates: dict) -> str:
     return "\n".join(lines)
 
 
+def evaluate_floor(rows: list[dict]) -> str:
+    """Floor sweep table — EXPLORATORY, no pre-registered verdict. Groups by
+    (model, treatment) on the dominate suite; the deliverable is the curve."""
+    lines = ["## Floor sweep (model ladder × shell/mcp, dominate) — "
+             "exploratory, no verdict", "",
+             "| model | treatment | n | success | mean recall | false-conf | "
+             "adoption | median tokens | timeouts |",
+             "|---|---|---:|---:|---:|---:|---:|---:|---:|"]
+    groups: dict = {}
+    for r in rows:
+        groups.setdefault((r["model"], r["treatment"]), []).append(r)
+    for (model, tr) in sorted(groups):
+        rs = groups[(model, tr)]
+        toks = [r["processed_tokens"] for r in rs if r.get("processed_tokens")]
+        adopted = sum(1 for r in rs if r.get("codeindex_calls", 0) > 0)
+        med_tok = f"{statistics.median(toks):.0f}" if toks else "n/a"
+        n_to = sum(1 for r in rs if r.get("timed_out"))
+        lines.append(
+            f"| {model} | {tr} | {len(rs)} | "
+            f"{fmt(success_rate(rs), pct=True)} | "
+            f"{fmt(mean_recall(rs), pct=True)} | "
+            f"{fmt(fc_rate(rs), pct=True)} | "
+            f"{adopted}/{len(rs)} | {med_tok} | {n_to} |")
+    lines.append("")
+    return "\n".join(lines)
+
+
 def honesty_notes() -> str:
     lines = ["",
               "## Honesty notes", "",
@@ -345,6 +372,9 @@ def main():
     fuse_graded = HERE / "results" / "graded_m5_fuse.jsonl"
     if fuse_graded.exists():
         sections.append(evaluate_compound(load_rows(fuse_graded), gates))
+    floor_graded = HERE / "results" / "graded_m5_floor.jsonl"
+    if floor_graded.exists():
+        sections.append(evaluate_floor(load_rows(floor_graded)))
     if not sections:
         sys.exit("no graded files found — run grade_m5.py first")
     sections.append(honesty_notes())

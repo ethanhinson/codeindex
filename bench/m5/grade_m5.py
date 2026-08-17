@@ -175,16 +175,18 @@ def main():
     import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument("--selftest", action="store_true")
-    ap.add_argument("--family", default="claude", choices=("claude", "fuse"),
-                    help="claude: runs_m5.jsonl; fuse: runs_m5_fuse.jsonl")
+    ap.add_argument("--family", default="claude",
+                    choices=("claude", "fuse", "floor"),
+                    help="claude: runs_m5.jsonl; fuse: runs_m5_fuse.jsonl; "
+                         "floor: runs_m5_floor.jsonl")
     args = ap.parse_args()
     if args.selftest:
         selftest()
         return
     global RUNS, GRADED
-    if args.family == "fuse":
-        RUNS = HERE / "results" / "runs_m5_fuse.jsonl"
-        GRADED = HERE / "results" / "graded_m5_fuse.jsonl"
+    if args.family != "claude":
+        RUNS = HERE / "results" / f"runs_m5_{args.family}.jsonl"
+        GRADED = HERE / "results" / f"graded_m5_{args.family}.jsonl"
 
     tasks = {t["id"]: t for t in json.loads(TASKS.read_text())["tasks"]}
     prefixes = {}
