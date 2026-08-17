@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>codeindex — does a call-graph index actually help coding agents?</title>
-<meta name="description" content="A/B evidence that a call-graph index reduces coding-agent cost and improves correctness on structural code tasks; the effect holds across the Go/PHP boundary, and deterministic over-retrieval replaces routing entirely.">
+<title>codeindex: does a call-graph index actually help coding agents?</title>
+<meta name="description" content="Paired A/B evidence that a call-graph index cuts coding-agent cost on structural code tasks, holds across languages, and lets small models match a frontier model. Measured, with the negative results included.">
 <style>
-  :root { --fg:#1a1a1a; --muted:#666; --line:#e5e5e5; --accent:#0b6; --bad:#c33; --code:#f6f8fa; }
+  :root { --fg:#1a1a1a; --muted:#666; --line:#e5e5e5; --accent:#0b6; --bad:#c33; --code:#f6f8fa; --bar-a:#9aa5b1; --bar-b:#0b6; }
   * { box-sizing:border-box; }
   body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
          color:var(--fg); max-width:820px; margin:0 auto; padding:2.5rem 1.25rem 5rem; }
@@ -25,132 +25,235 @@
          padding:.15em .5em; border-radius:999px; margin-left:.4rem; }
   .note { background:var(--code); border-left:3px solid var(--line); padding:.75rem 1rem;
           margin:1.25rem 0; font-size:.95rem; color:#444; }
+  .takeaway { background:#f0faf5; border-left:3px solid var(--accent); padding:.75rem 1rem;
+          margin:1.25rem 0; font-size:1rem; }
   footer { margin-top:3rem; padding-top:1rem; border-top:1px solid var(--line);
            color:var(--muted); font-size:.85rem; }
   a { color:#06c; }
+
+  /* bar charts, no JS */
+  .chart { margin:1.25rem 0 .5rem; }
+  .chart .row { display:flex; align-items:center; gap:.6rem; margin:.35rem 0; }
+  .chart .label { flex:0 0 11.5rem; font-size:.9rem; text-align:right; color:#333; }
+  .chart .track { flex:1; background:var(--code); border-radius:3px; height:1.15rem; position:relative; }
+  .chart .bar { height:100%; border-radius:3px; display:flex; align-items:center; }
+  .chart .bar.b { background:var(--bar-b); }
+  .chart .bar.a { background:var(--bar-a); }
+  .chart .val { font-size:.8rem; font-variant-numeric:tabular-nums; padding-left:.45rem;
+                color:#fff; white-space:nowrap; }
+  .chart .val.out { color:#333; position:absolute; left:100%; padding-left:.4rem; top:0; line-height:1.15rem; }
+  .chart .group { margin:.9rem 0 1.1rem; }
+  .chart .group .name { font-size:.92rem; font-weight:600; margin-bottom:.15rem; }
+  .chart .group .sub { font-size:.8rem; color:var(--muted); font-weight:400; }
+  .legend { display:flex; gap:1.25rem; font-size:.85rem; color:#444; margin:.25rem 0 .75rem; }
+  .legend .key { display:inline-flex; align-items:center; gap:.4rem; }
+  .legend .swatch { width:.9rem; height:.9rem; border-radius:3px; display:inline-block; }
+  @media (max-width:560px){ .chart .label { flex-basis:7.5rem; font-size:.8rem; } }
 </style>
 </head>
 <body>
 
 <h1>Does a call-graph index actually help coding agents?</h1>
-<p class="lede">A paired A/B study on real repositories. Short answer: yes, on
-<em>structural</em> code questions — and the effect is a property of the task, not the
-repo or the language.</p>
+<p class="lede">Paired A/B studies on real repositories. Short answer: yes, on
+structural code questions. And the more surprising result: with the index, a small
+model does work that otherwise needs a frontier model.</p>
 
-<p><strong>codeindex</strong> is a call-graph index (Go, TS/JS, Python, PHP): it answers
-who-calls-X, what-X-calls, and blast-radius questions with complete, always-fresh
-<code>path:line</code> output. The question this page answers is narrower and more
-honest than "is it good": <em>when you give a coding agent this tool, does it spend
-fewer tokens and get more answers right — and for which kinds of task?</em></p>
+<p><strong>codeindex</strong> is a call-graph index for Go, TS/JS, Python, and PHP. It
+answers who-calls-X, what-X-calls, and blast-radius questions with complete, always
+fresh <code>path:line</code> output. This page answers a narrower and more honest
+question than "is it good": <em>when you give a coding agent this tool, does it spend
+fewer tokens and get more answers right, and on which kinds of task?</em></p>
+
+<div class="takeaway"><strong>Where the value is, in one paragraph.</strong> Coding
+agents spend a large share of their budget finding code, not reasoning about it. On the
+tasks that are genuinely graph-shaped (who calls this, what breaks if I change it), the
+index cuts cost by half to two thirds for a frontier model, and for small models it is
+the difference between failing and working: an 8B model with the index matched a
+frontier model without it in our hardest suite. On tasks grep already handles, the index
+adds nothing, and we say so below.</div>
 
 <h2>Method</h2>
-<p>Each task is run twice under identical conditions: <strong>arm A</strong> (control —
-the agent has grep/read only) and <strong>arm B</strong> (the agent additionally has
+<p>Each task is run twice under identical conditions: <strong>arm A</strong> (control,
+the agent has grep and read only) and <strong>arm B</strong> (the agent additionally has
 <code>codeindex</code>). Same model, same prompts, paired and repeated. Tasks are mined
-from real open-source repositories (ground truth from ripgrep and the call graph, never
-from the index under test). The control arm is hard-isolated from the index via an
-environment guard, so it cannot leak.</p>
+from real open-source repositories (gin, flask, nest, laravel/framework, and peers), and
+ground truth comes from ripgrep and the call graph, never from the index under test. The
+control arm is hard-isolated from the index by an environment guard, so it cannot
+leak.</p>
 
-<p>Tasks fall into types that stress different retrieval strategies — from "which
-functions call X" (structural) to "where is the onboarding flow" (comprehension).</p>
+<h2>Result 1: the index wins big on structural tasks, and only on those</h2>
+<p>Not everything benefits. The value concentrates in tasks that are graph-shaped:
+caller attribution, occurrences, blast radius. For comprehension and locate tasks,
+plain grep is already the right tool and the index is roughly a wash, occasionally
+worse. That distinction matters: a good setup routes by task type instead of reaching
+for the index every time.</p>
 
-<h2>Result 1 — the index wins big on structural tasks, and it's a routing signal</h2>
-<p>Not everything benefits. The value is concentrated in tasks that are genuinely
-graph-shaped (caller attribution, occurrences, blast radius). For comprehension /
-locate tasks, plain grep is already the right tool and the index is roughly a wash —
-occasionally worse. That distinction is the whole point: a good policy should
-<em>route</em>, not reach for the index every time.</p>
+<div class="chart" aria-label="Median cost reduction with the index, by task type">
+  <div class="row"><span class="label">occurrences</span><span class="track"><span class="bar b" style="width:70%"><span class="val">&minus;70% cost</span></span></span></div>
+  <div class="row"><span class="label">caller attribution</span><span class="track"><span class="bar b" style="width:70%"><span class="val">&minus;70% cost (13 turns &rarr; 2)</span></span></span></div>
+  <div class="row"><span class="label">edit impact / blast radius</span><span class="track"><span class="bar b" style="width:56%"><span class="val">&minus;56% cost</span></span></span></div>
+  <div class="row"><span class="label">vague symbol find</span><span class="track"><span class="bar b" style="width:45%"><span class="val">&minus;45% cost</span></span></span></div>
+  <div class="row"><span class="label">comprehension / locate</span><span class="track"><span class="bar a" style="width:3%"></span><span class="val out">&asymp;0%, grep is fine</span></span></div>
+</div>
+<p class="note">Bars show the median paired reduction in total task cost when the agent
+has the index. Figures from the Go OSS navigation and concept benchmarks (gin,
+prometheus, and peers).</p>
 
-<table>
-  <thead><tr><th>Task type</th><th class="num">Median cost Δ (B vs A)</th><th class="num">Turns A→B</th><th>Verdict</th></tr></thead>
-  <tbody>
-    <tr><td>occurrences (who references X)</td><td class="num win">−70%</td><td class="num">— → few</td><td>use the index</td></tr>
-    <tr><td>caller attribution</td><td class="num win">−70%</td><td class="num">13 → 2</td><td>use the index</td></tr>
-    <tr><td>vague symbol find</td><td class="num win">−45%</td><td class="num">— → few</td><td>use the index</td></tr>
-    <tr><td>edit impact / blast radius</td><td class="num win">−56%</td><td class="num">high → low</td><td>use the index</td></tr>
-    <tr><td>comprehension / locate</td><td class="num flat">≈ 0%</td><td class="num">similar</td><td>grep is fine</td></tr>
-  </tbody>
-</table>
-<p class="note">Cost Δ is the median paired reduction in total task cost when the agent
-has the index. Figures from the Go OSS navigation and concept benchmarks
-(gin, prometheus, and peers).</p>
-
-<h2>Result 2 — the effect is structural: it survives the Go→PHP boundary</h2>
+<h2>Result 2: the effect is structural, it survives the Go to PHP boundary</h2>
 <p>The obvious worry: maybe these wins are memorized quirks of the Go repos the tool was
-tuned on. To test that, the full task set was reproduced on <strong>laravel/framework</strong>
-(PHP) — a different language where static call resolution is genuinely harder (duck-typed
-dispatch produces ambiguous edges). If the routing signal is structural, its <em>sign</em>
-should hold across the boundary.</p>
+tuned on. To test that, the full task set was reproduced on
+<strong>laravel/framework</strong> (PHP), a different language where static call
+resolution is genuinely harder (duck-typed dispatch produces ambiguous edges). If the
+signal is structural, its direction should hold across the boundary. It did.</p>
 
 <table>
-  <thead><tr><th>Task type (PHP · laravel)</th><th class="num">Cost Δ</th><th class="num">Success A→B</th><th class="num">Go baseline</th></tr></thead>
+  <thead><tr><th>Task type (PHP, laravel)</th><th class="num">Cost change</th><th class="num">Success A&rarr;B</th><th class="num">Go baseline</th></tr></thead>
   <tbody>
-    <tr><td>occurrences</td><td class="num win">−62%</td><td class="num">67% → 92%</td><td class="num">−70%</td></tr>
-    <tr><td>edit impact <span class="tag">n=30/arm</span></td><td class="num win">−60%</td><td class="num">77% → 90%</td><td class="num">−26%</td></tr>
-    <tr><td>vague find</td><td class="num win">−14%</td><td class="num">42% → 58%</td><td class="num">−45%</td></tr>
-    <tr><td>comprehension</td><td class="num flat">≈ 0%</td><td class="num">100% → 83%</td><td class="num">≈ 0%</td></tr>
+    <tr><td>occurrences</td><td class="num win">&minus;62%</td><td class="num">67% &rarr; 92%</td><td class="num">&minus;70%</td></tr>
+    <tr><td>edit impact <span class="tag">n=30/arm</span></td><td class="num win">&minus;60%</td><td class="num">77% &rarr; 90%</td><td class="num">&minus;26%</td></tr>
+    <tr><td>vague find</td><td class="num win">&minus;14%</td><td class="num">42% &rarr; 58%</td><td class="num">&minus;45%</td></tr>
+    <tr><td>comprehension</td><td class="num flat">&asymp;0%</td><td class="num">100% &rarr; 83%</td><td class="num">&asymp;0%</td></tr>
   </tbody>
 </table>
 
 <p>All four task types point the same direction as Go. On the two hardest buckets the
-index doesn't just cut cost — it <strong>improves correctness</strong> (edit impact
-+13 points, occurrences +25 points of success rate). "Use the index for structural
-questions; it's a wash for comprehension" is a property of the <em>task type</em>, not
-the repository or the language.</p>
+index does not just cut cost, it improves correctness: edit impact up 13 points,
+occurrences up 25 points of success rate. "Use the index for structural questions, skip
+it for comprehension" is a property of the task type, not the repository or the
+language.</p>
 
-<h2>A note on honesty</h2>
-<p>The first PHP edit-impact run (small sample) showed the index making the agent
-<em>faster but less correct</em> — a tempting story about ambiguous PHP edges. A larger
-30-per-arm re-run refuted it: the effect was noise from a handful of runs, and at scale
-edit impact is a clean win (+60% cheaper, +13 points more correct). The lesson recorded
-in the findings: don't build a mechanism narrative on a 12-row cell.</p>
+<h2>Result 3: you do not even need a router, over-retrieval hits the ceiling</h2>
+<p>Result 1 says the setup should route by task type. Route with what? A trained
+classifier (local embeddings plus logistic regression) picking the right tool per task
+scored only <strong>70% end to end</strong>, and its errors concentrated exactly in the
+caller-shaped tasks where the index matters most.</p>
 
-<h2>Result 3 — you don't even need a router: over-retrieval hits the ceiling</h2>
-<p>Result 1 said the policy should route. The natural next question: route <em>with
-what</em>? A trained classifier (local embeddings + logistic regression) picking the
-right tool per task scored only <strong>70% end-to-end</strong> — its errors concentrate
-exactly in the caller-shaped tasks where the index matters most.</p>
+<p>The measured answer is simpler: do not decide. Each retrieval costs milliseconds, so
+run all of them (callers, symbol search, word-boundary grep) and emit one union answer.
+That deterministic pipeline scores <strong>100% success, F1 0.95 to 0.99</strong>,
+per-task identical to the best per-question tool, on all three languages tested. No
+agent in the loop, no model, no routing. It ships as a product verb,
+<code>codeindex nav</code>.</p>
 
-<p>The measured answer is simpler: don't decide. Each retrieval costs milliseconds, so
-run <em>all</em> of them — callers, symbol search, and word-boundary grep — and emit one
-union answer. That deterministic pipeline scores <strong>100% success, F1
-0.95–0.99</strong>, per-task identical to the best per-question tool, on all three
-languages tested (Go, PHP, TypeScript). No agent in the loop, no model, no routing —
-just structure plus cheap glue. It ships as a product verb, <code>codeindex nav</code>,
-and the four common multi-hop trajectories (impact, where-tested, rename-radius,
-dead-code) fall to the same treatment.</p>
-
-<table>
-  <thead><tr><th>Navigation pipeline</th><th class="num">Success</th><th class="num">Median F1</th></tr></thead>
-  <tbody>
-    <tr><td>classifier-routed tool choice (honest end-to-end)</td><td class="num">70%</td><td class="num">0.65</td></tr>
-    <tr><td>over-retrieval union (<code>nav</code>) — Go</td><td class="num win">100%</td><td class="num win">0.96</td></tr>
-    <tr><td>over-retrieval union (<code>nav</code>) — PHP · laravel</td><td class="num win">100%</td><td class="num win">0.95</td></tr>
-    <tr><td>over-retrieval union (<code>nav</code>) — TS · nest</td><td class="num win">100%</td><td class="num win">0.99</td></tr>
-  </tbody>
-</table>
+<div class="chart" aria-label="Navigation pipeline success rates">
+  <div class="row"><span class="label">classifier router</span><span class="track"><span class="bar a" style="width:70%"><span class="val">70%, F1 0.65</span></span></span></div>
+  <div class="row"><span class="label">nav union, Go</span><span class="track"><span class="bar b" style="width:100%"><span class="val">100%, F1 0.96</span></span></span></div>
+  <div class="row"><span class="label">nav union, PHP</span><span class="track"><span class="bar b" style="width:100%"><span class="val">100%, F1 0.95</span></span></span></div>
+  <div class="row"><span class="label">nav union, TS</span><span class="track"><span class="bar b" style="width:100%"><span class="val">100%, F1 0.99</span></span></span></div>
+</div>
 <p class="note">Every piece of the shipped pipeline sits behind its own measurement,
 including the final detail: <code>nav</code>'s grep only switched to word-boundary
 matching after a re-run showed it held 100% success and raised F1 on every task set
 (short anchors like <code>File</code> stop matching superstrings).</p>
 
+<h2>Result 4: with the index, small models replace big ones on structural work</h2>
+<p>This is the strongest result and the clearest picture of where the value sits. We ran
+a five-model ladder, from a frontier-class cloud model down to a local 7B, on the 34
+hardest caller and blast-radius tasks. Every model ran each task twice: once with only a
+shell (grep and read), once with the index attached as an MCP server, the same surface
+any MCP-capable agent gets. 340 runs total. Success means the model returned the
+complete, correct set of locations.</p>
+
+<div class="legend">
+  <span class="key"><span class="swatch" style="background:var(--bar-b)"></span> with index (MCP)</span>
+  <span class="key"><span class="swatch" style="background:var(--bar-a)"></span> shell only</span>
+</div>
+
+<div class="chart" aria-label="Success rate by model, with and without the index">
+  <div class="group">
+    <div class="name">glm-5.2 <span class="sub">frontier-class, cloud</span></div>
+    <div class="row"><span class="label"></span><span class="track"><span class="bar b" style="width:94%"><span class="val">94%</span></span></span></div>
+    <div class="row"><span class="label"></span><span class="track"><span class="bar a" style="width:88%"><span class="val">88%</span></span></span></div>
+  </div>
+  <div class="group">
+    <div class="name">qwen3 8B <span class="sub">cloud</span></div>
+    <div class="row"><span class="label"></span><span class="track"><span class="bar b" style="width:85%"><span class="val">85%</span></span></span></div>
+    <div class="row"><span class="label"></span><span class="track"><span class="bar a" style="width:18%"><span class="val">18%</span></span></span></div>
+  </div>
+  <div class="group">
+    <div class="name">qwen3-coder 30B <span class="sub">local</span></div>
+    <div class="row"><span class="label"></span><span class="track"><span class="bar b" style="width:74%"><span class="val">74%</span></span></span></div>
+    <div class="row"><span class="label"></span><span class="track"><span class="bar a" style="width:29%"><span class="val">29%</span></span></span></div>
+  </div>
+  <div class="group">
+    <div class="name">qwen 7B <span class="sub">local</span></div>
+    <div class="row"><span class="label"></span><span class="track"><span class="bar b" style="width:59%"><span class="val">59%</span></span></span></div>
+    <div class="row"><span class="label"></span><span class="track"><span class="bar a" style="width:18%"><span class="val">18%</span></span></span></div>
+  </div>
+  <div class="group">
+    <div class="name">qwen-coder 7B <span class="sub">local</span></div>
+    <div class="row"><span class="label"></span><span class="track"><span class="bar b" style="width:32%"><span class="val">32%</span></span></span></div>
+    <div class="row"><span class="label"></span><span class="track"><span class="bar a" style="width:2%"></span><span class="val out">0%</span></span></div>
+  </div>
+</div>
+
+<p>Read the chart top to bottom:</p>
+<ul>
+  <li><strong>The frontier model does not need the index to be right.</strong> glm-5.2
+  scores 94% with it and 88% without, a difference inside the noise at this sample size.
+  What the index buys the big model is efficiency: half the tokens (median 19.5k vs
+  40k) for the same answers.</li>
+  <li><strong>An 8B with the index matches the frontier model without it.</strong>
+  85% vs 88%, at a third of the tokens. This is the compounding claim in one line: the
+  index converts a cheap model into frontier-level performance on structural questions,
+  so you do not have to buy scale to get them answered.</li>
+  <li><strong>Every model below the frontier is lifted 32 to 68 points.</strong> And the
+  mechanism is checkable in the traces: within the index arms, runs that actually called
+  the index tools succeeded at 56 to 94%, while runs that did not went 1 for 12 across
+  the small models. The lift is the tool, not the prompt around it.</li>
+  <li><strong>The floor is a 7B coder finetune.</strong> qwen-coder 7B is the only model
+  that fails to adopt the tools reliably (25 of 34 runs), and it converts only 11 of 25
+  even when it does. Notably it does far worse than the plain 7B. Tool use runs on
+  instruction-following, not code knowledge.</li>
+</ul>
+
+<p class="note">Two honesty flags on this experiment. First, a harness confound found in
+the trace audit: the control arms could still <em>see</em> disabled index tools in their
+tool list (every call was refused and nothing executed, verified across all 340 runs),
+which wasted some control-arm turns. So treat the small-model lifts as upper bounds; the
+frontier-model ceiling result is unaffected. Second, 4 of 340 runs died on local
+infrastructure after two retries and are counted as control-arm failures, worth at most
+3 points in two cells. Both are recorded in the benchmark findings, next to a
+pre-registered sister experiment where a 30B local model with the index beat the
+frontier model without it, 64.7% to 38.2%.</p>
+
+<h2>The trust problem the index also fixes</h2>
+<p>Success rates undersell one thing the traces show clearly. When a small model fails a
+callers question with only grep, it usually does not say "I could not find them all". It
+returns a partial list and claims it is complete. In the ladder experiment, cheap models
+without the index claimed complete coverage while being wrong in 50 to 80% of their
+failures. With the index the top models nearly stop doing this (glm: 8 false-confident
+runs down to 2, the 8B: 13 down to 1). A deterministic evidence source is the cheapest
+grounding mechanism available: the model stops guessing because looking is cheaper than
+guessing.</p>
+
+<h2>A note on honesty</h2>
+<p>The first PHP edit-impact run (small sample) showed the index making the agent faster
+but less correct, a tempting story about ambiguous PHP edges. A larger 30-per-arm re-run
+refuted it: the effect was noise from a handful of runs, and at scale edit impact is a
+clean win (60% cheaper, 13 points more correct). The lesson recorded in the findings:
+do not build a mechanism narrative on a 12-row cell. Negative results on this page stay
+published: comprehension tasks do not benefit, the classifier router lost to not
+routing, and the confounds above are flagged where they occur.</p>
+
 <h2>Why this matters</h2>
-<p>A large fraction of a coding agent's spend goes to <em>navigation</em> — locating the
-relevant code — not reasoning about it. This project set out expecting to train a small
-routing policy for that layer. The measurements kept refusing: the classifier router lost
-to running everything; cheap query-formulation gates lost to a local
-embedding+structure hybrid; at every gate where a model might have earned its way in,
-deterministic retrieval plus cheap glue matched or beat it. So the conclusion is stronger
-than "the index helps": for navigation-shaped questions, the expensive model can be kept
-out of the loop entirely, and invoked only where actual reasoning is required. What
-remains genuinely open for a model is narrow and named: query reformulation on the
-weakest semantic-search repos, and the trust-vs-verify call on
-<code>[ambiguous]</code> edges.</p>
+<p>A large fraction of a coding agent's spend goes to navigation, locating the relevant
+code, not reasoning about it. This project set out expecting to train a small routing
+model for that layer. The measurements kept refusing: the classifier router lost to
+running everything, cheap query-formulation gates lost to deterministic retrieval, and
+at every gate where a model might have earned its way in, structure plus cheap glue
+matched or beat it. So the conclusion is stronger than "the index helps": for
+navigation-shaped questions you can keep the expensive model out of the loop entirely,
+or swap it for a model an order of magnitude smaller, and spend real reasoning capacity
+only where reasoning is required. What remains genuinely open for a model is narrow and
+named: query reformulation on the weakest semantic-search repos, and the trust-or-verify
+call on <code>[ambiguous]</code> edges.</p>
 
 <footer>
   <p>Source and raw benchmark harness: <a href="https://github.com/ethanhinson/codeindex">github.com/ethanhinson/codeindex</a>.
-  Figures from the paired A/B harness (<code>bench/agent_ab</code>) on open-source
-  repositories; full method and per-run detail in the repository's FINDINGS notes.</p>
+  Figures from the paired A/B harnesses (<code>bench/agent_ab</code>, <code>bench/m5</code>)
+  on open-source repositories; full method, per-run detail, and the confound log in the
+  repository's FINDINGS notes.</p>
 </footer>
 
 </body>
