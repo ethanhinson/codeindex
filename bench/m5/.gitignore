@@ -1,0 +1,6 @@
+# per-run transcripts/traces are bulky and machine-local; the runs/graded
+# jsonl + report (committed) are the evidence of record
+results/transcripts*/
+results/fuse_traces*/
+results/hooklogs/
+.fusewrap/

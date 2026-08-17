@@ -1,0 +1,1611 @@
+{
+  "header": {
+    "generated_seed": 20260816,
+    "repo_pins": {
+      "gin": {
+        "url": "https://github.com/gin-gonic/gin.git",
+        "commit": "v1.10.0",
+        "lang": "go"
+      },
+      "flask": {
+        "url": "https://github.com/pallets/flask.git",
+        "commit": "3.1.0",
+        "lang": "python"
+      },
+      "nest": {
+        "url": "https://github.com/nestjs/nest.git",
+        "commit": "v10.4.15",
+        "lang": "ts"
+      },
+      "laravel-framework": {
+        "url": "https://github.com/laravel/framework.git",
+        "commit": "v11.38.0",
+        "lang": "php"
+      }
+    },
+    "m5_gates": {
+      "go_gate": {
+        "dominate_success_delta_min_pp": -5,
+        "dominate_median_cost_savings_min_pct": 30,
+        "dominate_median_processed_token_savings_min_pct": 50,
+        "dominate_savings_rule": "cost>=30% OR processed_tokens>=50%",
+        "dominate_recall_delta_min": 0.0,
+        "grepwin_median_cost_regression_max_pct": 10,
+        "break_false_confidence_delta_max_pp": 10,
+        "note": "GO iff on the dominate suite arm B keeps success within 5pp of arm A, clears the savings rule, and does not lose recall; AND on grepwin arm B's median paired cost regresses <=10%; AND on break arm B's false-confidence rate exceeds arm A's by <=10pp."
+      },
+      "kill_gate": {
+        "c_success_delta_min_pp": -5,
+        "c_cost_ratio_max": 1.1,
+        "note": "KILL iff on the dominate suite arm C (cheap explorer + shell) reaches success within 5pp of arm B at <=1.10x arm B's median cost \u2014 the structural index then fails to justify its maintenance burden."
+      },
+      "compound_gate": {
+        "sx_vs_large_shell_success_delta_min_pp": -5,
+        "sx_vs_small_shell_success_delta_min_pp": 10,
+        "note": "Fuse-family (model-scale) gate. COMPOUND PASS iff on the dominate suite, within the fuse harness: small+index (SX) success >= large+shell (L) success - 5pp \u2014 the index substitutes for model scale \u2014 AND SX success >= small+shell (S) success + 10pp \u2014 the index, not the small model alone, closes the gap. Fuse-family arms (L/LX/S/SX) are NEVER compared to claude-CLI arms (A/B/C): different harness, different system prompts and tools. Token medians are the fuse-family cost proxy (gateway reports no $ cost)."
+      },
+      "min_pairs_per_verdict": 10,
+      "false_confidence_def": "recall < 1.0 AND the answer's COVERAGE line is not 'incomplete' (a missing COVERAGE line counts as a completeness claim)."
+    },
+    "n_tasks": 64,
+    "by_suite": {
+      "grepwin": 18,
+      "dominate": 34,
+      "break": 12
+    },
+    "by_type": {
+      "grepwin_string": 10,
+      "grepwin_filename": 8,
+      "dominate_callers": 14,
+      "dominate_tests": 12,
+      "dominate_blast": 8,
+      "break_collision": 12
+    },
+    "gt_note": "gt_source=ripgrep/filesystem tasks are arm-neutral; gt_source=graph.db tasks (dominate_callers, dominate_blast) reuse the hand-check-verified unambiguous-edge pattern from agent_ab and are NOT arm-neutral \u2014 a codeindex recall bug would understate arm A there. gate_m5.py surfaces this split.",
+    "note": "Prompts contain the literal {REPO_PATH}; the runner substitutes the clone path at run time."
+  },
+  "tasks": [
+    {
+      "id": "m5-gwstr-gin-df2c8323",
+      "type": "grepwin_string",
+      "suite": "grepwin",
+      "repo": "gin",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, exactly one line of code contains this exact string:\n\n  \"unsupported field type for multipart.FileHeader\"\n\nFind it. Answer with a single line 'LOCATION: <repo-relative-file>:<line>', nothing else. Base it on the repository, not memory.",
+      "ground_truth": {
+        "location": "binding/multipart_form_mapping.go:20",
+        "literal": "unsupported field type for multipart.FileHeader"
+      },
+      "meta": {
+        "file": "binding/multipart_form_mapping.go"
+      }
+    },
+    {
+      "id": "m5-gwstr-gin-9a62e95e",
+      "type": "grepwin_string",
+      "suite": "grepwin",
+      "repo": "gin",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, exactly one line of code contains this exact string:\n\n  \"the accepted formats are not offered by the server\"\n\nFind it. Answer with a single line 'LOCATION: <repo-relative-file>:<line>', nothing else. Base it on the repository, not memory.",
+      "ground_truth": {
+        "location": "context.go:1173",
+        "literal": "the accepted formats are not offered by the server"
+      },
+      "meta": {
+        "file": "context.go"
+      }
+    },
+    {
+      "id": "m5-gwstr-gin-38d9e7fd",
+      "type": "grepwin_string",
+      "suite": "grepwin",
+      "repo": "gin",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, exactly one line of code contains this exact string:\n\n  \"can not convert to map of strings\"\n\nFind it. Answer with a single line 'LOCATION: <repo-relative-file>:<line>', nothing else. Base it on the repository, not memory.",
+      "ground_truth": {
+        "location": "binding/form_mapping.go:27",
+        "literal": "can not convert to map of strings"
+      },
+      "meta": {
+        "file": "binding/form_mapping.go"
+      }
+    },
+    {
+      "id": "m5-gwfile-gin-429a1dca",
+      "type": "grepwin_filename",
+      "suite": "grepwin",
+      "repo": "gin",
+      "gt_source": "filesystem",
+      "prompt": "In the repository at {REPO_PATH} there is exactly one file named 'reader_test.go'. Give its location. Answer with a single line 'PATH: <repo-relative-path>', nothing else.",
+      "ground_truth": {
+        "path": "render/reader_test.go"
+      },
+      "meta": {
+        "basename": "reader_test.go"
+      }
+    },
+    {
+      "id": "m5-gwfile-gin-b5c86500",
+      "type": "grepwin_filename",
+      "suite": "grepwin",
+      "repo": "gin",
+      "gt_source": "filesystem",
+      "prompt": "In the repository at {REPO_PATH} there is exactly one file named 'bytesconv_1.20.go'. Give its location. Answer with a single line 'PATH: <repo-relative-path>', nothing else.",
+      "ground_truth": {
+        "path": "internal/bytesconv/bytesconv_1.20.go"
+      },
+      "meta": {
+        "basename": "bytesconv_1.20.go"
+      }
+    },
+    {
+      "id": "m5-domcall-gin-WriteHeaderNow",
+      "type": "dominate_callers",
+      "suite": "dominate",
+      "repo": "gin",
+      "gt_source": "graph.db",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'WriteHeaderNow' (exact name). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else before the coverage line. Base every entry on evidence from the code. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "caller_pairs": [
+          "AbortWithStatus\tcontext.go",
+          "Flush\tresponse_writer.go",
+          "Render\tcontext.go",
+          "TestContextBadAutoBind\tcontext_test.go",
+          "TestContextRenderRedirectWith201\tcontext_test.go",
+          "TestContextRenderRedirectWithAbsolutePath\tcontext_test.go",
+          "TestContextRenderRedirectWithRelativePath\tcontext_test.go",
+          "TestResponseWriterStatusCode\tresponse_writer_test.go",
+          "TestResponseWriterWriteHeadersNow\tresponse_writer_test.go",
+          "Write\tresponse_writer.go",
+          "WriteString\tresponse_writer.go",
+          "handleHTTPRequest\tgin.go",
+          "redirectRequest\tgin.go",
+          "serveError\tgin.go"
+        ]
+      },
+      "meta": {
+        "symbol": "WriteHeaderNow",
+        "n_callers": 14
+      }
+    },
+    {
+      "id": "m5-domcall-gin-AbortWithStatus",
+      "type": "dominate_callers",
+      "suite": "dominate",
+      "repo": "gin",
+      "gt_source": "graph.db",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'AbortWithStatus' (exact name). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else before the coverage line. Base every entry on evidence from the code. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "caller_pairs": [
+          "AbortWithError\tcontext.go",
+          "BasicAuthForProxy\tauth.go",
+          "BasicAuthForRealm\tauth.go",
+          "TestContextAbortWithStatus\tcontext_test.go",
+          "TestCustomRecovery\trecovery_test.go",
+          "TestCustomRecoveryWithWriter\trecovery_test.go",
+          "TestMiddlewareAbort\tmiddleware_test.go",
+          "TestMiddlewareAbortHandlersChainAndNext\tmiddleware_test.go",
+          "TestPanicClean\trecovery_test.go",
+          "TestPanicWithAbort\trecovery_test.go",
+          "TestRecoveryWithWriterWithCustomRecovery\trecovery_test.go",
+          "TestRouteContextHoldsFullPath\troutes_test.go",
+          "TestRouterNotFound\troutes_test.go",
+          "defaultHandleRecovery\trecovery.go"
+        ]
+      },
+      "meta": {
+        "symbol": "AbortWithStatus",
+        "n_callers": 14
+      }
+    },
+    {
+      "id": "m5-domcall-gin-writeContentType",
+      "type": "dominate_callers",
+      "suite": "dominate",
+      "repo": "gin",
+      "gt_source": "graph.db",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'writeContentType' (exact name). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else before the coverage line. Base every entry on evidence from the code. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "caller_pairs": [
+          "WriteContentType\trender/data.go",
+          "WriteContentType\trender/html.go",
+          "WriteContentType\trender/json.go",
+          "WriteContentType\trender/msgpack.go",
+          "WriteContentType\trender/protobuf.go",
+          "WriteContentType\trender/reader.go",
+          "WriteContentType\trender/text.go",
+          "WriteContentType\trender/toml.go",
+          "WriteContentType\trender/xml.go",
+          "WriteContentType\trender/yaml.go",
+          "WriteJSON\trender/json.go",
+          "WriteMsgPack\trender/msgpack.go",
+          "WriteString\trender/text.go"
+        ]
+      },
+      "meta": {
+        "symbol": "writeContentType",
+        "n_callers": 13
+      }
+    },
+    {
+      "id": "m5-domcall-gin-debugPrint",
+      "type": "dominate_callers",
+      "suite": "dominate",
+      "repo": "gin",
+      "gt_source": "graph.db",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'debugPrint' (exact name). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else before the coverage line. Base every entry on evidence from the code. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "caller_pairs": [
+          "Run\tgin.go",
+          "RunFd\tgin.go",
+          "RunListener\tgin.go",
+          "RunTLS\tgin.go",
+          "RunUnix\tgin.go",
+          "TestDebugPrint\tdebug_test.go",
+          "WriteHeader\tresponse_writer.go",
+          "debugPrintLoadTemplate\tdebug.go",
+          "debugPrintRoute\tdebug.go",
+          "debugPrintWARNINGDefault\tdebug.go",
+          "debugPrintWARNINGNew\tdebug.go",
+          "debugPrintWARNINGSetHTMLTemplate\tdebug.go",
+          "initFormCache\tcontext.go",
+          "redirectRequest\tgin.go",
+          "resolveAddress\tutils.go",
+          "serveError\tgin.go"
+        ]
+      },
+      "meta": {
+        "symbol": "debugPrint",
+        "n_callers": 16
+      }
+    },
+    {
+      "id": "m5-domtest-gin-AbortWithStatus",
+      "type": "dominate_tests",
+      "suite": "dominate",
+      "repo": "gin",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, which TEST files exercise the symbol 'AbortWithStatus' (reference it by name)? Answer as a 'FILES:' section listing repo-relative test file paths, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "files": [
+          "context_test.go",
+          "middleware_test.go",
+          "recovery_test.go",
+          "routes_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "AbortWithStatus",
+        "n_tests": 4
+      }
+    },
+    {
+      "id": "m5-domtest-gin-Delims",
+      "type": "dominate_tests",
+      "suite": "dominate",
+      "repo": "gin",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, which TEST files exercise the symbol 'Delims' (reference it by name)? Answer as a 'FILES:' section listing repo-relative test file paths, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "files": [
+          "debug_test.go",
+          "gin_test.go",
+          "render/render_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "Delims",
+        "n_tests": 3
+      }
+    },
+    {
+      "id": "m5-domtest-gin-ServeHTTP",
+      "type": "dominate_tests",
+      "suite": "dominate",
+      "repo": "gin",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, which TEST files exercise the symbol 'ServeHTTP' (reference it by name)? Answer as a 'FILES:' section listing repo-relative test file paths, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "files": [
+          "auth_test.go",
+          "benchmarks_test.go",
+          "gin_integration_test.go",
+          "gin_test.go",
+          "githubapi_test.go",
+          "routes_test.go",
+          "utils_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "ServeHTTP",
+        "n_tests": 7
+      }
+    },
+    {
+      "id": "m5-domblast-gin-nameOfFunction",
+      "type": "dominate_blast",
+      "suite": "dominate",
+      "repo": "gin",
+      "gt_source": "graph.db",
+      "prompt": "You are planning a change to 'nameOfFunction' in the repository at {REPO_PATH}. Determine its blast radius: every file containing a function that calls 'nameOfFunction' directly, plus every file containing a function that calls one of THOSE direct callers (two levels total). Answer as a 'FILES:' section of repo-relative paths, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "files": [
+          "context.go",
+          "context_test.go",
+          "debug.go",
+          "debug_test.go",
+          "gin.go",
+          "utils_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "nameOfFunction",
+        "n_l1": 5,
+        "n_files": 6
+      }
+    },
+    {
+      "id": "m5-domblast-gin-debugPrintError",
+      "type": "dominate_blast",
+      "suite": "dominate",
+      "repo": "gin",
+      "gt_source": "graph.db",
+      "prompt": "You are planning a change to 'debugPrintError' in the repository at {REPO_PATH}. Determine its blast radius: every file containing a function that calls 'debugPrintError' directly, plus every file containing a function that calls one of THOSE direct callers (two levels total). Answer as a 'FILES:' section of repo-relative paths, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "files": [
+          "binding/default_validator_test.go",
+          "context_test.go",
+          "debug_test.go",
+          "gin.go",
+          "gin_integration_test.go",
+          "recovery_test.go"
+        ]
+      },
+      "meta": {
+        "symbol": "debugPrintError",
+        "n_l1": 6,
+        "n_files": 6
+      }
+    },
+    {
+      "id": "m5-brkcol-gin-Delims",
+      "type": "break_collision",
+      "suite": "break",
+      "repo": "gin",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, the name 'Delims' is defined in MORE THAN ONE place. Find every definition. Answer as a 'DEFINITIONS:' section, one '<repo-relative-file>:<line>' per line, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "definitions": [
+          "gin.go:244",
+          "render/html.go:13"
+        ]
+      },
+      "meta": {
+        "symbol": "Delims",
+        "n_defs": 2
+      }
+    },
+    {
+      "id": "m5-brkcol-gin-reset",
+      "type": "break_collision",
+      "suite": "break",
+      "repo": "gin",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, the name 'reset' is defined in MORE THAN ONE place. Find every definition. Answer as a 'DEFINITIONS:' section, one '<repo-relative-file>:<line>' per line, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "definitions": [
+          "context.go:97",
+          "response_writer.go:58"
+        ]
+      },
+      "meta": {
+        "symbol": "reset",
+        "n_defs": 2
+      }
+    },
+    {
+      "id": "m5-brkcol-gin-NoRoute",
+      "type": "break_collision",
+      "suite": "break",
+      "repo": "gin",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, the name 'NoRoute' is defined in MORE THAN ONE place. Find every definition. Answer as a 'DEFINITIONS:' section, one '<repo-relative-file>:<line>' per line, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "definitions": [
+          "gin.go:298",
+          "ginS/gins.go:41"
+        ]
+      },
+      "meta": {
+        "symbol": "NoRoute",
+        "n_defs": 2
+      }
+    },
+    {
+      "id": "m5-gwstr-flask-b8f69304",
+      "type": "grepwin_string",
+      "suite": "grepwin",
+      "repo": "flask",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, exactly one line of code contains this exact string:\n\n  \"Create a new post for the current user.\"\n\nFind it. Answer with a single line 'LOCATION: <repo-relative-file>:<line>', nothing else. Base it on the repository, not memory.",
+      "ground_truth": {
+        "location": "examples/tutorial/flaskr/blog.py:63",
+        "literal": "Create a new post for the current user."
+      },
+      "meta": {
+        "file": "examples/tutorial/flaskr/blog.py"
+      }
+    },
+    {
+      "id": "m5-gwstr-flask-84b7f1a9",
+      "type": "grepwin_string",
+      "suite": "grepwin",
+      "repo": "flask",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, exactly one line of code contains this exact string:\n\n  \"expected view func if endpoint is not provided.\"\n\nFind it. Answer with a single line 'LOCATION: <repo-relative-file>:<line>', nothing else. Base it on the repository, not memory.",
+      "ground_truth": {
+        "location": "src/flask/sansio/scaffold.py:705",
+        "literal": "expected view func if endpoint is not provided."
+      },
+      "meta": {
+        "file": "src/flask/sansio/scaffold.py"
+      }
+    },
+    {
+      "id": "m5-gwstr-flask-3c1eecfc",
+      "type": "grepwin_string",
+      "suite": "grepwin",
+      "repo": "flask",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, exactly one line of code contains this exact string:\n\n  \"Find the path that contains the package or module.\"\n\nFind it. Answer with a single line 'LOCATION: <repo-relative-file>:<line>', nothing else. Base it on the repository, not memory.",
+      "ground_truth": {
+        "location": "src/flask/sansio/scaffold.py:710",
+        "literal": "Find the path that contains the package or module."
+      },
+      "meta": {
+        "file": "src/flask/sansio/scaffold.py"
+      }
+    },
+    {
+      "id": "m5-gwfile-flask-3590d6d4",
+      "type": "grepwin_filename",
+      "suite": "grepwin",
+      "repo": "flask",
+      "gt_source": "filesystem",
+      "prompt": "In the repository at {REPO_PATH} there is exactly one file named 'test_appctx.py'. Give its location. Answer with a single line 'PATH: <repo-relative-path>', nothing else.",
+      "ground_truth": {
+        "path": "tests/test_appctx.py"
+      },
+      "meta": {
+        "basename": "test_appctx.py"
+      }
+    },
+    {
+      "id": "m5-gwfile-flask-b8022261",
+      "type": "grepwin_filename",
+      "suite": "grepwin",
+      "repo": "flask",
+      "gt_source": "filesystem",
+      "prompt": "In the repository at {REPO_PATH} there is exactly one file named 'test_subclassing.py'. Give its location. Answer with a single line 'PATH: <repo-relative-path>', nothing else.",
+      "ground_truth": {
+        "path": "tests/test_subclassing.py"
+      },
+      "meta": {
+        "basename": "test_subclassing.py"
+      }
+    },
+    {
+      "id": "m5-domcall-flask-render_template",
+      "type": "dominate_callers",
+      "suite": "dominate",
+      "repo": "flask",
+      "gt_source": "graph.db",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'render_template' (exact name). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else before the coverage line. Base every entry on evidence from the code. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "caller_pairs": [
+          "create\texamples/tutorial/flaskr/blog.py",
+          "dispatch_request\ttests/type_check/typing_route.py",
+          "index\texamples/celery/src/task_app/__init__.py",
+          "index\texamples/javascript/js_example/views.py",
+          "index\texamples/tutorial/flaskr/blog.py",
+          "index\ttests/test_apps/blueprintapp/apps/admin/__init__.py",
+          "index\ttests/test_apps/blueprintapp/apps/frontend/__init__.py",
+          "index\ttests/test_blueprints.py",
+          "index\ttests/test_signals.py",
+          "index\ttests/test_templating.py",
+          "index2\ttests/test_apps/blueprintapp/apps/admin/__init__.py",
+          "login\texamples/tutorial/flaskr/auth.py",
+          "missing_template\ttests/test_apps/blueprintapp/apps/frontend/__init__.py",
+          "register\texamples/tutorial/flaskr/auth.py",
+          "return_template\ttests/type_check/typing_route.py",
+          "test_escaping_without_template_filename\ttests/test_templating.py",
+          "test_templates_and_static\ttests/test_blueprints.py",
+          "update\texamples/tutorial/flaskr/blog.py"
+        ]
+      },
+      "meta": {
+        "symbol": "render_template",
+        "n_callers": 18
+      }
+    },
+    {
+      "id": "m5-domcall-flask-app_context",
+      "type": "dominate_callers",
+      "suite": "dominate",
+      "repo": "flask",
+      "gt_source": "graph.db",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'app_context' (exact name). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else before the coverage line. Base every entry on evidence from the code. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "caller_pairs": [
+          "__call__\texamples/celery/src/task_app/__init__.py",
+          "app\texamples/tutorial/tests/conftest.py",
+          "app_ctx\ttests/conftest.py",
+          "decorator\tsrc/flask/cli.py",
+          "get_command\tsrc/flask/cli.py",
+          "push\tsrc/flask/ctx.py",
+          "test_abort_with_app\ttests/test_helpers.py",
+          "test_app_context_provides_current_app\ttests/test_appctx.py",
+          "test_app_tearing_down\ttests/test_appctx.py",
+          "test_app_tearing_down_with_handled_exception_by_app_handler\ttests/test_appctx.py",
+          "test_app_tearing_down_with_handled_exception_by_except_block\ttests/test_appctx.py",
+          "test_app_tearing_down_with_previous_exception\ttests/test_appctx.py",
+          "test_app_tearing_down_with_unhandled_exception\ttests/test_appctx.py",
+          "test_author_required\texamples/tutorial/tests/test_blog.py",
+          "test_basic_url_generation\ttests/test_appctx.py",
+          "test_clean_pop\ttests/test_appctx.py",
+          "test_create\texamples/tutorial/tests/test_blog.py",
+          "test_custom_app_ctx_globals_class\ttests/test_appctx.py",
+          "test_delete\texamples/tutorial/tests/test_blog.py",
+          "test_get_close_db\texamples/tutorial/tests/test_db.py",
+          "test_limit_config\ttests/test_request.py",
+          "test_max_cookie_size\ttests/test_basic.py",
+          "test_redirect_with_app\ttests/test_helpers.py",
+          "test_register\texamples/tutorial/tests/test_auth.py",
+          "test_template_global\ttests/test_blueprints.py",
+          "test_update\texamples/tutorial/tests/test_blog.py",
+          "test_url_generation_requires_server_name\ttests/test_appctx.py"
+        ]
+      },
+      "meta": {
+        "symbol": "app_context",
+        "n_callers": 27
+      }
+    },
+    {
+      "id": "m5-domtest-flask-test_request_context",
+      "type": "dominate_tests",
+      "suite": "dominate",
+      "repo": "flask",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, which TEST files exercise the symbol 'test_request_context' (reference it by name)? Answer as a 'FILES:' section listing repo-relative test file paths, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "files": [
+          "tests/test_appctx.py",
+          "tests/test_basic.py",
+          "tests/test_blueprints.py",
+          "tests/test_converters.py",
+          "tests/test_helpers.py",
+          "tests/test_logging.py",
+          "tests/test_reqctx.py",
+          "tests/test_testing.py"
+        ]
+      },
+      "meta": {
+        "symbol": "test_request_context",
+        "n_tests": 8
+      }
+    },
+    {
+      "id": "m5-domtest-flask-result",
+      "type": "dominate_tests",
+      "suite": "dominate",
+      "repo": "flask",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, which TEST files exercise the symbol 'result' (reference it by name)? Answer as a 'FILES:' section listing repo-relative test file paths, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "files": [
+          "examples/javascript/tests/test_js_example.py",
+          "examples/tutorial/tests/test_db.py",
+          "tests/test_basic.py",
+          "tests/test_cli.py",
+          "tests/test_json.py",
+          "tests/test_reqctx.py",
+          "tests/test_testing.py"
+        ]
+      },
+      "meta": {
+        "symbol": "result",
+        "n_tests": 7
+      }
+    },
+    {
+      "id": "m5-domtest-flask-render_template",
+      "type": "dominate_tests",
+      "suite": "dominate",
+      "repo": "flask",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, which TEST files exercise the symbol 'render_template' (reference it by name)? Answer as a 'FILES:' section listing repo-relative test file paths, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "files": [
+          "tests/test_blueprints.py",
+          "tests/test_signals.py",
+          "tests/test_templating.py"
+        ]
+      },
+      "meta": {
+        "symbol": "render_template",
+        "n_tests": 3
+      }
+    },
+    {
+      "id": "m5-domblast-flask-errorhandler",
+      "type": "dominate_blast",
+      "suite": "dominate",
+      "repo": "flask",
+      "gt_source": "graph.db",
+      "prompt": "You are planning a change to 'errorhandler' in the repository at {REPO_PATH}. Determine its blast radius: every file containing a function that calls 'errorhandler' directly, plus every file containing a function that calls one of THOSE direct callers (two levels total). Answer as a 'FILES:' section of repo-relative paths, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "files": [
+          "src/flask/sansio/blueprints.py",
+          "tests/test_appctx.py",
+          "tests/test_async.py",
+          "tests/test_basic.py",
+          "tests/test_blueprints.py",
+          "tests/test_regression.py",
+          "tests/test_request.py",
+          "tests/test_user_error_handler.py"
+        ]
+      },
+      "meta": {
+        "symbol": "errorhandler",
+        "n_l1": 24,
+        "n_files": 8
+      }
+    },
+    {
+      "id": "m5-domblast-flask-render_template",
+      "type": "dominate_blast",
+      "suite": "dominate",
+      "repo": "flask",
+      "gt_source": "graph.db",
+      "prompt": "You are planning a change to 'render_template' in the repository at {REPO_PATH}. Determine its blast radius: every file containing a function that calls 'render_template' directly, plus every file containing a function that calls one of THOSE direct callers (two levels total). Answer as a 'FILES:' section of repo-relative paths, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "files": [
+          "examples/celery/src/task_app/__init__.py",
+          "examples/javascript/js_example/views.py",
+          "examples/tutorial/flaskr/__init__.py",
+          "examples/tutorial/flaskr/auth.py",
+          "examples/tutorial/flaskr/blog.py",
+          "examples/tutorial/tests/test_auth.py",
+          "examples/tutorial/tests/test_blog.py",
+          "src/flask/app.py",
+          "src/flask/cli.py",
+          "src/flask/config.py",
+          "src/flask/helpers.py",
+          "src/flask/sansio/app.py",
+          "src/flask/sansio/blueprints.py",
+          "src/flask/templating.py",
+          "src/flask/views.py",
+          "tests/conftest.py",
+          "tests/test_apps/blueprintapp/apps/admin/__init__.py",
+          "tests/test_apps/blueprintapp/apps/frontend/__init__.py",
+          "tests/test_basic.py",
+          "tests/test_blueprints.py",
+          "tests/test_json_tag.py",
+          "tests/test_logging.py",
+          "tests/test_reqctx.py",
+          "tests/test_signals.py",
+          "tests/test_templating.py",
+          "tests/type_check/typing_route.py"
+        ]
+      },
+      "meta": {
+        "symbol": "render_template",
+        "n_l1": 40,
+        "n_files": 26
+      }
+    },
+    {
+      "id": "m5-brkcol-flask-__exit__",
+      "type": "break_collision",
+      "suite": "break",
+      "repo": "flask",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, the name '__exit__' is defined in MORE THAN ONE place. Find every definition. Answer as a 'DEFINITIONS:' section, one '<repo-relative-file>:<line>' per line, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "definitions": [
+          "src/flask/ctx.py:278",
+          "src/flask/ctx.py:437",
+          "src/flask/testing.py:254"
+        ]
+      },
+      "meta": {
+        "symbol": "__exit__",
+        "n_defs": 3
+      }
+    },
+    {
+      "id": "m5-brkcol-flask-wrapper",
+      "type": "break_collision",
+      "suite": "break",
+      "repo": "flask",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, the name 'wrapper' is defined in MORE THAN ONE place. Find every definition. Answer as a 'DEFINITIONS:' section, one '<repo-relative-file>:<line>' per line, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "definitions": [
+          "src/flask/ctx.py:189",
+          "src/flask/sansio/blueprints.py:240"
+        ]
+      },
+      "meta": {
+        "symbol": "wrapper",
+        "n_defs": 2
+      }
+    },
+    {
+      "id": "m5-brkcol-flask-setdefault",
+      "type": "break_collision",
+      "suite": "break",
+      "repo": "flask",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, the name 'setdefault' is defined in MORE THAN ONE place. Find every definition. Answer as a 'DEFINITIONS:' section, one '<repo-relative-file>:<line>' per line, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "definitions": [
+          "src/flask/ctx.py:92",
+          "src/flask/sessions.py:92",
+          "tests/test_basic.py:528"
+        ]
+      },
+      "meta": {
+        "symbol": "setdefault",
+        "n_defs": 3
+      }
+    },
+    {
+      "id": "m5-gwstr-nest-6ae15c30",
+      "type": "grepwin_string",
+      "suite": "grepwin",
+      "repo": "nest",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, exactly one line of code contains this exact string:\n\n  \"module definition transform function\"\n\nFind it. Answer with a single line 'LOCATION: <repo-relative-file>:<line>', nothing else. Base it on the repository, not memory.",
+      "ground_truth": {
+        "location": "packages/common/module-utils/configurable-module.builder.ts:85",
+        "literal": "module definition transform function"
+      },
+      "meta": {
+        "file": "packages/common/module-utils/configurable-module.builder.ts"
+      }
+    },
+    {
+      "id": "m5-gwfile-nest-15650a59",
+      "type": "grepwin_filename",
+      "suite": "grepwin",
+      "repo": "nest",
+      "gt_source": "filesystem",
+      "prompt": "In the repository at {REPO_PATH} there is exactly one file named 'cats.resolver.ts'. Give its location. Answer with a single line 'PATH: <repo-relative-path>', nothing else.",
+      "ground_truth": {
+        "path": "sample/12-graphql-schema-first/src/cats/cats.resolver.ts"
+      },
+      "meta": {
+        "basename": "cats.resolver.ts"
+      }
+    },
+    {
+      "id": "m5-gwfile-nest-3706fc5d",
+      "type": "grepwin_filename",
+      "suite": "grepwin",
+      "repo": "nest",
+      "gt_source": "filesystem",
+      "prompt": "In the repository at {REPO_PATH} there is exactly one file named 'pipe-transform.interface.ts'. Give its location. Answer with a single line 'PATH: <repo-relative-path>', nothing else.",
+      "ground_truth": {
+        "path": "packages/common/interfaces/features/pipe-transform.interface.ts"
+      },
+      "meta": {
+        "basename": "pipe-transform.interface.ts"
+      }
+    },
+    {
+      "id": "m5-domcall-nest-UseInterceptors",
+      "type": "dominate_callers",
+      "suite": "dominate",
+      "repo": "nest",
+      "gt_source": "graph.db",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'UseInterceptors' (exact name). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else before the coverage line. Base every entry on evidence from the code. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "caller_pairs": [
+          "AppController\tsample/29-file-upload/src/app.controller.ts",
+          "ApplicationGateway\tintegration/websockets/src/app.gateway.ts",
+          "HelloController\tintegration/inspector/src/circular-hello/hello.controller.ts",
+          "HelloController\tintegration/scopes/src/circular-hello/hello.controller.ts",
+          "HelloController\tintegration/scopes/src/circular-transient/hello.controller.ts",
+          "HelloController\tintegration/scopes/src/hello/hello.controller.ts",
+          "HelloController\tintegration/scopes/src/msvc/hello.controller.ts",
+          "HelloController\tintegration/scopes/src/transient/hello.controller.ts",
+          "RequestChainController\tintegration/inspector/src/request-chain/request-chain.controller.ts",
+          "RequestChainController\tintegration/scopes/src/request-chain/request-chain.controller.ts",
+          "ServerGateway\tintegration/websockets/src/server.gateway.ts",
+          "Test\tpackages/common/test/decorators/use-interceptors.decorator.spec.ts",
+          "TestController\tintegration/scopes/src/circular-transient/test.controller.ts",
+          "TestController\tintegration/scopes/src/transient/test.controller.ts",
+          "TestWithMethod\tpackages/common/test/decorators/use-interceptors.decorator.spec.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "UseInterceptors",
+        "n_callers": 15
+      }
+    },
+    {
+      "id": "m5-domcall-nest-SubscribeMessage",
+      "type": "dominate_callers",
+      "suite": "dominate",
+      "repo": "nest",
+      "gt_source": "graph.db",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'SubscribeMessage' (exact name). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else before the coverage line. Base every entry on evidence from the code. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "caller_pairs": [
+          "AckGateway\tintegration/websockets/src/ack.gateway.ts",
+          "ApplicationGateway\tintegration/websockets/src/app.gateway.ts",
+          "ChatGateway\tintegration/inspector/src/chat/chat.gateway.ts",
+          "CoreGateway\tintegration/websockets/src/core.gateway.ts",
+          "ErrorGateway\tintegration/websockets/src/error.gateway.ts",
+          "EventsGateway\tsample/02-gateways/src/events/events.gateway.ts",
+          "EventsGateway\tsample/16-gateways-ws/src/events/events.gateway.ts",
+          "ExamplePathGateway\tintegration/websockets/src/example-path.gateway.ts",
+          "NamespaceGateway\tintegration/websockets/src/namespace.gateway.ts",
+          "ServerGateway\tintegration/websockets/src/server.gateway.ts",
+          "Test\tpackages/websockets/test/gateway-metadata-explorer.spec.ts",
+          "TestGateway\tpackages/websockets/test/utils/subscribe-message.decorator.spec.ts",
+          "WsPathGateway\tintegration/websockets/src/ws-path.gateway.ts",
+          "WsPathGateway2\tintegration/websockets/src/ws-path2.gateway.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "SubscribeMessage",
+        "n_callers": 14
+      }
+    },
+    {
+      "id": "m5-domcall-nest-isString",
+      "type": "dominate_callers",
+      "suite": "dominate",
+      "repo": "nest",
+      "gt_source": "graph.db",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'isString' (exact name). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else before the coverage line. Base every entry on evidence from the code. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "caller_pairs": [
+          "Controller\tpackages/common/decorators/core/controller.decorator.ts",
+          "addCustomExportedProvider\tpackages/core/injector/module.ts",
+          "addDependencyMetadata\tpackages/core/injector/injector.ts",
+          "addExportedProvider\tpackages/core/injector/module.ts",
+          "addHandler\tpackages/microservices/server/server-grpc.ts",
+          "createBody\tpackages/common/exceptions/http.exception.ts",
+          "createHandleResponseFn\tpackages/core/router/router-execution-context.ts",
+          "createPipesRouteParamDecorator\tpackages/common/decorators/http/route-params.decorator.ts",
+          "createPipesRpcParamDecorator\tpackages/microservices/utils/param.utils.ts",
+          "createPipesWsParamDecorator\tpackages/websockets/utils/param.utils.ts",
+          "encode\tpackages/microservices/serializers/kafka-request.serializer.ts",
+          "exploreMethodMetadata\tpackages/core/router/paths-explorer.ts",
+          "extractDescriptionAndOptionsFrom\tpackages/common/exceptions/http.exception.ts",
+          "flattenRoutePaths\tpackages/core/router/utils/flatten-route-paths.util.ts",
+          "formatAddress\tpackages/core/nest-application.ts",
+          "getContextAndMessagesToPrint\tpackages/common/services/console-logger.service.ts",
+          "getContextAndStackAndMessagesToPrint\tpackages/common/services/console-logger.service.ts",
+          "getDescriptionFrom\tpackages/common/exceptions/http.exception.ts",
+          "getHttpExceptionOptionsFrom\tpackages/common/exceptions/http.exception.ts",
+          "handleMessage\tpackages/microservices/server/server-rmq.ts",
+          "handleMessage\tpackages/microservices/server/server-tcp.ts",
+          "handlerForCustomVersioning\tpackages/platform-express/adapters/express-adapter.ts",
+          "handlerForHeaderVersioning\tpackages/platform-express/adapters/express-adapter.ts",
+          "handlerForMediaTypeVersioning\tpackages/platform-express/adapters/express-adapter.ts",
+          "host\tpackages/core/nest-application.ts",
+          "initMessage\tpackages/common/exceptions/http.exception.ts",
+          "initMessage\tpackages/microservices/exceptions/rpc-exception.ts",
+          "initMessage\tpackages/websockets/errors/ws-exception.ts",
+          "isPipeable\tpackages/core/router/router-execution-context.ts",
+          "isStackFormat\tpackages/common/services/console-logger.service.ts",
+          "isUUID\tpackages/common/pipes/parse-uuid.pipe.ts",
+          "mapRouteToRouteInfo\tpackages/core/middleware/routes-mapper.ts",
+          "mapToExcludeRoute\tpackages/core/middleware/utils.ts",
+          "printIntrospectedAsDurable\tpackages/core/injector/instance-wrapper.ts",
+          "printIntrospectedAsRequestScoped\tpackages/core/injector/instance-wrapper.ts",
+          "setViewEngine\tpackages/platform-fastify/adapters/fastify-adapter.ts",
+          "transform\tpackages/common/pipes/parse-array.pipe.ts",
+          "transformPatternToRoute\tpackages/microservices/utils/transform-pattern.utils.ts",
+          "validate\tpackages/platform-fastify/adapters/fastify-adapter.ts",
+          "validateNamespace\tpackages/websockets/socket-server-provider.ts",
+          "validatePrimitive\tpackages/common/pipes/parse-array.pipe.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "isString",
+        "n_callers": 41
+      }
+    },
+    {
+      "id": "m5-domcall-nest-addLeadingSlash",
+      "type": "dominate_callers",
+      "suite": "dominate",
+      "repo": "nest",
+      "gt_source": "graph.db",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'addLeadingSlash' (exact name). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else before the coverage line. Base every entry on evidence from the code. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "caller_pairs": [
+          "concatPaths\tpackages/core/router/route-path-factory.ts",
+          "constructor\tpackages/core/middleware/route-info-path-extractor.ts",
+          "create\tpackages/core/router/route-path-factory.ts",
+          "exploreMethodMetadata\tpackages/core/router/paths-explorer.ts",
+          "extractNonWildcardPathsFrom\tpackages/core/middleware/route-info-path-extractor.ts",
+          "extractPathFrom\tpackages/core/middleware/route-info-path-extractor.ts",
+          "extractPathsFrom\tpackages/core/middleware/route-info-path-extractor.ts",
+          "extractRouterPath\tpackages/core/router/router-explorer.ts",
+          "extractVersionPathFrom\tpackages/core/middleware/route-info-path-extractor.ts",
+          "getRouteInfoFromObject\tpackages/core/middleware/routes-mapper.ts",
+          "getRouteInfoFromPath\tpackages/core/middleware/routes-mapper.ts",
+          "isRouteExcluded\tpackages/core/router/utils/exclude-route.util.ts",
+          "mapToExcludeRoute\tpackages/core/middleware/utils.ts",
+          "normalizeGlobalPath\tpackages/core/middleware/routes-mapper.ts",
+          "registerRouter\tpackages/core/nest-application.ts",
+          "toRouteInfo\tpackages/core/middleware/routes-mapper.ts",
+          "validateNamespace\tpackages/websockets/socket-server-provider.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "addLeadingSlash",
+        "n_callers": 17
+      }
+    },
+    {
+      "id": "m5-domtest-nest-Client",
+      "type": "dominate_tests",
+      "suite": "dominate",
+      "repo": "nest",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, which TEST files exercise the symbol 'Client' (reference it by name)? Answer as a 'FILES:' section listing repo-relative test file paths, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "files": [
+          "packages/microservices/test/decorators/client.decorator.spec.ts",
+          "packages/microservices/test/listeners-metadata-explorer.spec.ts",
+          "packages/websockets/test/gateway-metadata-explorer.spec.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "Client",
+        "n_tests": 3
+      }
+    },
+    {
+      "id": "m5-domtest-nest-createContextId",
+      "type": "dominate_tests",
+      "suite": "dominate",
+      "repo": "nest",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, which TEST files exercise the symbol 'createContextId' (reference it by name)? Answer as a 'FILES:' section listing repo-relative test file paths, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "files": [
+          "integration/injector/e2e/scoped-instances.spec.ts",
+          "packages/core/test/helpers/context-id-factory.spec.ts",
+          "packages/core/test/injector/instance-wrapper.spec.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "createContextId",
+        "n_tests": 3
+      }
+    },
+    {
+      "id": "m5-domtest-nest-getProviderByKey",
+      "type": "dominate_tests",
+      "suite": "dominate",
+      "repo": "nest",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, which TEST files exercise the symbol 'getProviderByKey' (reference it by name)? Answer as a 'FILES:' section listing repo-relative test file paths, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "files": [
+          "packages/core/test/hooks/before-app-shutdown.hook.spec.ts",
+          "packages/core/test/hooks/on-app-bootstrap.hook.spec.ts",
+          "packages/core/test/hooks/on-app-shutdown.hook.spec.ts",
+          "packages/core/test/hooks/on-module-destroy.hook.spec.ts",
+          "packages/core/test/hooks/on-module-init.hook.spec.ts",
+          "packages/core/test/injector/module.spec.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "getProviderByKey",
+        "n_tests": 6
+      }
+    },
+    {
+      "id": "m5-domblast-nest-addLeadingSlash",
+      "type": "dominate_blast",
+      "suite": "dominate",
+      "repo": "nest",
+      "gt_source": "graph.db",
+      "prompt": "You are planning a change to 'addLeadingSlash' in the repository at {REPO_PATH}. Determine its blast radius: every file containing a function that calls 'addLeadingSlash' directly, plus every file containing a function that calls one of THOSE direct callers (two levels total). Answer as a 'FILES:' section of repo-relative paths, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "files": [
+          "packages/core/middleware/builder.ts",
+          "packages/core/middleware/middleware-module.ts",
+          "packages/core/middleware/route-info-path-extractor.ts",
+          "packages/core/middleware/routes-mapper.ts",
+          "packages/core/middleware/utils.ts",
+          "packages/core/nest-application.ts",
+          "packages/core/router/paths-explorer.ts",
+          "packages/core/router/route-path-factory.ts",
+          "packages/core/router/router-explorer.ts",
+          "packages/core/router/routes-resolver.ts",
+          "packages/core/router/utils/exclude-route.util.ts",
+          "packages/websockets/socket-server-provider.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "addLeadingSlash",
+        "n_l1": 17,
+        "n_files": 12
+      }
+    },
+    {
+      "id": "m5-domblast-nest-loadInstance",
+      "type": "dominate_blast",
+      "suite": "dominate",
+      "repo": "nest",
+      "gt_source": "graph.db",
+      "prompt": "You are planning a change to 'loadInstance' in the repository at {REPO_PATH}. Determine its blast radius: every file containing a function that calls 'loadInstance' directly, plus every file containing a function that calls one of THOSE direct callers (two levels total). Answer as a 'FILES:' section of repo-relative paths, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "files": [
+          "packages/core/injector/abstract-instance-resolver.ts",
+          "packages/core/injector/injector.ts",
+          "packages/core/middleware/middleware-module.ts",
+          "packages/core/middleware/resolver.ts",
+          "packages/core/router/router-explorer.ts",
+          "packages/microservices/listeners-controller.ts"
+        ]
+      },
+      "meta": {
+        "symbol": "loadInstance",
+        "n_l1": 3,
+        "n_files": 6
+      }
+    },
+    {
+      "id": "m5-brkcol-nest-AsyncOptionsClassModule",
+      "type": "break_collision",
+      "suite": "break",
+      "repo": "nest",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, the name 'AsyncOptionsClassModule' is defined in MORE THAN ONE place. Find every definition. Answer as a 'DEFINITIONS:' section, one '<repo-relative-file>:<line>' per line, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "definitions": [
+          "integration/mongoose/src/async-class-options.module.ts:25",
+          "integration/typeorm/src/async-class-options.module.ts:36"
+        ]
+      },
+      "meta": {
+        "symbol": "AsyncOptionsClassModule",
+        "n_defs": 2
+      }
+    },
+    {
+      "id": "m5-brkcol-nest-PostsResolver",
+      "type": "break_collision",
+      "suite": "break",
+      "repo": "nest",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, the name 'PostsResolver' is defined in MORE THAN ONE place. Find every definition. Answer as a 'DEFINITIONS:' section, one '<repo-relative-file>:<line>' per line, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "definitions": [
+          "sample/31-graphql-federation-code-first/posts-application/src/posts/posts.resolver.ts:15",
+          "sample/32-graphql-federation-schema-first/posts-application/src/posts/posts.resolver.ts:13"
+        ]
+      },
+      "meta": {
+        "symbol": "PostsResolver",
+        "n_defs": 2
+      }
+    },
+    {
+      "id": "m5-brkcol-nest-LoggingPlugin",
+      "type": "break_collision",
+      "suite": "break",
+      "repo": "nest",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, the name 'LoggingPlugin' is defined in MORE THAN ONE place. Find every definition. Answer as a 'DEFINITIONS:' section, one '<repo-relative-file>:<line>' per line, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "definitions": [
+          "sample/12-graphql-schema-first/src/common/plugins/logging.plugin.ts:5",
+          "sample/23-graphql-code-first/src/common/plugins/logging.plugin.ts:5"
+        ]
+      },
+      "meta": {
+        "symbol": "LoggingPlugin",
+        "n_defs": 2
+      }
+    },
+    {
+      "id": "m5-gwstr-laravel-framework-fd13dc29",
+      "type": "grepwin_string",
+      "suite": "grepwin",
+      "repo": "laravel-framework",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, exactly one line of code contains this exact string:\n\n  \"ml-4 text-lg text-gray-500 uppercase tracking-wider\"\n\nFind it. Answer with a single line 'LOCATION: <repo-relative-file>:<line>', nothing else. Base it on the repository, not memory.",
+      "ground_truth": {
+        "location": "src/Illuminate/Foundation/Exceptions/views/minimal.blade.php:27",
+        "literal": "ml-4 text-lg text-gray-500 uppercase tracking-wider"
+      },
+      "meta": {
+        "file": "src/Illuminate/Foundation/Exceptions/views/minimal.blade.php"
+      }
+    },
+    {
+      "id": "m5-gwstr-laravel-framework-28867f45",
+      "type": "grepwin_string",
+      "suite": "grepwin",
+      "repo": "laravel-framework",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, exactly one line of code contains this exact string:\n\n  \"py-3 dark:border-gray-900 sm:py-5\"\n\nFind it. Answer with a single line 'LOCATION: <repo-relative-file>:<line>', nothing else. Base it on the repository, not memory.",
+      "ground_truth": {
+        "location": "src/Illuminate/Foundation/resources/exceptions/renderer/components/navigation.blade.php:2",
+        "literal": "py-3 dark:border-gray-900 sm:py-5"
+      },
+      "meta": {
+        "file": "src/Illuminate/Foundation/resources/exceptions/renderer/components/navigation.blade.php"
+      }
+    },
+    {
+      "id": "m5-gwstr-laravel-framework-a8baa71f",
+      "type": "grepwin_string",
+      "suite": "grepwin",
+      "repo": "laravel-framework",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, exactly one line of code contains this exact string:\n\n  \"text-gray-900 dark:text-gray-300\"\n\nFind it. Answer with a single line 'LOCATION: <repo-relative-file>:<line>', nothing else. Base it on the repository, not memory.",
+      "ground_truth": {
+        "location": "src/Illuminate/Foundation/resources/exceptions/renderer/components/trace.blade.php:61",
+        "literal": "text-gray-900 dark:text-gray-300"
+      },
+      "meta": {
+        "file": "src/Illuminate/Foundation/resources/exceptions/renderer/components/trace.blade.php"
+      }
+    },
+    {
+      "id": "m5-gwfile-laravel-framework-18e802c4",
+      "type": "grepwin_filename",
+      "suite": "grepwin",
+      "repo": "laravel-framework",
+      "gt_source": "filesystem",
+      "prompt": "In the repository at {REPO_PATH} there is exactly one file named 'ComparesRelatedModels.php'. Give its location. Answer with a single line 'PATH: <repo-relative-path>', nothing else.",
+      "ground_truth": {
+        "path": "src/Illuminate/Database/Eloquent/Relations/Concerns/ComparesRelatedModels.php"
+      },
+      "meta": {
+        "basename": "ComparesRelatedModels.php"
+      }
+    },
+    {
+      "id": "m5-gwfile-laravel-framework-c1d5b538",
+      "type": "grepwin_filename",
+      "suite": "grepwin",
+      "repo": "laravel-framework",
+      "gt_source": "filesystem",
+      "prompt": "In the repository at {REPO_PATH} there is exactly one file named 'FoundationDocsCommandTest.php'. Give its location. Answer with a single line 'PATH: <repo-relative-path>', nothing else.",
+      "ground_truth": {
+        "path": "tests/Foundation/FoundationDocsCommandTest.php"
+      },
+      "meta": {
+        "basename": "FoundationDocsCommandTest.php"
+      }
+    },
+    {
+      "id": "m5-domcall-laravel-framework-morphMany",
+      "type": "dominate_callers",
+      "suite": "dominate",
+      "repo": "laravel-framework",
+      "gt_source": "graph.db",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'morphMany' (exact name). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else before the coverage line. Base every entry on evidence from the code. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "caller_pairs": [
+          "comments\ttests/Database/DatabaseEloquentFactoryTest.php",
+          "comments\ttests/Database/DatabaseEloquentInverseRelationMorphManyTest.php",
+          "comments\ttests/Database/DatabaseEloquentPolymorphicIntegrationTest.php",
+          "comments\ttests/Integration/Database/EloquentMorphManyTest.php",
+          "comments\ttests/Integration/Database/EloquentThroughTest.php",
+          "comments\ttests/Integration/Database/EloquentWhereHasTest.php",
+          "comments\ttypes/Database/Eloquent/Relations.php",
+          "guessedComments\ttests/Database/DatabaseEloquentInverseRelationMorphManyTest.php",
+          "likes\ttests/Database/DatabaseEloquentPolymorphicIntegrationTest.php",
+          "likes\ttests/Database/DatabaseEloquentRelationshipsTest.php",
+          "notifications\tsrc/Illuminate/Notifications/HasDatabaseNotifications.php",
+          "photos\ttests/Database/DatabaseEloquentIntegrationTest.php",
+          "replies\ttests/Integration/Database/EloquentMorphManyTest.php",
+          "states\ttests/Database/DatabaseEloquentMorphOneOfManyTest.php",
+          "testMorphManyCreatesProperRelation\ttests/Database/DatabaseEloquentModelTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "morphMany",
+        "n_callers": 15
+      }
+    },
+    {
+      "id": "m5-domcall-laravel-framework-constrained",
+      "type": "dominate_callers",
+      "suite": "dominate",
+      "repo": "laravel-framework",
+      "gt_source": "graph.db",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'constrained' (exact name). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else before the coverage line. Base every entry on evidence from the code. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "caller_pairs": [
+          "afterRefreshingDatabase\ttests/Integration/Database/ModelInspectorTest.php",
+          "testAddAndDropPrimaryOnSqlite\ttests/Integration/Database/SchemaBuilderTest.php",
+          "testAddForeignKeysOnSqlite\ttests/Integration/Database/SchemaBuilderTest.php",
+          "testAddingForeignID\ttests/Database/DatabaseMariaDbSchemaGrammarTest.php",
+          "testAddingForeignID\ttests/Database/DatabaseMySqlSchemaGrammarTest.php",
+          "testAddingForeignID\ttests/Database/DatabasePostgresSchemaGrammarTest.php",
+          "testAddingForeignID\ttests/Database/DatabaseSQLiteSchemaGrammarTest.php",
+          "testAddingForeignID\ttests/Database/DatabaseSqlServerSchemaGrammarTest.php",
+          "testAddingForeignIdSpecifyingIndexNameInConstraint\ttests/Database/DatabaseMariaDbSchemaGrammarTest.php",
+          "testAddingForeignIdSpecifyingIndexNameInConstraint\ttests/Database/DatabaseMySqlSchemaGrammarTest.php",
+          "testAddingForeignIdSpecifyingIndexNameInConstraint\ttests/Database/DatabasePostgresSchemaGrammarTest.php",
+          "testAddingForeignIdSpecifyingIndexNameInConstraint\ttests/Database/DatabaseSQLiteSchemaGrammarTest.php",
+          "testAddingForeignIdSpecifyingIndexNameInConstraint\ttests/Database/DatabaseSqlServerSchemaGrammarTest.php",
+          "testAddingForeignUuid\ttests/Database/DatabaseMariaDbSchemaGrammarTest.php",
+          "testAddingForeignUuid\ttests/Database/DatabaseMySqlSchemaGrammarTest.php",
+          "testAddingForeignUuid\ttests/Database/DatabasePostgresSchemaGrammarTest.php",
+          "testAddingForeignUuid\ttests/Database/DatabaseSQLiteSchemaGrammarTest.php",
+          "testAddingForeignUuid\ttests/Database/DatabaseSqlServerSchemaGrammarTest.php",
+          "testAddingMacros\ttests/Integration/Database/SchemaBuilderTest.php",
+          "testAlterTableAddForeignKeyWithExpressionDefault\ttests/Integration/Database/Sqlite/DatabaseSchemaBuilderTest.php",
+          "testAlterTableAddForeignKeyWithPrefix\ttests/Integration/Database/Sqlite/DatabaseSchemaBuilderTest.php",
+          "testAlteringTableWithForeignKeyConstraintsEnabled\ttests/Integration/Database/SchemaBuilderTest.php",
+          "testDropForeignKeysOnSqlite\ttests/Integration/Database/SchemaBuilderTest.php",
+          "testForeignKeys\ttests/Integration/Database/SchemaBuilderSchemaNameTest.php",
+          "testGenerateRelationshipConstrainedColumn\ttests/Database/DatabaseSchemaBlueprintTest.php",
+          "testGenerateRelationshipForModelWithNonStandardPrimaryKeyName\ttests/Database/DatabaseSchemaBlueprintTest.php",
+          "testGetForeignKeys\ttests/Integration/Database/SchemaBuilderTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "constrained",
+        "n_callers": 27
+      }
+    },
+    {
+      "id": "m5-domcall-laravel-framework-belongsToMany",
+      "type": "dominate_callers",
+      "suite": "dominate",
+      "repo": "laravel-framework",
+      "gt_source": "graph.db",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'belongsToMany' (exact name). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else before the coverage line. Base every entry on evidence from the code. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "caller_pairs": [
+          "activeSubscriptions\ttests/Integration/Database/EloquentPivotTest.php",
+          "allocatedTo\ttests/Database/DatabaseEloquentBelongsToManyAggregateTest.php",
+          "articles\ttests/Database/DatabaseEloquentBelongsToManyChunkByIdTest.php",
+          "articles\ttests/Database/DatabaseEloquentBelongsToManyEachByIdTest.php",
+          "articles\ttests/Database/DatabaseEloquentBelongsToManyLazyByIdTest.php",
+          "articles\ttests/Database/DatabaseEloquentBelongsToManySyncReturnValueTypeTest.php",
+          "articles\ttests/Database/DatabaseEloquentBelongsToManySyncTouchesParentTest.php",
+          "articles\ttests/Database/DatabaseEloquentBelongsToManyWithoutTouchingTest.php",
+          "childBars\ttests/Database/DatabaseEloquentBuilderTest.php",
+          "children\ttests/Integration/Database/EloquentModelRefreshTest.php",
+          "collaborators\ttests/Integration/Database/EloquentCustomPivotCastTest.php",
+          "collaborators\ttests/Integration/Database/EloquentPivotEventsTest.php",
+          "collaborators\ttests/Integration/Database/EloquentPivotSerializationTest.php",
+          "collaborators\ttests/Integration/Database/EloquentPivotTest.php",
+          "contributors\ttests/Integration/Database/EloquentPivotEventsTest.php",
+          "contributors\ttests/Integration/Database/EloquentPivotTest.php",
+          "factoryTestRoles\ttests/Database/DatabaseEloquentFactoryTest.php",
+          "friends\ttests/Database/DatabaseEloquentIntegrationTest.php",
+          "friendsOne\ttests/Database/DatabaseEloquentIntegrationTest.php",
+          "friendsTwo\ttests/Database/DatabaseEloquentIntegrationTest.php",
+          "inactiveSubscriptions\ttests/Integration/Database/EloquentPivotTest.php",
+          "irregularPluralTokens\ttests/Database/DatabaseEloquentIrregularPluralTest.php",
+          "mentionsUsers\ttests/Integration/Database/EloquentModelLoadMissingTest.php",
+          "parentBars\ttests/Database/DatabaseEloquentBuilderTest.php",
+          "posts\ttests/Integration/Database/AfterQueryTest.php",
+          "posts\ttests/Integration/Database/EloquentBelongsToManyTest.php",
+          "postsWithCustomPivot\ttests/Integration/Database/EloquentBelongsToManyTest.php",
+          "products\ttests/Database/DatabaseEloquentBelongsToManyAggregateTest.php",
+          "products\ttests/Integration/Queue/ModelSerializationTest.php",
+          "related\ttests/Database/DatabaseEloquentBelongsToManyCreateOrFirstTest.php",
+          "roles\ttests/Database/DatabaseEloquentBuilderTest.php",
+          "roles\ttests/Database/DatabaseEloquentFactoryTest.php",
+          "roles\ttests/Integration/Database/EloquentEagerLoadingLimitTest.php",
+          "roles\ttests/Integration/Queue/ModelSerializationTest.php",
+          "roles\ttypes/Database/Eloquent/Relations.php",
+          "tags\ttests/Integration/Database/EloquentBelongsToManyTest.php",
+          "tagsUnique\ttests/Integration/Database/EloquentBelongsToManyTest.php",
+          "tagsWithCustomAccessor\ttests/Integration/Database/EloquentBelongsToManyTest.php",
+          "tagsWithCustomExtraPivot\ttests/Integration/Database/EloquentBelongsToManyTest.php",
+          "tagsWithCustomPivot\ttests/Integration/Database/EloquentBelongsToManyTest.php",
+          "tagsWithCustomPivotClass\ttests/Integration/Database/EloquentBelongsToManyTest.php",
+          "tagsWithCustomRelatedKey\ttests/Integration/Database/EloquentBelongsToManyTest.php",
+          "tagsWithExtraPivot\ttests/Integration/Database/EloquentBelongsToManyTest.php",
+          "tagsWithGlobalScope\ttests/Integration/Database/EloquentBelongsToManyTest.php",
+          "testBelongsToManyCreatesProperRelation\ttests/Database/DatabaseEloquentModelTest.php",
+          "testRelationsWithVariedConnections\ttests/Database/DatabaseEloquentModelTest.php",
+          "touchingTags\ttests/Integration/Database/EloquentBelongsToManyTest.php",
+          "users\ttests/Database/DatabaseEloquentBelongsToManySyncTouchesParentTest.php",
+          "users\ttests/Database/DatabaseEloquentBelongsToManyWithoutTouchingTest.php",
+          "users\ttests/Database/DatabaseEloquentFactoryTest.php",
+          "users\ttests/Integration/Database/EloquentBelongsToManyTest.php",
+          "users\ttests/Integration/Queue/ModelSerializationTest.php",
+          "viewers\ttests/Database/DatabaseEloquentRelationshipsTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "belongsToMany",
+        "n_callers": 53
+      }
+    },
+    {
+      "id": "m5-domcall-laravel-framework-timestamps",
+      "type": "dominate_callers",
+      "suite": "dominate",
+      "repo": "laravel-framework",
+      "gt_source": "graph.db",
+      "prompt": "In the repository at {REPO_PATH}, find every function or method that CALLS 'timestamps' (exact name). Answer as a 'CALLERS:' section, one entry per line, exact form '<functionName>  <file>' (repo-relative), nothing else before the coverage line. Base every entry on evidence from the code. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "caller_pairs": [
+          "afterRefreshingDatabase\ttests/Integration/Database/AfterQueryTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/DatabaseCustomCastsTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/DatabaseEloquentBroadcastingTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/DatabaseEloquentModelAttributeCastingTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/DatabaseEloquentModelCustomCastingTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentBelongsToManyTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentCollectionFreshTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentCursorPaginateTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentDeleteTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentEagerLoadingLimitTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentHasManyTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentHasManyThroughTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentHasOneIsTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentHasOneOfManyTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentMassPrunableTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentModelRefreshTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentModelStringCastingTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentMorphManyTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentMorphOneIsTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentMorphToIsTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentMorphToSelectTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentMorphToTouchesTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentPaginateTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentPivotEventsTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentPivotSerializationTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentPivotTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentPrunableTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentTouchParentWithGlobalScopeTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentUniqueStringPrimaryKeysTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/EloquentUpdateTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/MariaDb/DatabaseEloquentMariaDbIntegrationTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/ModelInspectorTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/MySql/DatabaseEloquentMySqlIntegrationTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/Postgres/DatabaseEloquentPostgresIntegrationTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Database/SqlServer/DatabaseEloquentSqlServerIntegrationTest.php",
+          "afterRefreshingDatabase\ttests/Integration/Events/EventFakeTest.php",
+          "createSchema\ttests/Database/DatabaseEloquentBelongsToManySyncTouchesParentTest.php",
+          "createSchema\ttests/Database/DatabaseEloquentFactoryTest.php",
+          "createSchema\ttests/Database/DatabaseEloquentHasManyThroughIntegrationTest.php",
+          "createSchema\ttests/Database/DatabaseEloquentHasOneOfManyTest.php",
+          "createSchema\ttests/Database/DatabaseEloquentHasOneThroughIntegrationTest.php",
+          "createSchema\ttests/Database/DatabaseEloquentIntegrationTest.php",
+          "createSchema\ttests/Database/DatabaseEloquentIntegrationWithTablePrefixTest.php",
+          "createSchema\ttests/Database/DatabaseEloquentInverseRelationHasManyTest.php",
+          "createSchema\ttests/Database/DatabaseEloquentInverseRelationHasOneTest.php",
+          "createSchema\ttests/Database/DatabaseEloquentInverseRelationMorphManyTest.php",
+          "createSchema\ttests/Database/DatabaseEloquentInverseRelationMorphOneTest.php",
+          "createSchema\ttests/Database/DatabaseEloquentIrregularPluralTest.php",
+          "createSchema\ttests/Database/DatabaseEloquentPolymorphicIntegrationTest.php",
+          "createSchema\ttests/Database/DatabaseEloquentPolymorphicRelationsIntegrationTest.php",
+          "createSchema\ttests/Database/DatabaseEloquentSoftDeletesIntegrationTest.php",
+          "createSchema\ttests/Database/DatabaseEloquentTimestampsTest.php",
+          "createSchema\ttests/Database/DatabaseEloquentWithCastsTest.php",
+          "createSchema\ttests/Database/EloquentModelCustomCastingTest.php",
+          "defineDatabaseMigrations\ttests/Integration/Routing/ImplicitModelRouteBindingTest.php",
+          "migrateDefault\ttests/Database/DatabaseEloquentHasManyThroughIntegrationTest.php",
+          "migrateDefault\ttests/Database/DatabaseEloquentHasOneThroughIntegrationTest.php",
+          "nullableTimestamps\tsrc/Illuminate/Database/Schema/Blueprint.php",
+          "testAddingTimestamps\ttests/Database/DatabaseMariaDbSchemaGrammarTest.php",
+          "testAddingTimestamps\ttests/Database/DatabaseMySqlSchemaGrammarTest.php",
+          "testAddingTimestamps\ttests/Database/DatabasePostgresSchemaGrammarTest.php",
+          "testAddingTimestamps\ttests/Database/DatabaseSQLiteSchemaGrammarTest.php",
+          "testAddingTimestamps\ttests/Database/DatabaseSqlServerSchemaGrammarTest.php",
+          "testDestroy\ttests/Integration/Database/EloquentDeleteTest.php",
+          "testGetRawIndex\ttests/Integration/Database/MySql/DatabaseMySqlSchemaBuilderTest.php",
+          "testGetRawIndex\ttests/Integration/Database/Postgres/PostgresSchemaBuilderTest.php",
+          "testGetRawIndex\ttests/Integration/Database/Sqlite/DatabaseSqliteSchemaBuilderTest.php",
+          "up\tsrc/Illuminate/Database/Migrations/stubs/migration.create.stub",
+          "up\tsrc/Illuminate/Notifications/Console/stubs/notifications.stub",
+          "up\ttests/Database/migrations/one/2016_01_01_000000_create_users_table.php",
+          "up\ttests/Integration/Database/stubs/2014_10_12_000000_create_members_table.php",
+          "up\ttests/Integration/Migration/fixtures/2014_10_12_000000_create_people_table.php",
+          "up\ttests/Integration/Migration/pretending/2014_10_12_000000_create_people_is_dynamic_table.php",
+          "up\ttests/Integration/Migration/pretending/2014_10_12_000000_create_people_non_dynamic_table.php"
+        ]
+      },
+      "meta": {
+        "symbol": "timestamps",
+        "n_callers": 74
+      }
+    },
+    {
+      "id": "m5-domtest-laravel-framework-macAddress",
+      "type": "dominate_tests",
+      "suite": "dominate",
+      "repo": "laravel-framework",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, which TEST files exercise the symbol 'macAddress' (reference it by name)? Answer as a 'FILES:' section listing repo-relative test file paths, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "files": [
+          "tests/Database/DatabaseMariaDbSchemaGrammarTest.php",
+          "tests/Database/DatabaseMySqlSchemaGrammarTest.php",
+          "tests/Database/DatabasePostgresSchemaGrammarTest.php",
+          "tests/Database/DatabaseSQLiteSchemaGrammarTest.php",
+          "tests/Database/DatabaseSqlServerSchemaGrammarTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "macAddress",
+        "n_tests": 5
+      }
+    },
+    {
+      "id": "m5-domtest-laravel-framework-deleted",
+      "type": "dominate_tests",
+      "suite": "dominate",
+      "repo": "laravel-framework",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, which TEST files exercise the symbol 'deleted' (reference it by name)? Answer as a 'FILES:' section listing repo-relative test file paths, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "files": [
+          "tests/Cache/ClearCommandTest.php",
+          "tests/Database/DatabaseEloquentSoftDeletesIntegrationTest.php",
+          "tests/Integration/Database/EloquentDeleteTest.php",
+          "tests/Integration/Database/EloquentPivotEventsTest.php",
+          "tests/Integration/Database/EloquentWhereHasMorphTest.php",
+          "tests/Integration/Events/EventFakeTest.php",
+          "tests/Integration/Generators/ObserverMakeCommandTest.php",
+          "tests/Queue/QueueWorkerTest.php",
+          "tests/Routing/RouteRegistrarTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "deleted",
+        "n_tests": 9
+      }
+    },
+    {
+      "id": "m5-domtest-laravel-framework-isIgnoringTouch",
+      "type": "dominate_tests",
+      "suite": "dominate",
+      "repo": "laravel-framework",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, which TEST files exercise the symbol 'isIgnoringTouch' (reference it by name)? Answer as a 'FILES:' section listing repo-relative test file paths, nothing else. Base it on the repository.",
+      "ground_truth": {
+        "files": [
+          "tests/Database/DatabaseEloquentBelongsToManyWithoutTouchingTest.php",
+          "tests/Database/DatabaseEloquentIntegrationTest.php",
+          "tests/Database/DatabaseEloquentModelTest.php",
+          "tests/Database/DatabaseEloquentRelationTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "isIgnoringTouch",
+        "n_tests": 4
+      }
+    },
+    {
+      "id": "m5-domblast-laravel-framework-forHumans",
+      "type": "dominate_blast",
+      "suite": "dominate",
+      "repo": "laravel-framework",
+      "gt_source": "graph.db",
+      "prompt": "You are planning a change to 'forHumans' in the repository at {REPO_PATH}. Determine its blast radius: every file containing a function that calls 'forHumans' directly, plus every file containing a function that calls one of THOSE direct callers (two levels total). Answer as a 'FILES:' section of repo-relative paths, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "files": [
+          "src/Illuminate/Console/View/Components/Task.php",
+          "src/Illuminate/Foundation/Console/ServeCommand.php",
+          "src/Illuminate/Queue/Console/WorkCommand.php",
+          "src/Illuminate/Support/InteractsWithTime.php",
+          "src/Illuminate/Support/Number.php",
+          "src/Illuminate/Support/Sleep.php",
+          "tests/Http/HttpClientTest.php",
+          "tests/Support/SleepTest.php",
+          "tests/Support/SupportHelpersTest.php",
+          "tests/Support/SupportNumberTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "forHumans",
+        "n_l1": 5,
+        "n_files": 10
+      }
+    },
+    {
+      "id": "m5-domblast-laravel-framework-passthru",
+      "type": "dominate_blast",
+      "suite": "dominate",
+      "repo": "laravel-framework",
+      "gt_source": "graph.db",
+      "prompt": "You are planning a change to 'passthru' in the repository at {REPO_PATH}. Determine its blast radius: every file containing a function that calls 'passthru' directly, plus every file containing a function that calls one of THOSE direct callers (two levels total). Answer as a 'FILES:' section of repo-relative paths, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "files": [
+          "src/Illuminate/Collections/LazyCollection.php",
+          "tests/Database/DatabaseEloquentBelongsToManyWithCastedAttributesTest.php",
+          "tests/Database/DatabaseEloquentBuilderTest.php",
+          "tests/Database/DatabaseEloquentInverseRelationHasManyTest.php",
+          "tests/Database/DatabaseEloquentInverseRelationMorphManyTest.php",
+          "tests/Database/DatabaseEloquentInverseRelationMorphOneTest.php",
+          "tests/Database/DatabaseEloquentInverseRelationTest.php",
+          "tests/Database/DatabaseEloquentPivotTest.php",
+          "tests/Database/DatabaseEloquentRelationTest.php"
+        ]
+      },
+      "meta": {
+        "symbol": "passthru",
+        "n_l1": 38,
+        "n_files": 9
+      }
+    },
+    {
+      "id": "m5-brkcol-laravel-framework-times",
+      "type": "break_collision",
+      "suite": "break",
+      "repo": "laravel-framework",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, the name 'times' is defined in MORE THAN ONE place. Find every definition. Answer as a 'DEFINITIONS:' section, one '<repo-relative-file>:<line>' per line, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "definitions": [
+          "src/Illuminate/Collections/Enumerable.php:41",
+          "src/Illuminate/Collections/Traits/EnumeratesValues.php:169",
+          "src/Illuminate/Database/Eloquent/Factories/Factory.php:191"
+        ]
+      },
+      "meta": {
+        "symbol": "times",
+        "n_defs": 3
+      }
+    },
+    {
+      "id": "m5-brkcol-laravel-framework-addJsonPath",
+      "type": "break_collision",
+      "suite": "break",
+      "repo": "laravel-framework",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, the name 'addJsonPath' is defined in MORE THAN ONE place. Find every definition. Answer as a 'DEFINITIONS:' section, one '<repo-relative-file>:<line>' per line, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "definitions": [
+          "src/Illuminate/Contracts/Translation/Loader.php:32",
+          "src/Illuminate/Translation/ArrayLoader.php:49",
+          "src/Illuminate/Translation/FileLoader.php:191",
+          "src/Illuminate/Translation/Translator.php:413"
+        ]
+      },
+      "meta": {
+        "symbol": "addJsonPath",
+        "n_defs": 4
+      }
+    },
+    {
+      "id": "m5-brkcol-laravel-framework-whereNull",
+      "type": "break_collision",
+      "suite": "break",
+      "repo": "laravel-framework",
+      "gt_source": "ripgrep",
+      "prompt": "In the repository at {REPO_PATH}, the name 'whereNull' is defined in MORE THAN ONE place. Find every definition. Answer as a 'DEFINITIONS:' section, one '<repo-relative-file>:<line>' per line, nothing else before the coverage line. End your answer with a line 'COVERAGE: complete' if you are confident you found every one, or 'COVERAGE: incomplete' if there may be more.",
+      "ground_truth": {
+        "definitions": [
+          "src/Illuminate/Collections/Enumerable.php:386",
+          "src/Illuminate/Collections/Traits/EnumeratesValues.php:632",
+          "src/Illuminate/Database/Query/Builder.php:1347",
+          "src/Illuminate/Database/Query/Grammars/Grammar.php:413",
+          "src/Illuminate/Database/Query/Grammars/MySqlGrammar.php:42",
+          "src/Illuminate/Validation/Rules/DatabaseRule.php:135"
+        ]
+      },
+      "meta": {
+        "symbol": "whereNull",
+        "n_defs": 6
+      }
+    }
+  ]
+}
