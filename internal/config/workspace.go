@@ -2,7 +2,9 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 )
@@ -53,6 +55,75 @@ func LoadWorkspace(wsRoot string) (*Workspace, error) {
 		return nil, err
 	}
 	return &ws, nil
+}
+
+// SaveWorkspace writes ws as wsRoot's manifest, creating .codeindex/ if it is
+// absent.
+//
+// Members are written in the order given. SaveWorkspace carries no ordering
+// policy of its own: ordering is workspace.Merge's job (existing members in
+// manifest order, then newly discovered members sorted by id), and a sort here
+// would silently override it. The output is two-space indented with a trailing
+// newline because the manifest is committed and read in diffs.
+func SaveWorkspace(wsRoot string, ws *Workspace) error {
+	path := filepath.Join(wsRoot, WorkspaceFile)
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return fmt.Errorf("%s: %w", path, err)
+	}
+	b, err := json.MarshalIndent(ws, "", "  ")
+	if err != nil {
+		return fmt.Errorf("%s: %w", path, err)
+	}
+	b = append(b, '\n')
+	if err := os.WriteFile(path, b, 0o644); err != nil {
+		return fmt.Errorf("%s: %w", path, err)
+	}
+	return nil
+}
+
+// ResolvedMember is a member whose root was found on disk, paired with the
+// absolute path it resolved to so callers do not re-derive it against the
+// wrong base — member roots are relative to the workspace root and routinely
+// climb out of it.
+type ResolvedMember struct {
+	Member  Member
+	AbsRoot string
+}
+
+// Resolve stats each member root and splits the manifest into the members
+// present on disk and the ids of those that are not, both in manifest order.
+//
+// This is the other half of the split LoadWorkspace makes: absence is a
+// runtime condition, not an authoring error, because a workspace must still
+// answer queries while one member is unavailable — the coverage clause names
+// the missing members Resolve reports. A root that exists but is not a
+// directory is reported missing too: it is not a member tree, and admitting it
+// would only defer the failure to whoever walks it.
+//
+// A non-nil error is reserved for a stat that failed for a reason other than
+// absence (a permission error, say), which is a real fault rather than an
+// absent member.
+func (w *Workspace) Resolve(wsRoot string) (present []ResolvedMember, missing []string, err error) {
+	for _, m := range w.Members {
+		abs := filepath.Join(wsRoot, m.Root)
+		if !filepath.IsAbs(abs) {
+			a, aerr := filepath.Abs(abs)
+			if aerr != nil {
+				return nil, nil, fmt.Errorf("member %q: %w", m.ID, aerr)
+			}
+			abs = a
+		}
+		fi, serr := os.Stat(abs)
+		switch {
+		case serr == nil && fi.IsDir():
+			present = append(present, ResolvedMember{Member: m, AbsRoot: abs})
+		case serr == nil, errors.Is(serr, fs.ErrNotExist):
+			missing = append(missing, m.ID)
+		default:
+			return nil, nil, fmt.Errorf("member %q: %w", m.ID, serr)
+		}
+	}
+	return present, missing, nil
 }
 
 // validate enforces the manifest's shape rules. Every rule is an error: a

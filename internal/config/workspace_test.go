@@ -1,11 +1,13 @@
 package config
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -209,5 +211,201 @@ func TestLoadWorkspaceValidationErrors(t *testing.T) {
 				t.Fatalf("error %q does not mention %q", err, tc.want)
 			}
 		})
+	}
+}
+
+// SaveWorkspace carries no ordering policy: the slice it is handed is the
+// slice it writes. Ordering lives in workspace.Merge, so a sort here would
+// silently override the merge's "existing order, then new ids sorted" rule.
+func TestSaveWorkspacePreservesGivenOrder(t *testing.T) {
+	root := t.TempDir()
+	ws := &Workspace{Version: 1, Members: []Member{
+		{ID: "zeta", Root: "z", Namespaces: []string{"z"}},
+		{ID: "alpha", Root: "a", Namespaces: []string{"a"}},
+		{ID: "mid", Root: "m", Namespaces: []string{}},
+	}}
+	if err := SaveWorkspace(root, ws); err != nil {
+		t.Fatalf("SaveWorkspace: %v", err)
+	}
+	got, err := LoadWorkspace(root)
+	if err != nil {
+		t.Fatalf("LoadWorkspace: %v", err)
+	}
+	want := []string{"zeta", "alpha", "mid"}
+	for i, id := range want {
+		if got.Members[i].ID != id {
+			t.Fatalf("member %d = %q, want %q (SaveWorkspace reordered)", i, got.Members[i].ID, id)
+		}
+	}
+}
+
+// The manifest is committed and diffed by humans, so its formatting is part
+// of the contract: two-space indent and a trailing newline.
+func TestSaveWorkspaceFormatting(t *testing.T) {
+	root := t.TempDir()
+	ws := &Workspace{Version: 1, Members: []Member{{ID: "a", Root: "a", Namespaces: []string{"n"}}}}
+	if err := SaveWorkspace(root, ws); err != nil {
+		t.Fatalf("SaveWorkspace: %v", err)
+	}
+	b, err := os.ReadFile(filepath.Join(root, WorkspaceFile))
+	if err != nil {
+		t.Fatalf("read back: %v", err)
+	}
+	body := string(b)
+	if !strings.HasSuffix(body, "\n") {
+		t.Fatalf("no trailing newline: %q", body)
+	}
+	if strings.HasSuffix(body, "\n\n") {
+		t.Fatalf("more than one trailing newline: %q", body)
+	}
+	if !strings.Contains(body, "\n  \"version\": 1") {
+		t.Fatalf("not two-space indented: %q", body)
+	}
+}
+
+// SaveWorkspace creates .codeindex/ when it is absent — init-workspace runs
+// against a workspace root that has never been indexed.
+func TestSaveWorkspaceCreatesDir(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "fresh")
+	if err := os.MkdirAll(root, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	ws := &Workspace{Version: 1, Members: []Member{{ID: "a", Root: "a", Namespaces: []string{}}}}
+	if err := SaveWorkspace(root, ws); err != nil {
+		t.Fatalf("SaveWorkspace into a root with no .codeindex/: %v", err)
+	}
+	if _, err := LoadWorkspace(root); err != nil {
+		t.Fatalf("LoadWorkspace: %v", err)
+	}
+}
+
+func TestSaveLoadRoundTripStable(t *testing.T) {
+	src := writeWorkspace(t, `{
+	  "version": 1,
+	  "members": [
+	    {"id": "web", "root": "services/web", "namespaces": ["@acme/web"], "deps": ["api"]},
+	    {"id": "api", "root": "../api", "namespaces": ["example.com/api"]}
+	  ]
+	}`)
+	first, err := LoadWorkspace(src)
+	if err != nil {
+		t.Fatalf("LoadWorkspace: %v", err)
+	}
+	dst := t.TempDir()
+	if err := SaveWorkspace(dst, first); err != nil {
+		t.Fatalf("SaveWorkspace: %v", err)
+	}
+	second, err := LoadWorkspace(dst)
+	if err != nil {
+		t.Fatalf("LoadWorkspace after save: %v", err)
+	}
+	if !reflect.DeepEqual(first, second) {
+		t.Fatalf("round-trip changed the manifest:\n first = %+v\nsecond = %+v", first, second)
+	}
+	// A second save of the reloaded value must be byte-identical, so a
+	// no-op init-workspace --force produces an empty diff.
+	dst2 := t.TempDir()
+	if err := SaveWorkspace(dst2, second); err != nil {
+		t.Fatalf("SaveWorkspace (2): %v", err)
+	}
+	a, err := os.ReadFile(filepath.Join(dst, WorkspaceFile))
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := os.ReadFile(filepath.Join(dst2, WorkspaceFile))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(a, b) {
+		t.Fatalf("second save differs:\n%s\n---\n%s", a, b)
+	}
+}
+
+// The load/resolve split: the same manifest LoadWorkspace accepts without
+// stating a root is the one Resolve reports as missing.
+func TestResolveAllMissing(t *testing.T) {
+	root := writeWorkspace(t, `{
+	  "version": 1,
+	  "members": [
+	    {"id": "gone", "root": "../nope/does-not-exist", "namespaces": ["a"]},
+	    {"id": "also-gone", "root": "missing/too", "namespaces": ["b"]}
+	  ]
+	}`)
+	ws, err := LoadWorkspace(root)
+	if err != nil {
+		t.Fatalf("LoadWorkspace: %v", err)
+	}
+	present, missing, err := ws.Resolve(root)
+	if err != nil {
+		t.Fatalf("Resolve: %v", err)
+	}
+	if len(present) != 0 {
+		t.Fatalf("present = %+v, want none", present)
+	}
+	if !reflect.DeepEqual(missing, []string{"gone", "also-gone"}) {
+		t.Fatalf("missing = %v, want [gone also-gone]", missing)
+	}
+}
+
+func TestResolveMixed(t *testing.T) {
+	root := writeWorkspace(t, `{
+	  "version": 1,
+	  "members": [
+	    {"id": "here", "root": "pkg/here", "namespaces": ["h"]},
+	    {"id": "gone", "root": "pkg/gone", "namespaces": ["g"]},
+	    {"id": "up", "root": "../sibling", "namespaces": ["u"]}
+	  ]
+	}`)
+	if err := os.MkdirAll(filepath.Join(root, "pkg", "here"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(filepath.Dir(root), "sibling"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	ws, err := LoadWorkspace(root)
+	if err != nil {
+		t.Fatalf("LoadWorkspace: %v", err)
+	}
+	present, missing, err := ws.Resolve(root)
+	if err != nil {
+		t.Fatalf("Resolve: %v", err)
+	}
+	if !reflect.DeepEqual(missing, []string{"gone"}) {
+		t.Fatalf("missing = %v, want [gone]", missing)
+	}
+	if len(present) != 2 || present[0].Member.ID != "here" || present[1].Member.ID != "up" {
+		t.Fatalf("present = %+v, want [here up] in manifest order", present)
+	}
+	// Present members carry an absolute, cleaned path so callers never
+	// re-derive it against the wrong base.
+	wantHere := filepath.Join(root, "pkg", "here")
+	if present[0].AbsRoot != wantHere {
+		t.Fatalf("AbsRoot = %q, want %q", present[0].AbsRoot, wantHere)
+	}
+	if !filepath.IsAbs(present[1].AbsRoot) || filepath.Base(present[1].AbsRoot) != "sibling" {
+		t.Fatalf("AbsRoot for ../sibling = %q", present[1].AbsRoot)
+	}
+}
+
+// A member root that exists but is a file, not a directory, is not a usable
+// member tree — it is reported missing rather than handed to a walker.
+func TestResolveFileRootIsMissing(t *testing.T) {
+	root := writeWorkspace(t, `{
+	  "version": 1,
+	  "members": [{"id": "afile", "root": "notadir", "namespaces": []}]
+	}`)
+	if err := os.WriteFile(filepath.Join(root, "notadir"), []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	ws, err := LoadWorkspace(root)
+	if err != nil {
+		t.Fatalf("LoadWorkspace: %v", err)
+	}
+	present, missing, err := ws.Resolve(root)
+	if err != nil {
+		t.Fatalf("Resolve: %v", err)
+	}
+	if len(present) != 0 || !reflect.DeepEqual(missing, []string{"afile"}) {
+		t.Fatalf("present = %+v, missing = %v", present, missing)
 	}
 }
