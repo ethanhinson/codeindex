@@ -14,6 +14,7 @@ Immutable, numbered record of *why*. ADRs are never archived or rewritten; once 
 - [ADR-0008](0008-docket-replaces-lore.md) — Docket replaces lore (openspec → lore → docket lineage) (Accepted) ← change #1
 - [ADR-0009](0009-graph-api-schema-version-contract.md) — Versioned symbol-graph JSON API contract for `serve` (Accepted) ← change #3 · relates to ADR-0007
 - [ADR-0010](0010-ambiguous-subset-scored-against-authored-expectation.md) — Ambiguous-subset accuracy is scored against the authored expectation, not the tool's self-report (Accepted) ← change #5
+- [ADR-0011](0011-capability-tests-assert-on-degradation-disclosure.md) — Capability-dependent tests assert against the product's own degradation disclosure (Accepted) ← change #11
 
 ## Superseded / Reversed
 
