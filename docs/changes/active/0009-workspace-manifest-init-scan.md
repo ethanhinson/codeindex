@@ -17,7 +17,7 @@ results:
 trivial: false
 auto_groomable: true
 branch: feat/workspace-manifest-init-scan
-claimed_at: 2026-08-18T19:33:02Z
+claimed_at: 2026-08-18T19:35:34Z
 pr:
 blocked_by:
 reconciled: true
@@ -237,72 +237,3 @@ Binding fixes carried forward from the abstain's fixable list:
   spec's acceptance checklist.
 - The regression bar is the whole single-repo golden suite, not
   `TestCallersTextGolden` alone.
-
-## Run halted
-
-**2026-08-18 — autonomous implement run stopped mid-build; needs a human to
-restart it.** Nothing is broken and nothing must be undone: the branch
-`feat/workspace-manifest-init-scan` carries five clean, tested, committed
-tasks. The run stopped because the driving agent exhausted its context budget
-partway through the plan — not because of any defect in the design, the plan,
-or the code.
-
-### What landed (all green, tree clean)
-
-| Plan task | Commit | Content |
-|---|---|---|
-| — | `49846e5` | the plan file + its `docket:backlink` stamp |
-| T1 | `99a719b` | `internal/config/workspace.go`: `Workspace`/`Member`, `WorkspaceFile`, `LoadWorkspace` + every §1 validation rule, each with a test |
-| T2 | `328235a` | `SaveWorkspace` (no ordering policy) + `Workspace.Resolve`; round-trip byte-stable |
-| T3 | `4b6e3fd` | `golang.org/x/mod` + `gopkg.in/yaml.v3` availability verified, module cache warmed |
-| T4 | `5b224a9` | `internal/workspace/namespaces.go`: `Namespaces` for Go/TS-JS/PHP/Python, incl. psr-4 string-or-array and Python src-first |
-| T5 | `35bbaba` | `internal/workspace/members.go`: `Members` over all five declaration sources + all three over-collection guards |
-
-Each task ran the `docket-build-task` contract: RED-first focused test,
-implementation, self-review, exactly one commit. T1, T2, T4 and T5 each
-additionally carry **mutation evidence** in their worker returns (a deliberate
-defeat of the guard turned the intended test red, then was reverted).
-
-### What remains — plan tasks 6 through 11
-
-Unstarted, in order, from
-`docs/superpowers/plans/2026-08-18-workspace-manifest-init-scan-plan.md` on the
-feature branch:
-
-- **T6** `Scan` (the two-pass shape) + `Merge` (authored-wins, empty-namespaces-is-a-gap, order preservation)
-- **T7** `init-workspace --scan [--force]` wired into `cmd/codeindex/main.go`
-- **T8** `internal/engine/rootkind.go` — `DetectRootKind` + `hasIndexableSource` (**premium**: the spec names the `adapter.SetAssociations` process-global hazard)
-- **T9** bench manifest bootstrap + the narrow `.gitignore` negation (**premium**: the spec names the gitignore-overreach risk)
-- **T10** the two dated openspec amendments + `tasks.md` §3.1 check-off
-- **T11** the full regression gate
-
-### The one decision a human should confirm before the rebuild
-
-**The suite command.** `go test ./...` cannot pass on this machine for a
-**pre-existing, environmental** reason unrelated to this change: the vendored
-`llama.cpp` headers are absent, so the CGO shim in `internal/embed` fails to
-build and takes 10 packages down with it — including `internal/query`, which
-holds the three golden tests the regression bar names.
-
-Measured 2026-08-18, on this branch and on `origin/main` (bb076aa):
-
-| Command | `origin/main` | this branch |
-|---|---|---|
-| `go test ./...` | 10 packages fail to build (`llama.h` not found) | identical |
-| `go test -tags nollama ./...` | **1** failure: `TestSearchToolAndPrompt` (needs an embedding provider the tag removes) | identical |
-
-The branch therefore introduces **zero** new failures, and `internal/query` —
-the goldens — passes under `-tags nollama`. The honest gate for this repo is
-`go test -tags nollama ./...` compared against that one-failure base, and the
-resumed run should use it. **Recommended:** pin it in `.docket.yml` as
-`finalize.test_command`, so the merge gate and every future build agree rather
-than each re-deriving it. Left unset deliberately — that is a repo-level
-owner decision, not an agent's.
-
-### How to resume
-
-Re-run `docket-implement-next`. Its Step-2 claim removes this section
-automatically and re-stamps the lease; the reconcile pass is already done
-(`reconciled: true`) and its two folded-in constraints (spec §4a) still hold.
-Point the build at plan task 6 — tasks 1–5 are provably complete by their
-commits, not by checkbox marks.
