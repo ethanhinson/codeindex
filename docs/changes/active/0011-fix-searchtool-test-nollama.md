@@ -17,10 +17,10 @@ results:
 trivial: true
 auto_groomable:
 branch: feat/fix-searchtool-test-nollama
-claimed_at: 2026-08-18T20:33:28Z
+claimed_at: 2026-08-18T20:47:07Z
 pr:
 blocked_by:
-reconciled: false
+reconciled: true
 ---
 
 ## Artifacts
@@ -63,3 +63,50 @@ change.
 ## Reconcile log
 
 <!-- Appended by docket-implement-next's reconcile pass: dated entries of what changed. -->
+
+### 2026-08-18 — reconcile (docket-implement-next)
+
+Scope unchanged; the change is still accurate and still needed. Failure
+reproduced on the claim ref exactly as described:
+
+```
+search "helper increment function" (0 symbols, 0 clusters) [lexical-only: no embedding provider in this build]:
+  (no matches — try different concept words, or add hints)
+```
+
+**Root-cause discharged — the abort condition does NOT fire.** The change
+required stopping if lexical-only search *should* match `helper` → `Helper`
+and doesn't. It does match. Verified empirically against the same fixture
+with a `-tags nollama` binary:
+
+- `find <repo> helper` → `Helper  func  a.go:2  callers=2  [exact]`
+- `find <repo> "helper increment function"` → 0 matches, plus the built-in
+  guidance *"this looks like a concept query; use `search` for feature/topic
+  questions"*
+
+Matching is fully case-insensitive (`internal/search/find.go`
+`matchQuality` lowercases both sides and stems). The ladder is
+**conjunctive**: a candidate must carry *all* query stems, so the 3-token
+conceptual phrase correctly fails to match a symbol named `Helper`. That is
+the documented division of labour between `find` (names) and `search`
+(concepts) — the test was simply asserting a semantic-only outcome without
+declaring that dependency. No product bug; proceed with the test fix.
+
+Related **0009** (`implemented`, PR #8) is workspace-manifest work and does
+not touch `internal/mcpserver` or the search lanes — no interaction.
+
+**Adjacent observation, deliberately NOT folded in** (stays out of scope
+per "Improving lexical-fallback ranking or matching"): `search.Semantic`
+joins `hints` into one space-separated query
+(`hintQ := strings.Join(opts.Hints, " ")`, `internal/search/semantic.go`)
+and feeds it through the same conjunctive ladder, so a multi-hint call only
+matches symbols carrying *every* hint token — hints behave conjunctively
+rather than as independent identifier guesses. `auto_capture` is disabled in
+this repo, so this is reported in prose rather than minted as a stub.
+
+**Implementation direction chosen:** detect capability at *runtime* from the
+tool's own `[lexical-only: …]` disclosure rather than from the `nollama`
+build tag. Runtime detection is honest about actual capability (it also
+covers an embedding-capable build whose index carries no vectors yet), and
+it keeps the semantic `Helper` assertion running unchanged wherever
+embeddings are live.
