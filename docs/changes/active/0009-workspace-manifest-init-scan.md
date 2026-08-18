@@ -12,12 +12,12 @@ related: [10]
 discovered_from: []
 adrs: []
 spec: docs/superpowers/specs/2026-08-18-workspace-manifest-init-scan-design.md
-plan:
+plan: docs/superpowers/plans/2026-08-18-workspace-manifest-init-scan-plan.md
 results:
 trivial: false
 auto_groomable: true
 branch: feat/workspace-manifest-init-scan
-claimed_at: 2026-08-18T19:14:38Z
+claimed_at: 2026-08-18T19:16:50Z
 pr:
 blocked_by:
 reconciled: true
@@ -29,6 +29,7 @@ reconciled: true
 | Artifact | Link |
 |---|---|
 | Spec | [2026-08-18-workspace-manifest-init-scan-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-18-workspace-manifest-init-scan-design.md) |
+| Plan | [2026-08-18-workspace-manifest-init-scan-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-manifest-init-scan/docs/superpowers/plans/2026-08-18-workspace-manifest-init-scan-plan.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
