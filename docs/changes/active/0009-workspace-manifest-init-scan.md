@@ -2,7 +2,7 @@
 id: 9
 slug: workspace-manifest-init-scan
 title: Workspace manifest load/validate + init-workspace --scan
-status: proposed
+status: in-progress
 priority: high
 type: feat
 created: 2026-08-17
@@ -16,7 +16,8 @@ plan:
 results:
 trivial: false
 auto_groomable: true
-branch:
+branch: feat/workspace-manifest-init-scan
+claimed_at: 2026-08-18T19:12:08Z
 pr:
 blocked_by:
 reconciled: false
