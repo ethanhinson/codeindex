@@ -111,8 +111,17 @@ now has nine more data points.
    only 3 tasks changed, all up, all short-anchor comprehension). Nav now
    greps word-boundary; goldens unchanged, suite green. See FINDINGS
    (2026-08-16 entry). Side effect: `arm_c.py --over-retrieve` no longer
-   trains the router (the on-disk gin_tier1.jsonl predates the
-   `token_refs` rename — regenerate before any ROUTED run).
+   trains the router. ~~on-disk gin_tier1.jsonl predates the `token_refs`
+   rename~~ **regenerated 2026-08-17** (seed 1729, 401 rows: 148
+   token_refs / 90 caller_attribution / 163 vague_find; 100% solvable,
+   not degenerate, verify signal present). Honest caveat: the
+   independent-routing check reports 63.3% gold-tool-optimal (<80 bar).
+   Inspected losses split two ways: the validator's line-count cost
+   proxy is loose (one `find` line "covers" a many-caller gold set via
+   shared-file path matching — proxy artifact, not a label error), and
+   the known grep-beats-find-on-literal-names boundary (real, already
+   embodied in the shipped grep-first routing law). ROUTED runs should
+   carry this caveat until the proxy is tightened.
    ~~plugin prompt-note mention of `nav`~~ **DONE behind the required A/B
    2026-08-16**: both arms = real plugin via --plugin-dir, only delta = one
    nav sentence; 40/40 pairs on tasks_v6 (gin+prometheus): success Δ +0.0pp,

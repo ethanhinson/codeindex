@@ -77,10 +77,14 @@ def main():
     tasks = data["tasks"]
     rows = []
     if args.over_retrieve:
-        # Union mode does zero routing, so don't train the router. (Also: the
-        # on-disk gin_tier1.jsonl predates the occurrences->token_refs rename
-        # and no longer matches PARA's class names — regenerate with
-        # gen_tier1.py before any routed run.)
+        # Union mode does zero routing, so don't train the router.
+        # gin_tier1.jsonl regenerated 2026-08-17 (token_refs taxonomy,
+        # seed 1729, 401 rows) — routed runs are unblocked. Caveat: the
+        # generator's independent-routing check scores 63.3% (<80 bar).
+        # Inspected losses split between a loose cost proxy (one find line
+        # "covers" a many-caller gold set via shared-file path matching)
+        # and the known grep-beats-find-on-literal-names boundary; routed
+        # runs should not cite the corpus as labels_optimal-clean.
         routes = [None] * len(tasks)
     else:
         print("training router (local embeddings)...", file=sys.stderr)
