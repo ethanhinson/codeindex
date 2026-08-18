@@ -29,8 +29,8 @@ reconciled: true
 | Artifact | Link |
 |---|---|
 | Spec | [2026-08-04-blast-radius-accuracy-benchmark-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-04-blast-radius-accuracy-benchmark-design.md) |
-| Plan | [2026-08-04-blast-radius-accuracy-benchmark.md](https://github.com/ethanhinson/codeindex/blob/feat/blast-radius-accuracy-benchmark/docs/superpowers/plans/2026-08-04-blast-radius-accuracy-benchmark.md) |
-| Results | [2026-08-04-blast-radius-accuracy-benchmark-results.md](https://github.com/ethanhinson/codeindex/blob/feat/blast-radius-accuracy-benchmark/docs/results/2026-08-04-blast-radius-accuracy-benchmark-results.md) |
+| Plan | [2026-08-04-blast-radius-accuracy-benchmark.md](https://github.com/ethanhinson/codeindex/blob/main/docs/superpowers/plans/2026-08-04-blast-radius-accuracy-benchmark.md) |
+| Results | [2026-08-04-blast-radius-accuracy-benchmark-results.md](https://github.com/ethanhinson/codeindex/blob/main/docs/results/2026-08-04-blast-radius-accuracy-benchmark-results.md) |
 | PR | [#7](https://github.com/ethanhinson/codeindex/pull/7) |
 | ADRs | [ADR-0010](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0010-ambiguous-subset-scored-against-authored-expectation.md) |
 <!-- docket:artifacts:end -->
