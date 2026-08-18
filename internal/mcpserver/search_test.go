@@ -66,6 +66,22 @@ func TestSearchToolAndPrompt(t *testing.T) {
 		if !strings.Contains(out, "(no matches — try different concept words, or add hints)") {
 			t.Fatalf("lexical-only search missing no-match guidance:\n%s", out)
 		}
+		// The *reason* decides whether skipping the semantic assertion is honest.
+		// internal/search/semantic.go sets `degraded` at three sites:
+		//   - "no embedding provider in this build" — no embedding capability at all
+		//     (the nollama build). Nothing semantic exists to assert; skipping is honest.
+		//   - "index has no embeddings for the active model — ..." — capability exists but
+		//     the index carries no vectors. Again nothing to assert; skipping is honest.
+		//   - "query embedding failed: <err>" — the build IS embedding-capable and the index
+		//     IS embedded; the embedding call failed at runtime. That is a genuine semantic
+		//     regression, so it must FAIL here rather than be absorbed as "honest degradation".
+		// Match on stable distinguishing substrings so a wording tweak does not break the
+		// skip, while keeping the failure case from slipping through.
+		noCapability := strings.Contains(reason, "no embedding provider") ||
+			strings.Contains(reason, "index has no embeddings")
+		if !noCapability {
+			t.Fatalf("build appears embedding-capable but semantic search degraded unexpectedly (reason: %s):\n%s", reason, out)
+		}
 		t.Logf("lexical-only build (%s): skipping semantic Helper-surfacing assertion", reason)
 	} else {
 		if !strings.Contains(out, "Helper") {
