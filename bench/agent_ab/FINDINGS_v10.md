@@ -108,8 +108,12 @@ agents cheaper, faster, AND more correct. See tasks_eimp.json / runs_eimp.jsonl.
 
 - ~~edit_impact success regression~~ — RESOLVED: noise. n=30 re-run shows +13.3pp (finding 2).
 - ~~Residual arm-A leak~~ — RESOLVED: `CODEINDEX_DISABLED` binary guard (0 leaks at n=30).
-- Leak-audit script has a batched-tool-call pairing bug (attributes a grep result to a
-  preceding codeindex call); cosmetic, but fix before trusting its counts.
+- ~~Leak-audit script has a batched-tool-call pairing bug~~ — RESOLVED 2026-08-17: the
+  ad-hoc audit is replaced by committed `leak_audit.py`, which joins tool_result to
+  tool_use by `tool_use_id` (batch-safe by construction). `--selftest` reproduces the
+  old failure shape (batched codeindex+grep, results out of order) and proves the fix;
+  `--fail-on-real` gates a harness run. Verdicts: BLOCKED (guard held) / REAL (control
+  reached the index) / UNPAIRED (truncated run, counted, never guessed).
 - Cross-language coverage: all 4 task types now proven Go+PHP; a fresh TS/Python held-out
   repo would complete the language matrix.
 - Forward: Tier-1 synthetic (graph → optimal-primitive) data generator — the
