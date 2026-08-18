@@ -90,3 +90,73 @@ here.
   the envelope diagnosis came from that null result, not from theory.
 - All four gates re-run on the final gated binary in one battery; the gated
   path (`CODEINDEX_ROLE_BOOST=1`, nest) reproduces 76.9.
+
+## Appendix 2026-08-16 — vote-count diagnostic: saturation falsified pre-budget
+
+The registered follow-up (vote saturation, fresh 2-iteration budget) was
+subjected to a budget-free diagnostic BEFORE any mechanism was written:
+a temporary `CODEINDEX_ROLE_DEBUG=1` dump in the role-boost block
+(per-candidate query-time vote count, pre/post-boost blend score, voter
+files with per-voter spread), replayed on exactly the five recorded
+i2 flips (diff of `curated-FROZEN-*` vs `curated-ROLES-i2-*`; all five
+reproduced the recorded top-5s exactly on today's binary).
+
+### Measured constraints (boost factor each case needs / must stay under)
+
+| case | symbol | votes | pre-boost | constraint |
+| --- | --- | --- | --- | --- |
+| gin harm | `Context.Status` | **1** | 0.613 | f < ×1.045 (NegotiateFormat at 0.641, 0 votes) |
+| nest gain | `Injector.resolveSingleParam` | **1** | 0.528 | f ≥ ×1.147 (addExportedProvider at 0.605) |
+| flask harm | `_AppCtxGlobals.get` | 8 | 0.292 | f < ×1.653 (do_teardown_request at 0.482) |
+| nest gain | `UseInterceptors` | 12 | 0.422 | f ≥ ×1.225 |
+| nest gain | `Injectable` | 15 | 0.300 | f ≥ ×1.899 (pure-diffusion floor, lanes=[graph]) |
+
+### Verdict: infeasible, and not just for counts
+
+1. **The 1-vote pair is contradictory.** Rows 1 and 2 have identical vote
+   counts and need opposite outcomes. No cap, threshold, log, binary, or
+   any other function of count satisfies both. Every hybrid also dies:
+   threshold ≥2 drops resolveSingleParam (nest 19/26 = 73.1 < 75);
+   cap ≤6 (needed for flask) kills Injectable (needs ≥12 effective votes).
+2. **Voter identity does not rescue it.** Status's single voter is
+   `benchmarks_test.go` (spread 16); resolveSingleParam's is a sample-app
+   service (spread 15). One promiscuous voter each. Promiscuity weighting
+   (1/spread) and directory-dedup fail quantitatively elsewhere too
+   (dir-dedup leaves a γ window of ≈0.27–0.28 between keeping Injectable
+   and re-breaking flask — overfit-thin — and cannot touch the 1-vote pair).
+3. **Corrections to the record.** (a) The i2 account said "dozens of
+   test-file votes" for the gin harm — wrong: votes are counted inside the
+   query's diffusion subgraph and Status had ONE at query time; the gin
+   regression was never a magnitude problem. (b) Injectable's marquee gain
+   RELIED on the unbounded ×2.0 — the "membership, not magnitude" theory
+   of the prior is contradicted by the mechanism's own best result.
+4. **The structural insight.** The flask harm and the nest gains are the
+   SAME observable event — a heavily-user-demonstrated symbol vaulting
+   over unvoted plumbing from below. Count, voter spread, direction, and
+   gap size are all symmetric between them (the harm's gap is SMALLER than
+   the gain's). The only difference is whether the lifted symbol is topical
+   for the query — which the vote channel cannot see. The prior is not too
+   strong; it is query-independent.
+
+### What survives (for the successor change, unmeasured)
+
+- Query-conditioned evidence: weight votes by voter-to-query relevance, or
+  move usage evidence into card content (definition-by-usage, = bucket 2's
+  mechanism) so the query itself gates when it fires.
+- Result-set diversity (MMR / cluster round-robin over the existing D4
+  clusters) against the clone-wall geometry: five near-identical Module.*
+  cards above Injectable at rank 16. Cannot lift off-topic symbols by
+  construction; dry-runnable offline from recorded candidates.
+- Corpus ground-truth for prose lanes (checked 2026-08-16): in-repo docs
+  are DEAD on the weak repos (nest's real docs are out-of-repo; Readme has
+  0 `Injectable` mentions; gin docs are one file) — but commit messages
+  are rich in task vocabulary in ALL THREE repos ("Support negotiation
+  wildcards", "Update the signature of the teardown function", "add
+  Injectable decorator to..."), and nest filenames literally spell the
+  queries (`injectable.decorator.ts`, `use-interceptors.decorator.ts`).
+
+Cost of this diagnostic: zero iterations. The instrumentation was
+temporary and reverted; raw dumps were session-local. To reproduce: dump
+`len(userVotes[id])` and pre/post scores for `topIDs(final, 40)` plus
+voter files with spread, behind an env var, and run the five flip queries
+with `CODEINDEX_ROLE_BOOST=1` on the pinned bench clones.

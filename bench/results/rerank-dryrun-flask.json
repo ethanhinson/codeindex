@@ -1,0 +1,617 @@
+{
+ "repo": "flask",
+ "fixture_commit": "ab8149664182b662453a563161aa89013c806dc9",
+ "binary_sha256_16": "8cba34c894222321",
+ "baseline_pct": 76.0,
+ "recall40_pct": 92.0,
+ "configs": {
+  "baseline": {
+   "pct": 76.0,
+   "hits": 19,
+   "flips": []
+  },
+  "mmr_0.9": {
+   "pct": 76.0,
+   "hits": 19,
+   "flips": []
+  },
+  "mmr_0.8": {
+   "pct": 72.0,
+   "hits": 18,
+   "flips": [
+    {
+     "q": "clean up resources when the request ends",
+     "direction": "lost",
+     "base_top5": [
+      "abort",
+      "Flask.finalize_request",
+      "Flask.full_dispatch_request",
+      "Flask.preprocess_request",
+      "Flask.do_teardown_request"
+     ],
+     "new_top5": [
+      "abort",
+      "Flask.finalize_request",
+      "Flask.full_dispatch_request",
+      "stream_with_context",
+      "Flask.preprocess_request"
+     ]
+    }
+   ]
+  },
+  "mmr_0.7": {
+   "pct": 72.0,
+   "hits": 18,
+   "flips": [
+    {
+     "q": "clean up resources when the request ends",
+     "direction": "lost",
+     "base_top5": [
+      "abort",
+      "Flask.finalize_request",
+      "Flask.full_dispatch_request",
+      "Flask.preprocess_request",
+      "Flask.do_teardown_request"
+     ],
+     "new_top5": [
+      "abort",
+      "Flask.finalize_request",
+      "stream_with_context",
+      "Flask.full_dispatch_request",
+      "Flask.preprocess_request"
+     ]
+    }
+   ]
+  },
+  "mmr_0.6": {
+   "pct": 72.0,
+   "hits": 18,
+   "flips": [
+    {
+     "q": "clean up resources when the request ends",
+     "direction": "lost",
+     "base_top5": [
+      "abort",
+      "Flask.finalize_request",
+      "Flask.full_dispatch_request",
+      "Flask.preprocess_request",
+      "Flask.do_teardown_request"
+     ],
+     "new_top5": [
+      "abort",
+      "stream_with_context",
+      "Flask.full_dispatch_request",
+      "Flask.finalize_request",
+      "Flask.preprocess_request"
+     ]
+    }
+   ]
+  },
+  "mmr_0.5": {
+   "pct": 72.0,
+   "hits": 18,
+   "flips": [
+    {
+     "q": "clean up resources when the request ends",
+     "direction": "lost",
+     "base_top5": [
+      "abort",
+      "Flask.finalize_request",
+      "Flask.full_dispatch_request",
+      "Flask.preprocess_request",
+      "Flask.do_teardown_request"
+     ],
+     "new_top5": [
+      "abort",
+      "stream_with_context",
+      "Flask.full_dispatch_request",
+      "Flask.finalize_request",
+      "_AppCtxGlobals.setdefault"
+     ]
+    }
+   ]
+  },
+  "rr_0.995": {
+   "pct": 76.0,
+   "hits": 19,
+   "flips": []
+  },
+  "rr_0.99": {
+   "pct": 76.0,
+   "hits": 19,
+   "flips": []
+  },
+  "rr_0.98": {
+   "pct": 76.0,
+   "hits": 19,
+   "flips": []
+  },
+  "rr_0.97": {
+   "pct": 76.0,
+   "hits": 19,
+   "flips": []
+  },
+  "rr_0.95": {
+   "pct": 76.0,
+   "hits": 19,
+   "flips": []
+  },
+  "famz_0.99_0.5": {
+   "pct": 76.0,
+   "hits": 19,
+   "flips": []
+  },
+  "famz_0.99_1.0": {
+   "pct": 76.0,
+   "hits": 19,
+   "flips": []
+  },
+  "famz_0.97_0.5": {
+   "pct": 76.0,
+   "hits": 19,
+   "flips": []
+  },
+  "famz_0.97_1.0": {
+   "pct": 76.0,
+   "hits": 19,
+   "flips": []
+  }
+ },
+ "per_question": [
+  {
+   "q": "register a url route for a view function",
+   "accept": [
+    "route",
+    "add_url_rule",
+    "Scaffold.route"
+   ],
+   "base_top5": [
+    "App.add_url_rule",
+    "Scaffold.route",
+    "View.as_view",
+    "View",
+    "Scaffold.add_url_rule"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "how a request gets dispatched to its view function",
+   "accept": [
+    "dispatch_request",
+    "full_dispatch_request",
+    "wsgi_app",
+    "Flask.dispatch_request",
+    "Flask.full_dispatch_request",
+    "Flask.wsgi_app"
+   ],
+   "base_top5": [
+    "MethodView",
+    "View",
+    "Flask.full_dispatch_request",
+    "MethodView.dispatch_request",
+    "View.dispatch_request"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 2
+  },
+  {
+   "q": "redirect the user to another page",
+   "accept": [
+    "redirect"
+   ],
+   "base_top5": [
+    "redirect",
+    "redirect",
+    "App.redirect",
+    "SecureCookieSessionInterface.save_session",
+    "test_redirect_with_app"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "build the url for an endpoint by name",
+   "accept": [
+    "url_for",
+    "Flask.url_for"
+   ],
+   "base_top5": [
+    "Flask.url_for",
+    "url_for",
+    "_endpoint_from_view_func",
+    "test_url_mapping",
+    "Request.endpoint"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "render an html template with variables",
+   "accept": [
+    "render_template",
+    "render_template_string"
+   ],
+   "base_top5": [
+    "render_template",
+    "render_template_string",
+    "get_template_attribute",
+    "_render",
+    "stream_template_string"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "keep user data across requests in a session",
+   "accept": [
+    "SecureCookieSession",
+    "SecureCookieSessionInterface",
+    "open_session",
+    "save_session",
+    "SessionMixin"
+   ],
+   "base_top5": [
+    "SecureCookieSessionInterface.save_session",
+    "SessionInterface.should_set_cookie",
+    "SessionInterface.open_session",
+    "SessionInterface.save_session",
+    "SessionInterface.get_cookie_samesite"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "run a function before every request",
+   "accept": [
+    "before_request",
+    "Scaffold.before_request",
+    "Flask.preprocess_request",
+    "preprocess_request"
+   ],
+   "base_top5": [
+    "Scaffold.before_request",
+    "Scaffold.after_request",
+    "after_this_request",
+    "Flask.preprocess_request",
+    "before_request1"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "register a handler for a specific http error like 404",
+   "accept": [
+    "errorhandler",
+    "register_error_handler",
+    "handle_http_exception",
+    "Scaffold.errorhandler"
+   ],
+   "base_top5": [
+    "Flask.handle_http_exception",
+    "Scaffold.register_error_handler",
+    "Scaffold.errorhandler",
+    "TestGenericHandlers.test_handle_generic_http",
+    "Flask.handle_user_exception"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "abort the request with an http error status",
+   "accept": [
+    "abort",
+    "make_aborter"
+   ],
+   "base_top5": [
+    "abort",
+    "Flask.finalize_request",
+    "App.make_aborter",
+    "Flask.handle_http_exception",
+    "Flask.raise_routing_exception"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "flash a one time message shown on the next page",
+   "accept": [
+    "flash",
+    "get_flashed_messages"
+   ],
+   "base_top5": [
+    "flash",
+    "get_flashed_messages",
+    "show_server_banner",
+    "Blueprint.record_once",
+    "AppContext.pop"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "split an application into reusable route groups",
+   "accept": [
+    "Blueprint",
+    "register_blueprint",
+    "BlueprintSetupState"
+   ],
+   "base_top5": [
+    "Scaffold.route",
+    "Scaffold._method_route",
+    "FlaskGroup",
+    "Scaffold.post",
+    "App"
+   ],
+   "base_hit": false,
+   "recall40": true,
+   "best_accept_rank": 24
+  },
+  {
+   "q": "safely send a file from a directory as the response",
+   "accept": [
+    "send_file",
+    "send_from_directory"
+   ],
+   "base_top5": [
+    "send_from_directory",
+    "Flask.send_static_file",
+    "send_file",
+    "Blueprint.send_static_file",
+    "Flask.get_send_file_max_age"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "return a json response from a view",
+   "accept": [
+    "jsonify",
+    "JSONProvider.response",
+    "DefaultJSONProvider.response"
+   ],
+   "base_top5": [
+    "jsonify",
+    "Flask.make_response",
+    "view",
+    "view",
+    "JSONProvider.response"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "load app configuration from an object or file",
+   "accept": [
+    "from_object",
+    "from_pyfile",
+    "from_envvar",
+    "from_prefixed_env",
+    "Config.from_object",
+    "Config.from_pyfile"
+   ],
+   "base_top5": [
+    "app",
+    "Flask.app_context",
+    "Config.get_namespace",
+    "test_config_from_object",
+    "ScriptInfo.load_app"
+   ],
+   "base_hit": false,
+   "recall40": true,
+   "best_accept_rank": 12
+  },
+  {
+   "q": "start the built in development server",
+   "accept": [
+    "run",
+    "Flask.run"
+   ],
+   "base_top5": [
+    "internal_server_error",
+    "internal_server_error",
+    "App.debug",
+    "internal_server_error",
+    "test_server_name_subdomain"
+   ],
+   "base_hit": false,
+   "recall40": false,
+   "best_accept_rank": null
+  },
+  {
+   "q": "push an application context to use the app outside a request",
+   "accept": [
+    "app_context",
+    "AppContext",
+    "Flask.app_context",
+    "AppContext.push"
+   ],
+   "base_top5": [
+    "Flask.app_context",
+    "RequestContext.push",
+    "AppContext.push",
+    "AppContext",
+    "Flask.request_context"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "the object that holds request state during handling",
+   "accept": [
+    "RequestContext",
+    "request_context",
+    "Flask.request_context",
+    "RequestContext.push"
+   ],
+   "base_top5": [
+    "Flask.full_dispatch_request",
+    "MethodView",
+    "copy_current_request_context",
+    "Flask.dispatch_request",
+    "SessionInterface.open_session"
+   ],
+   "base_hit": false,
+   "recall40": true,
+   "best_accept_rank": 6
+  },
+  {
+   "q": "keep the request context alive while streaming a response",
+   "accept": [
+    "stream_with_context"
+   ],
+   "base_top5": [
+    "stream_with_context",
+    "stream_with_context",
+    "has_request_context",
+    "Flask.request_context",
+    "TestStreaming.test_streaming_with_context"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "modify the response after the view runs",
+   "accept": [
+    "after_request",
+    "process_response",
+    "Scaffold.after_request",
+    "Flask.process_response"
+   ],
+   "base_top5": [
+    "view",
+    "Flask.make_response",
+    "view",
+    "Flask.dispatch_request",
+    "MethodView.dispatch_request"
+   ],
+   "base_hit": false,
+   "recall40": true,
+   "best_accept_rank": 11
+  },
+  {
+   "q": "clean up resources when the request ends",
+   "accept": [
+    "teardown_request",
+    "teardown_appcontext",
+    "do_teardown_request",
+    "do_teardown_appcontext"
+   ],
+   "base_top5": [
+    "abort",
+    "Flask.finalize_request",
+    "Flask.full_dispatch_request",
+    "Flask.preprocess_request",
+    "Flask.do_teardown_request"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 4
+  },
+  {
+   "q": "add custom command line commands to the app",
+   "accept": [
+    "AppGroup",
+    "FlaskGroup",
+    "with_appcontext"
+   ],
+   "base_top5": [
+    "with_appcontext",
+    "run_command",
+    "FlaskGroup.list_commands",
+    "shell_command",
+    "FlaskGroup.get_command"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "make test requests against the app in unit tests",
+   "accept": [
+    "test_client",
+    "FlaskClient",
+    "Flask.test_client",
+    "EnvironBuilder"
+   ],
+   "base_top5": [
+    "TestRoutes.invoke",
+    "CustomRequestGlobals",
+    "CustomRequestGlobals.__init__",
+    "app_forbidden",
+    "app_forbidden"
+   ],
+   "base_hit": false,
+   "recall40": false,
+   "best_accept_rank": null
+  },
+  {
+   "q": "register a custom filter usable inside templates",
+   "accept": [
+    "template_filter",
+    "add_template_filter"
+   ],
+   "base_top5": [
+    "test_add_template_filter",
+    "App.add_template_filter",
+    "Blueprint.app_template_filter",
+    "test_add_template_filter",
+    "App.template_filter"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 1
+  },
+  {
+   "q": "automatic response for options requests",
+   "accept": [
+    "make_default_options_response",
+    "Flask.make_default_options_response"
+   ],
+   "base_top5": [
+    "Flask.make_default_options_response",
+    "Flask.full_dispatch_request",
+    "Flask.preprocess_request",
+    "after_this_request",
+    "test_provide_automatic_options_attr"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "turn a view's return value into a response object",
+   "accept": [
+    "make_response",
+    "Flask.make_response"
+   ],
+   "base_top5": [
+    "Flask.make_response",
+    "Flask.dispatch_request",
+    "view",
+    "view",
+    "make_response"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  }
+ ],
+ "limitations": [
+  "rank-proxy scores (s_i = 1/(60+i)); true blend scores not exposed by --flat"
+ ]
+}

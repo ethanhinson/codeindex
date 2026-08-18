@@ -25,11 +25,38 @@ cards (`Injectable`'s doc literally matches its query) but neither lane's
 top-50 retrieves them — only diffusion does — so ranking the union is the
 right layer.
 
-- Registered follow-up (NEW change, fresh 2-iteration budget): **vote
-  saturation** — cap/squash distinct-voter counts so "demonstrated by user
-  code at all" dominates and "demonstrated 40 times" adds little.
-- Bars unchanged: nest curated ≥ 75%, no tuning-repo regression
-  (gin 88.5 / flask 76.0 / laravel 76.9), mechanical + find classes hold.
+- ~~Registered follow-up: **vote saturation**~~ **FALSIFIED BY DIAGNOSIS
+  2026-08-16 before any budget was spent** (full account: the vote-count
+  diagnostic appendix in `bench/engine/FINDINGS-residuals-roles.md`).
+  Query-time vote counts on both sides of every recorded flip show an
+  infeasible constraint pair: `Context.Status` (1 vote) must gain <×1.045
+  while `Injector.resolveSingleParam` (1 vote) must gain ≥×1.147 — no
+  function of vote count separates them, and voter identity does not
+  either (one promiscuous voter each, spread 16 vs 15). The "dozens of
+  votes" framing above was wrong: votes are subgraph-local; the gin harm
+  came from ONE vote flipping a 4.5% near-tie. Additionally `Injectable`'s
+  gain REQUIRED its full unbounded ×2.0 (it starts at the pure-diffusion
+  floor), so any saturation kills the bucket's marquee flip. Count-shaped
+  repairs of this mechanism are closed; result-set diversity was
+  subsequently ALSO closed by an offline dry-run the same day
+  (`bench/engine/FINDINGS-rerank-dryrun.md`: no MMR / round-robin /
+  family-discount config clears the bars; nest's reachable ceiling via
+  re-ranking is 73.1 and its true bottleneck is recall@40 = 84.6%).
+  Surviving directions are retrieval-side vocabulary evidence and, more
+  weakly, query-conditioned vote weighting. The commit-message lane was
+  REJECTED on product grounds 2026-08-16 (Ethan: commit quality is not
+  consistent across private repos — a lane whose evidence depends on
+  history hygiene benchmarks well on exemplary OSS and ships badly), so
+  the code-intrinsic candidate stands alone: **definition-by-usage card
+  enrichment** (= bucket 2's registered mechanism, servicing this bucket
+  too). Ground-checked 2026-08-16: 48 nest sample/integration files
+  contain `async function bootstrap()` wrapping `NestFactory.create` —
+  the caller's NAME is the query term of a recall@40-unreachable miss;
+  guards live in `roles.guard.ts` files implementing `canActivate`. The
+  boost stays withheld behind `CODEINDEX_ROLE_BOOST=1`, unchanged.
+- Bars for any successor mechanism unchanged: nest curated ≥ 75%, no
+  tuning-repo regression (gin 88.5 / flask 76.0 / laravel 76.9),
+  mechanical + find classes hold.
 
 ## Bucket 2 — generic-name APIs (≈8 of 24; gin Set/Get, flask run, laravel hasMany)
 

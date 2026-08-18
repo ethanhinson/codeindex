@@ -1,0 +1,695 @@
+{
+ "repo": "gin",
+ "fixture_commit": "75ccf94d605a05fe24817fc2f166f6f2959d5cea",
+ "binary_sha256_16": "8cba34c894222321",
+ "baseline_pct": 88.5,
+ "recall40_pct": 100.0,
+ "configs": {
+  "baseline": {
+   "pct": 88.5,
+   "hits": 23,
+   "flips": []
+  },
+  "mmr_0.9": {
+   "pct": 88.5,
+   "hits": 23,
+   "flips": []
+  },
+  "mmr_0.8": {
+   "pct": 84.6,
+   "hits": 22,
+   "flips": [
+    {
+     "q": "load html templates so handlers can render them",
+     "direction": "lost",
+     "base_top5": [
+      "HTMLDebug.loadTemplate",
+      "HTMLRender",
+      "HTMLProduction.Instance",
+      "HTMLProduction",
+      "Engine.SetHTMLTemplate"
+     ],
+     "new_top5": [
+      "HTMLDebug.loadTemplate",
+      "HTMLRender",
+      "HTMLProduction.Instance",
+      "HTMLProduction",
+      "writeContentType"
+     ]
+    }
+   ]
+  },
+  "mmr_0.7": {
+   "pct": 84.6,
+   "hits": 22,
+   "flips": [
+    {
+     "q": "load html templates so handlers can render them",
+     "direction": "lost",
+     "base_top5": [
+      "HTMLDebug.loadTemplate",
+      "HTMLRender",
+      "HTMLProduction.Instance",
+      "HTMLProduction",
+      "Engine.SetHTMLTemplate"
+     ],
+     "new_top5": [
+      "HTMLDebug.loadTemplate",
+      "HTMLRender",
+      "HTMLProduction.Instance",
+      "writeContentType",
+      "HTMLProduction"
+     ]
+    }
+   ]
+  },
+  "mmr_0.6": {
+   "pct": 80.8,
+   "hits": 21,
+   "flips": [
+    {
+     "q": "bind the incoming json request body onto a struct",
+     "direction": "lost",
+     "base_top5": [
+      "jsonBinding.BindBody",
+      "Context.JSON",
+      "jsonBinding",
+      "Context.MustBindWith",
+      "requestWithBody"
+     ],
+     "new_top5": [
+      "jsonBinding.BindBody",
+      "Context.JSON",
+      "Context.BindUri",
+      "jsonBinding",
+      "requestWithBody"
+     ]
+    },
+    {
+     "q": "load html templates so handlers can render them",
+     "direction": "lost",
+     "base_top5": [
+      "HTMLDebug.loadTemplate",
+      "HTMLRender",
+      "HTMLProduction.Instance",
+      "HTMLProduction",
+      "Engine.SetHTMLTemplate"
+     ],
+     "new_top5": [
+      "HTMLDebug.loadTemplate",
+      "HTMLRender",
+      "HTMLProduction.Instance",
+      "writeContentType",
+      "HTMLProduction"
+     ]
+    }
+   ]
+  },
+  "mmr_0.5": {
+   "pct": 80.8,
+   "hits": 21,
+   "flips": [
+    {
+     "q": "bind the incoming json request body onto a struct",
+     "direction": "lost",
+     "base_top5": [
+      "jsonBinding.BindBody",
+      "Context.JSON",
+      "jsonBinding",
+      "Context.MustBindWith",
+      "requestWithBody"
+     ],
+     "new_top5": [
+      "jsonBinding.BindBody",
+      "Context.JSON",
+      "Context.BindUri",
+      "FooStruct",
+      "jsonBinding"
+     ]
+    },
+    {
+     "q": "load html templates so handlers can render them",
+     "direction": "lost",
+     "base_top5": [
+      "HTMLDebug.loadTemplate",
+      "HTMLRender",
+      "HTMLProduction.Instance",
+      "HTMLProduction",
+      "Engine.SetHTMLTemplate"
+     ],
+     "new_top5": [
+      "HTMLDebug.loadTemplate",
+      "writeContentType",
+      "HTMLProduction.Instance",
+      "HTMLRender",
+      "New"
+     ]
+    }
+   ]
+  },
+  "rr_0.995": {
+   "pct": 88.5,
+   "hits": 23,
+   "flips": []
+  },
+  "rr_0.99": {
+   "pct": 88.5,
+   "hits": 23,
+   "flips": []
+  },
+  "rr_0.98": {
+   "pct": 88.5,
+   "hits": 23,
+   "flips": []
+  },
+  "rr_0.97": {
+   "pct": 88.5,
+   "hits": 23,
+   "flips": []
+  },
+  "rr_0.95": {
+   "pct": 88.5,
+   "hits": 23,
+   "flips": []
+  },
+  "famz_0.99_0.5": {
+   "pct": 88.5,
+   "hits": 23,
+   "flips": []
+  },
+  "famz_0.99_1.0": {
+   "pct": 88.5,
+   "hits": 23,
+   "flips": []
+  },
+  "famz_0.97_0.5": {
+   "pct": 88.5,
+   "hits": 23,
+   "flips": []
+  },
+  "famz_0.97_1.0": {
+   "pct": 88.5,
+   "hits": 23,
+   "flips": []
+  }
+ },
+ "per_question": [
+  {
+   "q": "serve static files from a directory over http",
+   "accept": [
+    "Static",
+    "StaticFS",
+    "StaticFile",
+    "RouterGroup.Static",
+    "RouterGroup.StaticFS",
+    "RouterGroup.StaticFile"
+   ],
+   "base_top5": [
+    "Dir",
+    "RouterGroup.Static",
+    "RouterGroup.StaticFS",
+    "Static",
+    "onlyFilesFS.Open"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 1
+  },
+  {
+   "q": "bind the incoming json request body onto a struct",
+   "accept": [
+    "ShouldBindJSON",
+    "BindJSON",
+    "ShouldBind",
+    "ShouldBindWith",
+    "MustBindWith",
+    "Context.ShouldBindJSON",
+    "Context.BindJSON"
+   ],
+   "base_top5": [
+    "jsonBinding.BindBody",
+    "Context.JSON",
+    "jsonBinding",
+    "Context.MustBindWith",
+    "requestWithBody"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 3
+  },
+  {
+   "q": "send a json response to the client",
+   "accept": [
+    "JSON",
+    "IndentedJSON",
+    "PureJSON",
+    "SecureJSON",
+    "AsciiJSON",
+    "Context.JSON"
+   ],
+   "base_top5": [
+    "Context.JSON",
+    "IndentedJSON.WriteContentType",
+    "JSON.WriteContentType",
+    "JsonpJSON.WriteContentType",
+    "JsonpJSON.Render"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "group several routes under a common url prefix",
+   "accept": [
+    "Group",
+    "RouterGroup.Group"
+   ],
+   "base_top5": [
+    "RouterGroup.Group",
+    "RouterGroup.Handle",
+    "RouterGroup",
+    "RouterGroup.combineHandlers",
+    "RouterGroup.GET"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "register middleware that runs for every request",
+   "accept": [
+    "Use",
+    "Engine.Use",
+    "RouterGroup.Use"
+   ],
+   "base_top5": [
+    "Engine.Use",
+    "RouterGroup.Handle",
+    "Use",
+    "Context.Next",
+    "Context.Abort"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "stop processing the request from inside middleware",
+   "accept": [
+    "Abort",
+    "AbortWithStatus",
+    "AbortWithStatusJSON",
+    "AbortWithError",
+    "Context.Abort"
+   ],
+   "base_top5": [
+    "Context.Abort",
+    "RouterGroup.Handle",
+    "Context.Next",
+    "Engine.Use",
+    "Context.AbortWithStatus"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "read a path parameter like the id in /users/:id",
+   "accept": [
+    "Param",
+    "Context.Param",
+    "Params.Get",
+    "Params.ByName"
+   ],
+   "base_top5": [
+    "Context.Param",
+    "Context.AddParam",
+    "joinPaths",
+    "RouterGroup.GET",
+    "Context.FullPath"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "read a query string parameter with a fallback default",
+   "accept": [
+    "Query",
+    "DefaultQuery",
+    "GetQuery",
+    "Context.Query",
+    "Context.DefaultQuery"
+   ],
+   "base_top5": [
+    "Context.DefaultQuery",
+    "Context.GetQuery",
+    "Context.Query",
+    "Context.ShouldBindQuery",
+    "queryBinding.Name"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "figure out the real client ip address behind proxies",
+   "accept": [
+    "ClientIP",
+    "RemoteIP",
+    "Context.ClientIP",
+    "Context.RemoteIP"
+   ],
+   "base_top5": [
+    "Context.ClientIP",
+    "Engine.isTrustedProxy",
+    "Engine.SetTrustedProxies",
+    "Context.RemoteIP",
+    "Engine.validateHeader"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "set a cookie on the http response",
+   "accept": [
+    "SetCookie",
+    "Context.SetCookie"
+   ],
+   "base_top5": [
+    "Context.SetCookie",
+    "Context.Cookie",
+    "responseWriter.WriteHeaderNow",
+    "Context.SetSameSite",
+    "TestContextSetCookie"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "recover from a panic in a handler and return a 500",
+   "accept": [
+    "Recovery",
+    "RecoveryWithWriter",
+    "CustomRecovery",
+    "CustomRecoveryWithWriter"
+   ],
+   "base_top5": [
+    "Recovery",
+    "RecoveryWithWriter",
+    "CustomRecovery",
+    "Context.Error",
+    "CustomRecoveryWithWriter"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "log each request with latency and status to the console",
+   "accept": [
+    "Logger",
+    "LoggerWithConfig",
+    "LoggerWithFormatter",
+    "LoggerWithWriter"
+   ],
+   "base_top5": [
+    "LogFormatterParams.StatusCodeColor",
+    "LogFormatterParams.MethodColor",
+    "LoggerWithFormatter",
+    "consoleColorModeValue",
+    "DisableConsoleColor"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 2
+  },
+  {
+   "q": "load html templates so handlers can render them",
+   "accept": [
+    "LoadHTMLGlob",
+    "LoadHTMLFiles",
+    "Engine.LoadHTMLGlob",
+    "Engine.LoadHTMLFiles",
+    "SetHTMLTemplate"
+   ],
+   "base_top5": [
+    "HTMLDebug.loadTemplate",
+    "HTMLRender",
+    "HTMLProduction.Instance",
+    "HTMLProduction",
+    "Engine.SetHTMLTemplate"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 4
+  },
+  {
+   "q": "receive an uploaded file from a multipart form",
+   "accept": [
+    "FormFile",
+    "MultipartForm",
+    "SaveUploadedFile",
+    "Context.FormFile",
+    "Context.MultipartForm"
+   ],
+   "base_top5": [
+    "Context.MultipartForm",
+    "setByMultipartFormFile",
+    "Context.FormFile",
+    "createRequestMultipartFiles",
+    "setArrayOfMultipartFormFiles"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "redirect the client to a different url",
+   "accept": [
+    "Redirect",
+    "Context.Redirect"
+   ],
+   "base_top5": [
+    "Context.Redirect",
+    "Redirect",
+    "Redirect.Render",
+    "redirectRequest",
+    "redirectFixedPath"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "start the server with tls certificates",
+   "accept": [
+    "RunTLS",
+    "Engine.RunTLS"
+   ],
+   "base_top5": [
+    "Engine.RunTLS",
+    "RunTLS",
+    "setupHTMLFiles",
+    "TestRunTLS",
+    "TestRenderSecureJSONFail"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "pick the response format based on the accept header",
+   "accept": [
+    "Negotiate",
+    "NegotiateFormat",
+    "Context.Negotiate",
+    "Context.NegotiateFormat"
+   ],
+   "base_top5": [
+    "responseWriter.WriteHeaderNow",
+    "ResponseWriter",
+    "parseAccept",
+    "responseWriter.WriteHeader",
+    "Context.NegotiateFormat"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 4
+  },
+  {
+   "q": "register one handler for all http methods on a path",
+   "accept": [
+    "Any",
+    "RouterGroup.Any",
+    "Handle",
+    "RouterGroup.Handle"
+   ],
+   "base_top5": [
+    "RouterGroup.Handle",
+    "RouterGroup.handle",
+    "RouterGroup.Any",
+    "Engine.Use",
+    "RouterGroup.createStaticHandler"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "stream server sent events to the client",
+   "accept": [
+    "Stream",
+    "SSEvent",
+    "Context.Stream",
+    "Context.SSEvent"
+   ],
+   "base_top5": [
+    "Context.SSEvent",
+    "Context.ClientIP",
+    "Context.Stream",
+    "Context.DataFromReader",
+    "Context.IsWebsocket"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "store a value on the request context and read it back later",
+   "accept": [
+    "Set",
+    "Get",
+    "MustGet",
+    "Context.Set",
+    "Context.Get",
+    "Context.MustGet"
+   ],
+   "base_top5": [
+    "Context.String",
+    "Context.requestHeader",
+    "Context.DataFromReader",
+    "Context.GetHeader",
+    "Context.Data"
+   ],
+   "base_hit": false,
+   "recall40": true,
+   "best_accept_rank": 22
+  },
+  {
+   "q": "serve a single file when a route is hit",
+   "accept": [
+    "File",
+    "Context.File",
+    "StaticFile",
+    "FileAttachment"
+   ],
+   "base_top5": [
+    "RouterGroup.StaticFile",
+    "RouterGroup.Handle",
+    "RouterGroup.PUT",
+    "RouterGroup.GET",
+    "RouterGroup.createStaticHandler"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "customize the handler for unmatched routes",
+   "accept": [
+    "NoRoute",
+    "NoMethod",
+    "Engine.NoRoute",
+    "Engine.NoMethod"
+   ],
+   "base_top5": [
+    "RouterGroup.Handle",
+    "RouterGroup.handle",
+    "RouterGroup.combineHandlers",
+    "RouterGroup.GET",
+    "RouterGroup.OPTIONS"
+   ],
+   "base_hit": false,
+   "recall40": true,
+   "best_accept_rank": 18
+  },
+  {
+   "q": "run the server on a unix domain socket or existing listener",
+   "accept": [
+    "RunUnix",
+    "RunListener",
+    "RunFd",
+    "Engine.RunUnix",
+    "Engine.RunListener"
+   ],
+   "base_top5": [
+    "Engine.RunListener",
+    "Engine.Run",
+    "RunUnix",
+    "Context.SSEvent",
+    "Engine.ServeHTTP"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "read the raw request body bytes",
+   "accept": [
+    "GetRawData",
+    "Context.GetRawData"
+   ],
+   "base_top5": [
+    "Context.Data",
+    "Context.String",
+    "rawStrToBytes",
+    "Context.DataFromReader",
+    "rawBytesToStr"
+   ],
+   "base_hit": false,
+   "recall40": true,
+   "best_accept_rank": 7
+  },
+  {
+   "q": "protect routes with http basic authentication",
+   "accept": [
+    "BasicAuth",
+    "BasicAuthForRealm"
+   ],
+   "base_top5": [
+    "RouterGroup.Any",
+    "BasicAuth",
+    "BasicAuthForRealm",
+    "RouterGroup.GET",
+    "RouterGroup.Handle"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 1
+  },
+  {
+   "q": "configure which proxies to trust for forwarded headers",
+   "accept": [
+    "SetTrustedProxies",
+    "Engine.SetTrustedProxies",
+    "isTrustedProxy"
+   ],
+   "base_top5": [
+    "Engine.SetTrustedProxies",
+    "Context.ClientIP",
+    "Engine.isTrustedProxy",
+    "Engine.validateHeader",
+    "Engine.isUnsafeTrustedProxies"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  }
+ ],
+ "limitations": [
+  "rank-proxy scores (s_i = 1/(60+i)); true blend scores not exposed by --flat"
+ ]
+}

@@ -1,0 +1,731 @@
+{
+ "repo": "laravel-framework",
+ "fixture_commit": "5d964a15efc8fffcb175aed3976796c0420bcf99",
+ "binary_sha256_16": "8cba34c894222321",
+ "baseline_pct": 76.9,
+ "recall40_pct": 100.0,
+ "configs": {
+  "baseline": {
+   "pct": 76.9,
+   "hits": 20,
+   "flips": []
+  },
+  "mmr_0.9": {
+   "pct": 76.9,
+   "hits": 20,
+   "flips": []
+  },
+  "mmr_0.8": {
+   "pct": 80.8,
+   "hits": 21,
+   "flips": [
+    {
+     "q": "declare the inverse relation where a model belongs to a parent",
+     "direction": "gained",
+     "base_top5": [
+      "SupportsInverseRelations.applyInverseRelationToModel",
+      "SupportsInverseRelations.inverse",
+      "SupportsInverseRelations.getPossibleInverseRelations",
+      "MorphOneOrMany.getPossibleInverseRelations",
+      "SupportsInverseRelations.applyInverseRelationToCollection"
+     ],
+     "new_top5": [
+      "SupportsInverseRelations.applyInverseRelationToModel",
+      "SupportsInverseRelations.inverse",
+      "SupportsInverseRelations.getPossibleInverseRelations",
+      "MorphOneOrMany.getPossibleInverseRelations",
+      "BelongsTo.dissociate"
+     ]
+    }
+   ]
+  },
+  "mmr_0.7": {
+   "pct": 76.9,
+   "hits": 20,
+   "flips": [
+    {
+     "q": "declare the inverse relation where a model belongs to a parent",
+     "direction": "gained",
+     "base_top5": [
+      "SupportsInverseRelations.applyInverseRelationToModel",
+      "SupportsInverseRelations.inverse",
+      "SupportsInverseRelations.getPossibleInverseRelations",
+      "MorphOneOrMany.getPossibleInverseRelations",
+      "SupportsInverseRelations.applyInverseRelationToCollection"
+     ],
+     "new_top5": [
+      "SupportsInverseRelations.applyInverseRelationToModel",
+      "SupportsInverseRelations.inverse",
+      "SupportsInverseRelations.getPossibleInverseRelations",
+      "BelongsTo.dissociate",
+      "MorphOneOrMany.getPossibleInverseRelations"
+     ]
+    },
+    {
+     "q": "resolve a model instance from a route parameter automatically",
+     "direction": "lost",
+     "base_top5": [
+      "Model.resolveRouteBindingQuery",
+      "Model.resolveSoftDeletableRouteBinding",
+      "Route.withTrashed",
+      "Model.resolveRouteBinding",
+      "UrlRoutable.getRouteKey"
+     ],
+     "new_top5": [
+      "Model.resolveRouteBindingQuery",
+      "Route.withTrashed",
+      "UrlRoutable.getRouteKey",
+      "Model.resolveSoftDeletableRouteBinding",
+      "RouteParameter.resolve"
+     ]
+    }
+   ]
+  },
+  "mmr_0.6": {
+   "pct": 76.9,
+   "hits": 20,
+   "flips": [
+    {
+     "q": "declare the inverse relation where a model belongs to a parent",
+     "direction": "gained",
+     "base_top5": [
+      "SupportsInverseRelations.applyInverseRelationToModel",
+      "SupportsInverseRelations.inverse",
+      "SupportsInverseRelations.getPossibleInverseRelations",
+      "MorphOneOrMany.getPossibleInverseRelations",
+      "SupportsInverseRelations.applyInverseRelationToCollection"
+     ],
+     "new_top5": [
+      "SupportsInverseRelations.applyInverseRelationToModel",
+      "BelongsTo.dissociate",
+      "SupportsInverseRelations.inverse",
+      "SupportsInverseRelations.getPossibleInverseRelations",
+      "CacheTokenRepository.create"
+     ]
+    },
+    {
+     "q": "resolve a model instance from a route parameter automatically",
+     "direction": "lost",
+     "base_top5": [
+      "Model.resolveRouteBindingQuery",
+      "Model.resolveSoftDeletableRouteBinding",
+      "Route.withTrashed",
+      "Model.resolveRouteBinding",
+      "UrlRoutable.getRouteKey"
+     ],
+     "new_top5": [
+      "Model.resolveRouteBindingQuery",
+      "Route.withTrashed",
+      "UrlRoutable.getRouteKey",
+      "Model.resolveSoftDeletableRouteBinding",
+      "RouteParameter.resolve"
+     ]
+    }
+   ]
+  },
+  "mmr_0.5": {
+   "pct": 76.9,
+   "hits": 20,
+   "flips": [
+    {
+     "q": "declare the inverse relation where a model belongs to a parent",
+     "direction": "gained",
+     "base_top5": [
+      "SupportsInverseRelations.applyInverseRelationToModel",
+      "SupportsInverseRelations.inverse",
+      "SupportsInverseRelations.getPossibleInverseRelations",
+      "MorphOneOrMany.getPossibleInverseRelations",
+      "SupportsInverseRelations.applyInverseRelationToCollection"
+     ],
+     "new_top5": [
+      "SupportsInverseRelations.applyInverseRelationToModel",
+      "CacheTokenRepository.create",
+      "BelongsTo.dissociate",
+      "SupportsInverseRelations.inverse",
+      "MorphOneOrMany.getPossibleInverseRelations"
+     ]
+    },
+    {
+     "q": "resolve a model instance from a route parameter automatically",
+     "direction": "lost",
+     "base_top5": [
+      "Model.resolveRouteBindingQuery",
+      "Model.resolveSoftDeletableRouteBinding",
+      "Route.withTrashed",
+      "Model.resolveRouteBinding",
+      "UrlRoutable.getRouteKey"
+     ],
+     "new_top5": [
+      "Model.resolveRouteBindingQuery",
+      "Route.withTrashed",
+      "UrlRoutable.getRouteKey",
+      "RouteParameter.resolve",
+      "Model.resolveSoftDeletableRouteBinding"
+     ]
+    }
+   ]
+  },
+  "rr_0.995": {
+   "pct": 76.9,
+   "hits": 20,
+   "flips": []
+  },
+  "rr_0.99": {
+   "pct": 76.9,
+   "hits": 20,
+   "flips": []
+  },
+  "rr_0.98": {
+   "pct": 76.9,
+   "hits": 20,
+   "flips": []
+  },
+  "rr_0.97": {
+   "pct": 76.9,
+   "hits": 20,
+   "flips": []
+  },
+  "rr_0.95": {
+   "pct": 73.1,
+   "hits": 19,
+   "flips": [
+    {
+     "q": "resolve a model instance from a route parameter automatically",
+     "direction": "lost",
+     "base_top5": [
+      "Model.resolveRouteBindingQuery",
+      "Model.resolveSoftDeletableRouteBinding",
+      "Route.withTrashed",
+      "Model.resolveRouteBinding",
+      "UrlRoutable.getRouteKey"
+     ],
+     "new_top5": [
+      "Model.resolveRouteBindingQuery",
+      "Model.resolveSoftDeletableRouteBinding",
+      "Route.withTrashed",
+      "UrlRoutable.getRouteKey",
+      "PendingResourceRegistration.withTrashed"
+     ]
+    }
+   ]
+  },
+  "famz_0.99_0.5": {
+   "pct": 76.9,
+   "hits": 20,
+   "flips": []
+  },
+  "famz_0.99_1.0": {
+   "pct": 76.9,
+   "hits": 20,
+   "flips": []
+  },
+  "famz_0.97_0.5": {
+   "pct": 76.9,
+   "hits": 20,
+   "flips": []
+  },
+  "famz_0.97_1.0": {
+   "pct": 76.9,
+   "hits": 20,
+   "flips": []
+  }
+ },
+ "per_question": [
+  {
+   "q": "roll back the last batch of database migrations",
+   "accept": [
+    "rollback",
+    "rollbackMigrations",
+    "RollbackCommand",
+    "Migrator.rollback"
+   ],
+   "base_top5": [
+    "Migrator.rollback",
+    "Migrator.rollbackMigrations",
+    "RollbackCommand.handle",
+    "RefreshCommand.runRollback",
+    "Migrator.reset"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "run the pending database migrations",
+   "accept": [
+    "Migrator.run",
+    "runPending",
+    "MigrateCommand",
+    "runUp"
+   ],
+   "base_top5": [
+    "Migration",
+    "MigrateCommand.runMigrations",
+    "Migrator.run",
+    "MigrationServiceProvider.registerMigrateFreshCommand",
+    "DatabaseMigrations.runDatabaseMigrations"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 1
+  },
+  {
+   "q": "define the columns of a new database table",
+   "accept": [
+    "Blueprint",
+    "Builder.create",
+    "Blueprint.build"
+   ],
+   "base_top5": [
+    "Blueprint.addColumnDefinition",
+    "ForeignIdColumnDefinition",
+    "TableCommand.columns",
+    "Builder.createDatabase",
+    "Builder.dropColumns"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "add a where condition to a database query",
+   "accept": [
+    "Builder.where",
+    "Builder.orWhere"
+   ],
+   "base_top5": [
+    "Builder.whereAny",
+    "Builder.whereRowValues",
+    "Builder.where",
+    "Builder.addNestedWhereQuery",
+    "Builder.whereNested"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 2
+  },
+  {
+   "q": "persist a model instance to the database",
+   "accept": [
+    "Model.save",
+    "performInsert",
+    "performUpdate",
+    "Model.saveOrFail"
+   ],
+   "base_top5": [
+    "HasOneOrMany.save",
+    "HasOneOrMany.saveMany",
+    "Model.saveOrFail",
+    "HasOneOrMany.saveQuietly",
+    "HasOneOrMany.saveManyQuietly"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 2
+  },
+  {
+   "q": "declare that a model has many related child models",
+   "accept": [
+    "hasMany",
+    "HasMany",
+    "HasOneOrMany",
+    "newHasMany"
+   ],
+   "base_top5": [
+    "HasOne.newRelatedInstanceFor",
+    "SupportsDefaultModels.newRelatedInstanceFor",
+    "HasOneThrough.newRelatedInstanceFor",
+    "MorphOne.newRelatedInstanceFor",
+    "BelongsTo.dissociate"
+   ],
+   "base_hit": false,
+   "recall40": true,
+   "best_accept_rank": 8
+  },
+  {
+   "q": "declare the inverse relation where a model belongs to a parent",
+   "accept": [
+    "belongsTo",
+    "BelongsTo",
+    "newBelongsTo"
+   ],
+   "base_top5": [
+    "SupportsInverseRelations.applyInverseRelationToModel",
+    "SupportsInverseRelations.inverse",
+    "SupportsInverseRelations.getPossibleInverseRelations",
+    "MorphOneOrMany.getPossibleInverseRelations",
+    "SupportsInverseRelations.applyInverseRelationToCollection"
+   ],
+   "base_hit": false,
+   "recall40": true,
+   "best_accept_rank": 5
+  },
+  {
+   "q": "push a job onto the queue for background processing",
+   "accept": [
+    "dispatch",
+    "PendingDispatch",
+    "Queue.push",
+    "Dispatcher.dispatch",
+    "dispatchToQueue"
+   ],
+   "base_top5": [
+    "Queue.push",
+    "SyncQueue.push",
+    "QueueFake.push",
+    "Queue.pushOn",
+    "PendingBatch.onQueue"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "retry jobs that previously failed",
+   "accept": [
+    "RetryCommand",
+    "retryJob",
+    "FailedJobProviderInterface"
+   ],
+   "base_top5": [
+    "RetryCommand.retryJob",
+    "Job.retryUntil",
+    "Job.retryUntil",
+    "RetryCommand.getJobIds",
+    "JobRetryRequested"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "fire an event and notify its listeners",
+   "accept": [
+    "Dispatcher.dispatch",
+    "Dispatcher.listen",
+    "invokeListeners",
+    "Dispatcher.until"
+   ],
+   "base_top5": [
+    "Dispatcher.hasListeners",
+    "Dispatcher.listen",
+    "EventFake.hasListeners",
+    "EventGenerateCommand.makeEventAndListeners",
+    "Dispatcher.listen"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 1
+  },
+  {
+   "q": "validate incoming request data against rules",
+   "accept": [
+    "Validator",
+    "validate",
+    "ValidatesRequests",
+    "FormRequest",
+    "Validator.passes",
+    "Validator.fails"
+   ],
+   "base_top5": [
+    "ValidatesRequests.validate",
+    "HostValidator.matches",
+    "ValidatorInterface.matches",
+    "MethodValidator.matches",
+    "ValidatesRequests.validateWith"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "hash a user password for storage",
+   "accept": [
+    "BcryptHasher",
+    "HashManager",
+    "BcryptHasher.make",
+    "Argon2IdHasher",
+    "AbstractHasher"
+   ],
+   "base_top5": [
+    "Recaller.hash",
+    "AuthenticateSession.storePasswordHashInSession",
+    "Str.password",
+    "DatabaseUserProvider.rehashPasswordIfRequired",
+    "Password.letters"
+   ],
+   "base_hit": false,
+   "recall40": true,
+   "best_accept_rank": 11
+  },
+  {
+   "q": "encrypt a value and decrypt it later",
+   "accept": [
+    "Encrypter",
+    "Encrypter.encrypt",
+    "Encrypter.decrypt",
+    "encryptString",
+    "decryptString"
+   ],
+   "base_top5": [
+    "Encrypter.decrypt",
+    "Encrypter.encrypt",
+    "Encrypter.previousKeys",
+    "Encrypter.decrypt",
+    "StringEncrypter.decryptString"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "register a route with the router",
+   "accept": [
+    "Router.get",
+    "Router.post",
+    "Router.addRoute",
+    "RouteRegistrar",
+    "Router.match"
+   ],
+   "base_top5": [
+    "RouteRegistrar.registerRoute",
+    "Router",
+    "RouteRegistrar.__construct",
+    "RoutingServiceProvider.registerRouter",
+    "Router.addRoute"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "resolve a model instance from a route parameter automatically",
+   "accept": [
+    "ImplicitRouteBinding",
+    "substituteImplicitBindings",
+    "resolveRouteBinding"
+   ],
+   "base_top5": [
+    "Model.resolveRouteBindingQuery",
+    "Model.resolveSoftDeletableRouteBinding",
+    "Route.withTrashed",
+    "Model.resolveRouteBinding",
+    "UrlRoutable.getRouteKey"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 3
+  },
+  {
+   "q": "pass the request through the middleware chain",
+   "accept": [
+    "Pipeline",
+    "Pipeline.then",
+    "sendRequestThroughRouter",
+    "Pipeline.through"
+   ],
+   "base_top5": [
+    "PendingRequest.withRequestMiddleware",
+    "PendingRequest.withMiddleware",
+    "Factory.globalRequestMiddleware",
+    "RequirePassword.handle",
+    "PendingRequest.withResponseMiddleware"
+   ],
+   "base_hit": false,
+   "recall40": true,
+   "best_accept_rank": 16
+  },
+  {
+   "q": "send an email message",
+   "accept": [
+    "Mailer.send",
+    "Mailable",
+    "Mailer",
+    "Mailable.send",
+    "SendQueuedMailable"
+   ],
+   "base_top5": [
+    "SentMessage",
+    "Mailer.sendSymfonyMessage",
+    "Message.getSymfonyMessage",
+    "Mailable.send",
+    "Mailer.createMessage"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 1
+  },
+  {
+   "q": "cache a computed value and reuse it until it expires",
+   "accept": [
+    "remember",
+    "Repository.remember",
+    "rememberForever",
+    "Repository.get"
+   ],
+   "base_top5": [
+    "DatabaseStore.forgetIfExpired",
+    "DatabaseStore.forgetManyIfExpired",
+    "ArrayStore.calculateExpiration",
+    "MemcachedStore.calculateExpiration",
+    "RedisTaggedCache.forever"
+   ],
+   "base_hit": false,
+   "recall40": true,
+   "best_accept_rank": 21
+  },
+  {
+   "q": "schedule recurring console tasks like cron",
+   "accept": [
+    "Schedule",
+    "Schedule.command",
+    "ScheduleRunCommand",
+    "Schedule.call"
+   ],
+   "base_top5": [
+    "ScheduleRunCommand.repeatEvents",
+    "ScheduleInterruptCommand.handle",
+    "Schedule.job",
+    "ScheduleListCommand.listEvent",
+    "ScheduleWorkCommand.handle"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "define a custom artisan console command",
+   "accept": [
+    "Command",
+    "GeneratorCommand",
+    "Command.execute"
+   ],
+   "base_top5": [
+    "Application.call",
+    "Kernel.addCommands",
+    "InteractsWithConsole.artisan",
+    "Kernel.call",
+    "Application.call"
+   ],
+   "base_hit": false,
+   "recall40": true,
+   "best_accept_rank": 14
+  },
+  {
+   "q": "bind an implementation into the service container and resolve it",
+   "accept": [
+    "Container.bind",
+    "Container.make",
+    "Container.resolve",
+    "Container.singleton"
+   ],
+   "base_top5": [
+    "Container.bindMethod",
+    "Container.resolving",
+    "Container.bind",
+    "Container.bindMethod",
+    "resolve"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 2
+  },
+  {
+   "q": "register services when the framework boots",
+   "accept": [
+    "ServiceProvider",
+    "ServiceProvider.register",
+    "registerConfiguredProviders"
+   ],
+   "base_top5": [
+    "Application.registerBaseServiceProviders",
+    "Application.register",
+    "ServiceProvider.register",
+    "Application.register",
+    "Application.bootProvider"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 2
+  },
+  {
+   "q": "compile blade templates into php",
+   "accept": [
+    "BladeCompiler",
+    "BladeCompiler.compile",
+    "compileString",
+    "compileStatements"
+   ],
+   "base_top5": [
+    "BladeCompiler.compileString",
+    "CompilesEchos.compileEchos",
+    "BladeCompiler.__construct",
+    "BladeCompiler.compile",
+    "CompilesEchos.addBladeCompilerVariable"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "paginate query results into pages",
+   "accept": [
+    "paginate",
+    "Paginator",
+    "LengthAwarePaginator",
+    "CursorPaginator",
+    "Builder.paginate"
+   ],
+   "base_top5": [
+    "Builder.paginate",
+    "AbstractPaginator.withQueryString",
+    "AbstractPaginator.addQuery",
+    "AbstractPaginator.appends",
+    "AbstractPaginator.queryStringResolver"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  },
+  {
+   "q": "run several database statements in one transaction",
+   "accept": [
+    "transaction",
+    "beginTransaction",
+    "ManagesTransactions"
+   ],
+   "base_top5": [
+    "DatabaseTransactions.beginDatabaseTransaction",
+    "DatabaseBatchRepository.transaction",
+    "DatabaseTransactionsManager.commit",
+    "DatabaseTransactionRecord.executeCallbacks",
+    "SqlServerConnection.transaction"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 1
+  },
+  {
+   "q": "soft delete models instead of removing rows",
+   "accept": [
+    "SoftDeletes",
+    "SoftDeletingScope",
+    "runSoftDelete",
+    "restore"
+   ],
+   "base_top5": [
+    "SoftDeletes.forceDelete",
+    "SoftDeletes.forceDeleteQuietly",
+    "SoftDeletes.runSoftDelete",
+    "SoftDeletes.performDeleteOnModel",
+    "SoftDeletes"
+   ],
+   "base_hit": true,
+   "recall40": true,
+   "best_accept_rank": 0
+  }
+ ],
+ "limitations": [
+  "rank-proxy scores (s_i = 1/(60+i)); true blend scores not exposed by --flat"
+ ]
+}
