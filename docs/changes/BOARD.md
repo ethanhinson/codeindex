@@ -1,12 +1,6 @@
 # Backlog
 
-**11 changes** — 🟢 1 in progress · 🟡 5 proposed · ✅ 5 done
-
-## 🟢 In progress (1)
-
-| # | Title | Priority | Type | Spec | Branch |
-|---|-------|----------|------|------|--------|
-| [0009](active/0009-workspace-manifest-init-scan.md) | Workspace manifest load/validate + init-workspace --scan | `high` | `feat` | [spec](../superpowers/specs/2026-08-18-workspace-manifest-init-scan-design.md) | `feat/workspace-manifest-init-scan` |
+**11 changes** — 🟡 5 proposed · 🔵 1 implemented · ✅ 5 done
 
 ## 🟡 Proposed (5)
 
@@ -17,6 +11,12 @@
 | [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-brainstorm |
 | [0010](active/0010-workspace-bench-corpus-monorepo-growth.md) | Grow the workspace bench corpus — monorepo declaration coverage in every supported language | `medium` | `chore` | needs-brainstorm |
 | [0011](active/0011-fix-searchtool-test-nollama.md) | Make TestSearchToolAndPrompt honest under nollama builds | `high` | `fix` | build-ready |
+
+## 🔵 Implemented — awaiting merge (1)
+
+| # | Title | Priority | Type | PR | Readiness |
+|---|-------|----------|------|----|-----------|
+| [0009](active/0009-workspace-manifest-init-scan.md) | Workspace manifest load/validate + init-workspace --scan | `high` | `feat` | [#8](https://github.com/ethanhinson/codeindex/pull/8) |  |
 
 ```mermaid
 graph TD
