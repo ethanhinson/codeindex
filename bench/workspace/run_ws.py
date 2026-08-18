@@ -29,7 +29,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "agent_ab"))
-from run_ab import parse_stream  # noqa: E402
+from run_ab import arm_a_shim_dir, parse_stream  # noqa: E402
 
 TASKS = json.loads((HERE / "tasks" / "tasks_ws.json").read_text())
 WS_ROOT = (HERE.parent.parent
@@ -51,6 +51,16 @@ def run_one(task, arm, rep, model, timeout):
            "--output-format", "stream-json", "--verbose"]
     if model:
         cmd += ["--model", model]
+    env = dict(os.environ)
+    if arm == "A":
+        # Control must NOT reach codeindex. --setting-sources blocks the
+        # global plugin's hook, but /opt/homebrew/bin/codeindex is still on
+        # the inherited PATH (leak class 2, found by leak_audit_ws.py).
+        # Same belt-and-suspenders as run_ab arm A: failing shim first on
+        # PATH + CODEINDEX_DISABLED so the real binary refuses via any route.
+        env.pop("CODEINDEX_BIN", None)
+        env["CODEINDEX_DISABLED"] = "1"
+        env["PATH"] = f"{arm_a_shim_dir()}{os.pathsep}{env.get('PATH', '')}"
     if arm == "B":
         mcp_bin = os.environ.get("CODEINDEX_WS_MCP_BIN")
         if not mcp_bin:
@@ -66,7 +76,7 @@ def run_one(task, arm, rep, model, timeout):
     timed_out = False
     try:
         proc = subprocess.run(cmd, cwd=str(WS_ROOT), capture_output=True,
-                              text=True, timeout=timeout)
+                              text=True, timeout=timeout, env=env)
         lines = proc.stdout.splitlines()
     except subprocess.TimeoutExpired as e:
         timed_out = True

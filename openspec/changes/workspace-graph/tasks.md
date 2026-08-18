@@ -26,14 +26,23 @@ at the C2 fork (ROADMAP-DEBATE.md path C); **GO registered 2026-08-17**
       werkzeug←flask, client_golang←prometheus, lib pins taken from
       consumer declarations; `build_tasks_ws.py` mined 65 rung-1 tasks
       (php 24 / ts 17 / go 12 / py 12), GT hand-spot-verified
-- [ ] 2.2 Wire arms: A = shell + all checkouts (grep-across control),
+- [x] 2.2 Wire arms: A = shell + all checkouts (grep-across control),
       B = A + workspace MCP; `--setting-sources project,local` isolation
       (bench-hook-leak rule); grader-blind formatting; leak-audit all
       four classes
       — arm A wired + smoked on the OSS corpus 2026-08-17 (`run_ws.py`,
       `grade_ws.py`: mechanical set-comparison grading, isolation flag
-      in); arm B refuses to run until the engine exists (env-gated);
-      leak audit still to run before any scored campaign
+      in); arm B refuses to run until the engine exists (env-gated).
+      Leak audit DONE 2026-08-17: `leak_audit_ws.py` covers all four
+      classes (template leakage, control contamination via id-paired
+      transcript audit, forced-tool prompt scan, grader-codesign
+      ordering-invariance property) — PASS on the frozen task set +
+      smoke transcripts. It also caught a live class-2 gap: arm A had
+      no PATH shim while /opt/homebrew/bin/codeindex is installed;
+      run_ws.py now applies the run_ab shim + CODEINDEX_DISABLED
+      (verified exit 127). The audit is a standing pre-verdict gate:
+      §5.1 must re-run it over the full campaign transcripts and
+      exit-gate on it before grading
 - [x] 2.3 Register the bars from design D7 in the residuals backlog
       before the first scored run — DONE 2026-08-17:
       `bench/workspace/README.md` (bars verbatim; gate script must read

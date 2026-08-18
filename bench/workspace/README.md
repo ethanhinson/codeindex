@@ -51,9 +51,14 @@ single-repo goldens for the non-regression bar.
 
 Isolation: every headless run uses `--setting-sources project,local`
 (the bench-hook-leak rule — the global codeindex plugin contaminates
-controls otherwise). Grader-blind formatting. Leak-audit all four
-classes before any verdict (id-paired transcript audit,
-`bench/agent_ab/leak_audit.py` pattern).
+controls otherwise) AND the run_ab arm-A PATH shim + `CODEINDEX_DISABLED`
+(the settings flag alone leaves a globally installed binary reachable —
+found and fixed 2026-08-17). Grader-blind formatting. Leak-audit all
+four classes before any verdict: `leak_audit_ws.py` (template leakage,
+control contamination via the id-paired `bench/agent_ab/leak_audit.py`
+join, forced-tool prompt scan, grader-codesign ordering-invariance).
+The §5 gate script must run it over the campaign transcripts and refuse
+a verdict on non-zero exit.
 
 ## Bars (copied verbatim from design D7 — all required)
 
