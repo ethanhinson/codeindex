@@ -15,7 +15,7 @@ spec:
 plan:
 results:
 trivial: false
-auto_groomable: false
+auto_groomable: true
 branch:
 pr:
 blocked_by:
@@ -77,18 +77,30 @@ Per design D1 (identity) and D5 (surfaces):
 
 <!-- Appended by docket-implement-next's reconcile pass: dated entries of what changed. -->
 
-## Auto-groom blocked
+## Groom context (owner decisions 2026-08-18)
 
-**2026-08-18** — autonomous groom abstained after two adversarial critic
-rounds. No decision needed *owner* context: every open item is
-mechanically fixable from the frozen design plus the repo. What it ran
-out of was the protocol's single bounded revision round — round 2 still
-returned three "wrong but fixable" items, and a spec may only be emitted
-when every item survives. Two rounds of design work are summarized below
-so a human can finish this in one short interactive pass rather than
-starting over.
+The autonomous groom's first pass abstained with three residual items
+(full abstain record in git history); the owner answered all three on
+2026-08-18:
 
-### What was settled and survived both rounds
+1. **Member-discovery over-collection — apply all three guards:** glob
+   expansion restricted to directories only; the language marker must
+   sit at the candidate's own top level (not one level down); and a
+   root candidate whose namespace set is a subset of a declared
+   member's is suppressed. Together these fix all three spurious
+   members on the frozen bench corpus.
+2. **Root-kind detection — short-circuit helper:** add a small walk
+   helper (explicit filter, aborts on the first indexable hit) rather
+   than reusing `merkle.WalkWith` — no full-tree walk per detection,
+   no process-global `adapter.SetAssociations` mutation against a live
+   MCP server. Placement per the prior groom round: `internal/engine`.
+3. **Merge gate — this slice may merge ahead of the D7 gate:** the
+   frozen SHALL (`specs/workspace-graph/spec.md:125`) is read as
+   gating query-behavior slices; this change's PR must carry a dated
+   amendment to the openspec change recording that interpretation, and
+   the D7 gate still hard-blocks §3.3+/§4 from merging.
+
+### Settled design from the prior groom rounds (survived two critic rounds)
 
 Manifest types in `internal/config` (`Workspace`/`Member`, D1 shape);
 `LoadWorkspace` validates **shape only** and never stats a member root,
@@ -115,62 +127,7 @@ src-layout, so a root-only rule silently zeroes 12 of the 65 tasks);
 `DetectRootKind` has **no call site** in this slice (§4.2 owns CLI
 wiring with the byte-identical golden gate); no new ADR.
 
-### The three residual items a human should close
-
-1. **Member-discovery over-collection (critic items 6 / S6).** The
-   revised rule — union of {workspace root if it carries a marker} ∪
-   {glob-expanded declared members from go.work, pnpm-workspace.yaml,
-   npm/yarn `workspaces`, `lerna.json`, composer `type: path`
-   repositories} ∪ {depth-1 marker-bearing subdirs, only when no
-   declaration file exists} — correctly rescues symfony (whose
-   `composer.json` declares two `type: path` repos, so a
-   declarations-exclusive rule dropped symfony itself) and nest (which
-   carries **only** `lerna.json`). But as written it also mints three
-   spurious members on the frozen corpus: `bench/repos/nest`'s root
-   `package.json` is itself `@nestjs/core`, duplicating the namespace of
-   `packages/core`; `lerna.json`'s `packages/*` glob matches the *files*
-   `packages/index.ts`, `tsconfig.json`, `tsconfig.build.json`; and the
-   Python marker "an `__init__.py`-bearing directory at the root" makes
-   `flask/src` a member duplicating namespace `flask`. Derivable fixes,
-   all in-slice: restrict glob expansion to **directories**; require the
-   marker at the candidate's **own** top level rather than one level
-   down; and add a duplicate-namespace rule (suppress the root candidate
-   when its namespace set is a subset of a declared member's, or reject
-   at load). Needs a human only to pick which of the three, since each
-   is a different notion of "what is a member".
-2. **Root-kind detection cannot be wired as specified (critic S4).**
-   `merkle.WalkWith(root string, extra func(rel string, d fs.DirEntry)
-   bool) ([]string, error)` loads its own filter internally via
-   `config.LoadFilter(root)` and accepts no `*Filter`, so the specified
-   `config.Load → config.NewFilter → WalkWith` composition is not
-   expressible; it has no abort mechanism, so the specified
-   "short-circuit on the first indexable hit" is unattainable; and it
-   invokes `extra` **only** for files `adapter.Indexable` already
-   rejected (`merkle.go:52`), so `extra` cannot observe the first hit
-   either. The mechanical fix is `adapter.SetAssociations(cfg.Associations)`
-   then `merkle.WalkWith(root, nil)` and test `len(files) > 0`, dropping
-   the short-circuit claim — but that walks the entire tree on every
-   detection, which is a cost decision on a hot path, and
-   `adapter.SetAssociations` mutates **process-global** registry state,
-   so `DetectRootKind` is not side-effect-free against a live MCP
-   server. Placement is fine: `internal/engine` is the only non-test
-   package that blank-imports the adapters (`engine.go:15-18`), and
-   `merkle` imports only `adapter`/`config`/`graph`, so no import cycle.
-3. **Whether this slice may merge ahead of the D7 gate.** Not a defect —
-   flagged so it is not missed. `specs/workspace-graph/spec.md:125` says
-   "Implementation SHALL NOT merge before the pre-registered gate
-   passes." This slice ships no query behavior the gate can measure, and
-   §3.2–§3.5 cannot start without it. An autonomous groom must not
-   reinterpret a frozen SHALL, so the call stays with the owner at the
-   human merge gate.
-
-### Recommendation
-
-Groom this interactively (`docket-groom-next`), not by re-arming the
-autonomous queue — item 1 is a genuine "what counts as a member" choice
-and item 2 trades walk cost against global-state mutation, both of which
-are one-question conversations. Neither kill nor defer is warranted:
-this is the first engine slice of a GO-registered campaign whose
-bench-first phase is fully done, and the work above is close to
-complete. To re-arm autonomously instead, answer items 1 and 2, flip
-`auto_groomable` back to `true`, and delete this section.
+The prior round's full residual-item analysis (member-candidate rule
+variants, the `merkle.WalkWith` signature constraints, the D7 SHALL
+reading) lives in the abstain record in git history and is superseded
+by the owner decisions above.
