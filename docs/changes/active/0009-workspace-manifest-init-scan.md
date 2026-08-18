@@ -15,7 +15,7 @@ spec:
 plan:
 results:
 trivial: false
-auto_groomable: true
+auto_groomable: false
 branch:
 pr:
 blocked_by:
@@ -131,3 +131,86 @@ The prior round's full residual-item analysis (member-candidate rule
 variants, the `merkle.WalkWith` signature constraints, the D7 SHALL
 reading) lives in the abstain record in git history and is superseded
 by the owner decisions above.
+
+## Auto-groom blocked
+
+### 2026-08-18 — second abstain (corpus facts contradict the settled record)
+
+The owner's three 2026-08-18 decisions were distilled faithfully into a
+draft spec and they are **not** what blocked this round. The adversarial
+critic checked the draft's evidentiary basis against the repo on disk
+and found that two load-bearing claims — inherited from the settled
+design record, not invented by this groom — are **false about the frozen
+bench corpus**. Both need an owner call, so no spec was emitted.
+
+**Blocker 1 — member discovery finds nothing on the corpus's only
+monorepo.** The design (D1, `design.md:41-77`) and `tasks.md` §3.1 both
+enumerate exactly three monorepo sources: `go.work`,
+`pnpm-workspace.yaml`, composer path repositories. On disk the frozen
+corpus contains **none of them**: no `go.work` in `bench/repos/prometheus`
+or `bench/repos/client_golang`, no `pnpm-workspace.yaml` in
+`bench/repos/nest`, and the PHP members are standalone. The corpus's one
+monorepo declaration is `bench/repos/nest/lerna.json`
+(`{"packages": ["packages/*"], …}`), and `bench/repos/nest/package.json`
+carries **no `workspaces` field**. So member discovery as designed
+returns **zero members for nest** — 3 of the 11 corpus members — silently,
+while every test named in the draft still passes. Notably, guard 1's
+worked example glob is `packages/*`, verbatim lerna's, which suggests the
+three guards were tuned against a source the frozen design omits.
+
+*What is missing / what a human should supply:* whether `lerna.json`
+(and/or `package.json` `workspaces`) is added to the source list. That is
+an **amendment to a frozen upstream design**, which is exactly the class
+of decision autonomous grooming may not make. If it is added, decision 2's
+"no new ADR" also stops being obviously right.
+
+**Blocker 2 — the `--force` merge rationale does not fire on the corpus.**
+The settled record justifies "empty `namespaces` is a gap the scan fills"
+by the D1 dedicated-workspace-directory bootstrap, citing
+`bench/workspace/corpus.json` and the `bench/repos/oss-ws` root. On disk:
+`bench/repos/oss-ws` is an **empty directory** (no `.codeindex/`, no
+manifest), and `corpus.json` is **not a manifest** — different path, extra
+fields (`_comment`, `lang`, `role`, `pin`), and **all 11 members carry
+non-empty `namespaces`**. There is therefore no hand-authored skeleton for
+`--force` to merge into and the empty-namespaces path never fires on the
+corpus. Compounded with blocker 1, `init-workspace --scan` pointed at
+`oss-ws` discovers nothing at all — and unblocking bench arm B is this
+change's stated reason to exist.
+
+*What is missing / what a human should supply:* whether converting
+`bench/workspace/corpus.json` into
+`bench/repos/oss-ws/.codeindex/workspace.json` is **in this slice**. It is
+currently neither designed nor listed in `## Out of scope`.
+
+**Also flagged (fixable without the owner, recorded so the next round does
+not re-derive them):**
+
+- `SaveWorkspace(root string, w Workspace) error` was given the rule
+  "preserve manifest order, sorting only newly appended members" — its
+  signature receives only the final slice and **cannot distinguish new
+  from pre-existing members**. That rule belongs to the `--force` merge
+  step, not the writer.
+- No parsing strategy was specified, and it hides a dependency decision:
+  the repo vendors **no YAML library and no `golang.org/x/mod`**, so
+  `pnpm-workspace.yaml`, `go.work`, and `go.mod`'s `module` directive each
+  need a hand-rolled parser **or a new module dependency** — a call an
+  unsupervised builder would otherwise make unilaterally.
+- The root-kind short-circuit helper (owner decision 2, sound in
+  principle) was left with an **unspecified extension filter**, so it
+  necessarily diverges from `adapter.Indexable` and `config.LoadFilter`;
+  §4.2's byte-identical golden gate tests query output, not root-kind
+  classification, so it would not catch the divergence later either.
+- The D7 merge-ahead amendment (owner decision 3) named **no target file
+  and no acceptance check**. It should name one file explicitly and be on
+  the test/acceptance list, since it is the only artifact standing between
+  this PR and a documented violation of the `spec.md:125` SHALL.
+- The draft's only named regression, `TestCallersTextGolden`, is
+  near-vacuous for this slice; D7's real bar is the whole single-repo
+  golden suite.
+
+**Recommendation: keep, do not kill or defer.** The change is correctly
+scoped and genuinely unblocks the D7 gate; it is one owner sitting for ten
+minutes with the corpus away from build-ready. The cheapest re-arm is to
+answer the two blockers above, fold the five fixable items into the
+`## Groom context` record, then flip `auto_groomable:` back to `true` and
+delete this section.
