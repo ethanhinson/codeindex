@@ -26,6 +26,9 @@ import (
 
 const version = "0.2.0"
 
+// usageVerbs is the single-line usage banner printed by the arg-count guard.
+const usageVerbs = "usage: codeindex <build|refresh|status|callers|callees|impact|dependents|deps|nav|find|grep|search|model|ingest|depmap|export|import|enclosing|serve|mcp|bench|init-workspace> <repo-root> ..."
+
 func main() {
 	// Test/benchmark isolation escape hatch: when CODEINDEX_DISABLED is set,
 	// refuse to run regardless of how the binary was reached (PATH, absolute
@@ -36,8 +39,7 @@ func main() {
 		os.Exit(127)
 	}
 	if len(os.Args) < 3 {
-		fmt.Fprintln(os.Stderr,
-			"usage: codeindex <build|refresh|status|callers|callees|impact|dependents|deps|nav|find|grep|search|model|ingest|depmap|export|import|enclosing|serve|mcp|bench> <repo-root> ...")
+		fmt.Fprintln(os.Stderr, usageVerbs)
 		os.Exit(2)
 	}
 	cmd, root := os.Args[1], os.Args[2]
@@ -198,6 +200,10 @@ func main() {
 			}
 		}
 		if err := runServe(root, addr); err != nil {
+			fatal(err)
+		}
+	case "init-workspace":
+		if err := runInitWorkspace(root, os.Args[3:]); err != nil {
 			fatal(err)
 		}
 	case "mcp":
