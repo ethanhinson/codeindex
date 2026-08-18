@@ -17,10 +17,10 @@ results:
 trivial: false
 auto_groomable: true
 branch: feat/workspace-manifest-init-scan
-claimed_at: 2026-08-18T19:12:08Z
+claimed_at: 2026-08-18T19:14:38Z
 pr:
 blocked_by:
-reconciled: false
+reconciled: true
 ---
 
 ## Artifacts
@@ -93,6 +93,44 @@ Per design D1 (identity) and D5 (surfaces):
 ## Reconcile log
 
 <!-- Appended by docket-implement-next's reconcile pass: dated entries of what changed. -->
+
+### 2026-08-18 — claimed and reconciled against `origin/main` (bb076aa)
+
+**Scope unchanged; the design is intact.** Every "Codebase facts" claim in
+the spec was re-verified against the current tree and all hold verbatim —
+`config.Load`/`config.FileName`, `config.LoadFilter`, `merkle.WalkWith`'s
+no-early-exit signature, `adapter.Indexable` as a process-global read,
+`main.go`'s arg-count guard + usage string + `fatal()`, the
+`runtime.go:66-71` version-check precedent (including the fusion §1 declines
+to copy), and the three named goldens. None of the four deliverables exists
+yet (`internal/config/workspace.go`, `internal/workspace/`,
+`internal/engine/rootkind.go` all absent), and `go.mod` still requires
+neither `golang.org/x/mod` nor a YAML module — so no work has been done
+elsewhere and nothing is dropped.
+
+**Two new constraints folded into the spec (new §4a), both mechanical:**
+
+1. **`bench/repos/` is gitignored** (`.gitignore:53`), so the filled bench
+   manifest could not be committed as the acceptance checklist requires. The
+   ignore rule's own stated reason — "bench working clones; re-clone to
+   regenerate" — does not cover `oss-ws`, which is authored, not cloned. The
+   spec now specifies a **narrow** negation for the single manifest path, and
+   the checklist gained an item asserting no member checkout becomes
+   committable as a side effect. Consistent with the owner's standing rule
+   that only pinned-OSS bench data reaches git: the manifest names OSS member
+   roots only.
+2. **`bench/workspace/corpus.json` is not on `origin/main`** — the four
+   `bench(workspace)` §2 commits are unpushed local commits on `main`, and the
+   feature branch is cut from `origin/main`. `corpus.json` is a *verification
+   input*, never a deliverable, so this is not a blocker: the spec now pins
+   all 10 `{id, root, namespaces}` triples in a table (read from the local
+   `main` tree at reconcile), which doubles as the skeleton's authoring source
+   and is quoted into the results file so the prefix-containment check is
+   auditable from the PR alone.
+
+All 10 corpus checkouts are present on disk, so the §4 bootstrap's
+precondition holds. Owner decisions in `## Groom context` were treated as
+binding input and not re-litigated. `related: [10]` remains informational.
 
 ## Groom context (owner decisions 2026-08-18)
 

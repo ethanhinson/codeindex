@@ -71,6 +71,12 @@ Verified against the working tree at `origin/main` (2026-08-18):
   members; each member carries `{id, root, lang, role, pin, namespaces}`.
   Roots are relative and all point outside the workspace root (`../symfony`,
   `../nest/packages/common`, …) — the D1 dedicated-workspace-directory shape.
+- **`bench/repos/` is gitignored** (`.gitignore:53`, under the comment
+  "bench working clones (pinned via `bench/repos.json`; re-clone to
+  regenerate)"), and `bench/workspace/` is **not yet on `origin/main`** — the
+  four `bench(workspace)` commits that produced the §2 phase are unpushed
+  local commits on `main`. Both facts were discovered at reconcile time
+  (2026-08-18) and are handled in §4; neither changes any engine deliverable.
 - Golden tests: `internal/query/query_test.go:43,113,140` —
   `TestCallersTextGolden`, `TestCalleesTextGolden`, `TestNavTextGolden`.
   There is no unified "golden suite" make target; `internal/engine/*_test.go`
@@ -384,6 +390,59 @@ This is not decoration: it is the only end-to-end exercise of the
 empty-`namespaces`-is-a-gap merge path, and it hands bench arm B a real
 manifest to point at when §3.3+ lands.
 
+#### 4a. Two reconcile-time constraints (2026-08-18)
+
+Both were discovered when this change was claimed, and both are mechanical
+accommodations — no engine deliverable and no owner decision changes.
+
+1. **`bench/repos/` is gitignored, so the filled manifest cannot be committed
+   as-is.** `.gitignore:53` ignores the whole directory, under the comment
+   "bench working clones (pinned via `bench/repos.json`; re-clone to
+   regenerate)". That rationale does not cover `oss-ws`: it is not a clone
+   and cannot be re-cloned — it is a hand-authored dedicated workspace
+   directory whose only content is the manifest this change produces, and the
+   whole point of the bootstrap is that bench arm B has a committed manifest
+   to point at when §3.3+ lands. **Resolution:** add a narrow negation to
+   `.gitignore` immediately below the existing rule —
+
+   ```
+   bench/repos/
+   # …except the authored workspace manifest (not a clone; cannot be re-cloned)
+   !bench/repos/oss-ws/
+   !bench/repos/oss-ws/.codeindex/
+   !bench/repos/oss-ws/.codeindex/workspace.json
+   ```
+
+   Scoped to the single manifest path: no checkout, and no member tree,
+   becomes committable. The manifest names only pinned-OSS member roots, so
+   the owner's "no private-repo data in git" rule is satisfied.
+2. **`bench/workspace/corpus.json` is not on `origin/main`.** The four
+   `bench(workspace)` commits are unpushed local commits on `main`, and the
+   feature branch is cut from `origin/main`, so `corpus.json` is absent from
+   the feature worktree. It is a **verification input**, never a deliverable,
+   so this does not block: the 10 `{id, namespaces}` pins are read from the
+   local `main` tree (`git show main:bench/workspace/corpus.json`) and
+   **quoted verbatim into the results file** alongside the discovered
+   namespaces, so the prefix-containment check is auditable from the PR
+   without `corpus.json` being on the branch. The pins as of reconcile:
+
+   | member | root | pinned namespace |
+   |---|---|---|
+   | symfony | `../symfony` | `Symfony\` |
+   | drupal | `../drupal` | `Drupal\` |
+   | laravel | `../laravel-framework` | `Illuminate\` |
+   | nest-common | `../nest/packages/common` | `@nestjs/common` |
+   | nest-core | `../nest/packages/core` | `@nestjs/core` |
+   | nest-microservices | `../nest/packages/microservices` | `@nestjs/microservices` |
+   | werkzeug | `../werkzeug` | `werkzeug` |
+   | flask | `../flask` | `flask` |
+   | client_golang | `../client_golang` | `github.com/prometheus/client_golang` |
+   | prometheus | `../prometheus` | `github.com/prometheus/prometheus` |
+
+   This table is also the skeleton's authoring source for step 1 (with
+   `namespaces: []`), so the bootstrap does not depend on an unpushed file
+   being present in the feature worktree at all.
+
 **Corpus checkouts are a precondition, not a deliverable.** The 10 member
 trees under `bench/repos/` are the existing pinned OSS checkouts; if any is
 absent at build time, the bootstrap step reports which and stops rather than
@@ -517,6 +576,9 @@ PR.
 - [ ] `go.mod` requires `golang.org/x/mod` and `gopkg.in/yaml.v3`; `go mod
       tidy` clean; `go.sum` committed; the binary still builds with `CGO`
       unchanged.
+- [ ] `.gitignore` carries the **narrow** `bench/repos/oss-ws/.codeindex/workspace.json`
+      negation of §4a.1 — and nothing broader: `git status --porcelain bench/repos/`
+      shows no member checkout as untracked-but-unignored.
 - [ ] `bench/repos/oss-ws/.codeindex/workspace.json` committed, filled by
       `init-workspace --scan --force`, and verified for all 10 members by
       **prefix-containment** — each entry of that member's **`namespaces`
@@ -524,7 +586,9 @@ PR.
       is a prefix of at least one discovered namespace. Element-containment
       is explicitly wrong here
       (`Symfony\` and `Drupal\` are not psr-4 keys in their composer files);
-      see §4's table.
+      see §4's table. The pins are quoted verbatim into the results file
+      beside the discovered namespaces (§4a.2), since `corpus.json` is not on
+      the feature branch.
 - [ ] **Dated amendment section added to
       `openspec/changes/workspace-graph/design.md`** carrying both the D1
       source-list amendment and the D7 merge-gate interpretation; `tasks.md`
