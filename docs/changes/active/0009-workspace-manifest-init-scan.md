@@ -11,7 +11,7 @@ depends_on: []
 related: [10]
 discovered_from: []
 adrs: []
-spec:
+spec: docs/superpowers/specs/2026-08-18-workspace-manifest-init-scan-design.md
 plan:
 results:
 trivial: false
@@ -25,6 +25,9 @@ reconciled: false
 ## Artifacts
 
 <!-- docket:artifacts:start (generated — do not hand-edit) -->
+| Artifact | Link |
+|---|---|
+| Spec | [2026-08-18-workspace-manifest-init-scan-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-18-workspace-manifest-init-scan-design.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
@@ -51,18 +54,24 @@ Per design D1 (identity) and D5 (surfaces):
 - Load + validate `<workspace-root>/.codeindex/workspace.json` (version,
   member id/root/namespaces/optional deps; roots relative to the
   workspace root, may point outside it).
-- New verb `init-workspace --scan`: namespace auto-discovery per language
-  (go.mod / package.json / composer.json / Python top-level modules) and
-  monorepo member discovery via go.work, pnpm-workspace.yaml,
-  composer path repositories, lerna.json, and package.json `workspaces`
-  (the last two are a dated amendment to the frozen design — owner
-  decision 2026-08-18). Manifest overrides always win over scanned
-  values.
+- New verb `init-workspace --scan [--force]`. The scan is **two passes**:
+  monorepo member discovery at the workspace root (go.work,
+  pnpm-workspace.yaml, composer path repositories, lerna.json, and
+  package.json `workspaces` — the last two are a dated amendment to the
+  frozen design, owner decision 2026-08-18), then namespace
+  auto-discovery per language (go.mod / package.json / composer.json +
+  psr-4 / Python top-level modules) run over **every** member root,
+  authored ones included. Manifest overrides always win over scanned
+  values; an empty `namespaces` is a gap the scan fills.
 - Bench manifest bootstrap (in-slice): hand-author a skeleton manifest
   for `bench/repos/oss-ws` (member ids + roots, empty namespaces), then
-  `init-workspace --scan --force` fills the namespaces; verify the
-  result against `bench/workspace/corpus.json` pins. This exercises the
-  `--force` merge path end-to-end and hands bench arm B a real manifest.
+  `init-workspace --scan --force` fills the namespaces; verify by
+  prefix-containment against the `namespaces` field of each member in
+  `bench/workspace/corpus.json`. This exercises the `--force` merge path
+  end-to-end and hands bench arm B a real manifest.
+- Two dated amendments to
+  `openspec/changes/workspace-graph/design.md`: the D1 declaration-source
+  addition above, and the D7 merge-gate interpretation.
 - Root-kind detection groundwork: a root containing `workspace.json` is a
   workspace; a root with neither manifest nor indexable source errors
   naming both possibilities. Single-repo mode is the absence of a
@@ -85,6 +94,16 @@ Per design D1 (identity) and D5 (surfaces):
 <!-- Appended by docket-implement-next's reconcile pass: dated entries of what changed. -->
 
 ## Groom context (owner decisions 2026-08-18)
+
+> **Groomed to build-ready 2026-08-18.** Every decision below is distilled
+> into the linked spec, which is now the authoritative design for this
+> slice. The autonomous groom's critic gate cleared it after one bounded
+> revision round (fixes: the scan's namespace pass must run over authored
+> member roots or the bench bootstrap fills nothing; the empty-discovery
+> error must not fire on the D1 dedicated-workspace-directory shape; bench
+> verification must be prefix-containment, since neither symfony nor drupal
+> declares a bare `Symfony\`/`Drupal\` psr-4 key). This section is retained
+> as the provenance record; it is not a second source of truth.
 
 The autonomous groom's first pass abstained with three residual items
 (full abstain record in git history); the owner answered all three on
