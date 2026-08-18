@@ -68,3 +68,6 @@ bench/agent_ab/results/transcripts_noteab/
 # OS / editor junk
 .DS_Store
 *.bak
+
+# bench transcripts capture whatever the agent sees (env paths, dir listings) — never commit
+bench/workspace/results/transcripts/
