@@ -80,6 +80,15 @@ func TestMembersGuardSubsetSuppression(t *testing.T) {
 	assertEqual(t, roots(t, "ws_guard3"), []string{"packages/foo"})
 }
 
+// Guard 3 must not fire on an empty namespace set. An empty set is a strict
+// subset of every non-empty set, so an unnamed-but-declared member (here a
+// private package.json with no "name") would otherwise be deleted with no
+// diagnostic and no way for Merge to restore it. The re-exporting monorepo
+// root guard 3 exists to drop always has a NON-EMPTY set, so nothing is lost.
+func TestMembersGuardSubsetKeepsEmptyNamespaceMember(t *testing.T) {
+	assertEqual(t, roots(t, "ws_guard3empty"), []string{"packages/named", "packages/unnamed"})
+}
+
 // --- id derivation ---
 
 func TestMembersIDs(t *testing.T) {

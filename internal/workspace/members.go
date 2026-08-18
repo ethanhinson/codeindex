@@ -190,7 +190,18 @@ func isMemberDir(root, rel string) (bool, error) {
 // matters — an equal-set test would drop both halves of a duplicate pair and
 // leave the monorepo with no member at all. Namespaces arrive deduplicated
 // from Namespaces, so a shorter length is a sound strictness proxy.
+//
+// The empty set is excluded from the test even though it is set-theoretically
+// a strict subset of every non-empty set. A member with no discoverable
+// namespace — an unnamed or private package.json, a Python layout the probe
+// misses — is still a legitimately declared member, and dropping it here would
+// be silent and unrecoverable: Merge only ever adds, so not even --force could
+// restore it. The re-exporting monorepo root this guard exists to remove has a
+// non-empty set by construction, so nothing guard 3 targets is spared.
 func isStrictSubset(sub, super []string) bool {
+	if len(sub) == 0 {
+		return false
+	}
 	if len(sub) >= len(super) {
 		return false
 	}
