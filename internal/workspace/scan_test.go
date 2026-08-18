@@ -137,6 +137,36 @@ func TestScanEmptyResultError(t *testing.T) {
 	}
 }
 
+// When declarations DO exist but every one of them resolves outside the
+// workspace root, the empty-result error must say so rather than claim nothing
+// was declared, and must name an escaping path so the user can act on it.
+func TestScanEmptyResultErrorNamesEscapingDeclarations(t *testing.T) {
+	base := t.TempDir()
+
+	shared := filepath.Join(base, "shared")
+	mustMkdir(t, shared)
+	mustWrite(t, filepath.Join(shared, "go.mod"), "module example.com/shared\n\ngo 1.22\n")
+
+	ws := filepath.Join(base, "oss-ws")
+	mustMkdir(t, ws)
+	mustWrite(t, filepath.Join(ws, "go.work"), "go 1.22\n\nuse ../shared\n")
+
+	_, err := Scan(ws, nil)
+	if err == nil {
+		t.Fatal("want an error when every declared member resolves outside the workspace root")
+	}
+	msg := err.Error()
+	if strings.Contains(msg, "no members are declared") {
+		t.Errorf("error falsely claims nothing was declared: %v", err)
+	}
+	if !strings.Contains(msg, "outside the workspace root") {
+		t.Errorf("error does not explain the out-of-root omission: %v", err)
+	}
+	if !strings.Contains(msg, "../shared") {
+		t.Errorf("error does not name the escaping path: %v", err)
+	}
+}
+
 // ...and it must NOT fire merely because pass 1 discovered zero, even when
 // every authored root is missing from disk.
 func TestScanEmptyResultErrorDoesNotFireWithAuthoredMembers(t *testing.T) {

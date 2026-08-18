@@ -55,7 +55,26 @@ var excludedDirBasenames = func() map[string]bool {
 // from the candidate basename. Callers that merge into an existing manifest
 // keep authored ids — id derivation here applies only to members the scan
 // introduces.
+//
+// Stated limitation — discovery only emits members at or below root. A
+// declaration that resolves outside it (`use ../shared` in go.work, a composer
+// path repository at "../shared-lib") is expanded and then dropped, because
+// emitting it would change which members a scan writes into a reviewed
+// manifest. This is deliberate and is not a claim that such members are
+// illegitimate: an authored manifest may carry a "../" member root, and that
+// path is unaffected by this filter. So the omission is never silent, the
+// escaping paths are reported alongside the members (see membersAndEscaped),
+// and Scan names them when they are the only reason the result is empty.
 func Members(root string) ([]config.Member, error) {
+	members, _, err := membersAndEscaped(root)
+	return members, err
+}
+
+// membersAndEscaped is Members plus the slash-relative paths that expansion
+// matched but the escape filter dropped for resolving outside root, in
+// expansion order and deduplicated. It is the shape Scan needs to tell "nothing
+// was declared" apart from "everything declared escaped the root".
+func membersAndEscaped(root string) ([]config.Member, []string, error) {
 	var patterns []string
 	for _, source := range []func(string) ([]string, error){
 		goWorkPatterns,
@@ -66,14 +85,14 @@ func Members(root string) ([]config.Member, error) {
 	} {
 		p, err := source(root)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		patterns = append(patterns, p...)
 	}
 
-	candidates, err := expand(root, patterns)
+	candidates, escaped, err := expand(root, patterns)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Guards 1 and 2 are per-candidate; guard 3 compares candidates, so it
@@ -86,14 +105,14 @@ func Members(root string) ([]config.Member, error) {
 	for _, rel := range candidates {
 		ok, err := isMemberDir(root, rel)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		if !ok {
 			continue
 		}
 		ns, err := Namespaces(filepath.Join(root, filepath.FromSlash(rel)))
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		survivors = append(survivors, kept{rel: rel, namespaces: ns})
 	}
@@ -117,15 +136,20 @@ func Members(root string) ([]config.Member, error) {
 			Namespaces: c.namespaces,
 		})
 	}
-	return out, nil
+	return out, escaped, nil
 }
 
 // expand turns patterns into deduplicated slash-relative candidate paths in
 // expansion order. Patterns are matched relative to root; a pattern that
-// climbs out of root, or matches nothing, contributes nothing.
-func expand(root string, patterns []string) ([]string, error) {
-	var out []string
+// matches nothing contributes nothing.
+//
+// A match that climbs out of root contributes no candidate — see the stated
+// limitation on Members — but is returned in the second result so callers can
+// report the omission instead of leaving it silent.
+func expand(root string, patterns []string) ([]string, []string, error) {
+	var out, escaped []string
 	seen := map[string]bool{}
+	seenEscaped := map[string]bool{}
 	for _, pat := range patterns {
 		pat = strings.TrimSpace(pat)
 		if pat == "" {
@@ -133,7 +157,7 @@ func expand(root string, patterns []string) ([]string, error) {
 		}
 		matches, err := filepath.Glob(filepath.Join(root, filepath.FromSlash(pat)))
 		if err != nil {
-			return nil, fmt.Errorf("expand %q: %w", pat, err)
+			return nil, nil, fmt.Errorf("expand %q: %w", pat, err)
 		}
 		for _, m := range matches {
 			rel, err := filepath.Rel(root, m)
@@ -141,7 +165,14 @@ func expand(root string, patterns []string) ([]string, error) {
 				continue
 			}
 			rel = filepath.ToSlash(rel)
-			if rel == "." || strings.HasPrefix(rel, "../") {
+			if rel == "." {
+				continue
+			}
+			if strings.HasPrefix(rel, "../") {
+				if !seenEscaped[rel] {
+					seenEscaped[rel] = true
+					escaped = append(escaped, rel)
+				}
 				continue
 			}
 			if seen[rel] {
@@ -151,7 +182,7 @@ func expand(root string, patterns []string) ([]string, error) {
 			out = append(out, rel)
 		}
 	}
-	return out, nil
+	return out, escaped, nil
 }
 
 // isMemberDir applies guards 1 and 2 to one candidate.

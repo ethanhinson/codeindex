@@ -16,6 +16,9 @@ import (
 // declaration sources at the workspace root. On the dedicated
 // workspace-directory shape — an empty directory whose members all live at
 // "../" roots — this legitimately returns zero, which is not an error.
+// Discovery emits only members at or below wsRoot (the stated limitation on
+// Members), so pass 1 also reports the declarations it dropped for escaping the
+// root; they are used solely to keep the empty-result diagnostic honest.
 //
 // Pass 2 is the namespace pass, and it runs over every authored member root as
 // well as every member pass 1 discovered. The authored roots are precisely the
@@ -33,7 +36,7 @@ import (
 // stat that config.LoadWorkspace deliberately keeps out of the load path;
 // absence is config.Resolve's to report.
 func Scan(wsRoot string, authored []config.Member) ([]config.Member, error) {
-	discovered, err := Members(wsRoot)
+	discovered, escaped, err := membersAndEscaped(wsRoot)
 	if err != nil {
 		return nil, err
 	}
@@ -43,6 +46,17 @@ func Scan(wsRoot string, authored []config.Member) ([]config.Member, error) {
 	// outcome for a dedicated workspace directory, so it is not sufficient on
 	// its own.
 	if len(authored) == 0 && len(discovered) == 0 {
+		// Two very different situations reach zero, and conflating them makes
+		// the diagnostic false: nothing was declared at all, or declarations
+		// were found and every one of them resolved outside the workspace root
+		// (the stated limitation on Members). Name an escaping path in the
+		// second case, since that is what the user has to act on.
+		if len(escaped) > 0 {
+			return nil, fmt.Errorf("%s: found no workspace members: every declared member resolves outside "+
+				"the workspace root (for example %q), and discovery only emits members at or below it; "+
+				"author such members explicitly in the workspace manifest, which does accept \"../\" roots",
+				wsRoot, escaped[0])
+		}
 		return nil, fmt.Errorf("%s: found no workspace members: no members are declared by go.work, "+
 			"pnpm-workspace.yaml, composer.json path repositories, lerna.json, or package.json workspaces, "+
 			"and the manifest authors none", wsRoot)
