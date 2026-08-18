@@ -269,3 +269,35 @@ func TestMergeOrdering(t *testing.T) {
 	}
 	assertEqual(t, ids, []string{"zeta", "alpha", "new-a", "new-b", "new-c"})
 }
+
+// A member discovered by pass 1 already carries the namespaces pass 1 computed
+// for guard 3, so Scan must reuse them rather than probing the same root a
+// second time. Pins the double-probe away; the assertion is on probe count, and
+// the surrounding tests keep the values honest.
+func TestScanProbesEachDiscoveredMemberOnce(t *testing.T) {
+	base := t.TempDir()
+	mustWrite(t, filepath.Join(base, "pnpm-workspace.yaml"), "packages:\n  - packages/*\n")
+	for _, name := range []string{"core", "web"} {
+		pkg := filepath.Join(base, "packages", name)
+		mustMkdir(t, pkg)
+		mustWrite(t, filepath.Join(pkg, "package.json"), `{"name":"@acme/`+name+`"}`)
+	}
+
+	counts := map[string]int{}
+	real := namespacesProbe
+	namespacesProbe = func(dir string) ([]string, error) {
+		counts[filepath.Clean(dir)]++
+		return real(dir)
+	}
+	t.Cleanup(func() { namespacesProbe = real })
+
+	if _, err := Scan(base, nil); err != nil {
+		t.Fatalf("Scan: %v", err)
+	}
+	for _, name := range []string{"core", "web"} {
+		dir := filepath.Clean(filepath.Join(base, "packages", name))
+		if got := counts[dir]; got != 1 {
+			t.Fatalf("probed %s %d times, want 1", name, got)
+		}
+	}
+}

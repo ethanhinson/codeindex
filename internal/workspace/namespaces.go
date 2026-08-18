@@ -36,6 +36,11 @@ var pySkipDirs = map[string]bool{
 // error; members are single-language in practice, but the probes are
 // independent. A marker file that exists but cannot be read or parsed IS an
 // error.
+// namespacesProbe is the seam every in-package caller of the namespace pass
+// goes through, so a test can count how many times a member root is probed.
+// Production code never reassigns it.
+var namespacesProbe = Namespaces
+
 func Namespaces(memberRoot string) ([]string, error) {
 	var all []string
 	for _, probe := range []func(string) ([]string, error){

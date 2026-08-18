@@ -66,21 +66,20 @@ func Scan(wsRoot string, authored []config.Member) ([]config.Member, error) {
 	byID := map[string]bool{}
 	byRoot := map[string]bool{}
 
-	appendScanned := func(id, root string) error {
-		ns, err := namespacesAt(wsRoot, root)
-		if err != nil {
-			return err
-		}
+	// record records one member's scan result. ns is the namespace pass's
+	// output for root, already computed by the caller.
+	record := func(id, root string, ns []string) {
 		byID[id] = true
 		byRoot[cleanRoot(root)] = true
 		out = append(out, config.Member{ID: id, Root: root, Namespaces: ns})
-		return nil
 	}
 
 	for _, m := range authored {
-		if err := appendScanned(m.ID, m.Root); err != nil {
+		ns, err := namespacesAt(wsRoot, m.Root)
+		if err != nil {
 			return nil, err
 		}
+		record(m.ID, m.Root, ns)
 	}
 	for _, m := range discovered {
 		// A discovered member that is already authored is the same member;
@@ -88,9 +87,11 @@ func Scan(wsRoot string, authored []config.Member) ([]config.Member, error) {
 		if byID[m.ID] || byRoot[cleanRoot(m.Root)] {
 			continue
 		}
-		if err := appendScanned(m.ID, m.Root); err != nil {
-			return nil, err
-		}
+		// Pass 1 already ran the namespace pass over this root to apply guard
+		// 3, and it ran it over exactly the directory namespacesAt would probe
+		// — a discovered root exists and is a directory by guard 1, so the
+		// absent-root branch cannot apply. Reuse it rather than probing twice.
+		record(m.ID, m.Root, m.Namespaces)
 	}
 	return out, nil
 }
@@ -107,7 +108,7 @@ func namespacesAt(wsRoot, root string) ([]string, error) {
 		// empty-list-is-a-gap rule.
 		return []string{}, nil
 	}
-	return Namespaces(dir)
+	return namespacesProbe(dir)
 }
 
 // cleanRoot normalizes a member root for matching, so "../a/./" and "../a"

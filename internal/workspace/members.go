@@ -2,7 +2,9 @@ package workspace
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -119,7 +121,7 @@ func membersAndEscaped(root string) ([]config.Member, []string, error) {
 		if !ok {
 			continue
 		}
-		ns, err := Namespaces(filepath.Join(root, filepath.FromSlash(rel)))
+		ns, err := namespacesProbe(filepath.Join(root, filepath.FromSlash(rel)))
 		if err != nil {
 			return nil, nil, err
 		}
@@ -211,13 +213,20 @@ func isMemberDir(root, rel string) (bool, error) {
 		}
 	}
 	// Guard 2: the marker must sit at the candidate's own top level. A
-	// marker one level down qualifies that child, not this candidate.
+	// marker one level down qualifies that child, not this candidate. This is
+	// a presence test only, so it stats rather than reading: the contents are
+	// parsed later, by the declaration sources and the namespace probes.
+	dir := filepath.Join(root, filepath.FromSlash(rel))
 	for _, marker := range memberMarkers {
-		_, ok, err := readMarker(filepath.Join(root, filepath.FromSlash(rel)), marker)
+		mi, err := os.Stat(filepath.Join(dir, marker))
 		if err != nil {
+			if errors.Is(err, fs.ErrNotExist) {
+				continue
+			}
 			return false, err
 		}
-		if ok {
+		// A directory that happens to be named like a marker is not one.
+		if !mi.IsDir() {
 			return true, nil
 		}
 	}
