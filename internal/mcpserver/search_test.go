@@ -73,6 +73,26 @@ func TestSearchToolAndPrompt(t *testing.T) {
 		}
 	}
 
+	// Build-independent lexical contract: a bare identifier query hits the
+	// "exact" rung of the lexical ladder (matchQuality in internal/search/find.go
+	// lowercases and stems both sides), so this must surface "Helper" regardless
+	// of whether embeddings are live — a genuine lexical-fallback regression
+	// would fail this even when the semantic assertion above is skipped.
+	res, err = sess.CallTool(ctx, &mcp.CallToolParams{
+		Name: "search",
+		Arguments: map[string]any{
+			"query": "Helper",
+			"limit": 5,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	out = res.Content[0].(*mcp.TextContent).Text
+	if !strings.Contains(out, "Helper") {
+		t.Fatalf("bare identifier search did not surface Helper:\n%s", out)
+	}
+
 	prompts, err := sess.ListPrompts(ctx, nil)
 	if err != nil {
 		t.Fatal(err)
