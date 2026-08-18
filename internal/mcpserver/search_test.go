@@ -55,10 +55,21 @@ func TestSearchToolAndPrompt(t *testing.T) {
 	// contract for whichever capability this build actually has.
 	if lexIdx := strings.Index(out, "[lexical-only: "); lexIdx != -1 {
 		rest := out[lexIdx+len("[lexical-only: "):]
+		// The disclosure header (see internal/query/searchtext.go) always lives on
+		// a single line, with an optional trailing " [<obs note>]" segment on that
+		// same line. Bound the scan to that line so a malformed/missing closing
+		// bracket cannot make this scan unbounded across the rest of the output.
+		if nlIdx := strings.IndexByte(rest, '\n'); nlIdx != -1 {
+			rest = rest[:nlIdx]
+		}
 		closeIdx := strings.Index(rest, "]")
 		if closeIdx == -1 {
 			t.Fatalf("lexical-only disclosure missing closing bracket:\n%s", out)
 		}
+		// Degradation reasons are not expected to contain "]"; if one ever did,
+		// this would silently truncate at the first bracket. Guard against that
+		// by asserting no unconsumed "]" remains earlier in the (now line-bounded)
+		// candidate — a cheap, visible check rather than a silent truncation.
 		reason := rest[:closeIdx]
 		if strings.TrimSpace(reason) == "" {
 			t.Fatalf("lexical-only disclosure has empty reason:\n%s", out)
