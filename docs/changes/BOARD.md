@@ -1,15 +1,20 @@
 # Backlog
 
-**10 changes** — 🟡 5 proposed · ✅ 5 done
+**10 changes** — 🟢 1 in progress · 🟡 4 proposed · ✅ 5 done
 
-## 🟡 Proposed (5)
+## 🟢 In progress (1)
+
+| # | Title | Priority | Type | Spec | Branch |
+|---|-------|----------|------|------|--------|
+| [0009](active/0009-workspace-manifest-init-scan.md) | Workspace manifest load/validate + init-workspace --scan | `high` | `feat` | [spec](../superpowers/specs/2026-08-18-workspace-manifest-init-scan-design.md) | `feat/workspace-manifest-init-scan` |
+
+## 🟡 Proposed (4)
 
 | # | Title | Priority | Type | Readiness |
 |---|-------|----------|------|-----------|
 | [0006](active/0006-delta-impact-query-mode.md) | Delta impact query mode — what changed in the blast radius since X | `high` | `feat` | needs-brainstorm |
 | [0007](active/0007-session-stable-query-cache.md) | Session-stable query cache keyed by index version | `medium` | `perf` | needs-brainstorm |
 | [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-brainstorm |
-| [0009](active/0009-workspace-manifest-init-scan.md) | Workspace manifest load/validate + init-workspace --scan | `high` | `feat` | build-ready |
 | [0010](active/0010-workspace-bench-corpus-monorepo-growth.md) | Grow the workspace bench corpus — monorepo declaration coverage in every supported language | `medium` | `chore` | needs-brainstorm |
 
 ```mermaid
