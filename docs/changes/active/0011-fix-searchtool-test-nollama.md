@@ -2,7 +2,7 @@
 id: 11
 slug: fix-searchtool-test-nollama
 title: Make TestSearchToolAndPrompt honest under nollama builds
-status: proposed
+status: in-progress
 priority: high
 type: fix
 created: 2026-08-18
@@ -16,7 +16,8 @@ plan:
 results:
 trivial: true
 auto_groomable:
-branch:
+branch: feat/fix-searchtool-test-nollama
+claimed_at: 2026-08-18T20:33:28Z
 pr:
 blocked_by:
 reconciled: false
