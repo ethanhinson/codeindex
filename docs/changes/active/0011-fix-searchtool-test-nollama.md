@@ -10,14 +10,14 @@ updated: 2026-08-18
 depends_on: []
 related: [9]
 discovered_from: [9]
-adrs: []
+adrs: [11]
 spec:
 plan: docs/superpowers/plans/2026-08-18-fix-searchtool-test-nollama-plan.md
 results:
 trivial: true
 auto_groomable:
 branch: feat/fix-searchtool-test-nollama
-claimed_at: 2026-08-18T20:48:42Z
+claimed_at: 2026-08-18T21:54:42Z
 pr:
 blocked_by:
 reconciled: true
@@ -29,6 +29,7 @@ reconciled: true
 | Artifact | Link |
 |---|---|
 | Plan | [2026-08-18-fix-searchtool-test-nollama-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/fix-searchtool-test-nollama/docs/superpowers/plans/2026-08-18-fix-searchtool-test-nollama-plan.md) |
+| ADRs | [ADR-0011](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0011-capability-tests-assert-on-degradation-disclosure.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
