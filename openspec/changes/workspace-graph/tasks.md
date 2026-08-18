@@ -1,7 +1,8 @@
 # Tasks: workspace-graph
 
-Sequencing: section 1 rides into M3 now. Sections 2–5 are gated on a GO
-at the C2 fork (ROADMAP-DEBATE.md path C) and are not started before it.
+Sequencing: section 1 rides into M3 now. Sections 2–5 were gated on a GO
+at the C2 fork (ROADMAP-DEBATE.md path C); **GO registered 2026-08-17**
+(ROADMAP-DEBATE.md §6, branch GO-WITH-PAIN) — §2 is in progress.
 
 ## 1. M3 schema reservations (now, with M3's schema freeze)
 
@@ -15,15 +16,28 @@ at the C2 fork (ROADMAP-DEBATE.md path C) and are not started before it.
 
 ## 2. Bench first (post-GO, before any engine code)
 
-- [ ] 2.1 Assemble the cross-repo corpus: 3–5 member workspace, ≥2
+- [x] 2.1 Assemble the cross-repo corpus: 3–5 member workspace, ≥2
       languages, one shared lib with ≥2 consumers, ≥30 organic tasks
       (extend the M2 miner; per-member quota recorded)
+      — DONE 2026-08-17 (amended: OSS-only, all 4 indexer languages,
+      10 members — see the dated amendment in `bench/workspace/
+      README.md`): `corpus.json` clusters symfony←{drupal,laravel},
+      nest-common←{nest-core,nest-microservices} (monorepo case),
+      werkzeug←flask, client_golang←prometheus, lib pins taken from
+      consumer declarations; `build_tasks_ws.py` mined 65 rung-1 tasks
+      (php 24 / ts 17 / go 12 / py 12), GT hand-spot-verified
 - [ ] 2.2 Wire arms: A = shell + all checkouts (grep-across control),
       B = A + workspace MCP; `--setting-sources project,local` isolation
       (bench-hook-leak rule); grader-blind formatting; leak-audit all
       four classes
-- [ ] 2.3 Register the bars from design D7 in the residuals backlog
-      before the first scored run
+      — arm A wired + smoked on the OSS corpus 2026-08-17 (`run_ws.py`,
+      `grade_ws.py`: mechanical set-comparison grading, isolation flag
+      in); arm B refuses to run until the engine exists (env-gated);
+      leak audit still to run before any scored campaign
+- [x] 2.3 Register the bars from design D7 in the residuals backlog
+      before the first scored run — DONE 2026-08-17:
+      `bench/workspace/README.md` (bars verbatim; gate script must read
+      them from there, m5 precedent)
 
 ## 3. Workspace core (post-GO)
 

@@ -222,3 +222,28 @@ The project is judged by one sentence it must earn at M5:
 Path C buys the cheapest possible read on whether that sentence is earnable *before*
 the core spend — the one exception the current plan makes to its own falsify-first
 discipline, removed.
+
+---
+
+## 6. C2 fork: decided — GO (2026-08-17)
+
+C1 ran as the M5 go/no-go campaign (`bench/m5/`, pre-registered gates in its
+README, verdicts in `FINDINGS.md` Finding 5, official report
+`results/report_m5.md`):
+
+- **GO gate (index attribution): PASS** — small+index 64.7% vs small+shell
+  26.5% (+38.2pp at n=34; gate required +10pp).
+- **KILL gate (cheap explorer dominates): NOT TRIGGERED** — the compound
+  scale-substitution verdict passed at +26.5pp where the gate tolerated −5pp.
+- Trust read (WITH-PAIN evidence): false-confidence 50–82% across all cheap
+  arms — coverage/provenance (M3/M4) attacks a measured failure, not an
+  assumed one.
+
+**Branch: GO-WITH-PAIN.** Owner registered the GO on 2026-08-17. Caveat
+carried forward from the path-C trade-off: the verdict rests on partly
+index-derived ground truth, so "go" means "go build the organic-gt
+benchmark," not "go declare victory."
+
+Downstream unblocks: `openspec/changes/workspace-graph` §2–5 (bench-first;
+gate bars pre-registered in `bench/workspace/README.md` before any scored
+run, per its tasks.md).
