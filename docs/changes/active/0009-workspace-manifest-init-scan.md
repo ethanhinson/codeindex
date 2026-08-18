@@ -8,14 +8,14 @@ type: feat
 created: 2026-08-17
 updated: 2026-08-18
 depends_on: []
-related: []
+related: [10]
 discovered_from: []
 adrs: []
 spec:
 plan:
 results:
 trivial: false
-auto_groomable: false
+auto_groomable: true
 branch:
 pr:
 blocked_by:
@@ -53,9 +53,16 @@ Per design D1 (identity) and D5 (surfaces):
   workspace root, may point outside it).
 - New verb `init-workspace --scan`: namespace auto-discovery per language
   (go.mod / package.json / composer.json / Python top-level modules) and
-  monorepo member discovery via go.work, pnpm-workspace.yaml, and
-  composer path repositories. Manifest overrides always win over
-  scanned values.
+  monorepo member discovery via go.work, pnpm-workspace.yaml,
+  composer path repositories, lerna.json, and package.json `workspaces`
+  (the last two are a dated amendment to the frozen design — owner
+  decision 2026-08-18). Manifest overrides always win over scanned
+  values.
+- Bench manifest bootstrap (in-slice): hand-author a skeleton manifest
+  for `bench/repos/oss-ws` (member ids + roots, empty namespaces), then
+  `init-workspace --scan --force` fills the namespaces; verify the
+  result against `bench/workspace/corpus.json` pins. This exercises the
+  `--force` merge path end-to-end and hands bench arm B a real manifest.
 - Root-kind detection groundwork: a root containing `workspace.json` is a
   workspace; a root with neither manifest nor indexable source errors
   naming both possibilities. Single-repo mode is the absence of a
@@ -132,85 +139,42 @@ variants, the `merkle.WalkWith` signature constraints, the D7 SHALL
 reading) lives in the abstain record in git history and is superseded
 by the owner decisions above.
 
-## Auto-groom blocked
+### Owner decisions, round 2 (2026-08-18)
 
-### 2026-08-18 — second abstain (corpus facts contradict the settled record)
+The second abstain's two blockers and five fixable items were answered
+by the owner on 2026-08-18; the full abstain record is in git history
+(commit fac8f28):
 
-The owner's three 2026-08-18 decisions were distilled faithfully into a
-draft spec and they are **not** what blocked this round. The adversarial
-critic checked the draft's evidentiary basis against the repo on disk
-and found that two load-bearing claims — inherited from the settled
-design record, not invented by this groom — are **false about the frozen
-bench corpus**. Both need an owner call, so no spec was emitted.
+1. **Monorepo discovery sources — amend the frozen design:** add
+   `lerna.json` and `package.json` `workspaces` to the source list, as
+   a dated amendment to `openspec/changes/workspace-graph/design.md`
+   (the corpus's only monorepo, nest, declares members solely via
+   `lerna.json`). Separately, the owner wants the bench corpus grown
+   significantly — monorepo declaration examples in every supported
+   language, then measured; that is filed as change 0010 and is not
+   part of this slice.
+2. **Bench manifest bootstrap is in-slice — skeleton + scan:**
+   hand-author a skeleton `bench/repos/oss-ws/.codeindex/workspace.json`
+   (member ids + roots, empty namespaces); `init-workspace --scan
+   --force` fills the namespaces; verify the result against
+   `bench/workspace/corpus.json` pins. This makes the `--force`
+   empty-namespaces merge path real.
+3. **Parsing strategy — add both dependencies:** `golang.org/x/mod` for
+   go.work / go.mod parsing and a YAML module (e.g. `gopkg.in/yaml.v3`)
+   for pnpm-workspace.yaml. Both pure Go; the single-static-binary ADR
+   is unaffected.
 
-**Blocker 1 — member discovery finds nothing on the corpus's only
-monorepo.** The design (D1, `design.md:41-77`) and `tasks.md` §3.1 both
-enumerate exactly three monorepo sources: `go.work`,
-`pnpm-workspace.yaml`, composer path repositories. On disk the frozen
-corpus contains **none of them**: no `go.work` in `bench/repos/prometheus`
-or `bench/repos/client_golang`, no `pnpm-workspace.yaml` in
-`bench/repos/nest`, and the PHP members are standalone. The corpus's one
-monorepo declaration is `bench/repos/nest/lerna.json`
-(`{"packages": ["packages/*"], …}`), and `bench/repos/nest/package.json`
-carries **no `workspaces` field**. So member discovery as designed
-returns **zero members for nest** — 3 of the 11 corpus members — silently,
-while every test named in the draft still passes. Notably, guard 1's
-worked example glob is `packages/*`, verbatim lerna's, which suggests the
-three guards were tuned against a source the frozen design omits.
+Binding fixes carried forward from the abstain's fixable list:
 
-*What is missing / what a human should supply:* whether `lerna.json`
-(and/or `package.json` `workspaces`) is added to the source list. That is
-an **amendment to a frozen upstream design**, which is exactly the class
-of decision autonomous grooming may not make. If it is added, decision 2's
-"no new ADR" also stops being obviously right.
-
-**Blocker 2 — the `--force` merge rationale does not fire on the corpus.**
-The settled record justifies "empty `namespaces` is a gap the scan fills"
-by the D1 dedicated-workspace-directory bootstrap, citing
-`bench/workspace/corpus.json` and the `bench/repos/oss-ws` root. On disk:
-`bench/repos/oss-ws` is an **empty directory** (no `.codeindex/`, no
-manifest), and `corpus.json` is **not a manifest** — different path, extra
-fields (`_comment`, `lang`, `role`, `pin`), and **all 11 members carry
-non-empty `namespaces`**. There is therefore no hand-authored skeleton for
-`--force` to merge into and the empty-namespaces path never fires on the
-corpus. Compounded with blocker 1, `init-workspace --scan` pointed at
-`oss-ws` discovers nothing at all — and unblocking bench arm B is this
-change's stated reason to exist.
-
-*What is missing / what a human should supply:* whether converting
-`bench/workspace/corpus.json` into
-`bench/repos/oss-ws/.codeindex/workspace.json` is **in this slice**. It is
-currently neither designed nor listed in `## Out of scope`.
-
-**Also flagged (fixable without the owner, recorded so the next round does
-not re-derive them):**
-
-- `SaveWorkspace(root string, w Workspace) error` was given the rule
-  "preserve manifest order, sorting only newly appended members" — its
-  signature receives only the final slice and **cannot distinguish new
-  from pre-existing members**. That rule belongs to the `--force` merge
-  step, not the writer.
-- No parsing strategy was specified, and it hides a dependency decision:
-  the repo vendors **no YAML library and no `golang.org/x/mod`**, so
-  `pnpm-workspace.yaml`, `go.work`, and `go.mod`'s `module` directive each
-  need a hand-rolled parser **or a new module dependency** — a call an
-  unsupervised builder would otherwise make unilaterally.
-- The root-kind short-circuit helper (owner decision 2, sound in
-  principle) was left with an **unspecified extension filter**, so it
-  necessarily diverges from `adapter.Indexable` and `config.LoadFilter`;
-  §4.2's byte-identical golden gate tests query output, not root-kind
-  classification, so it would not catch the divergence later either.
-- The D7 merge-ahead amendment (owner decision 3) named **no target file
-  and no acceptance check**. It should name one file explicitly and be on
-  the test/acceptance list, since it is the only artifact standing between
-  this PR and a documented violation of the `spec.md:125` SHALL.
-- The draft's only named regression, `TestCallersTextGolden`, is
-  near-vacuous for this slice; D7's real bar is the whole single-repo
-  golden suite.
-
-**Recommendation: keep, do not kill or defer.** The change is correctly
-scoped and genuinely unblocks the D7 gate; it is one owner sitting for ten
-minutes with the corpus away from build-ready. The cheapest re-arm is to
-answer the two blockers above, fold the five fixable items into the
-`## Groom context` record, then flip `auto_groomable:` back to `true` and
-delete this section.
+- The "preserve manifest order, sorting only newly appended members"
+  rule belongs to the `--force` merge step, not `SaveWorkspace` (whose
+  signature only receives the final slice).
+- The root-kind short-circuit helper must reuse the real filter
+  semantics — `config.LoadFilter` + `adapter.Indexable`, passed
+  explicitly — never a diverging hard-coded extension list.
+- The D7 merge-ahead interpretation (round-1 decision 3) targets a
+  named file — the dated amendment section of
+  `openspec/changes/workspace-graph/design.md` — and must appear on the
+  spec's acceptance checklist.
+- The regression bar is the whole single-repo golden suite, not
+  `TestCallersTextGolden` alone.

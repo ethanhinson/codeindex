@@ -1,0 +1,73 @@
+---
+id: 10
+slug: workspace-bench-corpus-monorepo-growth
+title: Grow the workspace bench corpus — monorepo declaration coverage in every supported language
+status: proposed
+priority: medium
+type: chore
+created: 2026-08-18
+updated: 2026-08-18
+depends_on: []
+related: [9]
+discovered_from: [9]
+adrs: []
+spec:
+plan:
+results:
+trivial: false
+auto_groomable:
+branch:
+pr:
+blocked_by:
+reconciled: false
+---
+
+## Artifacts
+
+<!-- docket:artifacts:start (generated — do not hand-edit) -->
+<!-- docket:artifacts:end -->
+
+## Why
+
+Grooming change 0009 surfaced that the frozen 65-task workspace bench
+corpus contains exactly one monorepo (nest), and it declares members
+solely via `lerna.json` — a source the frozen design didn't even list.
+Member discovery (`init-workspace --scan`) therefore has effectively one
+data point per declaration format, and most formats (go.work,
+pnpm-workspace.yaml, composer path repositories, npm/yarn `workspaces`)
+have zero organic coverage. Owner decision 2026-08-18: grow the corpus
+significantly with monorepo examples in every supported language, then
+measure discovery coverage.
+
+## What changes
+
+- Add pinned OSS monorepo members to the workspace bench corpus so every
+  supported declaration format has at least one organic example: go.work
+  (Go), pnpm-workspace.yaml and npm/yarn `workspaces` (TS/JS, alongside
+  the existing lerna case), composer path repositories (PHP), plus a
+  Python multi-member layout.
+- Re-mine tasks over the grown corpus (extend `build_tasks_ws.py`),
+  re-freeze the task set, and re-run the four-class leak audit
+  (`leak_audit_ws.py`) as the standing pre-verdict gate.
+- Measure and record member-discovery coverage per declaration format
+  (which formats are exercised, per-member quota) in
+  `bench/workspace/README.md`.
+
+## Out of scope
+
+- Any engine change — discovery source list changes belong to change
+  0009 and its successors.
+- Private-repo material — corpus stays pinned OSS (owner rule).
+- Re-running the D7 evidence gate itself (§5 of the workspace-graph
+  plan); this change only grows the corpus it will run over.
+
+## Open questions
+
+- Which specific OSS repos to pin per format, and target corpus size
+  ("significantly" needs a number at brainstorm time).
+- Whether grown-corpus task mining changes the per-member quota rules
+  recorded in the bench README.
+
+## Reconcile log
+
+<!-- Appended by docket-implement-next's reconcile pass: dated entries of what changed. -->
