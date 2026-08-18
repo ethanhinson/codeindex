@@ -1,0 +1,8 @@
+{
+  "name": "codeindex",
+  "description": "Blast-radius navigation for refactoring: when you know a function/type and need who calls it, what it calls, and what breaks if it changes. Not a search tool — use grep to find things.",
+  "version": "0.1.0",
+  "author": {
+    "name": "codeindex"
+  }
+}
