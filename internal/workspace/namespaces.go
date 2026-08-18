@@ -22,6 +22,11 @@ var pySkipDirs = map[string]bool{
 	"tests":    true,
 	"docs":     true,
 	"examples": true,
+	"setup":    true,
+	"conftest": true,
+	"noxfile":  true,
+	"manage":   true,
+	"_version": true,
 }
 
 // Namespaces runs every per-language probe against memberRoot and returns the

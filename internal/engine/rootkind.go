@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"syscall"
 
 	"codeindex/internal/adapter"
 	"codeindex/internal/config"
@@ -35,8 +36,10 @@ func DetectRootKind(root string) (RootKind, error) {
 	switch _, err := os.Stat(filepath.Join(root, config.WorkspaceFile)); {
 	case err == nil:
 		return RootWorkspace, nil
-	case !errors.Is(err, fs.ErrNotExist):
-		// Unreadable is not the same as absent — do not guess.
+	case !errors.Is(err, fs.ErrNotExist) && !errors.Is(err, syscall.ENOTDIR):
+		// Unreadable is not the same as absent — do not guess. ENOTDIR is
+		// absence too: it fires when .codeindex exists as a regular file
+		// rather than a directory, which is not a fault in the repo.
 		return RootRepo, err
 	}
 	filter, err := config.LoadFilter(root)

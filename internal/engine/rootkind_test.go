@@ -25,6 +25,27 @@ func TestDetectRootKindWorkspaceNoParse(t *testing.T) {
 	}
 }
 
+// os.Stat on <root>/.codeindex/workspace.json returns ENOTDIR (not
+// ErrNotExist) when .codeindex exists as a regular file rather than a
+// directory. That is absence, not a fault: an ordinary repo caught in this
+// state must still classify as RootRepo, not error out.
+func TestDetectRootKindCodeindexAsRegularFileIsRepo(t *testing.T) {
+	dir := writeTree(t, map[string]string{
+		"README.md":  "# docs\n",
+		"pkg/run.go": "package pkg\n\nfunc Run() {}\n",
+	})
+	if err := os.WriteFile(filepath.Join(dir, ".codeindex"), []byte("not a directory\n"), 0o644); err != nil {
+		t.Fatalf("write .codeindex file: %v", err)
+	}
+	kind, err := DetectRootKind(dir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if kind != RootRepo {
+		t.Fatalf("kind = %v, want RootRepo", kind)
+	}
+}
+
 // A root with at least one indexable source file and no manifest is a repo.
 func TestDetectRootKindRepo(t *testing.T) {
 	dir := writeTree(t, map[string]string{

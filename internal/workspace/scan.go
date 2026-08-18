@@ -102,7 +102,10 @@ func namespacesAt(wsRoot, root string) ([]string, error) {
 	dir := filepath.Join(wsRoot, filepath.FromSlash(root))
 	info, err := os.Stat(dir)
 	if err != nil || !info.IsDir() {
-		return nil, nil
+		// Non-nil and empty, not nil: a nil slice marshals as JSON `null` and
+		// would overwrite an authored "namespaces": [] via Merge's
+		// empty-list-is-a-gap rule.
+		return []string{}, nil
 	}
 	return Namespaces(dir)
 }

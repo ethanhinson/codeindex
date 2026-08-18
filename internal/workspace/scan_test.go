@@ -121,6 +121,29 @@ func TestScanNonexistentMemberRootContributesNothing(t *testing.T) {
 	assertEqual(t, findMember(t, got, "gosvc").Namespaces, []string{"example.com/gosvc"})
 }
 
+// A member root absent from disk must contribute an empty, non-nil namespaces
+// slice, not nil: nil marshals as `null` and would overwrite an authored `[]`
+// in the manifest via Merge's "empty list is a gap" rule (namespacesAt must
+// not rewrite "namespaces": [] to "namespaces": null).
+func TestScanNonexistentMemberRootYieldsEmptySliceNotNil(t *testing.T) {
+	ws := benchShapeRoot(t)
+	authored := []config.Member{
+		{ID: "gone", Root: "../not-here", Namespaces: []string{}},
+	}
+
+	got, err := Scan(ws, authored)
+	if err != nil {
+		t.Fatalf("Scan: %v", err)
+	}
+	ns := findMember(t, got, "gone").Namespaces
+	if ns == nil {
+		t.Fatalf("nonexistent root produced nil namespaces, want non-nil empty slice")
+	}
+	if len(ns) != 0 {
+		t.Fatalf("nonexistent root contributed %v", ns)
+	}
+}
+
 // The empty-result error fires only with no authored members AND zero
 // discovered — and it names the five declaration sources.
 func TestScanEmptyResultError(t *testing.T) {

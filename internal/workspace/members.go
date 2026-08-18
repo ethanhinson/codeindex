@@ -65,6 +65,15 @@ var excludedDirBasenames = func() map[string]bool {
 // path is unaffected by this filter. So the omission is never silent, the
 // escaping paths are reported alongside the members (see membersAndEscaped),
 // and Scan names them when they are the only reason the result is empty.
+//
+// Known limitation — glob expansion is filepath.Glob, which has no "**"
+// support: a "**" segment (e.g. "packages/**", common in pnpm and yarn
+// declarations) is treated as a single-level "*" rather than matching
+// arbitrarily deep. pnpm's "!"-prefixed negation entries are also passed
+// through to Glob as literal patterns and silently match nothing, so
+// negated exclusions in pnpm-workspace.yaml have no effect here. Neither is
+// implemented in this change; recursive globbing and negation support are
+// deferred to a later corpus-growth change.
 func Members(root string) ([]config.Member, error) {
 	members, _, err := membersAndEscaped(root)
 	return members, err

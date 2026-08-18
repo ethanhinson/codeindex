@@ -39,7 +39,7 @@ func runInitWorkspace(root string, args []string) error {
 	switch {
 	case err == nil:
 		if !force {
-			return fmt.Errorf("%s/%s already exists; pass --force to rescan and overwrite it",
+			return fmt.Errorf("%s/%s already exists; pass --force to rescan and fill gaps (authored values are preserved)",
 				root, config.WorkspaceFile)
 		}
 	case errors.Is(err, fs.ErrNotExist):

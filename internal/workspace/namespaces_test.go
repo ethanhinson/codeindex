@@ -39,7 +39,7 @@ func TestNamespaces(t *testing.T) {
 		{
 			name: "python root fallback when no src dir",
 			dir:  "pyroot",
-			want: []string{"mypkg", "setup"},
+			want: []string{"mypkg"},
 		},
 		{
 			name: "no marker files is not an error",
