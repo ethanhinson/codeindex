@@ -50,7 +50,16 @@ bench/scout/.venv/
 /third_party/
 
 # bench working clones (pinned via bench/repos.json; re-clone to regenerate)
-bench/repos/
+bench/repos/*
+# …except the authored workspace manifest (not a clone; cannot be re-cloned).
+# Each level must be re-included then re-excluded: git will not descend into an
+# ignored directory, so a bare `bench/repos/` rule makes the negations below
+# unreachable. Nothing but workspace.json itself is committable.
+!bench/repos/oss-ws/
+bench/repos/oss-ws/*
+!bench/repos/oss-ws/.codeindex/
+bench/repos/oss-ws/.codeindex/*
+!bench/repos/oss-ws/.codeindex/workspace.json
 # per-experiment agent transcripts (bulky; runs.jsonl is the durable record)
 bench/agent_ab/v8_search/results/transcripts/
 bench/agent_ab/v9_btt/results/transcripts/

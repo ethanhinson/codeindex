@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "members": [
+    {
+      "id": "symfony",
+      "root": "../symfony",
+      "namespaces": [
+        "Symfony\\Bridge\\Doctrine\\",
+        "Symfony\\Bridge\\Monolog\\",
+        "Symfony\\Bridge\\PsrHttpMessage\\",
+        "Symfony\\Bridge\\Twig\\",
+        "Symfony\\Bundle\\",
+        "Symfony\\Component\\",
+        "Symfony\\Runtime\\Symfony\\Component\\",
+        "symfony/symfony"
+      ]
+    },
+    {
+      "id": "drupal",
+      "root": "../drupal",
+      "namespaces": [
+        "Drupal",
+        "Drupal\\Component\\",
+        "Drupal\\Core\\",
+        "drupal/core"
+      ]
+    },
+    {
+      "id": "laravel",
+      "root": "../laravel-framework",
+      "namespaces": [
+        "Illuminate\\",
+        "Illuminate\\Support\\",
+        "laravel/framework"
+      ]
+    },
+    {
+      "id": "nest-common",
+      "root": "../nest/packages/common",
+      "namespaces": [
+        "@nestjs/common"
+      ]
+    },
+    {
+      "id": "nest-core",
+      "root": "../nest/packages/core",
+      "namespaces": [
+        "@nestjs/core"
+      ]
+    },
+    {
+      "id": "nest-microservices",
+      "root": "../nest/packages/microservices",
+      "namespaces": [
+        "@nestjs/microservices"
+      ]
+    },
+    {
+      "id": "werkzeug",
+      "root": "../werkzeug",
+      "namespaces": [
+        "werkzeug"
+      ]
+    },
+    {
+      "id": "flask",
+      "root": "../flask",
+      "namespaces": [
+        "flask"
+      ]
+    },
+    {
+      "id": "client_golang",
+      "root": "../client_golang",
+      "namespaces": [
+        "github.com/prometheus/client_golang"
+      ]
+    },
+    {
+      "id": "prometheus",
+      "root": "../prometheus",
+      "namespaces": [
+        "github.com/prometheus/prometheus"
+      ]
+    }
+  ]
+}
