@@ -2,7 +2,7 @@
 id: 9
 slug: workspace-manifest-init-scan
 title: Workspace manifest load/validate + init-workspace --scan
-status: in-progress
+status: implemented
 priority: high
 type: feat
 created: 2026-08-17
@@ -13,12 +13,12 @@ discovered_from: []
 adrs: []
 spec: docs/superpowers/specs/2026-08-18-workspace-manifest-init-scan-design.md
 plan: docs/superpowers/plans/2026-08-18-workspace-manifest-init-scan-plan.md
-results:
+results: docs/results/2026-08-18-workspace-manifest-init-scan-results.md
 trivial: false
 auto_groomable: true
 branch: feat/workspace-manifest-init-scan
-claimed_at: 2026-08-18T19:35:34Z
-pr:
+claimed_at: 2026-08-18T20:22:10Z
+pr: https://github.com/ethanhinson/codeindex/pull/8
 blocked_by:
 reconciled: true
 ---
@@ -30,6 +30,8 @@ reconciled: true
 |---|---|
 | Spec | [2026-08-18-workspace-manifest-init-scan-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-18-workspace-manifest-init-scan-design.md) |
 | Plan | [2026-08-18-workspace-manifest-init-scan-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-manifest-init-scan/docs/superpowers/plans/2026-08-18-workspace-manifest-init-scan-plan.md) |
+| Results | [2026-08-18-workspace-manifest-init-scan-results.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-manifest-init-scan/docs/results/2026-08-18-workspace-manifest-init-scan-results.md) |
+| PR | [#8](https://github.com/ethanhinson/codeindex/pull/8) |
 <!-- docket:artifacts:end -->
 
 ## Why
