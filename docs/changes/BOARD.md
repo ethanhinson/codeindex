@@ -1,6 +1,6 @@
 # Backlog
 
-**10 changes** — 🟢 1 in progress · 🟡 4 proposed · ✅ 5 done
+**11 changes** — 🟢 1 in progress · 🟡 5 proposed · ✅ 5 done
 
 ## 🟢 In progress (1)
 
@@ -8,7 +8,7 @@
 |---|-------|----------|------|------|--------|
 | [0009](active/0009-workspace-manifest-init-scan.md) | Workspace manifest load/validate + init-workspace --scan | `high` | `feat` | [spec](../superpowers/specs/2026-08-18-workspace-manifest-init-scan-design.md) | `feat/workspace-manifest-init-scan` |
 
-## 🟡 Proposed (4)
+## 🟡 Proposed (5)
 
 | # | Title | Priority | Type | Readiness |
 |---|-------|----------|------|-----------|
@@ -16,6 +16,7 @@
 | [0007](active/0007-session-stable-query-cache.md) | Session-stable query cache keyed by index version | `medium` | `perf` | needs-brainstorm |
 | [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-brainstorm |
 | [0010](active/0010-workspace-bench-corpus-monorepo-growth.md) | Grow the workspace bench corpus — monorepo declaration coverage in every supported language | `medium` | `chore` | needs-brainstorm |
+| [0011](active/0011-fix-searchtool-test-nollama.md) | Make TestSearchToolAndPrompt honest under nollama builds | `high` | `fix` | build-ready |
 
 ```mermaid
 graph TD
@@ -24,6 +25,7 @@ graph TD
   0008
   0009
   0010
+  0011
 ```
 
 <details><summary>✅ Archive — done (5)</summary>
