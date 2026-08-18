@@ -416,6 +416,16 @@ accommodations — no engine deliverable and no owner decision changes.
    Scoped to the single manifest path: no checkout, and no member tree,
    becomes committable. The manifest names only pinned-OSS member roots, so
    the owner's "no private-repo data in git" rule is satisfied.
+
+   **Correction (2026-08-18, build-time):** the block above is provably
+   inert — `bench/repos/` excludes the *directory*, so git never descends
+   into it and any `!`-negation beneath it is unreachable; the manifest
+   could not have been committed with this form. The implemented form
+   (adversarially verified against 14 decoy checkouts; see the results
+   file and PR #8) re-includes per level: `bench/repos/*` +
+   `!bench/repos/oss-ws`, re-exclude `bench/repos/oss-ws/*`, then
+   re-include `.codeindex` and the single manifest file. Scope is
+   unchanged — only the one manifest path becomes committable.
 2. **`bench/workspace/corpus.json` is not on `origin/main`.** The four
    `bench(workspace)` commits are unpushed local commits on `main`, and the
    feature branch is cut from `origin/main`, so `corpus.json` is absent from
