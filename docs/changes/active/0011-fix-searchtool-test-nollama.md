@@ -2,7 +2,7 @@
 id: 11
 slug: fix-searchtool-test-nollama
 title: Make TestSearchToolAndPrompt honest under nollama builds
-status: in-progress
+status: implemented
 priority: high
 type: fix
 created: 2026-08-18
@@ -13,12 +13,12 @@ discovered_from: [9]
 adrs: [11]
 spec:
 plan: docs/superpowers/plans/2026-08-18-fix-searchtool-test-nollama-plan.md
-results:
+results: docs/results/2026-08-18-fix-searchtool-test-nollama-results.md
 trivial: true
 auto_groomable:
 branch: feat/fix-searchtool-test-nollama
-claimed_at: 2026-08-18T21:54:42Z
-pr:
+claimed_at: 2026-08-18T21:57:14Z
+pr: https://github.com/ethanhinson/codeindex/pull/9
 blocked_by:
 reconciled: true
 ---
@@ -29,6 +29,8 @@ reconciled: true
 | Artifact | Link |
 |---|---|
 | Plan | [2026-08-18-fix-searchtool-test-nollama-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/fix-searchtool-test-nollama/docs/superpowers/plans/2026-08-18-fix-searchtool-test-nollama-plan.md) |
+| Results | [2026-08-18-fix-searchtool-test-nollama-results.md](https://github.com/ethanhinson/codeindex/blob/feat/fix-searchtool-test-nollama/docs/results/2026-08-18-fix-searchtool-test-nollama-results.md) |
+| PR | [#9](https://github.com/ethanhinson/codeindex/pull/9) |
 | ADRs | [ADR-0011](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0011-capability-tests-assert-on-degradation-disclosure.md) |
 <!-- docket:artifacts:end -->
 
