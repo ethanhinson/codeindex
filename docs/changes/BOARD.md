@@ -1,8 +1,14 @@
 # Backlog
 
-**12 changes** — 🟡 5 proposed · ✅ 7 done
+**12 changes** — 🟢 1 in progress · 🟡 4 proposed · ✅ 7 done
 
-## 🟡 Proposed (5)
+## 🟢 In progress (1)
+
+| # | Title | Priority | Type | Spec | Branch |
+|---|-------|----------|------|------|--------|
+| [0012](active/0012-workspace-overlay-store.md) | Workspace overlay store — member registry, cross-edges by stable key, freshness stamps | `high` | `feat` | [spec](../superpowers/specs/2026-08-19-workspace-overlay-store-design.md) | `feat/workspace-overlay-store` |
+
+## 🟡 Proposed (4)
 
 | # | Title | Priority | Type | Readiness |
 |---|-------|----------|------|-----------|
@@ -10,7 +16,6 @@
 | [0007](active/0007-session-stable-query-cache.md) | Session-stable query cache keyed by index version | `medium` | `perf` | needs-brainstorm |
 | [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-brainstorm |
 | [0010](active/0010-workspace-bench-corpus-monorepo-growth.md) | Grow the workspace bench corpus — monorepo declaration coverage in every supported language | `medium` | `chore` | needs-brainstorm |
-| [0012](active/0012-workspace-overlay-store.md) | Workspace overlay store — member registry, cross-edges by stable key, freshness stamps | `high` | `feat` | build-ready |
 
 ```mermaid
 graph TD
