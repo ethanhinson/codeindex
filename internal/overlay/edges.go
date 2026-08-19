@@ -131,12 +131,33 @@ func (s *Store) PutSuppressions(sup []Suppression) error {
 //     that consumer re-resolves, so deleting owner-side rows would drop records
 //     for members this call is not re-resolving and cannot rewrite.
 //
-// A sup entry whose ConsumerMember is not memberID is rejected: it would land
-// outside this call's own delete scope. Validation of both that and each
-// ambiguity's Count runs before the transaction opens.
+// Every input record must be one this call could later remove: what this call
+// can write is precisely what it can later remove, so the accept set and the
+// delete set above are exactly the same set. An edge incident to memberID on
+// neither end, an ambiguity incident to memberID on neither end — neither
+// sourced from it nor naming it among its candidates, matching the either-end
+// delete scope — or a sup entry whose ConsumerMember is not memberID is
+// rejected: it would land outside this call's own delete scope, becoming a row
+// no subsequent ReplaceMemberEdges(memberID, ...) could ever refresh. All of
+// that, and each ambiguity's Count, is validated before the transaction opens,
+// so a bad batch never half applies.
 func (s *Store) ReplaceMemberEdges(memberID string, edges []CrossEdge, a []Ambiguity, sup []Suppression) error {
 	if err := checkAmbiguities(a); err != nil {
 		return err
+	}
+	for _, e := range edges {
+		if e.Src.Member != memberID && e.Dst.Member != memberID {
+			return fmt.Errorf(
+				"overlay: ReplaceMemberEdges(%q): cross edge %s %s -> %s %s is incident to neither end, outside this call's delete scope",
+				memberID, e.Src.Member, e.Src.QName, e.Dst.Member, e.Dst.QName)
+		}
+	}
+	for _, x := range a {
+		if !ambiguityIncident(x, memberID) {
+			return fmt.Errorf(
+				"overlay: ReplaceMemberEdges(%q): ambiguity %s %s %s ref %q line %d names it neither as source nor as a candidate, outside this call's delete scope",
+				memberID, x.Src.Member, x.Src.File, x.Src.QName, x.RefName, x.Line)
+		}
 	}
 	for _, x := range sup {
 		if x.ConsumerMember != memberID {
@@ -166,6 +187,22 @@ func (s *Store) ReplaceMemberEdges(memberID string, edges []CrossEdge, a []Ambig
 		}
 		return putSuppressions(tx, sup)
 	})
+}
+
+// ambiguityIncident reports whether an ambiguity is incident to memberID on
+// either end — sourced from it, or naming it among its candidates. It is the
+// in-memory mirror of deleteIncidentAmbiguities' stored-row query, so the rows
+// ReplaceMemberEdges accepts are exactly the rows it can later delete.
+func ambiguityIncident(x Ambiguity, memberID string) bool {
+	if x.Src.Member == memberID {
+		return true
+	}
+	for _, c := range x.Candidates {
+		if c.Member == memberID {
+			return true
+		}
+	}
+	return false
 }
 
 // ambiguityDeleteChunk bounds how many ids one DELETE binds, staying well under

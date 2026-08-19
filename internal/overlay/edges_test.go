@@ -586,6 +586,100 @@ func TestReplaceMemberEdgesRejectsForeignSuppression(t *testing.T) {
 	}
 }
 
+// TestReplaceMemberEdgesRejectsForeignCrossEdge is the cross-edge half of the
+// accept-set/delete-set correspondence: an edge touching M on neither end is
+// inserted by this call but keyed outside its own delete scope, so no later
+// ReplaceMemberEdges(M) could ever refresh it.
+func TestReplaceMemberEdgesRejectsForeignCrossEdge(t *testing.T) {
+	s := newStore(t)
+	seedForReplace(t, s)
+	before := countQ(t, s, `SELECT COUNT(*) FROM cross_edges`)
+
+	foreign := CrossEdge{
+		Src: sym("app", "c.php", "C::z"), Dst: sym("lib", "b.php", "B::y"),
+		Kind: "call", Provenance: "cross_repo_import", Confidence: "exact", Line: 11,
+	}
+	err := s.ReplaceMemberEdges("web", []CrossEdge{foreign}, nil, nil)
+	if err == nil {
+		t.Fatal("ReplaceMemberEdges accepted a cross-edge touching neither end")
+	}
+	if !strings.Contains(err.Error(), "app") || !strings.Contains(err.Error(), "lib") ||
+		!strings.Contains(err.Error(), "web") {
+		t.Fatalf("error %q does not name the offending edge and the member", err)
+	}
+	// Rejected before any write: the seeded state is intact.
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_edges`); got != before {
+		t.Fatalf("cross_edges = %d, want %d — the rejected call still wrote", got, before)
+	}
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_edges WHERE line=11`); got != 0 {
+		t.Fatalf("the rejected cross-edge was written")
+	}
+}
+
+// TestReplaceMemberEdgesRejectsForeignAmbiguity is the ambiguity half: not
+// sourced from M and not naming M among its candidates means not incident, and
+// the either-end delete would never reach it.
+func TestReplaceMemberEdgesRejectsForeignAmbiguity(t *testing.T) {
+	s := newStore(t)
+	seedForReplace(t, s)
+	beforeEdges := countQ(t, s, `SELECT COUNT(*) FROM cross_edges`)
+	beforeAmbig := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguities`)
+	beforeCands := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates`)
+
+	foreign := Ambiguity{
+		Src: sym("app", "c.php", "C::z"), RefName: "Elsewhere", Kind: "call", Line: 12,
+		Candidates: []SymKey{sym("lib", "b.php", "B::y")}, Count: 1,
+	}
+	err := s.ReplaceMemberEdges("web", nil, []Ambiguity{foreign}, nil)
+	if err == nil {
+		t.Fatal("ReplaceMemberEdges accepted an ambiguity incident to neither end")
+	}
+	if !strings.Contains(err.Error(), "app") || !strings.Contains(err.Error(), "Elsewhere") ||
+		!strings.Contains(err.Error(), "web") {
+		t.Fatalf("error %q does not name the offending ambiguity and the member", err)
+	}
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_edges`); got != beforeEdges {
+		t.Fatalf("cross_edges = %d, want %d — the rejected call still deleted", got, beforeEdges)
+	}
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguities`); got != beforeAmbig {
+		t.Fatalf("cross_ambiguities = %d, want %d", got, beforeAmbig)
+	}
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates`); got != beforeCands {
+		t.Fatalf("cross_ambiguity_candidates = %d, want %d", got, beforeCands)
+	}
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguities WHERE ref_name='Elsewhere'`); got != 0 {
+		t.Fatalf("the rejected ambiguity was written")
+	}
+}
+
+// TestReplaceMemberEdgesAcceptsCandidateOnlyAmbiguity pins the other side of
+// the correspondence: candidate-side incidence is real incidence. Such a row
+// *is* reachable by a later ReplaceMemberEdges(M) delete, so the guard must let
+// it through even though M is nowhere in its Src.
+func TestReplaceMemberEdgesAcceptsCandidateOnlyAmbiguity(t *testing.T) {
+	s := newStore(t)
+	seedForReplace(t, s)
+
+	candidateOnly := Ambiguity{
+		Src: sym("app", "c.php", "C::z"), RefName: "Thing", RefNS: "Acme",
+		Kind: "call", Line: 4,
+		Candidates: []SymKey{sym("web", "a.php", "A::x"), sym("lib", "b.php", "B::y")},
+		Count:      2,
+	}
+	if err := s.ReplaceMemberEdges("web", nil, []Ambiguity{candidateOnly}, nil); err != nil {
+		t.Fatalf("ReplaceMemberEdges rejected an ambiguity incident to web via its candidates: %v", err)
+	}
+	if got := countQ(t, s,
+		`SELECT COUNT(*) FROM cross_ambiguities WHERE src_member='app' AND ref_name='Thing'`); got != 1 {
+		t.Fatalf("candidate-only ambiguity rows = %d, want 1", got)
+	}
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates WHERE member_id='web'`); got != 1 {
+		t.Fatalf("web candidate rows = %d, want 1", got)
+	}
+	assertNoOrphanCandidates(t, s)
+	assertCountsMatchCandidates(t, s)
+}
+
 func TestReplaceMemberEdgesRejectsShortAmbiguityCount(t *testing.T) {
 	s := newStore(t)
 	seedForReplace(t, s)
