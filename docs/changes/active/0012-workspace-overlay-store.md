@@ -11,7 +11,7 @@ depends_on: [9]
 related: [9, 10]
 discovered_from: []
 adrs: []
-spec:
+spec: docs/superpowers/specs/2026-08-19-workspace-overlay-store-design.md
 plan:
 results:
 trivial: false
@@ -25,6 +25,9 @@ reconciled: false
 ## Artifacts
 
 <!-- docket:artifacts:start (generated — do not hand-edit) -->
+| Artifact | Link |
+|---|---|
+| Spec | [2026-08-19-workspace-overlay-store-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-19-workspace-overlay-store-design.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
@@ -45,9 +48,14 @@ This change implements task §3.2 of
 
 ## What changes
 
+A new flat package `internal/overlay` (sibling to `internal/graph` and
+`internal/depmap`, which owns the same shape for dependency maps) holding
+`<workspace-root>/.codeindex/workspace.db`, opened by path with an exported
+`Path(wsRoot)` helper and the delete-and-rebuild version discipline
+`graph.Open` already uses.
+
 Per design D2 (storage — overlay DB, not copy-merge, not query-time
-re-resolution): `<workspace-root>/.codeindex/workspace.db` holding
-exactly three things:
+re-resolution) the database holds exactly three things:
 
 - **Member registry** — a mirror of the manifest as-built.
 - **Cross-repo edges** — referenced by stable key (member id + file path
@@ -64,6 +72,12 @@ exactly three things:
 The overlay schema carries its own version, independent of the graph.db
 schema version; an overlay version bump rebuilds the overlay only
 (cheap), never member indexes.
+
+The slice ships the API unwired, as change 0009 shipped `config.Resolve`
+and `DetectRootKind` — §3.2 has no CLI verb of its own, and the first
+callers belong to §3.3/§3.4. Confidence is stored in the frozen spec's
+own vocabulary (`exact` / `inferred`); reconciling that with
+`graph.Confidence` at the surface is §4.1's.
 
 ## Out of scope
 
