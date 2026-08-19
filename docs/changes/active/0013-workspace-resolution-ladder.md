@@ -12,14 +12,14 @@ related: [9, 12]
 discovered_from: []
 adrs: []
 spec: docs/superpowers/specs/2026-08-19-workspace-resolution-ladder-design.md
-plan:
+plan: docs/superpowers/plans/2026-08-19-workspace-resolution-ladder-plan.md
 results:
 trivial: false
 auto_groomable: true
 branch: feat/workspace-resolution-ladder
 pr:
 blocked_by:
-claimed_at: 2026-08-19T22:12:00Z
+claimed_at: 2026-08-19T22:20:00Z
 reconciled: true
 ---
 
@@ -29,6 +29,7 @@ reconciled: true
 | Artifact | Link |
 |---|---|
 | Spec | [2026-08-19-workspace-resolution-ladder-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-19-workspace-resolution-ladder-design.md) |
+| Plan | [2026-08-19-workspace-resolution-ladder-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-resolution-ladder/docs/superpowers/plans/2026-08-19-workspace-resolution-ladder-plan.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
