@@ -19,8 +19,8 @@ auto_groomable: true
 branch: feat/workspace-resolution-ladder
 pr:
 blocked_by:
-claimed_at: 2026-08-19T21:59:01Z
-reconciled: false
+claimed_at: 2026-08-19T22:12:00Z
+reconciled: true
 ---
 
 ## Artifacts
@@ -105,3 +105,47 @@ belongs to §4.2.
 ## Reconcile log
 
 <!-- Appended by docket-implement-next's reconcile pass: dated entries of what changed. -->
+
+### 2026-08-19
+
+Reconciled against `origin/main` `f6d4dee` and the `docket` tip before planning. The
+design survives intact — **no scope change, no rung change, no deliverable added or
+dropped**. What the pass established:
+
+- **Dependency re-confirmed.** `depends_on: [12]` is satisfied (0012 `done`, archived as
+  `2026-08-19-0012-workspace-overlay-store.md`); `related: [9, 12]` are both merged.
+- **The slice is still entirely unbuilt.** `internal/wsresolve` does not exist, and none
+  of `graph.UnresolvedEdges`, `graph.ProjectDefs`, `graph.TierOneEdges`,
+  `graph.MemberMerkleRoot`, or `graph.OpenExisting` has been added by any other change —
+  no work to drop.
+- **`internal/overlay` is still unwired** (no non-test caller), and its API, its four
+  record types, and `ReplaceMemberEdges`' either-end delete are byte-for-byte as the spec
+  describes. The empty-input clear the write order depends on is already exercised by
+  0012's own `TestReplaceMemberEdgesEmptyClears`, so §6 step 9 rests on tested behavior.
+- **`config.Resolve` still has no non-test caller** — this change still owns its first,
+  as `## Why` claims.
+
+Four spec facts had drifted in detail and were corrected in place; none changes a
+decision:
+
+1. `PutFile`'s `bind` map is gated on `d.Source != "" && d.Target != ""`, not on
+   `d.Source != ""` alone. Strictly narrower, so the Go-hint blind spot the spec calls out
+   is if anything slightly wider than described — the ladder still must not assume H is
+   universal.
+2. `graph.Open` is at `store.go:139` (spec said `136-174`); `OpenRaw` at `:180` holds.
+   Additionally `SchemaVersion() int` and `FileSchemaVersion(path) (int, error)` are
+   **already exported** at `:182`/`:186`, so §6's availability check needs no new version
+   accessor — one less thing for `OpenExisting` to invent.
+3. `phpNamespaces` spans `namespaces.go:120-151` (spec said `120-141`) and
+   `Symbol.QName` is at `types.go:85` (spec said `:83`). Both facts hold.
+4. `DepFileState` is `{Path, Namespace, Version, MapHash, CurHash, Size, Mtime}` — it has
+   **no `Modified` field**, though the `depfiles` table does. §7's fold reads
+   `path`/`namespace`/`version`/`curhash`, all of which the struct exposes, so the stamp
+   design is unaffected; the spec now says so explicitly rather than leaving a builder to
+   discover it.
+
+`openspec/changes/workspace-graph/tasks.md` still shows `- [ ] 3.2` unchecked, exactly as
+the spec predicted — the builder ticks both §3.2 and §3.3.
+
+No follow-up work was surfaced that warranted capture, and `auto_capture` is disabled in
+this repo in any case.

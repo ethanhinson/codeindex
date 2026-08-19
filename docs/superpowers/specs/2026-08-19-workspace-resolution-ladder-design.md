@@ -33,7 +33,10 @@ No CLI verb, no MCP surface, no query path, no change to any member's
 
 ## Codebase facts this design is built on
 
-Verified against the working tree at `origin/main` (2026-08-19):
+Verified against the working tree at `origin/main` (2026-08-19), and **re-verified
+fact-by-fact at the 2026-08-19 reconcile pass against `origin/main` `f6d4dee`** — every
+substantive claim held. The line numbers and the one gate condition that had drifted are
+corrected in place below; the change's `## Reconcile log` enumerates them.
 
 - `internal/overlay` exists and is **unwired** — no non-test caller in tree.
   Its API is exactly as specced in
@@ -68,7 +71,7 @@ Verified against the working tree at `origin/main` (2026-08-19):
 - **`dst_ns` is populated for all four languages, but by two different
   mechanisms, and Go's has a hole.** `PutFile` builds a per-file
   `bind[target] → normalizeHint(source, target, path)` map from the file's
-  import deps — gated on `d.Source != ""` (`store.go:341-345`) — and uses it
+  import deps — gated on `d.Source != "" && d.Target != ""` (`store.go:341-345`) — and uses it
   whenever a call carries no Go alias hint (`store.go:352-355`).
   `normalizeHint` (`store.go:1157`) resolves relative TS specifiers against the
   importing file's dir, strips a PHP `use`-path's bound final segment, and
@@ -88,10 +91,12 @@ Verified against the working tree at `origin/main` (2026-08-19):
   matching `candNS == hint + ".ts" | "/index.ts" | …`. D3 rung 1 needs a
   different shape (a member's *declared root* namespace as a boundary
   **prefix** of H), so `nsMatch` is not reusable here. See decision 4.
-- `internal/graph/store.go:136-174` — **`graph.Open` is destructive.** It
+- `internal/graph/store.go:139` — **`graph.Open` is destructive.** It
   creates the file when absent and, on `PRAGMA user_version != schemaVersion`,
-  `os.Remove`s it and recreates it empty. `OpenRaw(path)` (`store.go:180`) is
-  the non-mutating alternative. A member's index lives at
+  `os.Remove`s it and recreates it empty. `OpenRaw(path)` (`store.go:180`, returning a bare `*sql.DB`) is
+  the non-mutating alternative. `SchemaVersion() int` (`store.go:182`) and
+  `FileSchemaVersion(path string) (int, error)` (`store.go:186`) are already exported —
+  §6's availability check needs no new version accessor. A member's index lives at
   `<AbsRoot>/.codeindex/graph.db` (`internal/query/query.go:27`,
   `internal/engine/artifact.go:66`). See §6 and decision 16.
 - The `edges` VIEW exposes `src_file` but not `src_name`/`src_parent`, so
@@ -103,7 +108,7 @@ Verified against the working tree at `origin/main` (2026-08-19):
   literal-rung-2 invariant. Decision 6 breaks it (a rung-3 record may now carry
   a non-empty `RefNS` after a rung-1 miss), so that comment is updated by this
   slice. The stored shape does not change; only the comment.
-- `internal/workspace/namespaces.go:120-141` — `phpNamespaces` emits **both**
+- `internal/workspace/namespaces.go:120-151` — `phpNamespaces` emits **both**
   the composer `name` (`symfony/symfony`) and every PSR-4 autoload key
   (`Symfony\Component\`). §5's suppression match depends on this: it compares a
   `depfiles.namespace` against declared member namespaces, and only the PSR-4
@@ -111,7 +116,7 @@ Verified against the working tree at `origin/main` (2026-08-19):
 - `openspec/changes/workspace-graph/tasks.md` still shows `- [ ] 3.2`
   unchecked although change 0012 is `done`. Bookkeeping, corrected by this
   slice's builder alongside ticking §3.3.
-- `internal/graph/types.go:83` — `func (s Symbol) QName() string` already
+- `internal/graph/types.go:85` — `func (s Symbol) QName() string` already
   exists and is `Parent + "." + Name`, else `Name`. `Caller.QName()` is the
   same rule. Decision 3 adopts it rather than minting a second convention.
 - `internal/graph/store.go:656` — `Definitions(name, parent)` does **not**
@@ -125,7 +130,10 @@ Verified against the working tree at `origin/main` (2026-08-19):
   depmap's symbols as `tier = 1` under the map's `namespace`, and records one
   `depfiles` row per covered file carrying `(path, namespace, version,
   maphash, curhash, size, mtime, modified)`. `DepFiles() ([]DepFileState,
-  error)` reads them back — the only in-tree source of a vendored copy's
+  error)` (`depmaps.go:186`) reads them back — `DepFileState` is exactly
+  `{Path, Namespace, Version, MapHash, CurHash, Size, Mtime}`, with **no `Modified`
+  field**, so §7's fold over `path`/`namespace`/`version`/`curhash` reads only fields the
+  struct actually exposes — the only in-tree source of a vendored copy's
   version string, and therefore of `Suppression.SuppressedVersion`.
 - `internal/workspace/namespaces.go` — declared member namespaces are Go module
   paths (`github.com/prometheus/client_golang`), package.json names
@@ -728,8 +736,12 @@ and the alternatives rejected. No human answered any of these.
     drop every method call whose receiver type lives in a third member.
 
 14. **Dependency state.** `depends_on: [12]` is satisfied — 0012 is `done` and
-    archived. `related: [9, 12]` both merged. Nothing in this design is
-    designed ahead of an unmet dependency.
+    archived (`docs/changes/archive/2026-08-19-0012-workspace-overlay-store.md`).
+    `related: [9, 12]` both merged. Nothing in this design is designed ahead of an unmet
+    dependency. **Re-confirmed at the 2026-08-19 reconcile pass**, which also confirmed
+    that `internal/wsresolve` does not exist and that none of the five new `internal/graph`
+    entry points (`UnresolvedEdges`, `ProjectDefs`, `TierOneEdges`, `MemberMerkleRoot`,
+    `OpenExisting`) has been added by any other change — the whole slice is still unbuilt.
 
 15. **Member indexes are opened with a new non-creating `graph.OpenExisting`,
     never `graph.Open`.** `graph.Open` creates an absent file and
