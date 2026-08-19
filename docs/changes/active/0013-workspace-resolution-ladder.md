@@ -11,7 +11,7 @@ depends_on: [12]
 related: [9, 12]
 discovered_from: []
 adrs: []
-spec:
+spec: docs/superpowers/specs/2026-08-19-workspace-resolution-ladder-design.md
 plan:
 results:
 trivial: false
@@ -25,6 +25,9 @@ reconciled: false
 ## Artifacts
 
 <!-- docket:artifacts:start (generated — do not hand-edit) -->
+| Artifact | Link |
+|---|---|
+| Spec | [2026-08-19-workspace-resolution-ladder-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-19-workspace-resolution-ladder-design.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
@@ -72,9 +75,20 @@ cross-edges by stable key, ambiguity records under the confirmed
 are deleted whole and re-derived, never candidate-thinned), suppression
 records, and member stamps at resolution time.
 
+The pass ships as an internal entry point (`internal/wsresolve.Resolve`)
+with no CLI verb — D5 names `init-workspace` and `workspace-status` as
+the only new verbs, and `workspace-status` is §3.4's — so the first
+caller arrives with workspace freshen. It also adds the handful of
+`internal/graph` readers the ladder needs and the package lacks
+(unresolved-edge and tier-1-edge enumeration, tier-0 definition lookup,
+a member merkle fold for stamps, and a **non-creating** index open, so a
+resolution pass can never create or rebuild a member's `graph.db`).
+
 Unit-level bars from tasks.md §3.5 that belong to the ladder itself
-(ladder order; stable-key survival across member rebuild) should land
-with this slice; stamp *gating* tests belong to §3.4.
+(ladder order; stable-key survival across member rebuild) land with this
+slice; stamp *gating* tests belong to §3.4, and the
+single-member-workspace ≡ single-repo bar needs a query path, so it
+belongs to §4.2.
 
 ## Out of scope
 
