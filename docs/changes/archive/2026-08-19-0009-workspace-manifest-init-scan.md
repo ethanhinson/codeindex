@@ -2,11 +2,11 @@
 id: 9
 slug: workspace-manifest-init-scan
 title: Workspace manifest load/validate + init-workspace --scan
-status: implemented
+status: done
 priority: high
 type: feat
 created: 2026-08-17
-updated: 2026-08-18
+updated: 2026-08-19
 depends_on: []
 related: [10]
 discovered_from: []
@@ -17,7 +17,7 @@ results: docs/results/2026-08-18-workspace-manifest-init-scan-results.md
 trivial: false
 auto_groomable: true
 branch: feat/workspace-manifest-init-scan
-claimed_at: 2026-08-18T20:22:10Z
+claimed_at: 
 pr: https://github.com/ethanhinson/codeindex/pull/8
 blocked_by:
 reconciled: true
