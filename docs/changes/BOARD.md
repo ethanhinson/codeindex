@@ -1,6 +1,6 @@
 # Backlog
 
-**12 changes** — 🟡 4 proposed · 🔵 1 implemented · ✅ 7 done
+**12 changes** — 🟡 4 proposed · ✅ 8 done
 
 ## 🟡 Proposed (4)
 
@@ -11,27 +11,19 @@
 | [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-brainstorm |
 | [0010](active/0010-workspace-bench-corpus-monorepo-growth.md) | Grow the workspace bench corpus — monorepo declaration coverage in every supported language | `medium` | `chore` | needs-brainstorm |
 
-## 🔵 Implemented — awaiting merge (1)
-
-| # | Title | Priority | Type | PR | Readiness |
-|---|-------|----------|------|----|-----------|
-| [0012](active/0012-workspace-overlay-store.md) | Workspace overlay store — member registry, cross-edges by stable key, freshness stamps | `high` | `feat` | [#10](https://github.com/ethanhinson/codeindex/pull/10) |  |
-
 ```mermaid
 graph TD
   0006
   0007
   0008
   0010
-  0009 --> 0012
-  0009:::done
-  classDef done fill:#d3f9d8;
 ```
 
-<details><summary>✅ Archive — done (7)</summary>
+<details><summary>✅ Archive — done (8)</summary>
 
 | # | Title | Merged |
 |---|-------|--------|
+| [0012](archive/2026-08-19-0012-workspace-overlay-store.md) | Workspace overlay store — member registry, cross-edges by stable key, freshness stamps | 2026-08-19 |
 | [0011](archive/2026-08-19-0011-fix-searchtool-test-nollama.md) | Make TestSearchToolAndPrompt honest under nollama builds | 2026-08-19 |
 | [0009](archive/2026-08-19-0009-workspace-manifest-init-scan.md) | Workspace manifest load/validate + init-workspace --scan | 2026-08-19 |
 | [0005](archive/2026-08-04-0005-blast-radius-accuracy-benchmark.md) | Blast-radius accuracy benchmark — impact-set recall vs. false positives | 2026-08-04 |
