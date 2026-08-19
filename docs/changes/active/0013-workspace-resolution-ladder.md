@@ -2,7 +2,7 @@
 id: 13
 slug: workspace-resolution-ladder
 title: Cross-repo resolution ladder — import-mediated exact, bare-name inferred, ambiguity, suppression
-status: proposed
+status: in-progress
 priority: high
 type: feat
 created: 2026-08-19
@@ -16,9 +16,10 @@ plan:
 results:
 trivial: false
 auto_groomable: true
-branch:
+branch: feat/workspace-resolution-ladder
 pr:
 blocked_by:
+claimed_at: 2026-08-19T21:59:01Z
 reconciled: false
 ---
 
