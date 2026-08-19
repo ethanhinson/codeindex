@@ -6,6 +6,11 @@ One curated finding per file; this index is the hint surface. Load it, then read
 
 - [gitignore-negation-needs-per-level-reinclude](gitignore-negation-needs-per-level-reinclude.md) — A `dir/` ignore rule makes every nested `!` negation unreachable — re-include per level or the un-ignore is inert. · also: gitignore, verification ⟨needs promotion⟩
 
+## review
+
+- [one-invariant-many-sites-drifts](one-invariant-many-sites-drifts.md) — When one spec'd invariant must be enforced at several sites, check the sites against EACH OTHER — drift shows up as their doc comments arguing. · also: invariants, spec-fidelity, data-integrity ⟨needs promotion⟩
+
 ## testing
 
 - [capability-skips-assert-the-reason](capability-skips-assert-the-reason.md) — A capability skip must key on the degradation REASON, never on the presence of a disclosure marker. · also: degradation, sentinels ⟨needs promotion⟩
+- [rollback-untested-when-errors-precede-the-transaction](rollback-untested-when-errors-precede-the-transaction.md) — If every error your suite provokes is rejected BEFORE the transaction opens, 'never half-applies' is unproven — you tested validation, not atomicity. · also: transactions, coverage, sqlite ⟨needs promotion⟩
