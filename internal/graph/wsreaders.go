@@ -71,11 +71,11 @@ func (s *Store) UnresolvedEdges() ([]UnresolvedEdge, error) {
 // It embeds UnresolvedEdge rather than repeating its eight fields: the source
 // key and dst_* hint columns are the same columns with the same meaning, so
 // embedding keeps the two readers visibly symmetric and lets a caller pass the
-// .UnresolvedEdge through to any key-building code task 2 already feeds.
+// .UnresolvedEdge through to any key-building code UnresolvedEdges already feeds.
 type TierOneEdge struct {
 	UnresolvedEdge
 	// DstNamespace is the namespace of the resolved tier-1 TARGET symbol (not
-	// the source's). Task 7 matches the suppression set against this.
+	// the source's). wsresolve.Suppress matches the suppression set against this.
 	DstNamespace string
 }
 

@@ -1,3 +1,32 @@
+// Package wsresolve implements the workspace resolution ladder: resolving
+// cross-member import hints against declared member namespaces.
+//
+// # Recorded obligation to the union-graph query layer (openspec §4.1)
+//
+// Member-over-dep precedence (see Suppress) does NOT mutate the consumer's
+// graph.db: when member C vendors a namespace member O owns, C's intra-repo
+// edge into its own tier-1 copy survives, and the overlay MAY ADDITIONALLY
+// carry a cross-edge from the same call site into O. Where it does, a
+// union-graph query over C that simply unions the two sources would count that
+// one call TWICE.
+//
+// "May", not "does": a suppression is recorded on owner-uniqueness alone, but
+// the re-pointed edge only becomes a cross-edge when the name also resolves in
+// O. When it does not, the edge falls through rungs 2-4 (see Suppressed.Repoint)
+// and the call site's ONLY edge is the surviving intra-repo one — a suppression
+// record can therefore exist with no cross-edge behind it.
+//
+// §4.1 must read dep_suppressions and filter out an intra-repo edge whose
+// resolved target is a tier-1 symbol in a suppressed namespace ONLY WHEN the
+// overlay carries a cross-edge from the same call site — same source key
+// (src_file, src_name, src_parent), same kind, same line. Absent such a
+// cross-edge there is nothing to double-count, and filtering would delete the
+// consumer's still-correct tier-1 edge with nothing replacing it. This package
+// writes the record that makes that filter possible and does nothing else about
+// it; nothing reads the overlay yet, so no double-count is observable before
+// §4.1 exists. This is a stated obligation, not a side effect — deleting the
+// filter requirement without replacing it reintroduces the double-count, and
+// widening it past the same-call-site condition drops correct edges.
 package wsresolve
 
 import (
@@ -23,7 +52,10 @@ type Stats struct {
 	// otherwise unopenable. Not an error — see Resolve.
 	MembersUnavailable int
 	// CrossEdges, Ambiguities and Suppressions count the records this pass
-	// derived and wrote.
+	// derived. Two derived records can share the same storage key
+	// (PutCrossEdges upserts on (src, dst, kind, line); putAmbiguities
+	// deletes-then-inserts on its natural key), so these counts can exceed
+	// the number of rows actually persisted.
 	CrossEdges   int
 	Ambiguities  int
 	Suppressions int
@@ -220,6 +252,12 @@ func Resolve(wsRoot string) (Stats, error) {
 
 // memberIndexPath is a member's own index inside its repo root. It mirrors the
 // layout every other reader uses; there is no exported constant for it.
+//
+// TODO: this is the fifth open-coded copy of the ".codeindex/graph.db" join.
+// Siblings: internal/webserver/graphstore.go, internal/readmodel/graph.go,
+// internal/query/query.go, internal/engine/artifact.go. Consolidating them
+// into one exported constant is deliberately out of scope for this slice —
+// a future change should do it across all five sites at once.
 func memberIndexPath(absRoot string) string {
 	return filepath.Join(absRoot, ".codeindex", "graph.db")
 }

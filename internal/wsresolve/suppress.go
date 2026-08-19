@@ -20,8 +20,13 @@ type Suppressed struct {
 	// Repoint maps a CONSUMER member id to the ladder candidate edges its
 	// suppressions created — the member's tier-1 edges into a suppressed
 	// namespace, restated as unresolved edges whose DstNS is that namespace.
-	// Per consumer they are in TierOneEdges order. A consumer with no
-	// re-pointed edge has no entry. The caller runs these through Ladder
+	// Membership is EXACT EQUALITY between the edge's DstNamespace (from
+	// TierOneEdges, sourced from symbols.namespace) and the suppressed
+	// namespace (from depfiles.namespace) — NOT the nsPrefix boundary rule
+	// rung 1 uses. Both sides come from the same attachment, so today they
+	// always agree; the equality check, not a prefix match, is what the code
+	// actually does. Per consumer they are in TierOneEdges order. A consumer
+	// with no re-pointed edge has no entry. The caller runs these through Ladder
 	// alongside the member's own UnresolvedEdges; since exactly one member owns
 	// the namespace, each enters at rung 1 and selects that owner directly,
 	// yielding cross_repo_import/exact when the name resolves uniquely there and
