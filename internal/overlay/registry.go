@@ -24,10 +24,31 @@ import (
 // this transaction on the composite primary keys. De-duplication is done in Go
 // rather than with INSERT OR IGNORE so the ord sequence stays contiguous.
 //
-// Pruning is set-based against the new id set. For a member the manifest drops,
-// a dropped member is gone as consumer and as owner alike, so its
-// dep_suppressions rows go on *either* column — deliberately unlike
-// ReplaceMemberEdges, whose delete scope is consumer-only.
+// Pruning is against the new id set, for every member the manifest drops:
+//
+//   - dep_suppressions rows go on *either* column: a dropped member is gone as
+//     consumer and as owner alike. This is deliberately unlike
+//     ReplaceMemberEdges, whose delete scope is consumer-only (decision 21) —
+//     that call re-derives the consumer side and cannot rewrite the owner side,
+//     while here the member is leaving outright and neither side will ever be
+//     re-derived.
+//   - cross_edges and cross_ambiguities go on *either* end. For an ambiguity
+//     that means: sourced from the dropped member, or naming it in any of its
+//     candidate rows. The whole parent ambiguity is deleted with all of its
+//     candidates; a candidate list is never *thinned*. Deleting only the
+//     dropped member's candidate row would leave a surviving ambiguity whose
+//     stored candidate_count contradicts its own rows — and, since Count may
+//     legally exceed len(Candidates) when upstream truncated the list, that
+//     contradiction is indistinguishable from legitimate data, so a skew or
+//     status reader would silently mis-report rather than fail. The surviving
+//     source member re-derives the reference the next time it is re-resolved.
+//
+// Never thinning is the same rule ReplaceMemberEdges applies, reached from a
+// different trigger: there a member is being RE-RESOLVED, here it is LEAVING
+// THE MANIFEST. The triggers differ, and so does the suppression scope above,
+// but the candidate-side reasoning does not — a stored candidate_count must
+// never be left describing rows that are no longer there, whichever call
+// removed them.
 func (s *Store) ReplaceRegistry(ws *config.Workspace) error {
 	if ws == nil {
 		return fmt.Errorf("overlay: ReplaceRegistry: nil workspace")
@@ -114,21 +135,10 @@ type pruneStmt struct {
 	lists int
 }
 
-// pruneStmts runs candidates-before-ambiguities so the ambiguity ids still
-// resolve when the orphaned candidate rows are selected.
+// pruneStmts holds the set-based prunes. The ambiguity tables are absent by
+// design: deleting a parent and its candidates together needs the ids resolved
+// first, which pruneAmbiguities does.
 var pruneStmts = []pruneStmt{
-	{
-		all: `DELETE FROM cross_ambiguity_candidates`,
-		cond: `DELETE FROM cross_ambiguity_candidates
-		       WHERE member_id NOT IN (%s)
-		          OR ambiguity_id IN (SELECT id FROM cross_ambiguities WHERE src_member NOT IN (%s))`,
-		lists: 2,
-	},
-	{
-		all:   `DELETE FROM cross_ambiguities`,
-		cond:  `DELETE FROM cross_ambiguities WHERE src_member NOT IN (%s)`,
-		lists: 1,
-	},
 	{
 		all:   `DELETE FROM cross_edges`,
 		cond:  `DELETE FROM cross_edges WHERE src_member NOT IN (%s) OR dst_member NOT IN (%s)`,
@@ -150,6 +160,9 @@ var pruneStmts = []pruneStmt{
 // longer declares. An empty manifest means "delete everything" and takes the
 // unconditional form, since a NOT IN () list is not valid SQL.
 func pruneOrphans(tx *sql.Tx, members []config.Member) error {
+	if err := pruneAmbiguities(tx, members); err != nil {
+		return err
+	}
 	for _, st := range pruneStmts {
 		if len(members) == 0 {
 			if _, err := tx.Exec(st.all); err != nil {
@@ -157,20 +170,50 @@ func pruneOrphans(tx *sql.Tx, members []config.Member) error {
 			}
 			continue
 		}
-		list := strings.TrimSuffix(strings.Repeat("?,", len(members)), ",")
+		list, args := idList(members, st.lists)
 		verbs := make([]any, st.lists)
-		args := make([]any, 0, len(members)*st.lists)
 		for i := range verbs {
 			verbs[i] = list
-			for _, m := range members {
-				args = append(args, m.ID)
-			}
 		}
 		if _, err := tx.Exec(fmt.Sprintf(st.cond, verbs...), args...); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// idList returns the "?,?,?" placeholder list for the surviving member ids and
+// the args to bind it n times over.
+func idList(members []config.Member, n int) (string, []any) {
+	list := strings.TrimSuffix(strings.Repeat("?,", len(members)), ",")
+	args := make([]any, 0, len(members)*n)
+	for range n {
+		for _, m := range members {
+			args = append(args, m.ID)
+		}
+	}
+	return list, args
+}
+
+// pruneAmbiguities deletes every ambiguity incident to a dropped member on
+// either end, whole — parent row and all of its candidate rows — never merely
+// the candidate rows naming the dropped member. See ReplaceRegistry's comment
+// for why. An empty manifest orphans everything and takes the unconditional
+// form, since a NOT IN () list is not valid SQL.
+func pruneAmbiguities(tx *sql.Tx, members []config.Member) error {
+	if len(members) == 0 {
+		if _, err := tx.Exec(`DELETE FROM cross_ambiguity_candidates`); err != nil {
+			return err
+		}
+		_, err := tx.Exec(`DELETE FROM cross_ambiguities`)
+		return err
+	}
+	list, args := idList(members, 2)
+	return deleteAmbiguitiesMatching(tx, fmt.Sprintf(
+		`SELECT id FROM cross_ambiguities WHERE src_member NOT IN (%s)
+		 UNION
+		 SELECT ambiguity_id FROM cross_ambiguity_candidates WHERE member_id NOT IN (%s)`,
+		list, list), args...)
 }
 
 // Registry returns the registry in manifest order, as config.Member values —

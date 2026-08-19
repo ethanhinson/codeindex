@@ -159,6 +159,17 @@ func TestReplaceRegistryEmptyManifestClears(t *testing.T) {
 	if err := s.ReplaceRegistry(threeMemberWorkspace()); err != nil {
 		t.Fatalf("ReplaceRegistry: %v", err)
 	}
+	// Seed an ambiguity so the empty-manifest branch — which cannot emit a
+	// NOT IN () list and so deletes unconditionally — is exercised on rows.
+	for _, q := range []string{
+		`INSERT INTO cross_ambiguities (id, src_member, src_file, src_qname, ref_name, ref_ns, kind, line, candidate_count)
+		   VALUES (1,'app','c.php','C::z','Thing','Acme','call',3,1)`,
+		`INSERT INTO cross_ambiguity_candidates (ambiguity_id, rank, member_id, file, qname) VALUES (1,0,'lib','b.php','B::y')`,
+	} {
+		if _, err := s.db.Exec(q); err != nil {
+			t.Fatalf("seed %s: %v", q, err)
+		}
+	}
 	if err := s.ReplaceRegistry(&config.Workspace{Version: 1}); err != nil {
 		t.Fatalf("ReplaceRegistry(empty): %v", err)
 	}
@@ -173,6 +184,8 @@ func TestReplaceRegistryEmptyManifestClears(t *testing.T) {
 		`SELECT COUNT(*) FROM members`,
 		`SELECT COUNT(*) FROM member_namespaces`,
 		`SELECT COUNT(*) FROM member_deps`,
+		`SELECT COUNT(*) FROM cross_ambiguities`,
+		`SELECT COUNT(*) FROM cross_ambiguity_candidates`,
 	} {
 		if n := countQ(t, s, q); n != 0 {
 			t.Fatalf("%s = %d, want 0", q, n)
@@ -219,8 +232,12 @@ func TestReplaceRegistryPrunesDroppedMember(t *testing.T) {
 	exec(edge, "web", "a.php", "A::x", "lib", "b.php", "B::y")
 	exec(edge, "lib", "b.php", "B::y", "web", "a.php", "A::x")
 	exec(edge, "app", "c.php", "C::z", "lib", "b.php", "B::y")
-	// Ambiguities: one sourced from web (goes away), one from app (stays but
-	// loses its web candidate).
+	// Ambiguities. Every seeded candidate_count equals its own seeded candidate
+	// row count, so any post-prune inequality is thinning, not upstream
+	// truncation.
+	//   1: sourced from web           -> deleted, source side.
+	//   2: sourced from app, web is a candidate -> deleted WHOLE, candidate side.
+	//   3: sourced from app, no web anywhere    -> untouched.
 	exec(`INSERT INTO cross_ambiguities (id, src_member, src_file, src_qname, ref_name, ref_ns, kind, line, candidate_count)
 	  VALUES (1,'web','a.php','A::x','Thing','Acme','call',3,2)`)
 	exec(`INSERT INTO cross_ambiguity_candidates (ambiguity_id, rank, member_id, file, qname) VALUES (1,0,'lib','b.php','B::y')`)
@@ -229,6 +246,9 @@ func TestReplaceRegistryPrunesDroppedMember(t *testing.T) {
 	  VALUES (2,'app','c.php','C::z','Thing','Acme','call',4,2)`)
 	exec(`INSERT INTO cross_ambiguity_candidates (ambiguity_id, rank, member_id, file, qname) VALUES (2,0,'lib','b.php','B::y')`)
 	exec(`INSERT INTO cross_ambiguity_candidates (ambiguity_id, rank, member_id, file, qname) VALUES (2,1,'web','a.php','A::x')`)
+	exec(`INSERT INTO cross_ambiguities (id, src_member, src_file, src_qname, ref_name, ref_ns, kind, line, candidate_count)
+	  VALUES (3,'app','c.php','C::z','Other','Acme','call',5,1)`)
+	exec(`INSERT INTO cross_ambiguity_candidates (ambiguity_id, rank, member_id, file, qname) VALUES (3,0,'lib','b.php','B::y')`)
 
 	// Drop "web".
 	dropped := &config.Workspace{Version: 1, Members: threeMemberWorkspace().Members[:2]}
@@ -256,16 +276,86 @@ func TestReplaceRegistryPrunesDroppedMember(t *testing.T) {
 	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_edges`); got != 1 {
 		t.Fatalf("cross_edges = %d, want 1 (app->lib)", got)
 	}
-	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguities`); got != 1 {
-		t.Fatalf("cross_ambiguities = %d, want 1", got)
+	// Ambiguity 1 (sourced from web) and ambiguity 2 (web on the candidate side
+	// only) both go WHOLE; only ambiguity 3 survives.
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguities WHERE id IN (1,2)`); got != 0 {
+		t.Fatalf("ambiguities incident to web survived: %d rows", got)
 	}
-	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates WHERE ambiguity_id=1`); got != 0 {
-		t.Fatalf("candidates of the deleted ambiguity survived: %d rows", got)
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguities`); got != 1 {
+		t.Fatalf("cross_ambiguities = %d, want 1 (ambiguity 3)", got)
+	}
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates WHERE ambiguity_id IN (1,2)`); got != 0 {
+		t.Fatalf("candidates of the deleted ambiguities survived: %d rows", got)
 	}
 	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates WHERE member_id='web'`); got != 0 {
 		t.Fatalf("candidate rows naming web survived: %d rows", got)
 	}
 	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates`); got != 1 {
-		t.Fatalf("cross_ambiguity_candidates = %d, want 1", got)
+		t.Fatalf("cross_ambiguity_candidates = %d, want 1 (ambiguity 3's lib candidate)", got)
+	}
+	assertAmbiguitiesCoherent(t, s)
+}
+
+// TestReplaceRegistryDeletesAmbiguityWhoseCandidateLeaves isolates the
+// candidate-side arm: the dropped member is named nowhere but in one candidate
+// row of an ambiguity sourced from a member that survives. Thinning that row
+// would leave candidate_count = 2 over a single surviving candidate — stored
+// data contradicting itself, and indistinguishable from the legitimate
+// "upstream truncated the list" case Count >= len(Candidates) permits. The
+// whole parent goes instead; app re-derives the reference when app re-resolves.
+func TestReplaceRegistryDeletesAmbiguityWhoseCandidateLeaves(t *testing.T) {
+	s := newStore(t)
+	if err := s.ReplaceRegistry(threeMemberWorkspace()); err != nil {
+		t.Fatalf("ReplaceRegistry: %v", err)
+	}
+	for _, q := range []string{
+		`INSERT INTO cross_ambiguities (id, src_member, src_file, src_qname, ref_name, ref_ns, kind, line, candidate_count)
+		   VALUES (7,'app','c.php','C::z','Thing','Acme','call',9,2)`,
+		`INSERT INTO cross_ambiguity_candidates (ambiguity_id, rank, member_id, file, qname) VALUES (7,0,'lib','b.php','B::y')`,
+		`INSERT INTO cross_ambiguity_candidates (ambiguity_id, rank, member_id, file, qname) VALUES (7,1,'web','a.php','A::x')`,
+	} {
+		if _, err := s.db.Exec(q); err != nil {
+			t.Fatalf("seed %s: %v", q, err)
+		}
+	}
+
+	dropped := &config.Workspace{Version: 1, Members: threeMemberWorkspace().Members[:2]}
+	if err := s.ReplaceRegistry(dropped); err != nil {
+		t.Fatalf("ReplaceRegistry(dropped): %v", err)
+	}
+
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguities WHERE id=7`); got != 0 {
+		t.Fatalf("parent ambiguity survived its dropped candidate: %d rows", got)
+	}
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates WHERE ambiguity_id=7`); got != 0 {
+		t.Fatalf("candidate rows of the deleted parent survived: %d rows", got)
+	}
+	// The read API must not see it either, under app — where it was sourced.
+	got, err := s.AmbiguitiesFor("app")
+	if err != nil {
+		t.Fatalf("AmbiguitiesFor: %v", err)
+	}
+	if len(got) != 0 {
+		t.Fatalf("AmbiguitiesFor(app) = %+v, want none", got)
+	}
+	assertAmbiguitiesCoherent(t, s)
+}
+
+// assertAmbiguitiesCoherent fails if pruning left stored data contradicting
+// itself: a surviving ambiguity whose candidate rows were thinned below its
+// recorded candidate_count, or a candidate row with no parent. Every ambiguity
+// these tests seed records a candidate_count equal to its own candidate rows,
+// so here — unlike production data, where upstream truncation may legally push
+// the count higher — inequality in either direction means pruning did it.
+func assertAmbiguitiesCoherent(t *testing.T, s *Store) {
+	t.Helper()
+	if n := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguities a
+	  WHERE a.candidate_count <> (SELECT COUNT(*) FROM cross_ambiguity_candidates c
+	                              WHERE c.ambiguity_id = a.id)`); n != 0 {
+		t.Fatalf("%d surviving ambiguities have candidate_count contradicting their candidate rows", n)
+	}
+	if n := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates c
+	  WHERE NOT EXISTS (SELECT 1 FROM cross_ambiguities a WHERE a.id = c.ambiguity_id)`); n != 0 {
+		t.Fatalf("%d orphaned candidate rows have no parent ambiguity", n)
 	}
 }

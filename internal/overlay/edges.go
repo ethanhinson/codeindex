@@ -175,22 +175,33 @@ const ambiguityDeleteChunk = 400
 // deleteIncidentAmbiguities removes every ambiguity incident to memberID on
 // either end — sourced from it, or naming it among its candidates — and all of
 // their candidate rows.
+func deleteIncidentAmbiguities(tx *sql.Tx, memberID string) error {
+	return deleteAmbiguitiesMatching(tx,
+		`SELECT id FROM cross_ambiguities WHERE src_member = ?
+		 UNION
+		 SELECT ambiguity_id FROM cross_ambiguity_candidates WHERE member_id = ?`,
+		memberID, memberID)
+}
+
+// deleteAmbiguitiesMatching deletes every cross_ambiguities row whose id the
+// given single-column query returns, together with all of their candidate rows.
+// It is shared by the two callers that delete an ambiguity whole rather than
+// thinning its candidate list: ReplaceMemberEdges' either-end incidence delete,
+// and ReplaceRegistry's either-end orphan prune.
 //
 // The ids are resolved into Go first rather than driven from a subquery,
-// because the candidate-side arm reads cross_ambiguity_candidates while the
-// same statement deletes from it; collecting first makes the two deletes
-// independent of any evaluation-order subtlety. Candidates are deleted before
-// their parents so the second delete can never strand a row (decision 18's
-// hazard applies here exactly as it does in PutAmbiguities), and the whole
-// sequence runs inside the caller's transaction.
+// because an either-end query's candidate-side arm reads
+// cross_ambiguity_candidates while the same statement would delete from it;
+// collecting first makes the two deletes independent of any evaluation-order
+// subtlety. Candidates are deleted before their parents so the second delete
+// can never strand a row (decision 18's hazard applies here exactly as it does
+// in PutAmbiguities), and the whole sequence runs inside the caller's
+// transaction, in chunks bounded by ambiguityDeleteChunk.
 //
-// The candidate-side arm may name an ambiguity id that no longer has a parent
-// row; deleting those candidate rows is right either way.
-func deleteIncidentAmbiguities(tx *sql.Tx, memberID string) error {
-	rows, err := tx.Query(`SELECT id FROM cross_ambiguities WHERE src_member = ?
-	  UNION
-	  SELECT ambiguity_id FROM cross_ambiguity_candidates WHERE member_id = ?`,
-		memberID, memberID)
+// The query may name an ambiguity id that no longer has a parent row; deleting
+// those candidate rows is right either way.
+func deleteAmbiguitiesMatching(tx *sql.Tx, query string, args ...any) error {
+	rows, err := tx.Query(query, args...)
 	if err != nil {
 		return err
 	}
