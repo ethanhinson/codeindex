@@ -3,6 +3,7 @@ package overlay
 import (
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	"codeindex/internal/config"
@@ -357,5 +358,64 @@ func assertAmbiguitiesCoherent(t *testing.T, s *Store) {
 	if n := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates c
 	  WHERE NOT EXISTS (SELECT 1 FROM cross_ambiguities a WHERE a.id = c.ambiguity_id)`); n != 0 {
 		t.Fatalf("%d orphaned candidate rows have no parent ambiguity", n)
+	}
+}
+
+// TestReplaceRegistryRollsBackPartialBatchOnMidTransactionFailure exercises
+// ReplaceRegistry's hand-rolled deferred Rollback with a genuine
+// MID-transaction SQL failure. ReplaceRegistry pre-checks only for a nil
+// workspace, so a manifest carrying two members under one id reaches the
+// insert loop and trips members' TEXT PRIMARY KEY on the second of them —
+// after the transaction has already wiped all three registry tables and
+// inserted a member the caller asked for.
+//
+// That wholesale delete is what makes the rollback assertion sharp: if the
+// transaction half-applied, the previously stored registry would be gone.
+func TestReplaceRegistryRollsBackPartialBatchOnMidTransactionFailure(t *testing.T) {
+	s := newStore(t)
+	ws := threeMemberWorkspace()
+	if err := s.ReplaceRegistry(ws); err != nil {
+		t.Fatalf("ReplaceRegistry: %v", err)
+	}
+	nsBefore := countQ(t, s, `SELECT COUNT(*) FROM member_namespaces`)
+	depsBefore := countQ(t, s, `SELECT COUNT(*) FROM member_deps`)
+
+	bad := &config.Workspace{
+		Version: 1,
+		Members: []config.Member{
+			{ID: "fresh", Root: "fresh", Namespaces: []string{"Acme\\Fresh"}},
+			{ID: "twin", Root: "twin-a", Namespaces: []string{"Acme\\TwinA"}},
+			{ID: "twin", Root: "twin-b", Namespaces: []string{"Acme\\TwinB"}},
+		},
+	}
+	err := s.ReplaceRegistry(bad)
+	if err == nil {
+		t.Fatal("ReplaceRegistry succeeded, want a mid-transaction constraint failure")
+	}
+	// The duplicate id, not the first member, must be what failed: the first
+	// two inserts have to succeed for this to be a rollback assertion.
+	if !strings.Contains(err.Error(), `member "twin"`) {
+		t.Fatalf("ReplaceRegistry error = %v, want the duplicate \"twin\" insert to fail", err)
+	}
+
+	// Raw row counts, not Registry(): the prior registry must be intact and
+	// nothing from the failed batch may have landed.
+	if n := countQ(t, s, `SELECT COUNT(*) FROM members`); n != len(ws.Members) {
+		t.Fatalf("members = %d rows, want %d (the prior registry, restored by rollback)", n, len(ws.Members))
+	}
+	if n := countQ(t, s, `SELECT COUNT(*) FROM members WHERE id IN ('app','lib','web')`); n != 3 {
+		t.Fatalf("prior member rows = %d, want 3 unchanged", n)
+	}
+	if n := countQ(t, s, `SELECT COUNT(*) FROM members WHERE id IN ('fresh','twin')`); n != 0 {
+		t.Fatalf("%d member rows from the failed batch survived, want 0", n)
+	}
+	if n := countQ(t, s, `SELECT COUNT(*) FROM member_namespaces`); n != nsBefore {
+		t.Fatalf("member_namespaces = %d rows, want %d unchanged", n, nsBefore)
+	}
+	if n := countQ(t, s, `SELECT COUNT(*) FROM member_namespaces WHERE namespace LIKE 'Acme\Twin%' ESCAPE '\'`); n != 0 {
+		t.Fatalf("%d namespace rows from the failed batch survived, want 0", n)
+	}
+	if n := countQ(t, s, `SELECT COUNT(*) FROM member_deps`); n != depsBefore {
+		t.Fatalf("member_deps = %d rows, want %d unchanged", n, depsBefore)
 	}
 }

@@ -723,3 +723,75 @@ func TestReplaceMemberEdgesEmptyClears(t *testing.T) {
 		t.Fatalf("owner-side suppression for web = %d rows, want 1 (left alone)", got)
 	}
 }
+
+// TestPutAmbiguitiesRollsBackPartialBatchOnMidTransactionFailure exercises
+// inTx's deferred Rollback with a genuine MID-transaction SQL failure, which no
+// other test reaches: every other rejection in this suite is raised by
+// pre-validation, before inTx ever opens a transaction, so the "a bad batch
+// never half applies" claim was proven only for the pre-checked cases.
+//
+// The failure is manufactured through the one insert-time constraint the write
+// path cannot pre-check: cross_ambiguity_candidates' PRIMARY KEY
+// (ambiguity_id, rank). The ambiguity_id is the parent's freshly assigned
+// rowid, so it is not knowable to the caller — but it IS predictable here,
+// because SQLite hands an INTEGER PRIMARY KEY the current maximum plus one.
+// Seeding a parent at id 100 pins the next two inserts to 101 and 102, so a
+// pre-seeded candidate row at (102, 0) collides with the SECOND record of the
+// batch while the FIRST record has already inserted a parent and a candidate.
+// Those first-record rows are the partial work that must not survive.
+func TestPutAmbiguitiesRollsBackPartialBatchOnMidTransactionFailure(t *testing.T) {
+	s := newStore(t)
+
+	// Raw seed, deliberately not via the write API: a parent row that pins the
+	// rowid counter, and a candidate row squatting on (102, 0).
+	if _, err := s.db.Exec(`INSERT INTO cross_ambiguities
+	  (id, src_member, src_file, src_qname, ref_name, ref_ns, kind, line, candidate_count)
+	  VALUES (100, 'seed', 'seed.php', 'Seed::s', 'SeedRef', '', 'call', 9, 0)`); err != nil {
+		t.Fatalf("seed ambiguity: %v", err)
+	}
+	if _, err := s.db.Exec(`INSERT INTO cross_ambiguity_candidates
+	  (ambiguity_id, rank, member_id, file, qname)
+	  VALUES (102, 0, 'seed', 'seed.php', 'Seed::c')`); err != nil {
+		t.Fatalf("seed candidate: %v", err)
+	}
+
+	batch := []Ambiguity{
+		{
+			Src: sym("app", "first.php", "First::f"), RefName: "FirstRef", Kind: "call", Line: 1,
+			Candidates: []SymKey{sym("lib", "l.php", "L::a")}, Count: 1,
+		},
+		{
+			Src: sym("app", "second.php", "Second::f"), RefName: "SecondRef", Kind: "call", Line: 2,
+			Candidates: []SymKey{sym("lib", "l.php", "L::b")}, Count: 1,
+		},
+	}
+	err := s.PutAmbiguities(batch)
+	if err == nil {
+		t.Fatal("PutAmbiguities succeeded, want a mid-transaction constraint failure")
+	}
+	// Confirm the failure landed where the design intends — on the SECOND
+	// record's candidate insert, after the first record already wrote rows. If
+	// rowid allocation ever shifted, this catches it rather than letting the
+	// rollback assertions below pass for the wrong reason.
+	if !strings.Contains(err.Error(), `ref "SecondRef" candidate 0`) {
+		t.Fatalf("PutAmbiguities error = %v, want the second record's candidate 0 insert to fail", err)
+	}
+
+	// Raw row counts, not the read API: only the seeded rows may remain.
+	if n := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguities`); n != 1 {
+		t.Fatalf("cross_ambiguities = %d rows, want 1 (only the seed; the batch rolled back)", n)
+	}
+	if n := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguities WHERE id = 100 AND src_member = 'seed'`); n != 1 {
+		t.Fatalf("seeded ambiguity row = %d, want 1 unchanged", n)
+	}
+	if n := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguities WHERE src_member = 'app'`); n != 0 {
+		t.Fatalf("%d ambiguity rows from the failed batch survived, want 0", n)
+	}
+	if n := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates`); n != 1 {
+		t.Fatalf("cross_ambiguity_candidates = %d rows, want 1 (only the seed)", n)
+	}
+	if n := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates
+	  WHERE ambiguity_id = 102 AND rank = 0 AND member_id = 'seed'`); n != 1 {
+		t.Fatalf("seeded candidate row = %d, want 1 unchanged", n)
+	}
+}
