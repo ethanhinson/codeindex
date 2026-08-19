@@ -2,7 +2,7 @@
 id: 13
 slug: workspace-resolution-ladder
 title: Cross-repo resolution ladder — import-mediated exact, bare-name inferred, ambiguity, suppression
-status: in-progress
+status: implemented
 priority: high
 type: feat
 created: 2026-08-19
@@ -13,13 +13,13 @@ discovered_from: []
 adrs: []
 spec: docs/superpowers/specs/2026-08-19-workspace-resolution-ladder-design.md
 plan: docs/superpowers/plans/2026-08-19-workspace-resolution-ladder-plan.md
-results:
+results: docs/results/2026-08-19-workspace-resolution-ladder-results.md
 trivial: false
 auto_groomable: true
 branch: feat/workspace-resolution-ladder
-pr:
+pr: https://github.com/ethanhinson/codeindex/pull/11
 blocked_by:
-claimed_at: 2026-08-19T22:20:00Z
+claimed_at: 2026-08-19T23:05:00Z
 reconciled: true
 ---
 
@@ -30,6 +30,8 @@ reconciled: true
 |---|---|
 | Spec | [2026-08-19-workspace-resolution-ladder-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-19-workspace-resolution-ladder-design.md) |
 | Plan | [2026-08-19-workspace-resolution-ladder-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-resolution-ladder/docs/superpowers/plans/2026-08-19-workspace-resolution-ladder-plan.md) |
+| Results | [2026-08-19-workspace-resolution-ladder-results.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-resolution-ladder/docs/results/2026-08-19-workspace-resolution-ladder-results.md) |
+| PR | [#11](https://github.com/ethanhinson/codeindex/pull/11) |
 <!-- docket:artifacts:end -->
 
 ## Why
