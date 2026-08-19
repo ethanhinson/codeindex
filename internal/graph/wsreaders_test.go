@@ -192,7 +192,13 @@ func wsFixture(t *testing.T) *Store {
 		Calls: []RawCall{
 			{EnclosingIdx: 0, Callee: "Helper", Line: 11},                                      // resolved
 			{EnclosingIdx: 0, Callee: "Zeta", Qualifier: "Client", NsHint: "acme/z", Line: 12}, // unresolved
-			{EnclosingIdx: 1, Callee: "Alpha", Line: 31},                                       // unresolved
+			// A tie pair: same source symbol, dst_name, kind and line,
+			// differing ONLY in dst_qualifier/dst_ns — e.g. Foo::bar($x->bar())
+			// on one line. Inserted qualified-first so a non-total ORDER BY
+			// (falling back to insertion order) returns them in the opposite
+			// order to the stated one.
+			{EnclosingIdx: 1, Callee: "Alpha", Qualifier: "Beta", NsHint: "acme/z", Line: 31}, // unresolved
+			{EnclosingIdx: 1, Callee: "Alpha", Line: 31},                                      // unresolved
 		},
 		Deps: []RawDep{
 			// file-level import: no enclosing symbol => src_symbol_id = 0
@@ -264,8 +270,10 @@ func wsTierFixture(t *testing.T) *Store {
 		Calls: []RawCall{
 			{EnclosingIdx: 0, Callee: "Helper", Line: 11}, // tier-0 resolved
 			{EnclosingIdx: 0, Callee: "Zeta", Line: 12},   // tier-1 after attach
-			{EnclosingIdx: 1, Callee: "Yankee", Line: 31}, // tier-1 after attach
-			{EnclosingIdx: 1, Callee: "Alpha", Line: 32},  // unresolved
+			// Tie pair on the six former sort keys, qualified row first.
+			{EnclosingIdx: 1, Callee: "Yankee", Qualifier: "Zed", Line: 31}, // tier-1 after attach
+			{EnclosingIdx: 1, Callee: "Yankee", Line: 31},                   // tier-1 after attach
+			{EnclosingIdx: 1, Callee: "Alpha", Line: 32},                    // unresolved
 		},
 		Deps: []RawDep{
 			{EnclosingIdx: -1, Kind: KindImports, Target: "acme/z", Source: "acme/z", Line: 1},
@@ -317,6 +325,8 @@ func TestTierOneEdges(t *testing.T) {
 	want := []TierOneEdge{
 		{UnresolvedEdge: UnresolvedEdge{SrcFile: "pkg/a.go", SrcName: "Boot",
 			DstName: "Yankee", Kind: "calls", Line: 31}, DstNamespace: "acme/z"},
+		{UnresolvedEdge: UnresolvedEdge{SrcFile: "pkg/a.go", SrcName: "Boot",
+			DstName: "Yankee", DstQualifier: "Zed", Kind: "calls", Line: 31}, DstNamespace: "acme/z"},
 		{UnresolvedEdge: UnresolvedEdge{SrcFile: "pkg/a.go", SrcName: "Run", SrcParent: "Server",
 			DstName: "Zeta", Kind: "calls", Line: 12}, DstNamespace: "acme/z"},
 	}
@@ -354,8 +364,29 @@ func TestTierOneEdgesDeterministicOrder(t *testing.T) {
 			t.Fatalf("order not stable at %d: %+v vs %+v", i, a[i], b[i])
 		}
 	}
-	if len(a) < 2 || a[0].SrcName != "Boot" || a[1].SrcName != "Run" {
+	if len(a) < 3 || a[0].SrcName != "Boot" || a[2].SrcName != "Run" {
 		t.Fatalf("unexpected order: %+v", a)
+	}
+	// The tie pair: identical on all six of the former sort keys, so only the
+	// dst_qualifier/dst_ns/id tiebreak decides. Both rows must be present and
+	// the unqualified one must sort first.
+	assertTiePair(t, a[0].UnresolvedEdge, a[1].UnresolvedEdge, "Yankee", "Zed")
+}
+
+// assertTiePair checks that lo/hi are the two edges that tie on
+// (src_file, src_name, src_parent, dst_name, kind, line) and are separated
+// only by the dst_qualifier tiebreak, unqualified first.
+func assertTiePair(t *testing.T, lo, hi UnresolvedEdge, dstName, qualifier string) {
+	t.Helper()
+	if lo.DstName != dstName || hi.DstName != dstName {
+		t.Fatalf("tie pair missing: %+v / %+v", lo, hi)
+	}
+	if lo.SrcFile != hi.SrcFile || lo.SrcName != hi.SrcName ||
+		lo.SrcParent != hi.SrcParent || lo.Kind != hi.Kind || lo.Line != hi.Line {
+		t.Fatalf("rows do not tie on the six former keys: %+v / %+v", lo, hi)
+	}
+	if lo.DstQualifier != "" || hi.DstQualifier != qualifier {
+		t.Fatalf("tie broken in the wrong order: %+v then %+v", lo, hi)
 	}
 }
 
@@ -367,6 +398,8 @@ func TestUnresolvedEdgesExcludesResolvedAndFileLevelImports(t *testing.T) {
 	}
 	want := []UnresolvedEdge{
 		{SrcFile: "pkg/a.go", SrcName: "Boot", SrcParent: "", DstName: "Alpha", Kind: "calls", Line: 31},
+		{SrcFile: "pkg/a.go", SrcName: "Boot", SrcParent: "", DstName: "Alpha",
+			DstQualifier: "Beta", DstNS: "acme/z", Kind: "calls", Line: 31},
 		{SrcFile: "pkg/a.go", SrcName: "Run", SrcParent: "Server", DstName: "Zeta",
 			DstQualifier: "Client", DstNS: "acme/z", Kind: "calls", Line: 12},
 	}
@@ -396,9 +429,10 @@ func TestUnresolvedEdgesDeterministicOrder(t *testing.T) {
 		}
 	}
 	// (src_file, src_name, ...) => Boot sorts before Run.
-	if len(a) < 2 || a[0].SrcName != "Boot" || a[1].SrcName != "Run" {
+	if len(a) < 3 || a[0].SrcName != "Boot" || a[2].SrcName != "Run" {
 		t.Fatalf("unexpected order: %+v", a)
 	}
+	assertTiePair(t, a[0], a[1], "Alpha", "Beta")
 }
 
 func TestProjectDefs(t *testing.T) {

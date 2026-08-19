@@ -25,7 +25,13 @@ type UnresolvedEdge struct {
 
 // UnresolvedEdges returns every edge with dst_symbol_id = 0 whose source is a
 // real symbol (src_symbol_id != 0), ordered by
-// (src_file, src_name, src_parent, dst_name, kind, line).
+// (src_file, src_name, src_parent, dst_name, kind, line, dst_qualifier,
+// dst_ns, id).
+//
+// The order is total by construction: edges_t has no unique constraint, so two
+// calls to the same name on the same line differing only in qualifier or
+// namespace hint tie on every other key, and the trailing dst_qualifier,
+// dst_ns and id break that tie rather than leaving it to SQLite.
 //
 // File-level import edges carry src_symbol_id = 0 and are excluded: they have
 // no source symbol, so no stable key can name their source end. Their
@@ -40,7 +46,8 @@ func (s *Store) UnresolvedEdges() ([]UnresolvedEdge, error) {
 		        e.dst_ns, e.kind, e.line
 		 FROM edges e JOIN symbols y ON y.id = e.src_symbol_id
 		 WHERE e.dst_symbol_id = 0 AND e.src_symbol_id != 0
-		 ORDER BY e.src_file, y.name, y.parent, e.dst_name, e.kind, e.line`)
+		 ORDER BY e.src_file, y.name, y.parent, e.dst_name, e.kind, e.line,
+		          e.dst_qualifier, e.dst_ns, e.id`)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +80,9 @@ type TierOneEdge struct {
 }
 
 // TierOneEdges returns every edge whose resolved destination is a tier-1
-// symbol, ordered by (src_file, src_name, src_parent, dst_name, kind, line).
+// symbol, ordered by (src_file, src_name, src_parent, dst_name, kind, line,
+// dst_qualifier, dst_ns, id) — total for the same reason UnresolvedEdges'
+// order is.
 //
 // Same source-symbol requirement as UnresolvedEdges: src_symbol_id != 0, so
 // file-level import edges are excluded for the same reason (no source symbol,
@@ -88,7 +97,8 @@ func (s *Store) TierOneEdges() ([]TierOneEdge, error) {
 		 JOIN symbols y ON y.id = e.src_symbol_id
 		 JOIN symbols d ON d.id = e.dst_symbol_id
 		 WHERE e.src_symbol_id != 0 AND d.tier = 1
-		 ORDER BY e.src_file, y.name, y.parent, e.dst_name, e.kind, e.line`)
+		 ORDER BY e.src_file, y.name, y.parent, e.dst_name, e.kind, e.line,
+		          e.dst_qualifier, e.dst_ns, e.id`)
 	if err != nil {
 		return nil, err
 	}
