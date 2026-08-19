@@ -12,12 +12,12 @@ related: [9, 10]
 discovered_from: []
 adrs: []
 spec: docs/superpowers/specs/2026-08-19-workspace-overlay-store-design.md
-plan:
+plan: docs/superpowers/plans/2026-08-19-workspace-overlay-store-plan.md
 results:
 trivial: false
 auto_groomable: true
 branch: feat/workspace-overlay-store
-claimed_at: 2026-08-19T07:16:26Z
+claimed_at: 2026-08-19T07:18:56Z
 pr:
 blocked_by:
 reconciled: true
@@ -29,6 +29,7 @@ reconciled: true
 | Artifact | Link |
 |---|---|
 | Spec | [2026-08-19-workspace-overlay-store-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-19-workspace-overlay-store-design.md) |
+| Plan | [2026-08-19-workspace-overlay-store-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-overlay-store/docs/superpowers/plans/2026-08-19-workspace-overlay-store-plan.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
