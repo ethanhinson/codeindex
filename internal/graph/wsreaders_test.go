@@ -30,7 +30,7 @@ func wsFixture(t *testing.T) *Store {
 			{File: "pkg/a.go", Name: "Boot", Kind: KindFunc, StartLine: 30, EndLine: 40},
 		},
 		Calls: []RawCall{
-			{EnclosingIdx: 0, Callee: "Helper", Line: 11},                                     // resolved
+			{EnclosingIdx: 0, Callee: "Helper", Line: 11},                                      // resolved
 			{EnclosingIdx: 0, Callee: "Zeta", Qualifier: "Client", NsHint: "acme/z", Line: 12}, // unresolved
 			{EnclosingIdx: 1, Callee: "Alpha", Line: 31},                                       // unresolved
 		},
