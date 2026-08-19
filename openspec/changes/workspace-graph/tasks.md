@@ -31,9 +31,9 @@ at the C2 fork (ROADMAP-DEBATE.md path C) and are not started before it.
       (namespace auto-discovery per language + monorepo member
       discovery via go.work / pnpm-workspace.yaml / composer path
       repos / lerna.json / package.json workspaces, manifest overrides)
-- [ ] 3.2 Overlay store: registry, cross-edges by stable key, member
+- [x] 3.2 Overlay store: registry, cross-edges by stable key, member
       stamps; overlay schema version independent of graph.db version
-- [ ] 3.3 Cross-repo resolution ladder per design D3 (import-mediated
+- [x] 3.3 Cross-repo resolution ladder per design D3 (import-mediated
       exact only; ambiguity with candidate counts; member-over-dep
       suppression with skew recording)
 - [ ] 3.4 Workspace freshen: per-member freshen + stamp-gated
