@@ -1,12 +1,6 @@
 # Backlog
 
-**13 changes** — 🟢 1 in progress · 🟡 4 proposed · ✅ 8 done
-
-## 🟢 In progress (1)
-
-| # | Title | Priority | Type | Spec | Branch |
-|---|-------|----------|------|------|--------|
-| [0013](active/0013-workspace-resolution-ladder.md) | Cross-repo resolution ladder — import-mediated exact, bare-name inferred, ambiguity, suppression | `high` | `feat` | [spec](../superpowers/specs/2026-08-19-workspace-resolution-ladder-design.md) | `feat/workspace-resolution-ladder` |
+**13 changes** — 🟡 4 proposed · 🔵 1 implemented · ✅ 8 done
 
 ## 🟡 Proposed (4)
 
@@ -16,6 +10,12 @@
 | [0007](active/0007-session-stable-query-cache.md) | Session-stable query cache keyed by index version | `medium` | `perf` | needs-brainstorm |
 | [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-brainstorm |
 | [0010](active/0010-workspace-bench-corpus-monorepo-growth.md) | Grow the workspace bench corpus — monorepo declaration coverage in every supported language | `medium` | `chore` | needs-brainstorm |
+
+## 🔵 Implemented — awaiting merge (1)
+
+| # | Title | Priority | Type | PR | Readiness |
+|---|-------|----------|------|----|-----------|
+| [0013](active/0013-workspace-resolution-ladder.md) | Cross-repo resolution ladder — import-mediated exact, bare-name inferred, ambiguity, suppression | `high` | `feat` | [#11](https://github.com/ethanhinson/codeindex/pull/11) |  |
 
 ```mermaid
 graph TD
