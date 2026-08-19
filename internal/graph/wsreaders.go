@@ -51,6 +51,54 @@ func (s *Store) UnresolvedEdges() ([]UnresolvedEdge, error) {
 	return out, rows.Err()
 }
 
+// TierOneEdge is an UnresolvedEdge-shaped record for an edge that IS resolved,
+// but resolved to a tier-1 (attached dependency) symbol, carried with that
+// target's namespace.
+//
+// It embeds UnresolvedEdge rather than repeating its eight fields: the source
+// key and dst_* hint columns are the same columns with the same meaning, so
+// embedding keeps the two readers visibly symmetric and lets a caller pass the
+// .UnresolvedEdge through to any key-building code task 2 already feeds.
+type TierOneEdge struct {
+	UnresolvedEdge
+	// DstNamespace is the namespace of the resolved tier-1 TARGET symbol (not
+	// the source's). Task 7 matches the suppression set against this.
+	DstNamespace string
+}
+
+// TierOneEdges returns every edge whose resolved destination is a tier-1
+// symbol, ordered by (src_file, src_name, src_parent, dst_name, kind, line).
+//
+// Same source-symbol requirement as UnresolvedEdges: src_symbol_id != 0, so
+// file-level import edges are excluded for the same reason (no source symbol,
+// hence no stable key for the source end). Edges resolved to a tier-0 symbol
+// are excluded by the tier filter on the destination join, and unresolved
+// edges (dst_symbol_id = 0) never match that join at all.
+func (s *Store) TierOneEdges() ([]TierOneEdge, error) {
+	rows, err := s.db.Query(
+		`SELECT e.src_file, y.name, y.parent, e.dst_name, e.dst_qualifier,
+		        e.dst_ns, e.kind, e.line, d.namespace
+		 FROM edges e
+		 JOIN symbols y ON y.id = e.src_symbol_id
+		 JOIN symbols d ON d.id = e.dst_symbol_id
+		 WHERE e.src_symbol_id != 0 AND d.tier = 1
+		 ORDER BY e.src_file, y.name, y.parent, e.dst_name, e.kind, e.line`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []TierOneEdge
+	for rows.Next() {
+		var e TierOneEdge
+		if err := rows.Scan(&e.SrcFile, &e.SrcName, &e.SrcParent, &e.DstName,
+			&e.DstQualifier, &e.DstNS, &e.Kind, &e.Line, &e.DstNamespace); err != nil {
+			return nil, err
+		}
+		out = append(out, e)
+	}
+	return out, rows.Err()
+}
+
 // ProjectDefs returns the tier-0 definitions of name, optionally restricted to
 // parent (empty means no parent restriction), ordered by
 // (file, start_line, name).

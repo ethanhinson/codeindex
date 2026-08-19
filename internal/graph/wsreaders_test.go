@@ -58,6 +58,147 @@ func wsFixture(t *testing.T) *Store {
 	return st
 }
 
+// wsTierFixture builds an index with an attached depmap so all three
+// destination classes exist: tier-1-resolved, tier-0-resolved, and unresolved.
+func wsTierFixture(t *testing.T) *Store {
+	t.Helper()
+	dir := t.TempDir()
+
+	// A depmap file: tier-1 symbols only, stamped with its namespace.
+	mapPath := filepath.Join(dir, "acme.map.db")
+	m, err := Open(mapPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := m.WriteDepMeta("acme/z", "v1.2.3"); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.PutDepSymbols("acme/z", "v1.2.3", "z.go", "maphash", 1, 1, []Symbol{
+		{Name: "Zeta", Kind: KindFunc, StartLine: 1, EndLine: 2},
+		{Name: "Yankee", Kind: KindFunc, StartLine: 5, EndLine: 6},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	st, err := Open(filepath.Join(dir, "graph.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = st.Close() })
+
+	putFile(t, st, &ParsedFile{
+		Path: "pkg/b.go",
+		Symbols: []Symbol{
+			{File: "pkg/b.go", Name: "Helper", Kind: KindFunc, StartLine: 1, EndLine: 2},
+		},
+	})
+	putFile(t, st, &ParsedFile{
+		Path: "pkg/a.go",
+		Symbols: []Symbol{
+			{File: "pkg/a.go", Name: "Run", Parent: "Server", Kind: KindMethod, StartLine: 10, EndLine: 20},
+			{File: "pkg/a.go", Name: "Boot", Kind: KindFunc, StartLine: 30, EndLine: 40},
+		},
+		Calls: []RawCall{
+			{EnclosingIdx: 0, Callee: "Helper", Line: 11}, // tier-0 resolved
+			{EnclosingIdx: 0, Callee: "Zeta", Line: 12},   // tier-1 after attach
+			{EnclosingIdx: 1, Callee: "Yankee", Line: 31}, // tier-1 after attach
+			{EnclosingIdx: 1, Callee: "Alpha", Line: 32},  // unresolved
+		},
+		Deps: []RawDep{
+			{EnclosingIdx: -1, Kind: KindImports, Target: "acme/z", Source: "acme/z", Line: 1},
+		},
+	})
+
+	ns, _, names, err := st.AttachMap(mapPath, "vendor/acme")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ns != "acme/z" {
+		t.Fatalf("attached namespace = %q", ns)
+	}
+	if err := st.ReResolve(names); err != nil {
+		t.Fatal(err)
+	}
+
+	// Guard: exclusion assertions are vacuous unless every class is present.
+	count := func(where string) int {
+		var n int
+		if err := st.db.QueryRow(`SELECT COUNT(*) FROM edges e
+			LEFT JOIN symbols d ON d.id = e.dst_symbol_id WHERE ` + where).Scan(&n); err != nil {
+			t.Fatal(err)
+		}
+		return n
+	}
+	if n := count(`e.dst_symbol_id != 0 AND d.tier = 1`); n < 2 {
+		t.Fatalf("fixture has %d tier-1-resolved edges, want >= 2", n)
+	}
+	if n := count(`e.dst_symbol_id != 0 AND d.tier = 0`); n == 0 {
+		t.Fatalf("fixture has no tier-0-resolved edge")
+	}
+	if n := count(`e.dst_symbol_id = 0 AND e.src_symbol_id != 0`); n == 0 {
+		t.Fatalf("fixture has no unresolved symbol-sourced edge")
+	}
+	if n := count(`e.src_symbol_id = 0 AND e.kind = 'imports'`); n == 0 {
+		t.Fatalf("fixture has no file-level import edge")
+	}
+	return st
+}
+
+func TestTierOneEdges(t *testing.T) {
+	st := wsTierFixture(t)
+	got, err := st.TierOneEdges()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Ordered by (src_file, src_name, ...) => Boot before Run.
+	want := []TierOneEdge{
+		{UnresolvedEdge: UnresolvedEdge{SrcFile: "pkg/a.go", SrcName: "Boot",
+			DstName: "Yankee", Kind: "calls", Line: 31}, DstNamespace: "acme/z"},
+		{UnresolvedEdge: UnresolvedEdge{SrcFile: "pkg/a.go", SrcName: "Run", SrcParent: "Server",
+			DstName: "Zeta", Kind: "calls", Line: 12}, DstNamespace: "acme/z"},
+	}
+	if len(got) != len(want) {
+		t.Fatalf("got %d edges %+v, want %d", len(got), got, len(want))
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("edge %d: got %+v want %+v", i, got[i], want[i])
+		}
+	}
+	// Exclusions: nothing tier-0-resolved (Helper) or unresolved (Alpha).
+	for _, e := range got {
+		if e.DstName == "Helper" || e.DstName == "Alpha" {
+			t.Errorf("unexpected edge returned: %+v", e)
+		}
+	}
+}
+
+func TestTierOneEdgesDeterministicOrder(t *testing.T) {
+	st := wsTierFixture(t)
+	a, err := st.TierOneEdges()
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := st.TierOneEdges()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(a) != len(b) {
+		t.Fatalf("length differs: %d vs %d", len(a), len(b))
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			t.Fatalf("order not stable at %d: %+v vs %+v", i, a[i], b[i])
+		}
+	}
+	if len(a) < 2 || a[0].SrcName != "Boot" || a[1].SrcName != "Run" {
+		t.Fatalf("unexpected order: %+v", a)
+	}
+}
+
 func TestUnresolvedEdgesExcludesResolvedAndFileLevelImports(t *testing.T) {
 	st := wsFixture(t)
 	got, err := st.UnresolvedEdges()
