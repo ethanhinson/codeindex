@@ -1,5 +1,5 @@
 <!-- docket:backlink:start (generated — do not hand-edit) -->
-> ↩ **[Change 0009 — Workspace manifest load/validate + init-workspace --scan](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/active/0009-workspace-manifest-init-scan.md)**
+> ↩ **[Change 0009 — Workspace manifest load/validate + init-workspace --scan](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/archive/2026-08-19-0009-workspace-manifest-init-scan.md)**
 <!-- docket:backlink:end -->
 
 # Design: Workspace manifest load/validate + `init-workspace --scan`
