@@ -46,8 +46,11 @@ type Suppressed struct {
 //   - None: A is a genuine third-party dependency; it is left entirely alone.
 //
 // Suppression never mutates C's graph.db: the tier-1 symbol rows stay, the
-// intra-repo edge stays, and the overlay simply ALSO carries the cross-edge
-// into O.
+// intra-repo edge stays, and the overlay MAY additionally carry a cross-edge
+// into O — only where the re-pointed edge actually resolves in O (see
+// Suppressed.Repoint). A record with no cross-edge behind it is a normal
+// outcome, which is why the §4.1 obligation in the package doc is conditioned
+// on a cross-edge from the same call site rather than on the record alone.
 //
 // A known non-match is deliberately left alone: a member that declares only a
 // composer package name while its vendored copy is recorded under a PSR-4 root
