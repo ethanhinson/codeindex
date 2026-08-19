@@ -95,6 +95,14 @@ own vocabulary (`exact` / `inferred`); reconciling that with
   out-of-root member design question raised in 0009's results belongs to
   discovery, not the overlay).
 
+## Owner sign-off (2026-08-19, merge gate)
+
+The two judgment items from the build's results file are confirmed:
+**never-thin** is the inherited semantic for §3.3/§3.4 (stale ambiguity
+records are deleted whole and re-derived; candidates are never thinned),
+and **no ADR** is recorded for it — spec + results + code comments are
+the record; §3.3 may promote it if it proves load-bearing.
+
 ## Reconcile log
 
 <!-- Appended by docket-implement-next's reconcile pass: dated entries of what changed. -->
