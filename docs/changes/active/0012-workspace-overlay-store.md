@@ -2,7 +2,7 @@
 id: 12
 slug: workspace-overlay-store
 title: Workspace overlay store — member registry, cross-edges by stable key, freshness stamps
-status: in-progress
+status: implemented
 priority: high
 type: feat
 created: 2026-08-19
@@ -13,12 +13,12 @@ discovered_from: []
 adrs: []
 spec: docs/superpowers/specs/2026-08-19-workspace-overlay-store-design.md
 plan: docs/superpowers/plans/2026-08-19-workspace-overlay-store-plan.md
-results:
+results: docs/results/2026-08-19-workspace-overlay-store-results.md
 trivial: false
 auto_groomable: true
 branch: feat/workspace-overlay-store
-claimed_at: 2026-08-19T07:18:56Z
-pr:
+claimed_at: 2026-08-19T09:17:22Z
+pr: https://github.com/ethanhinson/codeindex/pull/10
 blocked_by:
 reconciled: true
 ---
@@ -30,6 +30,8 @@ reconciled: true
 |---|---|
 | Spec | [2026-08-19-workspace-overlay-store-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-19-workspace-overlay-store-design.md) |
 | Plan | [2026-08-19-workspace-overlay-store-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-overlay-store/docs/superpowers/plans/2026-08-19-workspace-overlay-store-plan.md) |
+| Results | [2026-08-19-workspace-overlay-store-results.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-overlay-store/docs/results/2026-08-19-workspace-overlay-store-results.md) |
+| PR | [#10](https://github.com/ethanhinson/codeindex/pull/10) |
 <!-- docket:artifacts:end -->
 
 ## Why
