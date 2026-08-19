@@ -4,15 +4,17 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strings"
 	"testing"
 )
 
 // rowidRefShape matches the naming shape of a column that points at another
-// database's row ids: symbol_id, file_id, src_id, dst_id, name_id, edge_id, …
-// The surrogate INTEGER PRIMARY KEY columns of cross_edges and
-// cross_ambiguities are named plainly `id` and so do not match — they are the
-// overlay's own row ids, not a member's, and need no allowlist entry.
-var rowidRefShape = regexp.MustCompile(`_id$`)
+// database's row ids: symbol_id, file_id, src_id, dst_id, name_id, edge_id,
+// symbol_rowid, rowid, srcid, … The surrogate INTEGER PRIMARY KEY columns of
+// cross_edges and cross_ambiguities are named plainly `id` and so do not
+// match — they are the overlay's own row ids, not a member's, and need no
+// allowlist entry.
+var rowidRefShape = regexp.MustCompile(`(_id|_rowid|rowid|_ref)$`)
 
 // rowidAllowlist is every `_id`-suffixed column the overlay is permitted to
 // hold. Each is legal because it is NOT a member graph.db rowid:
@@ -27,6 +29,22 @@ var rowidAllowlist = map[string]bool{
 	"member_id":    true,
 	"dep_id":       true,
 	"ambiguity_id": true,
+}
+
+// knownIntegerColumns is every column the overlay is permitted to declare
+// INTEGER. The overlay stores every SYMBOL REFERENCE as TEXT (the stable key
+// is member id + file path + qualified name), so a new INTEGER column is
+// exactly the shape a rowid reference would take even if its name looks
+// innocent — a plainly-named column like `dst_symbol` would slip past the
+// name-suffix check above but not this one.
+var knownIntegerColumns = map[string]bool{
+	"ord":             true,
+	"line":            true,
+	"candidate_count": true,
+	"rank":            true,
+	"resolved_at":     true,
+	"id":              true,
+	"ambiguity_id":    true,
 }
 
 // TestNoMemberRowidColumns is the §3.2-local half of "stable-key survival".
@@ -97,6 +115,11 @@ func TestNoMemberRowidColumns(t *testing.T) {
 				t.Errorf("%s.%s: column names a row id; overlay references must be "+
 					"the stable key (member, file, qname) so they survive a member rebuild",
 					table, name)
+			}
+			if strings.EqualFold(typ, "INTEGER") && !knownIntegerColumns[name] {
+				t.Errorf("%s.%s: unexpected INTEGER column; a symbol reference must be "+
+					"stored as the stable key (member, file, qname) in TEXT, not an integer "+
+					"that could be a member graph.db rowid", table, name)
 			}
 		}
 		err = cols.Err()

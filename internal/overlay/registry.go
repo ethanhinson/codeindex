@@ -53,24 +53,17 @@ func (s *Store) ReplaceRegistry(ws *config.Workspace) error {
 	if ws == nil {
 		return fmt.Errorf("overlay: ReplaceRegistry: nil workspace")
 	}
-	tx, err := s.db.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	for _, t := range []string{"members", "member_namespaces", "member_deps"} {
-		if _, err := tx.Exec(`DELETE FROM ` + t); err != nil {
+	return s.inTx(func(tx *sql.Tx) error {
+		for _, t := range []string{"members", "member_namespaces", "member_deps"} {
+			if _, err := tx.Exec(`DELETE FROM ` + t); err != nil {
+				return err
+			}
+		}
+		if err := insertMembers(tx, ws.Members); err != nil {
 			return err
 		}
-	}
-	if err := insertMembers(tx, ws.Members); err != nil {
-		return err
-	}
-	if err := pruneOrphans(tx, ws.Members); err != nil {
-		return err
-	}
-	return tx.Commit()
+		return pruneOrphans(tx, ws.Members)
+	})
 }
 
 func insertMembers(tx *sql.Tx, members []config.Member) error {
