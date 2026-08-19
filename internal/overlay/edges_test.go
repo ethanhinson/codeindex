@@ -1,6 +1,7 @@
 package overlay
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -369,6 +370,122 @@ func seedForReplace(t *testing.T, s *Store) {
 	}
 }
 
+// assertNoOrphanCandidates checks the raw candidates table for rows whose
+// parent ambiguity is gone — decision 18's hazard, invisible to every read.
+func assertNoOrphanCandidates(t *testing.T, s *Store) {
+	t.Helper()
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates c
+	  WHERE NOT EXISTS (SELECT 1 FROM cross_ambiguities a WHERE a.id = c.ambiguity_id)`); got != 0 {
+		t.Fatalf("%d orphaned candidate rows", got)
+	}
+}
+
+// assertCountsMatchCandidates checks the other half of the same invariant: no
+// surviving ambiguity may store a candidate_count below its own candidate rows.
+// A count *above* is legal (upstream truncation); a count below means a
+// candidate list was thinned underneath a row that still claims the old size.
+func assertCountsMatchCandidates(t *testing.T, s *Store) {
+	t.Helper()
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguities a
+	  WHERE a.candidate_count <
+	        (SELECT COUNT(*) FROM cross_ambiguity_candidates c WHERE c.ambiguity_id = a.id)`); got != 0 {
+		t.Fatalf("%d ambiguities whose candidate_count is below their own candidate rows", got)
+	}
+}
+
+// TestReplaceMemberEdgesDeletesCandidateSideAmbiguities is the either-end rule
+// for cross_ambiguities: re-resolving M may rename or delete any symbol M owns,
+// so an ambiguity sourced from another member N that names M among its
+// candidates is stale the moment M is replaced — and nothing else would ever
+// clear it, since ReplaceMemberEdges(N) only fires when N re-resolves and
+// registry pruning only fires when M leaves the manifest. The whole parent goes:
+// thinning just M's candidate row would leave N's stored candidate_count
+// contradicting its surviving rows.
+func TestReplaceMemberEdgesDeletesCandidateSideAmbiguities(t *testing.T) {
+	s := newStore(t)
+
+	namesWeb := Ambiguity{
+		Src: sym("app", "c.php", "C::z"), RefName: "Thing", RefNS: "Acme",
+		Kind: "call", Line: 4,
+		Candidates: []SymKey{sym("lib", "b.php", "B::y"), sym("web", "a.php", "A::x")},
+		Count:      2,
+	}
+	// Same source member, no mention of web: the delete must be scoped to
+	// incidence, not swept across N's whole contribution.
+	untouched := Ambiguity{
+		Src: sym("app", "c.php", "C::q"), RefName: "Other", RefNS: "",
+		Kind: "call", Line: 8,
+		Candidates: []SymKey{sym("lib", "b.php", "B::w")},
+		Count:      3, // above len(Candidates): upstream truncated
+	}
+	if err := s.PutAmbiguities([]Ambiguity{namesWeb, untouched}); err != nil {
+		t.Fatalf("PutAmbiguities: %v", err)
+	}
+
+	if err := s.ReplaceMemberEdges("web", nil, nil, nil); err != nil {
+		t.Fatalf("ReplaceMemberEdges: %v", err)
+	}
+
+	got, err := s.AmbiguitiesFor("app")
+	if err != nil {
+		t.Fatalf("AmbiguitiesFor(app): %v", err)
+	}
+	if !reflect.DeepEqual(got, []Ambiguity{untouched}) {
+		t.Fatalf("AmbiguitiesFor(app) =\n %+v\nwant only\n %+v", got, untouched)
+	}
+
+	// Raw rows: the parent ambiguity and BOTH of its candidate rows are gone —
+	// the list was deleted with its parent, never thinned in place.
+	if n := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguities`); n != 1 {
+		t.Fatalf("cross_ambiguities = %d, want 1", n)
+	}
+	if n := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates`); n != 1 {
+		t.Fatalf("cross_ambiguity_candidates = %d, want 1", n)
+	}
+	if n := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates WHERE member_id='web'`); n != 0 {
+		t.Fatalf("%d candidate rows still name the replaced member", n)
+	}
+	assertNoOrphanCandidates(t, s)
+	assertCountsMatchCandidates(t, s)
+}
+
+// TestReplaceMemberEdgesManyIncidentAmbiguities crosses the id-chunking
+// boundary of the either-end delete: more incident ambiguities than one DELETE
+// binds at a time, so a chunk loop that dropped its tail — or a single bound
+// statement that blew the host-parameter limit — shows up here.
+func TestReplaceMemberEdgesManyIncidentAmbiguities(t *testing.T) {
+	s := newStore(t)
+	const n = ambiguityDeleteChunk*2 + 3
+	amb := make([]Ambiguity, 0, n+1)
+	for i := range n {
+		amb = append(amb, Ambiguity{
+			Src: sym("app", "c.php", "C::z"), RefName: fmt.Sprintf("Ref%d", i),
+			Kind: "call", Line: i,
+			Candidates: []SymKey{sym("web", "a.php", "A::x")}, Count: 1,
+		})
+	}
+	keep := Ambiguity{
+		Src: sym("app", "c.php", "C::z"), RefName: "Keep", Kind: "call", Line: n,
+		Candidates: []SymKey{sym("lib", "b.php", "B::y")}, Count: 1,
+	}
+	amb = append(amb, keep)
+	if err := s.PutAmbiguities(amb); err != nil {
+		t.Fatalf("PutAmbiguities: %v", err)
+	}
+
+	if err := s.ReplaceMemberEdges("web", nil, nil, nil); err != nil {
+		t.Fatalf("ReplaceMemberEdges: %v", err)
+	}
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguities`); got != 1 {
+		t.Fatalf("cross_ambiguities = %d, want 1 (only the ambiguity not naming web)", got)
+	}
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates`); got != 1 {
+		t.Fatalf("cross_ambiguity_candidates = %d, want 1", got)
+	}
+	assertNoOrphanCandidates(t, s)
+	assertCountsMatchCandidates(t, s)
+}
+
 func TestReplaceMemberEdges(t *testing.T) {
 	s := newStore(t)
 	seedForReplace(t, s)
@@ -402,9 +519,10 @@ func TestReplaceMemberEdges(t *testing.T) {
 		t.Fatalf("cross_edges = %d, want 3 (2 app-sourced survivors + 1 new)", got)
 	}
 
-	// Ambiguities sourced from web are replaced; app's is untouched, including
-	// the candidate row that names web (decision 21's argument, applied to the
-	// candidate side — see ReplaceMemberEdges' doc comment).
+	// Ambiguities are replaced on either end: the web-sourced one is rewritten,
+	// and app's — whose candidate list names web — is deleted outright, because
+	// web's rebuild may have renamed or deleted the symbol that candidate points
+	// at and no other code path would ever remove it.
 	ambs, err := s.AmbiguitiesFor("web")
 	if err != nil {
 		t.Fatalf("AmbiguitiesFor(web): %v", err)
@@ -416,13 +534,19 @@ func TestReplaceMemberEdges(t *testing.T) {
 	if err != nil {
 		t.Fatalf("AmbiguitiesFor(app): %v", err)
 	}
-	if len(appAmbs) != 1 || len(appAmbs[0].Candidates) != 2 {
-		t.Fatalf("app's ambiguity was disturbed: %+v", appAmbs)
+	if len(appAmbs) != 0 {
+		t.Fatalf("app's ambiguity names web among its candidates and must be deleted whole: %+v", appAmbs)
 	}
-	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates c
-	  WHERE NOT EXISTS (SELECT 1 FROM cross_ambiguities a WHERE a.id = c.ambiguity_id)`); got != 0 {
-		t.Fatalf("%d orphaned candidate rows after replace", got)
+	// Raw rows, not the read API: only the new ambiguity and its one candidate
+	// remain, with nothing stranded behind them.
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguities`); got != 1 {
+		t.Fatalf("cross_ambiguities = %d, want 1 (only the new web-sourced row)", got)
 	}
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates`); got != 1 {
+		t.Fatalf("cross_ambiguity_candidates = %d, want 1", got)
+	}
+	assertNoOrphanCandidates(t, s)
+	assertCountsMatchCandidates(t, s)
 
 	// Suppressions: consumer_member = web is cleared and rewritten; the row
 	// where web is only the owner_member is deliberately left alone.
@@ -493,6 +617,11 @@ func TestReplaceMemberEdgesEmptyClears(t *testing.T) {
 	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguities WHERE src_member='web'`); got != 0 {
 		t.Fatalf("web-sourced ambiguities survived: %d", got)
 	}
+	if got := countQ(t, s, `SELECT COUNT(*) FROM cross_ambiguity_candidates WHERE member_id='web'`); got != 0 {
+		t.Fatalf("candidate rows naming web survived: %d", got)
+	}
+	assertNoOrphanCandidates(t, s)
+	assertCountsMatchCandidates(t, s)
 	if got := countQ(t, s, `SELECT COUNT(*) FROM dep_suppressions WHERE consumer_member='web'`); got != 0 {
 		t.Fatalf("web consumer suppressions survived: %d", got)
 	}

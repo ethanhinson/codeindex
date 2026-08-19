@@ -3,6 +3,7 @@ package overlay
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 )
 
 // SymKey is the stable identity of a symbol across member rebuilds: member id
@@ -111,16 +112,19 @@ func (s *Store) PutSuppressions(sup []Suppression) error {
 //
 //   - cross_edges incident to M on either end (src_member = M or dst_member =
 //     M) — an edge is M's contribution whichever end M sits on.
-//   - cross_ambiguities where src_member = M, and their candidate rows. An
-//     ambiguity has only one endpoint: its source. A candidate row naming M
-//     inside an ambiguity sourced from another member is *that* member's
-//     record — this call is not re-resolving that member and is not given
-//     replacement candidates for it, so deleting or thinning its candidate list
-//     would strand a candidate_count contradicting its own rows. Candidate-side
-//     incidence is therefore out of scope here, matching what AmbiguitiesFor
-//     reads back (it selects on src_member). Registry pruning does delete
-//     candidate rows naming a member, but that is the different case of a
-//     member leaving the manifest entirely.
+//   - cross_ambiguities incident to M on either end — sourced from M, or naming
+//     M anywhere in their candidate list — together with every candidate row of
+//     those ambiguities. Re-resolving M may rename or delete any symbol M owns,
+//     so a candidate pointing into M is stale the moment M is replaced, and no
+//     other path would ever clear it: ReplaceMemberEdges(N) fires only when N
+//     re-resolves, and registry pruning only when M leaves the manifest
+//     entirely. A candidate list is never *thinned*: when M appears only as a
+//     candidate of an ambiguity sourced from another member N, the whole parent
+//     ambiguity is deleted, because dropping M's row alone would leave N's
+//     stored candidate_count contradicting its own surviving rows. N re-derives
+//     the reference the next time N is re-resolved. Parents and candidates go
+//     together inside the one transaction, so decision 18's orphan hazard is
+//     closed here as it is in PutAmbiguities.
 //   - dep_suppressions where consumer_member = M. Rows where M is merely the
 //     owner_member are deliberately left alone (decision 21): a suppression
 //     records a consumer's attachment being overridden and is re-derived when
@@ -142,18 +146,17 @@ func (s *Store) ReplaceMemberEdges(memberID string, edges []CrossEdge, a []Ambig
 		}
 	}
 	return s.inTx(func(tx *sql.Tx) error {
-		deletes := []string{
+		if _, err := tx.Exec(
 			`DELETE FROM cross_edges WHERE src_member = ? OR dst_member = ?`,
-			`DELETE FROM cross_ambiguity_candidates
-			   WHERE ambiguity_id IN (SELECT id FROM cross_ambiguities WHERE src_member = ?)`,
-			`DELETE FROM cross_ambiguities WHERE src_member = ?`,
-			`DELETE FROM dep_suppressions WHERE consumer_member = ?`,
+			memberID, memberID); err != nil {
+			return err
 		}
-		args := [][]any{{memberID, memberID}, {memberID}, {memberID}, {memberID}}
-		for i, q := range deletes {
-			if _, err := tx.Exec(q, args[i]...); err != nil {
-				return err
-			}
+		if err := deleteIncidentAmbiguities(tx, memberID); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(
+			`DELETE FROM dep_suppressions WHERE consumer_member = ?`, memberID); err != nil {
+			return err
 		}
 		if err := putCrossEdges(tx, edges); err != nil {
 			return err
@@ -163,6 +166,66 @@ func (s *Store) ReplaceMemberEdges(memberID string, edges []CrossEdge, a []Ambig
 		}
 		return putSuppressions(tx, sup)
 	})
+}
+
+// ambiguityDeleteChunk bounds how many ids one DELETE binds, staying well under
+// any SQLite host-parameter limit for a member with many ambiguities.
+const ambiguityDeleteChunk = 400
+
+// deleteIncidentAmbiguities removes every ambiguity incident to memberID on
+// either end — sourced from it, or naming it among its candidates — and all of
+// their candidate rows.
+//
+// The ids are resolved into Go first rather than driven from a subquery,
+// because the candidate-side arm reads cross_ambiguity_candidates while the
+// same statement deletes from it; collecting first makes the two deletes
+// independent of any evaluation-order subtlety. Candidates are deleted before
+// their parents so the second delete can never strand a row (decision 18's
+// hazard applies here exactly as it does in PutAmbiguities), and the whole
+// sequence runs inside the caller's transaction.
+//
+// The candidate-side arm may name an ambiguity id that no longer has a parent
+// row; deleting those candidate rows is right either way.
+func deleteIncidentAmbiguities(tx *sql.Tx, memberID string) error {
+	rows, err := tx.Query(`SELECT id FROM cross_ambiguities WHERE src_member = ?
+	  UNION
+	  SELECT ambiguity_id FROM cross_ambiguity_candidates WHERE member_id = ?`,
+		memberID, memberID)
+	if err != nil {
+		return err
+	}
+	var ids []any
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			return err
+		}
+		ids = append(ids, id)
+	}
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return err
+	}
+	if err := rows.Close(); err != nil {
+		return err
+	}
+
+	for len(ids) > 0 {
+		n := min(len(ids), ambiguityDeleteChunk)
+		chunk := ids[:n]
+		ids = ids[n:]
+		in := "(" + strings.Repeat("?,", n-1) + "?)"
+		if _, err := tx.Exec(
+			`DELETE FROM cross_ambiguity_candidates WHERE ambiguity_id IN `+in, chunk...); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(
+			`DELETE FROM cross_ambiguities WHERE id IN `+in, chunk...); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // inTx runs fn inside a single transaction, rolling back on any error.
@@ -342,9 +405,10 @@ func (s *Store) queryEdges(query string, args ...any) ([]CrossEdge, error) {
 // AmbiguitiesFor returns the ambiguities *sourced from* memberID — the member
 // whose reference could not be resolved — ordered by source stable key, then
 // ref name, kind and line, each with its candidates in recorded rank order.
-// Ambiguities that merely list memberID among their candidates belong to their
-// own source member; see ReplaceMemberEdges for why the two sides are not
-// symmetric.
+// Ambiguities that merely list memberID among their candidates are read back
+// under their own source member, not here. That is a scoping choice about this
+// read only: ReplaceMemberEdges deletes ambiguities incident to a member on
+// either end, candidate side included.
 func (s *Store) AmbiguitiesFor(memberID string) ([]Ambiguity, error) {
 	rows, err := s.db.Query(`SELECT id, src_member, src_file, src_qname, ref_name, ref_ns, kind, line, candidate_count
 	  FROM cross_ambiguities WHERE src_member = ?
