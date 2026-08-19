@@ -1,5 +1,5 @@
 <!-- docket:backlink:start (generated — do not hand-edit) -->
-> ↩ **[Change 0012 — Workspace overlay store — member registry, cross-edges by stable key, freshness stamps](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/active/0012-workspace-overlay-store.md)**
+> ↩ **[Change 0012 — Workspace overlay store — member registry, cross-edges by stable key, freshness stamps](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/archive/2026-08-19-0012-workspace-overlay-store.md)**
 <!-- docket:backlink:end -->
 
 # Design: Workspace overlay store — registry, cross-edges by stable key, member stamps
