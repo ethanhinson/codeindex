@@ -17,10 +17,10 @@ results:
 trivial: false
 auto_groomable: true
 branch: feat/workspace-overlay-store
-claimed_at: 2026-08-19T07:05:48Z
+claimed_at: 2026-08-19T07:16:26Z
 pr:
 blocked_by:
-reconciled: false
+reconciled: true
 ---
 
 ## Artifacts
@@ -95,3 +95,44 @@ own vocabulary (`exact` / `inferred`); reconciling that with
 ## Reconcile log
 
 <!-- Appended by docket-implement-next's reconcile pass: dated entries of what changed. -->
+
+### 2026-08-19
+
+Reconciled at claim time against `origin/main`, `origin/docket`, the frozen
+campaign design, and change 0009 (merged and archived the same day).
+
+**Verdict: no scope change.** All 22 assumptions and every "Codebase facts
+this design is built on" claim in the spec re-verified against the current
+working tree and held:
+
+- `internal/config/workspace.go` — `Workspace{Version int, Members []Member}`,
+  `Member{ID, Root string, Namespaces, Deps []string}`;
+  `func (w *Workspace) Resolve(wsRoot string) (present []ResolvedMember,
+  missing []string, err error)` unchanged. `validate()` still inspects only
+  `ID` and `Root`, never `Namespaces`/`Deps` — so decision 16's Go-side
+  de-duplication is still load-bearing, not defensive.
+- Member id charset still `A-Z a-z 0-9 . _ -` (no `:`, no `/`) — decision 4's
+  three-column stable key still the only unambiguous representation.
+- `internal/graph/store.go` — `const schemaVersion = 9`; `Open(path string)
+  (*Store, error)`, `OpenRaw(path string) (*sql.DB, error)`,
+  `SchemaVersion() int`, `FileSchemaVersion(path string) (int, error)`;
+  rebuild warning `"codeindex: index schema v%d -> v%d, rebuilding\n"`. The
+  clone target for §2 is intact.
+- `internal/graph/types.go` — `Confidence` is still `unambiguous` /
+  `ambiguous` / `unresolved`, so decision 8's `exact`/`inferred` divergence
+  and its §4.1 hand-off both still stand.
+- `internal/overlay` does **not** exist — this is a greenfield package, no
+  merge surface.
+- `internal/workspace` still imports neither `database/sql` nor
+  `internal/graph` (decision 1's premise); `internal/depmap` still the flat
+  sibling precedent importing `internal/graph`.
+- `go.mod` — module `codeindex`, Go 1.26.5, `github.com/mattn/go-sqlite3
+  v1.14.47` already direct. No new module dependency.
+- `openspec/changes/workspace-graph/tasks.md` — §3.1 is `[x]`, §3.2 is the
+  next unchecked engine task and matches this change's scope verbatim.
+
+**Dependency:** `depends_on: [9]` satisfied — 0009 archived as
+`docs/changes/archive/2026-08-19-0009-workspace-manifest-init-scan.md`.
+
+**Nothing dropped as done-elsewhere; no new constraint folded in.** Test gate
+remains `go test -tags nollama ./...` per `.docket.local.yml` (decision 15).
