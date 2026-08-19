@@ -37,6 +37,24 @@ const (
 	confInfer  = "inferred"
 )
 
+// Pass is the state one whole-workspace resolution pass shares across its
+// per-source Ladder calls. Today that is only the definition cache, and that is
+// the point: the cache MUST outlive a single source, because every source in a
+// pass asks the same targets the same defs(X) questions and a per-source cache
+// re-issues each ProjectDefs up to M-1 times in an M-member workspace.
+//
+// A Pass is not safe for concurrent use and must not outlive the *graph.Store
+// handles it cached answers from.
+type Pass struct {
+	defs map[defsKey][]graph.Symbol
+}
+
+// NewPass returns a Pass for one resolution pass. Callers create exactly one
+// and run every source member's ladder through it.
+func NewPass() *Pass {
+	return &Pass{defs: map[defsKey][]graph.Symbol{}}
+}
+
 // Ladder runs the four-rung cross-repo resolution ladder over edges sourced in
 // member src, against members (the available members in MANIFEST ORDER; src may
 // appear in the slice and is skipped).
@@ -67,7 +85,7 @@ const (
 //
 // The returned records are in edge order; within an Ambiguity, candidates are
 // in the order described on orderedCandidates.
-func Ladder(src Member, members []Member, edges []graph.UnresolvedEdge) (Records, error) {
+func (p *Pass) Ladder(src Member, members []Member, edges []graph.UnresolvedEdge) (Records, error) {
 	var out Records
 
 	others := make([]Member, 0, len(members))
@@ -82,8 +100,6 @@ func Ladder(src Member, members []Member, edges []graph.UnresolvedEdge) (Records
 		return out, nil
 	}
 
-	cache := map[defsKey][]graph.Symbol{}
-
 	for _, e := range edges {
 		sk := overlay.SymKey{
 			Member: src.ID,
@@ -95,7 +111,7 @@ func Ladder(src Member, members []Member, edges []graph.UnresolvedEdge) (Records
 		// three rungs read the same slices.
 		perMember := make([][]graph.Symbol, len(others))
 		for i, m := range others {
-			d, err := lookupDefs(cache, m, e.DstName, e.DstQualifier)
+			d, err := p.lookupDefs(m, e.DstName, e.DstQualifier)
 			if err != nil {
 				return Records{}, err
 			}
@@ -181,9 +197,14 @@ type defsKey struct{ member, name, qualifier string }
 // a cross-repo lookup must not be stricter than the in-repo one it extends —
 // requiring it to match would drop every method call whose receiver type is
 // defined in a third member.
-func lookupDefs(cache map[defsKey][]graph.Symbol, m Member, name, qualifier string) ([]graph.Symbol, error) {
+//
+// The cache key carries m.ID as well as (name, qualifier). That is a
+// CORRECTNESS requirement, not a nicety: the cache is pass-scoped, so a key
+// without the member would hand one member's definitions back for another
+// member's lookup and silently fabricate candidates.
+func (p *Pass) lookupDefs(m Member, name, qualifier string) ([]graph.Symbol, error) {
 	k := defsKey{m.ID, name, qualifier}
-	if d, ok := cache[k]; ok {
+	if d, ok := p.defs[k]; ok {
 		return d, nil
 	}
 	d, err := m.Store.ProjectDefs(name, qualifier)
@@ -195,7 +216,7 @@ func lookupDefs(cache map[defsKey][]graph.Symbol, m Member, name, qualifier stri
 			return nil, err
 		}
 	}
-	cache[k] = d
+	p.defs[k] = d
 	return d, nil
 }
 

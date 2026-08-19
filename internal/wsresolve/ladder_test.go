@@ -70,7 +70,7 @@ func srcKey() overlay.SymKey {
 
 func run(t *testing.T, src Member, members []Member, edges ...graph.UnresolvedEdge) Records {
 	t.Helper()
-	got, err := Ladder(src, members, edges)
+	got, err := NewPass().Ladder(src, members, edges)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -359,11 +359,11 @@ func TestReorderedMembersProduceSameCrossEdges(t *testing.T) {
 		edge("Boot", "", "example.com/a"),
 		edge("Serve", "", ""),
 	}
-	fwd, err := Ladder(src, []Member{src, a, b}, edges)
+	fwd, err := NewPass().Ladder(src, []Member{src, a, b}, edges)
 	if err != nil {
 		t.Fatal(err)
 	}
-	rev, err := Ladder(src, []Member{b, a, src}, edges)
+	rev, err := NewPass().Ladder(src, []Member{b, a, src}, edges)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -409,4 +409,42 @@ func TestQualifierNarrowsWhenItMatches(t *testing.T) {
 		Dst:  overlay.SymKey{Member: "a", File: "a/b.go", QName: "Handler.Serve"},
 		Kind: "call", Provenance: "cross_repo_name", Confidence: "inferred", Line: 7,
 	})
+}
+
+// --- pass-scoped cache -----------------------------------------------------
+
+// The defs cache is pass-scoped, so its key MUST carry the member alongside
+// (name, qualifier). Drop the member from defsKey and the first member's
+// answer is served for every later member's lookup: here `b` defines nothing,
+// but a member-blind cache would report a's Boot for b too, turning rung 2's
+// single hit into two and demoting the cross edge to a rung-3 ambiguity.
+//
+// The second source reuses the SAME Pass, which is the whole point of hoisting
+// it: a shared cache must not leak one source's view into another's.
+func TestPassCacheIsScopedByMember(t *testing.T) {
+	a := newMember(t, "a", []string{"example.com/a"}, nil, def{"a/a.go", "Boot", "", 3})
+	b := newMember(t, "b", []string{"example.com/b"}, nil)
+	s1 := newMember(t, "s", []string{"example.com/s"}, nil)
+	s2 := newMember(t, "s2", []string{"example.com/s2"}, nil)
+
+	p := NewPass()
+	want := overlay.CrossEdge{
+		Src:  srcKey(),
+		Dst:  overlay.SymKey{Member: "a", File: "a/a.go", QName: "Boot"},
+		Kind: "call", Provenance: "cross_repo_name", Confidence: "inferred", Line: 7,
+	}
+
+	got, err := p.Ladder(s1, []Member{s1, a, b}, []graph.UnresolvedEdge{edge("Boot", "", "")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantOneCross(t, got, want)
+
+	// Same Pass, different source: b is still empty and a still uniquely wins.
+	got, err = p.Ladder(s2, []Member{s2, a, b}, []graph.UnresolvedEdge{edge("Boot", "", "")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want.Src = overlay.SymKey{Member: "s2", File: "s.go", QName: "Caller"}
+	wantOneCross(t, got, want)
 }

@@ -173,7 +173,7 @@ func TestSuppressedTierOneEdgeIsRepointedAtOwner(t *testing.T) {
 		t.Fatalf("candidate source = %+v, want the calling symbol", cands[0])
 	}
 
-	recs, err := Ladder(app, []Member{app, lib}, cands)
+	recs, err := NewPass().Ladder(app, []Member{app, lib}, cands)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -207,7 +207,7 @@ func TestRepointedEdgeFallsThroughWhenOwnerLacksTheName(t *testing.T) {
 	if len(got.Records) != 1 {
 		t.Fatalf("records = %+v, want the suppression to stand", got.Records)
 	}
-	recs, err := Ladder(app, []Member{app, lib}, got.Repoint["app"])
+	recs, err := NewPass().Ladder(app, []Member{app, lib}, got.Repoint["app"])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -368,7 +368,7 @@ func TestConsumerGraphDBIsByteUnchanged(t *testing.T) {
 	}
 	// Include the ladder run over the re-pointed edges: it reads the owner's
 	// index but must not write the consumer's either.
-	if _, err := Ladder(app, []Member{app, lib}, got.Repoint["app"]); err != nil {
+	if _, err := NewPass().Ladder(app, []Member{app, lib}, got.Repoint["app"]); err != nil {
 		t.Fatal(err)
 	}
 

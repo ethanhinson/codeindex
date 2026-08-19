@@ -152,7 +152,11 @@ func Resolve(wsRoot string) (Stats, error) {
 
 	// 8. Ladder every available member, in manifest order, into memory. The
 	// same `available` slice is the candidate set for every source: Ladder
-	// filters the source out itself.
+	// filters the source out itself. One Pass is created for the whole loop, so
+	// the defs(X) cache is shared across sources — every source asks the same
+	// targets the same questions, and a per-source cache would re-issue each
+	// lookup once per source.
+	pass := NewPass()
 	var (
 		crossEdges  []overlay.CrossEdge
 		ambiguities []overlay.Ambiguity
@@ -168,7 +172,7 @@ func Resolve(wsRoot string) (Stats, error) {
 		// namespace.
 		edges = append(edges, sup.Repoint[m.ID]...)
 
-		recs, err := Ladder(m, available, edges)
+		recs, err := pass.Ladder(m, available, edges)
 		if err != nil {
 			return stats, fmt.Errorf("wsresolve: member %q: %w", m.ID, err)
 		}
