@@ -2,7 +2,7 @@
 id: 12
 slug: workspace-overlay-store
 title: Workspace overlay store — member registry, cross-edges by stable key, freshness stamps
-status: proposed
+status: in-progress
 priority: high
 type: feat
 created: 2026-08-19
@@ -16,7 +16,8 @@ plan:
 results:
 trivial: false
 auto_groomable: true
-branch:
+branch: feat/workspace-overlay-store
+claimed_at: 2026-08-19T07:05:48Z
 pr:
 blocked_by:
 reconciled: false
