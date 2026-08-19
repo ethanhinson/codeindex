@@ -28,8 +28,8 @@ reconciled: true
 <!-- docket:artifacts:start (generated — do not hand-edit) -->
 | Artifact | Link |
 |---|---|
-| Plan | [2026-08-18-fix-searchtool-test-nollama-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/fix-searchtool-test-nollama/docs/superpowers/plans/2026-08-18-fix-searchtool-test-nollama-plan.md) |
-| Results | [2026-08-18-fix-searchtool-test-nollama-results.md](https://github.com/ethanhinson/codeindex/blob/feat/fix-searchtool-test-nollama/docs/results/2026-08-18-fix-searchtool-test-nollama-results.md) |
+| Plan | [2026-08-18-fix-searchtool-test-nollama-plan.md](https://github.com/ethanhinson/codeindex/blob/main/docs/superpowers/plans/2026-08-18-fix-searchtool-test-nollama-plan.md) |
+| Results | [2026-08-18-fix-searchtool-test-nollama-results.md](https://github.com/ethanhinson/codeindex/blob/main/docs/results/2026-08-18-fix-searchtool-test-nollama-results.md) |
 | PR | [#9](https://github.com/ethanhinson/codeindex/pull/9) |
 | ADRs | [ADR-0011](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0011-capability-tests-assert-on-degradation-disclosure.md) |
 <!-- docket:artifacts:end -->
