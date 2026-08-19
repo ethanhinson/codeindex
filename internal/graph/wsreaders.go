@@ -1,5 +1,11 @@
 package graph
 
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"sort"
+)
+
 // Readers used by the workspace resolution ladder (openspec §3.3). They are
 // pure reads over the `edges` and `symbols` views; nothing here writes.
 
@@ -136,4 +142,54 @@ func (s *Store) ProjectDefs(name, parent string) ([]Symbol, error) {
 		out = append(out, sy)
 	}
 	return out, rows.Err()
+}
+
+// MemberMerkleRoot folds a member index's content state into one repo-level token:
+// sha256 over "path\x00hash\n" for every merkle row in path order, then a
+// "\x01depfiles\n" separator, then "path\x00namespace\x00version\x00curhash\n" for every
+// depfiles row in path order. The value is opaque to the overlay, which compares it for
+// equality only.
+func (s *Store) MemberMerkleRoot() (string, error) {
+	h := sha256.New()
+
+	rows, err := s.db.Query(`SELECT path, hash FROM merkle ORDER BY path`)
+	if err != nil {
+		return "", err
+	}
+	for rows.Next() {
+		var path, hash string
+		if err := rows.Scan(&path, &hash); err != nil {
+			rows.Close()
+			return "", err
+		}
+		h.Write([]byte(path))
+		h.Write([]byte{0})
+		h.Write([]byte(hash))
+		h.Write([]byte{'\n'})
+	}
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return "", err
+	}
+	rows.Close()
+
+	h.Write([]byte("\x01depfiles\n"))
+
+	deps, err := s.DepFiles()
+	if err != nil {
+		return "", err
+	}
+	sort.Slice(deps, func(i, j int) bool { return deps[i].Path < deps[j].Path })
+	for _, d := range deps {
+		h.Write([]byte(d.Path))
+		h.Write([]byte{0})
+		h.Write([]byte(d.Namespace))
+		h.Write([]byte{0})
+		h.Write([]byte(d.Version))
+		h.Write([]byte{0})
+		h.Write([]byte(d.CurHash))
+		h.Write([]byte{'\n'})
+	}
+
+	return hex.EncodeToString(h.Sum(nil)), nil
 }

@@ -5,6 +5,166 @@ import (
 	"testing"
 )
 
+func putFileWithHash(t *testing.T, st *Store, pf *ParsedFile, hash string) {
+	t.Helper()
+	tx, err := st.Begin()
+	if err != nil {
+		t.Fatal(err)
+	}
+	meta := FileMeta{Path: pf.Path, Hash: hash, Size: 1, Mtime: 1}
+	if _, _, err := st.PutFile(tx, pf, meta); err != nil {
+		t.Fatal(err)
+	}
+	if err := tx.Commit(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestMemberMerkleRootDeterministic(t *testing.T) {
+	st := wsFixture(t)
+	a, err := st.MemberMerkleRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := st.MemberMerkleRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if a != b {
+		t.Fatalf("root not deterministic: %q vs %q", a, b)
+	}
+}
+
+func TestMemberMerkleRootChangesOnFileHashChange(t *testing.T) {
+	st, err := Open(filepath.Join(t.TempDir(), "graph.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+
+	pf := &ParsedFile{
+		Path: "pkg/a.go",
+		Symbols: []Symbol{
+			{File: "pkg/a.go", Name: "Boot", Kind: KindFunc, StartLine: 1, EndLine: 2},
+		},
+	}
+	putFileWithHash(t, st, pf, "hash-1")
+	r1, err := st.MemberMerkleRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	putFileWithHash(t, st, pf, "hash-2")
+	r2, err := st.MemberMerkleRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if r1 == r2 {
+		t.Fatalf("root did not change after merkle hash change: %q", r1)
+	}
+}
+
+// TestMemberMerkleRootChangesOnDepReattach is the load-bearing test: a depmap
+// re-attach at a new version must change the root even though no project
+// file's bytes changed. A merkle-only fold would miss this, leaving a
+// staleness gate to skip a member whose contribution actually moved.
+func TestMemberMerkleRootChangesOnDepReattach(t *testing.T) {
+	dir := t.TempDir()
+
+	buildMap := func(version string) string {
+		mapPath := filepath.Join(dir, "acme-"+version+".map.db")
+		m, err := Open(mapPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := m.WriteDepMeta("acme/z", version); err != nil {
+			t.Fatal(err)
+		}
+		if err := m.PutDepSymbols("acme/z", version, "z.go", "maphash", 1, 1, []Symbol{
+			{Name: "Zeta", Kind: KindFunc, StartLine: 1, EndLine: 2},
+		}); err != nil {
+			t.Fatal(err)
+		}
+		if err := m.Close(); err != nil {
+			t.Fatal(err)
+		}
+		return mapPath
+	}
+
+	st, err := Open(filepath.Join(dir, "graph.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+
+	putFile(t, st, &ParsedFile{
+		Path: "pkg/a.go",
+		Symbols: []Symbol{
+			{File: "pkg/a.go", Name: "Boot", Kind: KindFunc, StartLine: 1, EndLine: 2},
+		},
+	})
+
+	if _, _, _, err := st.AttachMap(buildMap("v1.0.0"), "vendor/acme"); err != nil {
+		t.Fatal(err)
+	}
+	r1, err := st.MemberMerkleRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Re-attach at a new version. No project file changed.
+	if _, _, _, err := st.AttachMap(buildMap("v2.0.0"), "vendor/acme"); err != nil {
+		t.Fatal(err)
+	}
+	r2, err := st.MemberMerkleRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if r1 == r2 {
+		t.Fatalf("root did not change after dep re-attach at new version: %q", r1)
+	}
+}
+
+func TestMemberMerkleRootStableAcrossNoOp(t *testing.T) {
+	st := wsTierFixture(t)
+	r1, err := st.MemberMerkleRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Unrelated no-op reads.
+	if _, err := st.UnresolvedEdges(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := st.ProjectDefs("Helper", ""); err != nil {
+		t.Fatal(err)
+	}
+	r2, err := st.MemberMerkleRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r1 != r2 {
+		t.Fatalf("root changed across no-op reads: %q vs %q", r1, r2)
+	}
+}
+
+func TestMemberMerkleRootEmptyIndex(t *testing.T) {
+	st, err := Open(filepath.Join(t.TempDir(), "graph.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+
+	r, err := st.MemberMerkleRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r == "" {
+		t.Fatal("empty index returned empty root")
+	}
+}
+
 // wsFixture builds a small index exercising all three edge classes the
 // workspace readers must distinguish: resolved, unresolved symbol-sourced,
 // and file-level import (src_symbol_id = 0).
