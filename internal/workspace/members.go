@@ -1,0 +1,410 @@
+package workspace
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"codeindex/internal/config"
+
+	"golang.org/x/mod/modfile"
+	"gopkg.in/yaml.v3"
+)
+
+// memberMarkers are the files whose presence at a candidate's own top level
+// qualifies it as a member (guard 2). The Python entries mirror the marker
+// files a src-layout or flat-layout project roots itself with; namespaces.go
+// derives Python namespaces from the tree, not from these, so they are listed
+// here rather than shared.
+var memberMarkers = []string{
+	"go.mod",
+	"package.json",
+	"composer.json",
+	"pyproject.toml",
+	"setup.py",
+	"setup.cfg",
+}
+
+// excludedDirBasenames is DefaultExcludeDirs as a set, for guard 1's
+// traversal test.
+var excludedDirBasenames = func() map[string]bool {
+	m := make(map[string]bool, len(config.DefaultExcludeDirs))
+	for _, d := range config.DefaultExcludeDirs {
+		m[d] = true
+	}
+	return m
+}()
+
+// Members discovers a monorepo's declared members under root.
+//
+// Five declaration sources are read, in this order: go.work, pnpm-workspace.yaml,
+// composer.json path repositories, lerna.json, and package.json workspaces
+// (array form and the yarn object form). A source that is absent contributes
+// nothing and is not an error; a source that exists but does not parse IS an
+// error, matching Namespaces' posture.
+//
+// Each source yields glob-ish patterns which are expanded with filepath.Glob
+// relative to root and then filtered by three over-collection guards, in
+// order: directories-only (plus explicit DefaultExcludeDirs traversal),
+// marker-at-the-candidate's-own-top-level, and subset suppression. A glob is
+// not the repo filter, so the exclusion is applied here explicitly.
+//
+// Returned roots are slash-separated and relative to root; ids are derived
+// from the candidate basename. Callers that merge into an existing manifest
+// keep authored ids — id derivation here applies only to members the scan
+// introduces.
+//
+// Stated limitation — discovery only emits members at or below root. A
+// declaration that resolves outside it (`use ../shared` in go.work, a composer
+// path repository at "../shared-lib") is expanded and then dropped, because
+// emitting it would change which members a scan writes into a reviewed
+// manifest. This is deliberate and is not a claim that such members are
+// illegitimate: an authored manifest may carry a "../" member root, and that
+// path is unaffected by this filter. So the omission is never silent, the
+// escaping paths are reported alongside the members (see membersAndEscaped),
+// and Scan names them when they are the only reason the result is empty.
+//
+// Known limitation — glob expansion is filepath.Glob, which has no "**"
+// support: a "**" segment (e.g. "packages/**", common in pnpm and yarn
+// declarations) is treated as a single-level "*" rather than matching
+// arbitrarily deep. pnpm's "!"-prefixed negation entries are also passed
+// through to Glob as literal patterns and silently match nothing, so
+// negated exclusions in pnpm-workspace.yaml have no effect here. Neither is
+// implemented in this change; recursive globbing and negation support are
+// deferred to a later corpus-growth change.
+func Members(root string) ([]config.Member, error) {
+	members, _, err := membersAndEscaped(root)
+	return members, err
+}
+
+// membersAndEscaped is Members plus the slash-relative paths that expansion
+// matched but the escape filter dropped for resolving outside root, in
+// expansion order and deduplicated. It is the shape Scan needs to tell "nothing
+// was declared" apart from "everything declared escaped the root".
+func membersAndEscaped(root string) ([]config.Member, []string, error) {
+	var patterns []string
+	for _, source := range []func(string) ([]string, error){
+		goWorkPatterns,
+		pnpmPatterns,
+		composerPathPatterns,
+		lernaPatterns,
+		packageJSONWorkspacePatterns,
+	} {
+		p, err := source(root)
+		if err != nil {
+			return nil, nil, err
+		}
+		patterns = append(patterns, p...)
+	}
+
+	candidates, escaped, err := expand(root, patterns)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Guards 1 and 2 are per-candidate; guard 3 compares candidates, so it
+	// runs once the surviving set is known.
+	type kept struct {
+		rel        string
+		namespaces []string
+	}
+	var survivors []kept
+	for _, rel := range candidates {
+		ok, err := isMemberDir(root, rel)
+		if err != nil {
+			return nil, nil, err
+		}
+		if !ok {
+			continue
+		}
+		ns, err := namespacesProbe(filepath.Join(root, filepath.FromSlash(rel)))
+		if err != nil {
+			return nil, nil, err
+		}
+		survivors = append(survivors, kept{rel: rel, namespaces: ns})
+	}
+
+	usedIDs := map[string]bool{}
+	out := make([]config.Member, 0, len(survivors))
+	for i, c := range survivors {
+		suppressed := false
+		for j := range survivors {
+			if j != i && isStrictSubset(c.namespaces, survivors[j].namespaces) {
+				suppressed = true
+				break
+			}
+		}
+		if suppressed {
+			continue
+		}
+		out = append(out, config.Member{
+			ID:         uniqueID(memberID(c.rel), usedIDs),
+			Root:       c.rel,
+			Namespaces: c.namespaces,
+		})
+	}
+	return out, escaped, nil
+}
+
+// expand turns patterns into deduplicated slash-relative candidate paths in
+// expansion order. Patterns are matched relative to root; a pattern that
+// matches nothing contributes nothing.
+//
+// A match that climbs out of root contributes no candidate — see the stated
+// limitation on Members — but is returned in the second result so callers can
+// report the omission instead of leaving it silent.
+func expand(root string, patterns []string) ([]string, []string, error) {
+	var out, escaped []string
+	seen := map[string]bool{}
+	seenEscaped := map[string]bool{}
+	for _, pat := range patterns {
+		pat = strings.TrimSpace(pat)
+		if pat == "" {
+			continue
+		}
+		matches, err := filepath.Glob(filepath.Join(root, filepath.FromSlash(pat)))
+		if err != nil {
+			return nil, nil, fmt.Errorf("expand %q: %w", pat, err)
+		}
+		for _, m := range matches {
+			rel, err := filepath.Rel(root, m)
+			if err != nil {
+				continue
+			}
+			rel = filepath.ToSlash(rel)
+			if rel == "." {
+				continue
+			}
+			if strings.HasPrefix(rel, "../") {
+				if !seenEscaped[rel] {
+					seenEscaped[rel] = true
+					escaped = append(escaped, rel)
+				}
+				continue
+			}
+			if seen[rel] {
+				continue
+			}
+			seen[rel] = true
+			out = append(out, rel)
+		}
+	}
+	return out, escaped, nil
+}
+
+// isMemberDir applies guards 1 and 2 to one candidate.
+func isMemberDir(root, rel string) (bool, error) {
+	// Guard 1a: a glob hit that is not a directory is not a member.
+	info, err := os.Stat(filepath.Join(root, filepath.FromSlash(rel)))
+	if err != nil {
+		return false, nil
+	}
+	if !info.IsDir() {
+		return false, nil
+	}
+	// Guard 1b: no candidate may traverse an excluded basename.
+	for _, seg := range strings.Split(rel, "/") {
+		if excludedDirBasenames[seg] {
+			return false, nil
+		}
+	}
+	// Guard 2: the marker must sit at the candidate's own top level. A
+	// marker one level down qualifies that child, not this candidate. This is
+	// a presence test only, so it stats rather than reading: the contents are
+	// parsed later, by the declaration sources and the namespace probes.
+	dir := filepath.Join(root, filepath.FromSlash(rel))
+	for _, marker := range memberMarkers {
+		mi, err := os.Stat(filepath.Join(dir, marker))
+		if err != nil {
+			if errors.Is(err, fs.ErrNotExist) {
+				continue
+			}
+			return false, err
+		}
+		// A directory that happens to be named like a marker is not one.
+		if !mi.IsDir() {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// isStrictSubset is guard 3's test: a candidate whose namespace set is a
+// strict subset of another candidate's is dropped, which is what removes a
+// monorepo's own root package when it re-exports its children. Strictness
+// matters — an equal-set test would drop both halves of a duplicate pair and
+// leave the monorepo with no member at all. Namespaces arrive deduplicated
+// from Namespaces, so a shorter length is a sound strictness proxy.
+//
+// The empty set is excluded from the test even though it is set-theoretically
+// a strict subset of every non-empty set. A member with no discoverable
+// namespace — an unnamed or private package.json, a Python layout the probe
+// misses — is still a legitimately declared member, and dropping it here would
+// be silent and unrecoverable: Merge only ever adds, so not even --force could
+// restore it. The re-exporting monorepo root this guard exists to remove has a
+// non-empty set by construction, so nothing guard 3 targets is spared.
+func isStrictSubset(sub, super []string) bool {
+	if len(sub) == 0 {
+		return false
+	}
+	if len(sub) >= len(super) {
+		return false
+	}
+	have := make(map[string]bool, len(super))
+	for _, s := range super {
+		have[s] = true
+	}
+	for _, s := range sub {
+		if !have[s] {
+			return false
+		}
+	}
+	return true
+}
+
+// memberID sanitizes a candidate's basename to [A-Za-z0-9._-], mapping every
+// other rune to '-', and lowercases it.
+func memberID(rel string) string {
+	base := filepath.Base(filepath.FromSlash(rel))
+	var b strings.Builder
+	for _, r := range base {
+		switch {
+		case r >= 'A' && r <= 'Z':
+			b.WriteRune(r + ('a' - 'A'))
+		case r >= 'a' && r <= 'z', r >= '0' && r <= '9', r == '.', r == '_', r == '-':
+			b.WriteRune(r)
+		default:
+			b.WriteByte('-')
+		}
+	}
+	id := b.String()
+	if id == "" {
+		return "member"
+	}
+	return id
+}
+
+// uniqueID suffixes -2, -3, … on collision, in expansion order.
+func uniqueID(id string, used map[string]bool) string {
+	candidate := id
+	for n := 2; used[candidate]; n++ {
+		candidate = fmt.Sprintf("%s-%d", id, n)
+	}
+	used[candidate] = true
+	return candidate
+}
+
+// --- declaration sources ---
+
+// goWorkPatterns returns the go.work use directives. Parsed with modfile
+// rather than a line scan: use paths may be quoted or sit in a block.
+func goWorkPatterns(root string) ([]string, error) {
+	path := filepath.Join(root, "go.work")
+	data, ok, err := readMarker(root, "go.work")
+	if err != nil || !ok {
+		return nil, err
+	}
+	f, err := modfile.ParseWork(path, data, nil)
+	if err != nil {
+		return nil, fmt.Errorf("parse %s: %w", path, err)
+	}
+	var out []string
+	for _, u := range f.Use {
+		if u == nil || u.Path == "" {
+			continue
+		}
+		out = append(out, u.Path)
+	}
+	return out, nil
+}
+
+// pnpmPatterns returns pnpm-workspace.yaml's packages list.
+func pnpmPatterns(root string) ([]string, error) {
+	data, ok, err := readMarker(root, "pnpm-workspace.yaml")
+	if err != nil || !ok {
+		return nil, err
+	}
+	var ws struct {
+		Packages []string `yaml:"packages"`
+	}
+	if err := yaml.Unmarshal(data, &ws); err != nil {
+		return nil, fmt.Errorf("parse %s: %w", filepath.Join(root, "pnpm-workspace.yaml"), err)
+	}
+	return ws.Packages, nil
+}
+
+// composerPathPatterns returns the url of every repositories[] entry whose
+// type is "path"; other repository types are not local members.
+func composerPathPatterns(root string) ([]string, error) {
+	data, ok, err := readMarker(root, "composer.json")
+	if err != nil || !ok {
+		return nil, err
+	}
+	var composer struct {
+		Repositories []struct {
+			Type string `json:"type"`
+			URL  string `json:"url"`
+		} `json:"repositories"`
+	}
+	if err := json.Unmarshal(data, &composer); err != nil {
+		return nil, fmt.Errorf("parse %s: %w", filepath.Join(root, "composer.json"), err)
+	}
+	var out []string
+	for _, r := range composer.Repositories {
+		if r.Type == "path" && r.URL != "" {
+			out = append(out, r.URL)
+		}
+	}
+	return out, nil
+}
+
+// lernaPatterns returns lerna.json's packages list. The corpus's only
+// monorepo (nest) declares its members solely here.
+func lernaPatterns(root string) ([]string, error) {
+	data, ok, err := readMarker(root, "lerna.json")
+	if err != nil || !ok {
+		return nil, err
+	}
+	var lerna struct {
+		Packages []string `json:"packages"`
+	}
+	if err := json.Unmarshal(data, &lerna); err != nil {
+		return nil, fmt.Errorf("parse %s: %w", filepath.Join(root, "lerna.json"), err)
+	}
+	return lerna.Packages, nil
+}
+
+// packageJSONWorkspacePatterns returns package.json's workspaces, accepting
+// both the array form and yarn's object form {"packages": [...]}. The field
+// is held as RawMessage because the two shapes cannot share a decode target.
+func packageJSONWorkspacePatterns(root string) ([]string, error) {
+	data, ok, err := readMarker(root, "package.json")
+	if err != nil || !ok {
+		return nil, err
+	}
+	path := filepath.Join(root, "package.json")
+	var pkg struct {
+		Workspaces json.RawMessage `json:"workspaces"`
+	}
+	if err := json.Unmarshal(data, &pkg); err != nil {
+		return nil, fmt.Errorf("parse %s: %w", path, err)
+	}
+	if len(pkg.Workspaces) == 0 {
+		return nil, nil
+	}
+	var asArray []string
+	if err := json.Unmarshal(pkg.Workspaces, &asArray); err == nil {
+		return asArray, nil
+	}
+	var asObject struct {
+		Packages []string `json:"packages"`
+	}
+	if err := json.Unmarshal(pkg.Workspaces, &asObject); err != nil {
+		return nil, fmt.Errorf("parse %s: workspaces is neither an array nor an object: %w", path, err)
+	}
+	return asObject.Packages, nil
+}

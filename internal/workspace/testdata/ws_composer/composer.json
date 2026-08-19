@@ -1,0 +1,7 @@
+{
+  "name": "acme/root",
+  "repositories": [
+    {"type": "path", "url": "libs/alpha"},
+    {"type": "vcs", "url": "https://example.com/beta.git"}
+  ]
+}

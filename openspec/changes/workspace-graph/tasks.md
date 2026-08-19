@@ -27,10 +27,10 @@ at the C2 fork (ROADMAP-DEBATE.md path C) and are not started before it.
 
 ## 3. Workspace core (post-GO)
 
-- [ ] 3.1 Manifest load/validate + `init-workspace --scan`
+- [x] 3.1 Manifest load/validate + `init-workspace --scan`
       (namespace auto-discovery per language + monorepo member
       discovery via go.work / pnpm-workspace.yaml / composer path
-      repos, manifest overrides)
+      repos / lerna.json / package.json workspaces, manifest overrides)
 - [ ] 3.2 Overlay store: registry, cross-edges by stable key, member
       stamps; overlay schema version independent of graph.db version
 - [ ] 3.3 Cross-repo resolution ladder per design D3 (import-mediated

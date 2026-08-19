@@ -236,3 +236,45 @@ only (cheap), never member indexes.
 None — the four scoping questions (impact default, monorepo scan in
 slice 1, member-over-dep precedence, dedicated workspace directory)
 were settled by the owner 2026-08-17 and folded into D1, D3, and D4.
+
+## Amendments
+
+### 2026-08-18: D1 monorepo declaration sources — add lerna.json and package.json `workspaces`
+
+D1's `--scan` monorepo source list (design.md:65-66) names only
+`go.work`, `pnpm-workspace.yaml`, and composer path repositories. It
+SHALL also read `lerna.json` (`packages`) and `package.json`
+`workspaces` — **both** the array form and the object form
+`{"packages": [...]}` — bringing the list to five sources.
+
+Reason: the bench corpus's only monorepo (nest) declares its members
+**solely** via `lerna.json`. With the original three sources the scan
+discovers zero members there, so the amendment is what keeps the
+monorepo path exercised at all. Everything else about D1 is unchanged:
+manifest overrides still win, ids are still derived only for members
+the scan introduces, and the over-collection guards apply identically
+to hits from the two new sources.
+
+### 2026-08-18: D7 merge-gate interpretation — query-behavior slices only
+
+The frozen SHALL at
+`openspec/changes/workspace-graph/specs/workspace-graph/spec.md:125`
+("Implementation SHALL NOT merge before the pre-registered gate
+passes") is read as gating **query-behavior** slices: work that can
+change the answer any verb returns.
+
+The §3.1 slice (manifest load/validate + `init-workspace --scan`)
+changes no query answer. It adds a manifest loader with no query call
+site, one new CLI verb that only reads and writes `workspace.json`, and
+a root-kind detection helper that has no non-test caller. Single-repo
+goldens are byte-identical by construction, not by measurement. On this
+reading it may merge ahead of the gate.
+
+**The limit, which is the load-bearing half of this interpretation:**
+the gate still **hard-blocks §3.3+ and §4 from merging**. The
+resolution ladder, overlay freshen, `workspace-status`, the union-graph
+query paths, the CLI/MCP root-kind wiring, and the workspace goldens
+are all query-behavior work and SHALL NOT merge until the
+pre-registered D7 gate passes. This amendment narrows *when* the gate
+binds; it does not weaken any bar, and it does not touch the kill
+condition.

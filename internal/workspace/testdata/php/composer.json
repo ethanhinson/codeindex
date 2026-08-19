@@ -1,0 +1,13 @@
+{
+  "name": "laravel/framework",
+  "autoload": {
+    "psr-4": {
+      "Illuminate\\": "src/Illuminate/",
+      "Illuminate\\Support\\": [
+        "src/Illuminate/Macroable/",
+        "src/Illuminate/Collections/",
+        "src/Illuminate/Conditionable/"
+      ]
+    }
+  }
+}

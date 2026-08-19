@@ -122,6 +122,8 @@ M3's schema freeze regardless of when workspace-graph itself builds.
   not look authoritative beyond what was consulted
 
 ### Requirement: Pre-registered evidence gate
+See design.md's dated 2026-08-18 "D7 merge-gate interpretation" amendment for how this gate is read.
+
 Implementation SHALL NOT merge before the pre-registered gate passes on
 a ≥30-task cross-repo corpus over a 3–5 member, ≥2-language workspace:
 recall ≥ the grep-across-checkouts control and ≥0.9 absolute on
