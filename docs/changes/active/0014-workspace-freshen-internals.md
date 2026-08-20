@@ -2,7 +2,7 @@
 id: 14
 slug: workspace-freshen-internals
 title: Workspace freshen internals — per-member freshen + stamp-gated re-resolution
-status: in-progress
+status: implemented
 priority: high
 type: feat
 created: 2026-08-20
@@ -13,13 +13,13 @@ discovered_from: []
 adrs: [12]
 spec: docs/superpowers/specs/2026-08-20-workspace-freshen-internals-design.md
 plan: docs/superpowers/plans/2026-08-20-workspace-freshen-internals-plan.md
-results:
+results: docs/results/2026-08-20-workspace-freshen-internals-results.md
 trivial: false
 auto_groomable: true
 branch: feat/workspace-freshen-internals
-pr:
+pr: https://github.com/ethanhinson/codeindex/pull/12
 blocked_by:
-claimed_at: 2026-08-20T02:29:52Z
+claimed_at: 2026-08-20T02:32:25Z
 reconciled: true
 ---
 
@@ -30,6 +30,8 @@ reconciled: true
 |---|---|
 | Spec | [2026-08-20-workspace-freshen-internals-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-20-workspace-freshen-internals-design.md) |
 | Plan | [2026-08-20-workspace-freshen-internals-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-freshen-internals/docs/superpowers/plans/2026-08-20-workspace-freshen-internals-plan.md) |
+| Results | [2026-08-20-workspace-freshen-internals-results.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-freshen-internals/docs/results/2026-08-20-workspace-freshen-internals-results.md) |
+| PR | [#12](https://github.com/ethanhinson/codeindex/pull/12) |
 | ADRs | [ADR-0012](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0012-workspace-freshness-re-resolves-whole-workspace.md) |
 <!-- docket:artifacts:end -->
 
