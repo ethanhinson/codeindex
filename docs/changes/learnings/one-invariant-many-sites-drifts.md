@@ -2,7 +2,7 @@
 slug: one-invariant-many-sites-drifts
 hook: "When one spec'd invariant must be enforced at several sites, check the sites against EACH OTHER — drift shows up as their doc comments arguing."
 topics: [review, invariants, spec-fidelity, data-integrity]
-changes: [12, 13]
+changes: [12, 13, 14]
 created: 2026-08-19
 updated: 2026-08-20
 promotion_state: candidate
@@ -44,6 +44,18 @@ if any current test demonstrates a case the obligation's premise excludes, the o
 over-broad and the future implementer will faithfully write a bug. Read hand-offs against the
 fixtures, not just against the spec.
 
+**An unreachable normalizer manufactures a second site.** The drift above is usually diagnosed after
+the fact; there is one case where you can see it coming at *write* time. When a new caller must
+compare against data that some existing writer normalizes, and that normalization lives in an
+**unexported** helper, the language itself is pushing you toward a copy — three transplanted lines
+that are correct on the day they are written and are a second enforcement site forever. Export the
+one normalizer and route the original writer through it instead. The test for whether this applies
+is not "is the copy small"; it is "would a later edit to the writer's normalization silently stop
+applying here?" If yes, it is a site, however few lines it is. Note the divergence mode is
+especially nasty when the invariant is a *convergence* property — two normalizations that disagree
+never agree that nothing changed, so the loop re-does its work on every pass, forever, with no error
+anywhere.
+
 ## Why it bites
 
 The observable damage is worse than "inconsistent." Thinning a candidate list while leaving its
@@ -72,3 +84,13 @@ permanent quiet lie.
   cross-edges. Fixed in-branch (746340a) by conditioning the obligation on a cross-edge existing for the
   same call site. Suite green before and after; the defect was again visible only as two doc comments
   disagreeing.
+- **#0014, PR #12** — workspace freshen internals. First time the shape was caught *before* the
+  second site existed, at reconcile rather than at review. The freshen pass had to compare a manifest
+  against the overlay registry using exactly `ReplaceRegistry`'s own transforms, which lived in the
+  unexported `overlay.dedupe()` reached only through the unexported `insertMembers` — so the obvious
+  move was to copy three lines into `internal/wsfresh`. Rejected on this finding by name; instead
+  `overlay.NormalizeMembers` was exported and `insertMembers` routed through it, leaving the store's
+  write path and the drift read as one implementation with two callers. The avoided failure mode was
+  the convergence one above: a drift comparison normalizing differently from the writer reports drift
+  on every pass, re-resolving the whole workspace forever — which is exactly what that slice's
+  `TestFreshenConvergesWithABadVersionMember` exists to forbid.

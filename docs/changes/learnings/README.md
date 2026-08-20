@@ -17,5 +17,7 @@ One curated finding per file; this index is the hint surface. Load it, then read
 ## testing
 
 - [capability-skips-assert-the-reason](capability-skips-assert-the-reason.md) — A capability skip must key on the degradation REASON, never on the presence of a disclosure marker. · also: degradation, sentinels ⟨needs promotion⟩
+- [content-witnesses-cannot-see-idempotent-writes](content-witnesses-cannot-see-idempotent-writes.md) — A 'nothing was written' guard that compares stored CONTENT passes vacuously for any write that rewrites the same bytes — plant a row only the write would disturb. · also: coverage, invariants, sql ⟨needs promotion⟩
 - [determinism-tests-need-a-total-sort-key](determinism-tests-need-a-total-sort-key.md) — A determinism test that reads the same store twice proves nothing — a non-total ORDER BY passes it vacuously. · also: determinism, sql, coverage ⟨needs promotion⟩
+- [known-limitations-need-a-characterization-test](known-limitations-need-a-characterization-test.md) — Ship a known gap as a test that asserts what the code DOES, plus the prerequisite that must land first — prose alone gets 'fixed' into a regression. · also: hand-offs, convergence, spec-fidelity ⟨needs promotion⟩
 - [rollback-untested-when-errors-precede-the-transaction](rollback-untested-when-errors-precede-the-transaction.md) — If every error your suite provokes is rejected BEFORE the transaction opens, 'never half-applies' is unproven — you tested validation, not atomicity. · also: transactions, coverage, sqlite ⟨needs promotion⟩
