@@ -12,14 +12,14 @@ related: [12, 13]
 discovered_from: []
 adrs: []
 spec: docs/superpowers/specs/2026-08-20-workspace-freshen-internals-design.md
-plan:
+plan: docs/superpowers/plans/2026-08-20-workspace-freshen-internals-plan.md
 results:
 trivial: false
 auto_groomable: true
 branch: feat/workspace-freshen-internals
 pr:
 blocked_by:
-claimed_at: 2026-08-20T01:33:12Z
+claimed_at: 2026-08-20T01:35:48Z
 reconciled: true
 ---
 
@@ -29,6 +29,7 @@ reconciled: true
 | Artifact | Link |
 |---|---|
 | Spec | [2026-08-20-workspace-freshen-internals-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-20-workspace-freshen-internals-design.md) |
+| Plan | [2026-08-20-workspace-freshen-internals-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-freshen-internals/docs/superpowers/plans/2026-08-20-workspace-freshen-internals-plan.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
