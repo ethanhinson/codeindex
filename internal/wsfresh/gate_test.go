@@ -237,30 +237,31 @@ func TestFreshenIsDeterministicAcrossRebuilds(t *testing.T) {
 	}
 }
 
-// --- pinned KNOWN LIMITATION, not a guarantee -----------------------------
+// --- the available -> unavailable transition, closed ----------------------
 
-// TestKNOWNLIMITATIONVanishedMemberLeavesStaleEdgesReportedClean pins CURRENT
-// behavior that is WRONG, so that a change to it is noticed rather than
-// silently made. Read nothing here as desirable and nothing here as a
-// contract: every assertion below describes a defect Freshen's doc comment
-// names as a known limitation.
+// TestVanishedMemberIsPrunedThenReportsClean is the INVERSION of the former
+// TestKNOWNLIMITATIONVanishedMemberLeavesStaleEdgesReportedClean, which pinned
+// the defect this asserts the repair of. The inversion is performed on that
+// test's own authority — it licensed exactly this move, conditionally: "If a
+// future slice makes this test fail by dropping the stale edge or by reporting
+// Resolved true, that is very likely an IMPROVEMENT — but only if
+// wsresolve.Resolve now PRUNES the stamp of an unavailable member ... Delete or
+// invert this test deliberately, with that check done." Change 0015 landed that
+// prune as wsresolve.Resolve's step 9a, so the condition is discharged, and
+// TestFreshenConvergesWithABadVersionMember (the non-convergence that condition
+// was protecting) is untouched: its member is never stamped in the first place.
 //
 // The transition is available -> unavailable. lib is resolved and stamped, and
-// app carries a cross-edge into it; then lib's own index is deleted. On the
-// next pass lib fails the availability predicate and is skipped BEFORE its
-// stamp is read, the manifest is untouched so there is no registry drift, and
-// the gate consequently holds. The overlay goes on serving app -> lib edges
-// into a member that no longer exists, and Report cannot say so.
+// app carries a cross-edge into it; then lib's own index is deleted. lib now
+// fails the availability predicate and is skipped at 5a before any fold, so it
+// never enters Dirty — but its SURVIVING STAMP is read by the manifest walk and
+// lands in StaleStamped, which trips the gate. The resolution that follows
+// re-derives app without lib as a candidate and prunes lib outright.
 //
-// A wsresolve.Resolve at that moment would clear app's rows and re-derive them
-// without lib as a candidate, dropping the edge. If a future slice makes this
-// test fail by dropping the stale edge or by reporting Resolved true, that is
-// very likely an IMPROVEMENT — but only if wsresolve.Resolve now PRUNES the
-// stamp of an unavailable member. Without that pruning, "fixing" this turns
-// the member perpetually dirty and re-resolves the whole workspace on every
-// pass forever, which is what TestFreshenConvergesWithABadVersionMember
-// forbids. Delete or invert this test deliberately, with that check done.
-func TestKNOWNLIMITATIONVanishedMemberLeavesStaleEdgesReportedClean(t *testing.T) {
+// Dirty is asserted EMPTY on purpose: it proves StaleStamped alone tripped the
+// gate, and that the fix did not arrive by quietly widening Dirty to include a
+// member that has no re-fold to be dirty against.
+func TestVanishedMemberIsPrunedThenReportsClean(t *testing.T) {
 	wsRoot := freshenedCrossEdgeWS(t)
 	assertCrossEdge(t, wsRoot, targetFile)
 
@@ -275,15 +276,133 @@ func TestKNOWNLIMITATIONVanishedMemberLeavesStaleEdgesReportedClean(t *testing.T
 	}
 	if rep.MembersUnindexed != 1 {
 		t.Fatalf("MembersUnindexed = %d, want 1 — lib was not actually made unavailable, "+
-			"so this test is not exercising the limitation", rep.MembersUnindexed)
+			"so this test is not exercising the transition", rep.MembersUnindexed)
 	}
-	if len(rep.Dirty) != 0 || rep.Resolved {
-		t.Fatalf("Dirty = %v, Resolved = %v — CURRENT behavior is the gate holding; if this "+
-			"changed on purpose, check wsresolve.Resolve prunes unavailable members' stamps "+
-			"before accepting it", rep.Dirty, rep.Resolved)
+	if len(rep.StaleStamped) != 1 || rep.StaleStamped[0] != "lib" {
+		t.Fatalf("StaleStamped = %v, want [lib] — a declared member that is unavailable "+
+			"yet still stamped is exactly this field's subject", rep.StaleStamped)
 	}
-	// The defect itself: the edge into the vanished member survives.
-	assertCrossEdge(t, wsRoot, targetFile)
+	if len(rep.Dirty) != 0 {
+		t.Fatalf("Dirty = %v, want empty — an unavailable member has no re-fold and must "+
+			"not be reported dirty; StaleStamped is the trigger here", rep.Dirty)
+	}
+	if !rep.Resolved {
+		t.Fatal("Resolved = false with lib stale-stamped; StaleStamped must trip the gate")
+	}
+	assertNoCrossEdge(t, wsRoot, targetFile)
+	assertStampAbsent(t, wsRoot, "lib")
+
+	// And it settles: the trigger it fired on is the very thing the resolution
+	// pruned, so the second pass has nothing to fire on.
+	before := overlayContent(t, wsRoot)
+	second, err := Freshen(wsRoot)
+	if err != nil {
+		t.Fatalf("second Freshen: %v", err)
+	}
+	if second.Resolved || len(second.StaleStamped) != 0 {
+		t.Fatalf("second pass Resolved=%v StaleStamped=%v — the prune must make the "+
+			"trigger one-shot, not perpetual", second.Resolved, second.StaleStamped)
+	}
+	if after := overlayContent(t, wsRoot); after != before {
+		t.Fatalf("the settled pass wrote overlay content.\nbefore:\n%s\n\nafter:\n%s",
+			before, after)
+	}
+}
+
+// TestVanishedMemberConvergesInThreePasses is the change's convergence table,
+// asserted pass by pass rather than only at its endpoints:
+//
+//	pass | lib state               | StaleStamped | Resolved | overlay
+//	   1 | unavailable, stamped    | [lib]        | true     | pruned
+//	   2 | unavailable, unstamped  | []           | false    | unchanged
+//	   3 | unavailable, unstamped  | []           | false    | unchanged
+//
+// Passes 2 and 3 are the point. The primary witness that they wrote nothing is
+// STRUCTURAL — Resolved == false means wsresolve.Resolve was never called, so
+// no derived write could have happened — and the overlayContent comparison is
+// CORROBORATION ONLY. That ordering is deliberate: a content witness is blind
+// to a write that stores the same bytes it found, so a redundant re-resolution
+// that produced an identical overlay would slip past the snapshot while
+// Resolved == false catches it. (The same blindness is spelled out at length on
+// TestFreshenCleanPassWritesNoOverlayContent.)
+//
+// Pass 3 is not redundant with pass 2: pass 2 is the first pass after the state
+// change and pass 3 is the first pass after a pass that changed nothing, which
+// is where an implementation that re-derived its trigger from the previous
+// Report rather than from the overlay would start oscillating.
+func TestVanishedMemberConvergesInThreePasses(t *testing.T) {
+	wsRoot := freshenedCrossEdgeWS(t)
+	if err := os.Remove(memberDB(wsRoot, "lib")); err != nil {
+		t.Fatalf("removing lib's index: %v", err)
+	}
+
+	// Pass 1: unavailable and still stamped — the trigger fires and prunes.
+	first, err := Freshen(wsRoot)
+	if err != nil {
+		t.Fatalf("pass 1: %v", err)
+	}
+	if len(first.StaleStamped) != 1 || first.StaleStamped[0] != "lib" {
+		t.Fatalf("pass 1 StaleStamped = %v, want [lib]", first.StaleStamped)
+	}
+	if !first.Resolved {
+		t.Fatal("pass 1 Resolved = false; the table's whole first row is the gate tripping")
+	}
+	assertNoCrossEdge(t, wsRoot, targetFile)
+	assertStampAbsent(t, wsRoot, "lib")
+
+	// Passes 2 and 3: unavailable and unstamped — nothing left to fire on.
+	settled := overlayContent(t, wsRoot)
+	for pass := 2; pass <= 3; pass++ {
+		rep, err := Freshen(wsRoot)
+		if err != nil {
+			t.Fatalf("pass %d: %v", pass, err)
+		}
+		if rep.MembersUnindexed != 1 {
+			t.Fatalf("pass %d MembersUnindexed = %d, want 1 — lib must still be unavailable, "+
+				"or the pass is no longer the one being tested", pass, rep.MembersUnindexed)
+		}
+		if len(rep.StaleStamped) != 0 {
+			t.Fatalf("pass %d StaleStamped = %v, want empty — lib's stamp was pruned on "+
+				"pass 1 and nothing restamps an unavailable member", pass, rep.StaleStamped)
+		}
+		if len(rep.Dirty) != 0 {
+			t.Fatalf("pass %d Dirty = %v, want empty", pass, rep.Dirty)
+		}
+		// PRIMARY: no Resolve ran, so no derived write was possible.
+		if rep.Resolved {
+			t.Fatalf("pass %d re-resolved: the prune-then-clean cycle is not converging, "+
+				"which is the perpetual whole-workspace re-resolution this design forbids", pass)
+		}
+		// CORROBORATING ONLY — see the doc comment.
+		if after := overlayContent(t, wsRoot); after != settled {
+			t.Fatalf("pass %d changed overlay content.\nbefore:\n%s\n\nafter:\n%s",
+				pass, settled, after)
+		}
+	}
+}
+
+// assertNoCrossEdge is assertCrossEdge's negation: the app -> lib edge with
+// Target in dstFile must NOT be in the overlay. Asserting the absence of the
+// specific row, rather than "app has no edges", keeps the assertion about the
+// pruned member instead of about app being emptied.
+func assertNoCrossEdge(t *testing.T, wsRoot, dstFile string) {
+	t.Helper()
+	src, dst := appToLibEdge(dstFile)
+	for _, e := range memberEdges(t, wsRoot, "app") {
+		if e.Src == src && e.Dst == dst {
+			t.Fatalf("app -> lib cross-edge into the vanished member survived: %+v", e)
+		}
+	}
+}
+
+// assertStampAbsent fails unless memberID carries no overlay stamp.
+func assertStampAbsent(t *testing.T, wsRoot, memberID string) {
+	t.Helper()
+	if _, ok, err := openOverlay(t, wsRoot).Stamp(memberID); err != nil {
+		t.Fatal(err)
+	} else if ok {
+		t.Fatalf("member %q is still stamped; the prune did not retire it", memberID)
+	}
 }
 
 // memberEdges reads one member's incident cross-edges.

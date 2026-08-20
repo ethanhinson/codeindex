@@ -139,10 +139,10 @@ type Stats struct {
 //     RETURN to availability is caught by the absent-stamp-is-dirty rule in
 //     internal/wsfresh and re-derives cleanly.
 //   - Crash between the two calls: the member is STILL STAMPED and its rows are
-//     already gone. That surviving stamp is the signal — wsfresh's
-//     surviving-stamp trigger fires on a declared member that is unavailable
-//     yet still stamped, so the next freshen pass re-runs Resolve and the prune
-//     completes. Under-serving, and self-healing.
+//     already gone. That surviving stamp is the signal — a declared member that
+//     is unavailable yet still stamped lands in wsfresh.Report.StaleStamped,
+//     which trips the freshen gate, so the next freshen pass re-runs Resolve
+//     and the prune completes. Under-serving, and self-healing.
 //
 // The reverse order is unsafe, which is why it is spelled out here. An
 // unavailable member is skipped before its stamp is read, so it can never enter
@@ -261,8 +261,8 @@ func Resolve(wsRoot string) (Stats, error) {
 	// 9a. Prune every DECLARED member that is not available this pass, in
 	// MANIFEST ORDER, before the clear loop and therefore before any of step
 	// 10's writes. The set is ws.Members ∖ available: exactly what
-	// Stats.MembersUnavailable counts, and exactly the set wsfresh's
-	// surviving-stamp trigger reads, because availability is the one
+	// Stats.MembersUnavailable counts, and exactly the set wsfresh walks to
+	// fill Report.StaleStamped, because availability is the one
 	// graph.OpenExisting predicate both sites share.
 	//
 	// The order is derived by walking ws.Members ONCE and filtering. It is not
