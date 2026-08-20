@@ -270,7 +270,9 @@ func NavText(root, anchor string, limit int) (string, error) {
 	return WithClause(a, s.clause("nav")).Text(), nil
 }
 
-// Find routes to query.Find on a repo root.
+// Find is ranked symbol search. On a workspace root it FANS OUT — the per-repo
+// find runs against each present member in manifest order and the results
+// concatenate, with Total the sum of the per-member totals (§3.2).
 func Find(root, q, kind, path string, limit int) (*query.FindAnswer, error) {
 	rk, err := RootKind(root)
 	if err != nil {
@@ -279,10 +281,14 @@ func Find(root, q, kind, path string, limit int) (*query.FindAnswer, error) {
 	if rk == engine.RootRepo {
 		return query.Find(root, q, kind, path, limit)
 	}
-	return nil, ErrWorkspaceNotWired
+	s, err := workspaceSession(root)
+	if err != nil {
+		return nil, err
+	}
+	return findWorkspace(s, q, kind, path, limit)
 }
 
-// FindText routes to query.FindText on a repo root.
+// FindText renders Find, with the coverage clause on a workspace root.
 func FindText(root, q string, kind, path string, limit int) (string, error) {
 	rk, err := RootKind(root)
 	if err != nil {
@@ -291,10 +297,19 @@ func FindText(root, q string, kind, path string, limit int) (string, error) {
 	if rk == engine.RootRepo {
 		return query.FindText(root, q, kind, path, limit)
 	}
-	return "", ErrWorkspaceNotWired
+	s, err := workspaceSession(root)
+	if err != nil {
+		return "", err
+	}
+	a, err := findWorkspace(s, q, kind, path, limit)
+	if err != nil {
+		return "", err
+	}
+	return WithClause(a, s.clause("find")).Text(), nil
 }
 
-// Grep routes to query.Grep on a repo root.
+// Grep is enriched grep. On a workspace root it fans out and concatenates,
+// with RawHits summed and Backend reconciled by joinBackends (§3.2).
 func Grep(root, pattern string, limit int, word bool) (*query.GrepAnswer, error) {
 	kind, err := RootKind(root)
 	if err != nil {
@@ -303,10 +318,14 @@ func Grep(root, pattern string, limit int, word bool) (*query.GrepAnswer, error)
 	if kind == engine.RootRepo {
 		return query.Grep(root, pattern, limit, word)
 	}
-	return nil, ErrWorkspaceNotWired
+	s, err := workspaceSession(root)
+	if err != nil {
+		return nil, err
+	}
+	return grepWorkspace(s, pattern, limit, word)
 }
 
-// GrepText routes to query.GrepText on a repo root.
+// GrepText renders Grep, with the coverage clause on a workspace root.
 func GrepText(root, pattern string, limit int, word bool) (string, error) {
 	kind, err := RootKind(root)
 	if err != nil {
@@ -315,7 +334,15 @@ func GrepText(root, pattern string, limit int, word bool) (string, error) {
 	if kind == engine.RootRepo {
 		return query.GrepText(root, pattern, limit, word)
 	}
-	return "", ErrWorkspaceNotWired
+	s, err := workspaceSession(root)
+	if err != nil {
+		return "", err
+	}
+	a, err := grepWorkspace(s, pattern, limit, word)
+	if err != nil {
+		return "", err
+	}
+	return WithClause(a, s.clause("grep")).Text(), nil
 }
 
 // Dependents answers who imports/extends/implements the anchor.
@@ -399,7 +426,10 @@ func DepsText(root, anchor string, limit int) (string, error) {
 	return WithClause(a, s.clause("deps")).Text(), nil
 }
 
-// Enclosing routes to query.Enclosing on a repo root. There is no
+// Enclosing answers which symbols overlap a line range. It is purely
+// intra-file, so on a workspace root it does not union or fan out: the
+// workspace-relative file is routed to the ONE owning member by longest-prefix
+// match over resolved ABSOLUTE member roots (§2.3). There is no
 // query.EnclosingText, so wsquery has no EnclosingText either.
 func Enclosing(root, file string, start, end int) (*query.EnclosingAnswer, error) {
 	kind, err := RootKind(root)
@@ -409,7 +439,11 @@ func Enclosing(root, file string, start, end int) (*query.EnclosingAnswer, error
 	if kind == engine.RootRepo {
 		return query.Enclosing(root, file, start, end)
 	}
-	return nil, ErrWorkspaceNotWired
+	s, err := workspaceSession(root)
+	if err != nil {
+		return nil, err
+	}
+	return enclosingWorkspace(s, file, start, end)
 }
 
 // SearchText routes to query.SearchText on a repo root. On a workspace root it
