@@ -25,16 +25,38 @@ import (
 // that decision.
 //
 // Registry() is inside the witness precisely because registry drift is a gate
-// INPUT. The tempting bug is a ReplaceRegistry called "just to be safe" before
-// the comparison: it changes nothing observable in the Report, it does not set
-// Resolved, and only a content witness that carries the registry can see it.
-// (TestOverlayContentDetectsARegistryWrite proves the witness has that tooth.)
+// INPUT, and the tempting bug is a ReplaceRegistry called "just to be safe"
+// before the comparison. But the witness cannot see that write unaided: on the
+// clean path stored == NormalizeMembers(ws.Members) BY DEFINITION, so the stray
+// call deletes and re-inserts IDENTICAL rows and the snapshot renders
+// byte-identically. (TestOverlayContentDetectsARegistryWrite proves only that a
+// registry write which CHANGES the registry is visible — a different write.)
+// The same blindness covers a redundant PutStamp with an unmoved root, since
+// stampRecord deliberately omits ResolvedAt.
+//
+// So the tripwire is planted rather than hoped for: an orphan member_stamps row
+// for an id the manifest does not declare. Stamps() is whole-store, so the row
+// is in the snapshot, and pruneOrphans — which ReplaceRegistry runs
+// unconditionally, registry change or not — is the only thing in this pass that
+// would delete it. A correct clean pass leaves it untouched; the stray write
+// erases it and the snapshots differ.
+// TestOrphanStampMakesAnUnchangedRegistryWriteVisible is the self-test for
+// exactly that tooth.
+//
+// What this still does NOT prove, plainly: a write that changes no content is
+// invisible to any content witness. A redundant PutStamp of the same root would
+// pass here, as would a registry write in some future where pruneOrphans has no
+// orphan left to take. The assertion is "the clean pass changed no overlay
+// content, including content only a redundant write would disturb" — not "the
+// clean pass executed no write statement". The latter needs a driver-level
+// statement counter, not a snapshot.
 //
 // overlay.Open itself is not a content write and must not be treated as one —
 // it re-executes the schema and PRAGMA user_version on every open, which is why
 // the witness compares content and never file bytes.
 func TestFreshenCleanPassWritesNoOverlayContent(t *testing.T) {
 	wsRoot := freshenedCrossEdgeWS(t)
+	plantOrphanStamp(t, wsRoot, "ghost")
 	before := overlayContent(t, wsRoot)
 
 	rep, err := Freshen(wsRoot)

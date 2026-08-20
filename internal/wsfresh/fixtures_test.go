@@ -206,6 +206,45 @@ func deleteRegistryRow(t *testing.T, wsRoot, memberID string) {
 	deleteOneRow(t, wsRoot, `DELETE FROM members WHERE id = ?`, memberID, "registry row")
 }
 
+// plantOrphanStamp inserts a member_stamps row for a member id the manifest
+// does NOT declare, through the driver — overlay exposes no way to say this,
+// and PutStamp would be the wrong tool anyway: the point is a row no product
+// operation would ever have written.
+//
+// It exists to give the clean-pass witness a tripwire. On a clean pass
+// stored == NormalizeMembers(ws.Members), so a stray ReplaceRegistry re-inserts
+// byte-identical registry rows and changes nothing observable — except that
+// ReplaceRegistry also runs pruneOrphans, and pruneOrphans deletes exactly the
+// member_stamps rows naming a member outside the manifest. Stamps() is
+// whole-store, so this row is in the snapshot: a correct clean pass leaves it,
+// a stray registry write erases it.
+//
+// The id must be absent from the manifest for the row to be an orphan, so that
+// is checked rather than assumed.
+func plantOrphanStamp(t *testing.T, wsRoot, memberID string) {
+	t.Helper()
+	ws, err := config.LoadWorkspace(wsRoot)
+	if err != nil {
+		t.Fatalf("LoadWorkspace: %v", err)
+	}
+	for _, m := range ws.Members {
+		if m.ID == memberID {
+			t.Fatalf("plantOrphanStamp(%q): the manifest declares that member, so the row "+
+				"would not be an orphan and pruneOrphans would never touch it", memberID)
+		}
+	}
+	db, err := sql.Open("sqlite3", overlay.Path(wsRoot))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err := db.Exec(
+		`INSERT INTO member_stamps (member_id, merkle_root, resolved_at) VALUES (?, ?, 0)`,
+		memberID, "orphan-merkle-root"); err != nil {
+		t.Fatalf("planting orphan stamp for %q: %v", memberID, err)
+	}
+}
+
 // deleteOneRow reaches the overlay's tables through the driver, for the two
 // deletions overlay deliberately exposes no API for. It insists the row was
 // there: a no-op DELETE would leave the caller asserting against a state it
@@ -642,6 +681,49 @@ func TestOverlayContentDetectsARegistryWrite(t *testing.T) {
 				t.Fatalf("witness did not notice a registry write (%s):\n%s", name, before)
 			}
 		})
+	}
+}
+
+// TestOrphanStampMakesAnUnchangedRegistryWriteVisible is the gap
+// TestOverlayContentDetectsARegistryWrite leaves open. Both of its cases CHANGE
+// the registry; a ReplaceRegistry called with the manifest the store already
+// holds changes nothing — identical rows deleted and re-inserted — so the
+// witness alone cannot see it, and the clean-path no-write test would pass over
+// exactly the bug it names.
+//
+// A planted orphan stamp closes that gap without any product change:
+// ReplaceRegistry unconditionally runs pruneOrphans, and pruneOrphans deletes
+// member_stamps rows naming a member outside the manifest whether or not the
+// registry itself moved. So the orphan row is a witness-visible casualty of an
+// otherwise invisible write.
+//
+// The first assertion is the premise (the row reaches the snapshot at all); the
+// second is the tooth.
+func TestOrphanStampMakesAnUnchangedRegistryWriteVisible(t *testing.T) {
+	wsRoot := freshenedCrossEdgeWS(t)
+	bare := overlayContent(t, wsRoot)
+
+	plantOrphanStamp(t, wsRoot, "ghost")
+	planted := overlayContent(t, wsRoot)
+	if planted == bare {
+		t.Fatalf("the planted orphan stamp is not in the snapshot, so it can guard nothing:\n%s", bare)
+	}
+
+	ws, err := config.LoadWorkspace(wsRoot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := openOverlay(t, wsRoot).ReplaceRegistry(ws); err != nil {
+		t.Fatal(err)
+	}
+	after := overlayContent(t, wsRoot)
+	if after == planted {
+		t.Fatal("a ReplaceRegistry with the UNCHANGED manifest left the snapshot identical " +
+			"even with an orphan stamp planted; the clean-path witness has no tooth for " +
+			"the write it claims to guard")
+	}
+	if after != bare {
+		t.Fatalf("the write removed more than the orphan stamp.\nbare:\n%s\n\nafter:\n%s", bare, after)
 	}
 }
 
