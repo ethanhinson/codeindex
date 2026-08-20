@@ -22,9 +22,10 @@ import (
 type memberState int
 
 const (
-	stateIndexed memberState = iota // directory, real source, real index
-	stateNoIndex                    // directory + real source, never indexed
-	stateAbsent                     // no directory at all
+	stateIndexed    memberState = iota // directory, real source, real index
+	stateNoIndex                       // directory + real source, never indexed
+	stateBadVersion                    // directory + real source + a real index at a bogus user_version
+	stateAbsent                        // no directory at all
 )
 
 // wsMember is one declared member of a fixture workspace.
@@ -66,11 +67,16 @@ func buildWS(t *testing.T, members ...wsMember) string {
 				t.Fatal(err)
 			}
 		}
-		if m.state != stateIndexed {
+		if m.state != stateIndexed && m.state != stateBadVersion {
 			continue
 		}
 		if _, err := query.Fresh(dir); err != nil {
 			t.Fatalf("building member %q index: %v", m.id, err)
+		}
+		if m.state == stateBadVersion {
+			// A REAL index, then a forged version: the file exists and is
+			// intact, and only graph.OpenExisting's version check rejects it.
+			corruptIndexVersion(t, wsRoot, m.id)
 		}
 	}
 	if err := config.SaveWorkspace(wsRoot, manifest); err != nil {
