@@ -2,9 +2,9 @@
 slug: one-invariant-many-sites-drifts
 hook: "When one spec'd invariant must be enforced at several sites, check the sites against EACH OTHER — drift shows up as their doc comments arguing."
 topics: [review, invariants, spec-fidelity, data-integrity]
-changes: [12]
+changes: [12, 13]
 created: 2026-08-19
-updated: 2026-08-19
+updated: 2026-08-20
 promotion_state: candidate
 promoted_to:
 ---
@@ -37,6 +37,13 @@ next call. Validate the write side against exactly the predicate the delete side
 that accepts a row it can never remove has set a trap for the first caller, which may not exist yet
 — 0012's was found with zero callers in tree, which is the cheapest possible moment.
 
+**A recorded obligation is a site.** When a slice hands work to a future slice as prose — a package
+doc saying "§4.1 must filter X" — that sentence is an enforcement site with no compiler and no test
+behind it, and it drifts exactly like a doc comment. Check it against the code that already exists:
+if any current test demonstrates a case the obligation's premise excludes, the obligation is
+over-broad and the future implementer will faithfully write a bug. Read hand-offs against the
+fixtures, not just against the spec.
+
 ## Why it bites
 
 The observable damage is worse than "inconsistent." Thinning a candidate list while leaving its
@@ -57,3 +64,11 @@ permanent quiet lie.
   either-end incidence specified in three spec places, implemented source-side-only at two sites,
   one of which additionally thinned candidates. Suite was green before the fixes and after — no
   test would have caught it, because each site passed its own tests.
+- **#0013, PR #11** — cross-repo resolution ladder. The same shape, one layer out: `internal/wsresolve`'s
+  package doc recorded a hand-off to §4.1 asserting that a suppression record is always accompanied by
+  a cross-edge, so a literal implementation would delete a consumer's still-correct tier-1 edge and put
+  nothing in its place. An **already-passing test on the same branch**
+  (`TestRepointedEdgeFallsThroughWhenOwnerLacksTheName`) disproved the premise — one suppression, zero
+  cross-edges. Fixed in-branch (746340a) by conditioning the obligation on a cross-edge existing for the
+  same call site. Suite green before and after; the defect was again visible only as two doc comments
+  disagreeing.
