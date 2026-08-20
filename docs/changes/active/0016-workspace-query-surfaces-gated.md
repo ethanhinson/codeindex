@@ -103,63 +103,103 @@ the run is an owner-attended step, not part of the autonomous build.
 
 ### 2026-08-20
 
-`docket-auto-groom` abstained. **The blocker is the adversarial gate, not the
-design.** A full designer pass ran and produced a complete draft spec; the
-`docket-auto-groom-critic` dispatch was issued twice-over the same draft (one
-dispatch plus one collect attempt against the running agent) and **returned no
-legible verdict within the run's window**. The host harness resolved the
-dispatch asynchronously and exposed no mechanism that makes the parent block on
-the child's return, so the protocol's fresh foreground re-dispatch leg could
-only have repeated the first. Per the convention's *Dispatch-capability
-resolution*, that is **Tier B**: the groom abstains rather than self-review,
-because the agent that drafted a spec cannot be its own adversarial gate. The
-draft was **discarded uncommitted** — emitting it would mark this change
-build-ready, and an ungated spec on the largest, merge-gated slice of the
-campaign is exactly what the gate exists to prevent.
+`docket-auto-groom` abstained. A full designer pass produced a complete draft
+spec; the `docket-auto-groom-critic` gate attacked it and returned
+**needs-human-context**, so no spec was emitted and the draft was discarded
+uncommitted — emission equals build-ready, and the autonomous builder must not
+build a design whose frozen-text fidelity is unresolved.
 
-**What a human should supply.** Nothing about the design is known to be
-missing — re-arm by running `docket-groom-next` interactively (you are the
-gate), or by re-running `docket-auto-groom` in a harness where the critic
-dispatch returns synchronously. Either way, delete this section on re-arm.
+**The blocker is a pattern across one frozen D5 paragraph, not any single
+defect.** The critic verified the design's hardest parts as sound — the
+import-cycle claim, the `dep_suppressions` formula end-to-end, the confidence
+reconciliation, the D6 coverage-clause shape, the depth-1 `impact` call, and the
+one-PR framing. What it would not let pass autonomously is that the draft
+**narrowed the same owner-frozen D5 sentence pair twice**:
 
-**Designer-pass findings, ungated — verify before trusting any of them.** These
-were established by reading `origin/main` at 2c8b9c3 and are recorded so the
-work is not lost; none has survived adversarial review:
+**Question 1 — what does "accepts a workspace root" mean per verb?** D5 says
+"every verb's `<repo-root>` argument accepts a workspace root." The draft turned
+that into *eight verbs error*. For `export`/`import`/`ingest`/`depmap`/`serve`
+that is obviously right. For `build`/`refresh`/`status` it is not: `refresh` on a
+workspace root **is** `wsfresh.Freshen`, already built and merged, and which the
+draft itself calls on every query entry; `status` already has `workspace-status`
+in this very change. The draft's own rejection ("a new capability nobody
+scoped") is therefore self-contradicting. Needed: a per-verb disposition —
+error vs per-member fan-out.
 
-1. **An import cycle forces a new package.** `internal/wsfresh` already imports
-   `internal/query` (`internal/wsfresh/freshen.go:12` — it calls `query.Fresh`
-   per member), so the union-graph layer cannot live in `internal/query`. A new
-   `internal/wsquery` (importing `query`, `wsfresh`, `overlay`, `config`,
-   `graph`, `engine`) is the natural home, with `DetectRootKind` routing and the
-   `RootRepo` branch tail-calling `internal/query` verbatim so §4.2's
-   byte-identical bar is structural rather than measured.
+**Question 2 — how does `repo` reach MCP consumers?** D5 froze "tool schemas
+gain the `repo` result field" and §4.3 froze "`repo` in result schemas". But
+every MCP tool returns `TextContent` only (`internal/mcpserver/mcpserver.go:42`;
+no `OutputSchema`, no `StructuredContent`), and the draft had `Repo` render
+nothing in `Text()`. Net effect: a workspace MCP consumer would get **no member
+provenance at all**. The draft stated this plainly rather than resolving it,
+which is candour, not discharge. A workspace-mode-only text tag would satisfy
+the obligation without a new tool or touching the plugin note — but that is the
+same frozen paragraph as Question 1, so it is your call.
+
+**What a human should supply.** Rulings on those two questions. Then re-arm:
+flip `auto_groomable` back to `true` and delete this section, or groom
+interactively with `docket-groom-next` (you are the gate).
+
+**Verified designer-pass findings** — established against `origin/main` at
+2c8b9c3 and confirmed by the critic; safe to build on:
+
+1. **An import cycle forces a new package.** `internal/wsfresh/freshen.go:12`
+   imports `internal/query` and calls `query.Fresh` at `freshen.go:218`, so the
+   union layer cannot live in `internal/query`. A new `internal/wsquery` with
+   `DetectRootKind` routing, whose `RootRepo` branch tail-calls `internal/query`
+   verbatim, is the shape.
 2. **The `dep_suppressions` filter needs no new `internal/graph` reader.**
-   `graph.(*Store).TierOneEdges()` (`internal/graph/wsreaders.go:92`) already
-   returns the exact five-part call-site tuple plus the resolved target's
-   `DstNamespace`, which is precisely the key the same-call-site condition in
-   `internal/wsresolve/wsresolve.go:19-29` is stated against.
-3. **MCP result "schemas" are text.** Every `mcpserver` tool returns
-   `TextContent` carrying `query.*Text()` byte-for-byte
-   (`internal/mcpserver/mcpserver.go:37-232`), so "`repo` in result schemas"
-   can only mean the rendered text plus the CLI `--json` shape — a structured
-   MCP result would be a new surface, not wiring. Worth an owner ruling.
-4. **`impact` is depth-1 today**, not a transitive closure
-   (`internal/query/answers.go:320`), so D4's "crosses member boundaries by
-   default" should mean the depth-1 neighbourhood includes cross-edges with no
-   flag — not a new closure the single-repo verb lacks.
-5. **Two decisions look like the ones most needing you.** (a) D2's "members
-   freshen lazily (only those consulted)" appears unreachable without the
-   incident-scoped re-resolution ADR-0012 rejects by name, which points at
-   whole-workspace freshen on every query with latency as a D7-measured
-   residual. (b) D5's "every verb's root accepts a workspace root" has no
-   frozen answer for the non-query verbs (`build`, `refresh`, `export`,
-   `search`, `serve`, …); erroring honestly rather than silently creating a
-   stray `graph.db` at the workspace root was the draft's default, but it is a
-   scope call.
+   `graph.(*Store).TierOneEdges()` (`internal/graph/wsreaders.go:92`) returns
+   exactly the five-part call-site tuple plus `DstNamespace`, and it lines up
+   with the overlay's `src` columns because the ladder builds the cross-edge
+   source key the same way (`internal/wsresolve/ladder.go:107` →
+   `internal/overlay/edges.go:408-422`). The same-call-site narrowing at
+   `internal/wsresolve/wsresolve.go:19-29` must be honored verbatim.
+3. **`impact` is depth-1 today** (`internal/query/answers.go:320`), so D4's
+   "crosses member boundaries by default" means the depth-1 neighbourhood
+   includes cross-edges with no flag — not a new closure single-repo lacks.
+
+**Corrections the next groom must carry** — errors the critic caught in the
+discarded draft, recorded so they are not re-derived:
+
+4. **The stable-key re-map must use `graph.ProjectDefs`, not `Definitions`.**
+   `ProjectDefs`' own doc comment states "Definitions cannot be reused — it
+   neither filters tier nor returns Tier/Namespace"; `Definitions`
+   (`internal/graph/store.go:656-663`) has no `tier` filter, so using it
+   re-admits a vendored snapshot as a cross-repo target — the exact failure
+   member-over-dep precedence exists to prevent. The keys being inverted were
+   written by `ProjectDefs` (`internal/wsresolve/ladder.go:211,215`). Also: the
+   `QName` split must be on the **last** `.`, since `QName()` is
+   `Parent + "." + Name` and dotted parents exist in TS/Python.
+5. **ADR-0012 does not force whole-workspace freshen-on-query.** The draft
+   claimed it did; ADR-0012 governs *re-resolution* scope only, not which
+   members receive `query.Fresh`. Whole-workspace freshen still looks like the
+   right default — `wsfresh.Freshen`'s signature takes no member subset, and the
+   whole-pass `Resolve` reopens every member anyway — but it must be argued on
+   those grounds, not by appeal to a frozen ADR.
+6. **"Byte-identical by construction" overclaims.** The nine `Text()` renderers
+   in `internal/query/answers.go` are shared and would be edited, so repo-mode
+   identity is *measured*, not structural — and only three of the nine have
+   goldens today (`internal/query/query_test.go:43,113,140`). Extend goldens to
+   all nine. Relatedly, `ImpactAnswer.Coverage` (`answers.go:322`, rendered
+   unconditionally at `answers.go:336`) already exists; the spec must say what
+   it holds in workspace mode alongside the new clause.
+7. **`explore-feature` is not a verb.** It is an MCP *prompt*
+   (`internal/mcpserver/mcpserver.go:186`) returning a static workflow string;
+   it reads no root and cannot "error on a workspace root". `search` is the real
+   case, and `wsquery` must state a guard for `mcpserver.go:178`'s
+   `query.SearchText`.
+8. **Smaller gaps:** `limit` semantics are unstated for the anchor verbs' own ∪
+   cross union (`CallersAnswer.Text()` prints `CallersTotal - len(Callers)`);
+   `Report.Dirty` is missing from the four-way `members_stale` union and
+   `members_consulted` is never defined; a `Freshen` error itself has no stated
+   posture; `enclosing`'s longest-prefix match must be on *resolved absolute*
+   roots (D1 allows `../api`); and **§3.5 must be ticked too** — its
+   single-member-workspace bar is exactly what this slice discharges.
 
 **Recommendation: neither kill nor defer.** The change is well-formed, its
 dependency is satisfied, and the campaign's engine work is merged and waiting on
-exactly this wiring.
+exactly this wiring. The two open questions are narrow rulings, not a redesign.
 
 ## Reconcile log
 
