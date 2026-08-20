@@ -111,13 +111,19 @@ func TestFreshenRejectsNonWorkspaceRoot(t *testing.T) {
 	}
 }
 
-// TestFreshenMissingMember: a declared member absent from disk lands in
-// MembersMissing in manifest order and is not counted unindexed.
+// TestFreshenMissingMember (plan test 6, missing half): a declared member absent
+// from disk lands in MembersMissing in manifest order, is not counted unindexed,
+// and does not by itself make the pass dirty — the second pass over the same
+// workspace still takes the gate's clean branch.
+//
+// The fixture is crossEdgeWS's real two-member pair PLUS the absent member, so
+// the workspace still carries a real cross-edge while one declared member is
+// gone. A workspace whose only interesting property is the missing member cannot
+// show that the rest of the pass survived it.
 func TestFreshenMissingMember(t *testing.T) {
-	wsRoot := buildWS(t,
-		wsMember{id: "app", namespaces: []string{"App"}, src: goSrc("app", "AppOne")},
-		wsMember{id: "gone", namespaces: []string{"Gone"}, state: stateAbsent},
-	)
+	wsRoot := crossEdgeWS(t, wsMember{
+		id: "gone", namespaces: []string{"example.com/gone"}, state: stateAbsent,
+	})
 	rep, err := Freshen(wsRoot)
 	if err != nil {
 		t.Fatalf("Freshen: %v", err)
@@ -129,20 +135,32 @@ func TestFreshenMissingMember(t *testing.T) {
 		t.Fatalf("MembersUnindexed = %d, want 0 (a missing member is not unindexed)",
 			rep.MembersUnindexed)
 	}
-	if rep.MembersFreshened != 1 {
-		t.Fatalf("MembersFreshened = %d, want 1", rep.MembersFreshened)
+	if rep.MembersFreshened != 2 {
+		t.Fatalf("MembersFreshened = %d, want 2 (app and lib)", rep.MembersFreshened)
+	}
+	assertCrossEdge(t, wsRoot, targetFile)
+
+	// The missing member alone must not keep the pass dirty forever.
+	second, err := Freshen(wsRoot)
+	if err != nil {
+		t.Fatalf("second Freshen: %v", err)
+	}
+	if len(second.Dirty) != 0 || second.Resolved {
+		t.Fatalf("second pass Dirty=%v Resolved=%v — a missing member must not make the pass dirty",
+			second.Dirty, second.Resolved)
 	}
 }
 
-// TestFreshenUnindexedMemberIsNotBuilt: a present member with no index counts
-// unindexed and is NOT cold-built — no graph.db appears under it. Availability
-// is graph.OpenExisting success and nothing else.
+// TestFreshenUnindexedMemberIsNotBuilt (plan test 6, unindexed half): a present
+// member with no index counts unindexed and is NOT cold-built — no graph.db
+// appears under it, on either pass. Availability is graph.OpenExisting success
+// and nothing else, established BEFORE query.Fresh, so Fresh never reaches its
+// cold-build branch. Nor does the unindexed member alone make the pass dirty.
 func TestFreshenUnindexedMemberIsNotBuilt(t *testing.T) {
-	wsRoot := buildWS(t,
-		wsMember{id: "app", namespaces: []string{"App"}, src: goSrc("app", "AppOne")},
-		wsMember{id: "raw", namespaces: []string{"Raw"},
-			src: goSrc("raw", "RawOne"), state: stateNoIndex},
-	)
+	wsRoot := crossEdgeWS(t, wsMember{
+		id: "raw", namespaces: []string{"example.com/raw"},
+		src: goSrc("raw", "RawOne"), state: stateNoIndex,
+	})
 	rep, err := Freshen(wsRoot)
 	if err != nil {
 		t.Fatalf("Freshen: %v", err)
@@ -150,18 +168,37 @@ func TestFreshenUnindexedMemberIsNotBuilt(t *testing.T) {
 	if rep.MembersUnindexed != 1 {
 		t.Fatalf("MembersUnindexed = %d, want 1", rep.MembersUnindexed)
 	}
-	if rep.MembersFreshened != 1 {
-		t.Fatalf("MembersFreshened = %d, want 1 (only the indexed member)",
+	if rep.MembersFreshened != 2 {
+		t.Fatalf("MembersFreshened = %d, want 2 (only the indexed members)",
 			rep.MembersFreshened)
 	}
-	db := filepath.Join(wsRoot, "raw", ".codeindex", "graph.db")
-	if _, err := os.Stat(db); err == nil {
-		t.Fatalf("%s exists: Freshen cold-built an unindexed member", db)
-	}
+	assertNotBuilt(t, wsRoot, "raw")
 	for _, id := range rep.Dirty {
 		if id == "raw" {
 			t.Fatal("unindexed member 'raw' appears in Dirty; it must be left alone")
 		}
+	}
+
+	second, err := Freshen(wsRoot)
+	if err != nil {
+		t.Fatalf("second Freshen: %v", err)
+	}
+	if len(second.Dirty) != 0 || second.Resolved {
+		t.Fatalf("second pass Dirty=%v Resolved=%v — an unindexed member must not make the pass dirty",
+			second.Dirty, second.Resolved)
+	}
+	// Resolve ran on the first pass too, and it is the second enforcement site
+	// for the same never-cold-build invariant.
+	assertNotBuilt(t, wsRoot, "raw")
+}
+
+// assertNotBuilt fails if an index appeared under a member Freshen was supposed
+// to leave alone.
+func assertNotBuilt(t *testing.T, wsRoot, memberID string) {
+	t.Helper()
+	db := filepath.Join(wsRoot, memberID, ".codeindex", "graph.db")
+	if _, err := os.Stat(db); err == nil {
+		t.Fatalf("%s exists: a member with no index was cold-built", db)
 	}
 }
 

@@ -386,11 +386,17 @@ func TestCrossEdgeFixtureProducesARealCrossEdge(t *testing.T) {
 	}
 }
 
-// TestMoveMemberFileMovesTheCrossEdgeDestination proves the cross-member
-// mutation affordance expresses what it claims: after moving Target inside lib,
-// lib is dirty, app's SOURCE is untouched — and yet app's edge into lib must
-// now name the new file. It is the affordance, not the assertion, that this
-// test exists for.
+// TestMoveMemberFileMovesTheCrossEdgeDestination is plan test 4, CROSS-MEMBER
+// FRESHNESS — and simultaneously the guard that the cross-member mutation
+// affordance expresses what it claims. After moving Target inside lib, lib is
+// dirty, app's SOURCE is untouched and app is CLEAN — and yet app's edge into
+// lib must now name the new file.
+//
+// This is the test that goes red under naive incident-only scoping: scope the
+// re-resolution to the dirty member (lib) and app's stale row into target.go
+// survives, because the row that has to move belongs to the member that did not
+// change. It is the whole reason the pass re-resolves the WHOLE workspace rather
+// than the dirty set. Verified by breaking it on purpose, not by inspection.
 func TestMoveMemberFileMovesTheCrossEdgeDestination(t *testing.T) {
 	wsRoot := crossEdgeWS(t)
 	if _, err := Freshen(wsRoot); err != nil {
@@ -406,6 +412,9 @@ func TestMoveMemberFileMovesTheCrossEdgeDestination(t *testing.T) {
 	}
 	if len(rep.Dirty) != 1 || rep.Dirty[0] != "lib" {
 		t.Fatalf("Dirty = %v, want [lib] — only lib's tree changed", rep.Dirty)
+	}
+	if !rep.Resolved {
+		t.Fatal("Resolved = false with lib dirty; the gate must take its dirty branch")
 	}
 	assertCrossEdge(t, wsRoot, "moved.go")
 	// And the stale destination is gone, not merely joined by the new one.
