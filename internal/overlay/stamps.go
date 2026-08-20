@@ -26,6 +26,14 @@ func (s *Store) PutStamp(memberID, merkleRoot string) error {
 	return err
 }
 
+// DeleteStamp removes memberID's stamp. Deleting an absent stamp is not an
+// error: the call is idempotent, which is what lets wsresolve.Resolve prune
+// unconditionally without a "does it have one?" pre-check.
+func (s *Store) DeleteStamp(memberID string) error {
+	_, err := s.db.Exec(`DELETE FROM member_stamps WHERE member_id = ?`, memberID)
+	return err
+}
+
 // Stamp returns memberID's stamp, or (Stamp{}, false, nil) when absent.
 func (s *Store) Stamp(memberID string) (Stamp, bool, error) {
 	var st Stamp
