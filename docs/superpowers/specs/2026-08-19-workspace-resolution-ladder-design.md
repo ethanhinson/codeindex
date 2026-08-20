@@ -1,5 +1,5 @@
 <!-- docket:backlink:start (generated — do not hand-edit) -->
-> ↩ **[Change 0013 — Cross-repo resolution ladder — import-mediated exact, bare-name inferred, ambiguity, suppression](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/active/0013-workspace-resolution-ladder.md)**
+> ↩ **[Change 0013 — Cross-repo resolution ladder — import-mediated exact, bare-name inferred, ambiguity, suppression](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/archive/2026-08-20-0013-workspace-resolution-ladder.md)**
 <!-- docket:backlink:end -->
 
 # Design: Cross-repo resolution ladder — import-mediated exact, bare-name inferred, ambiguity, suppression
