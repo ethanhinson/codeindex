@@ -12,12 +12,12 @@ related: [13, 14]
 discovered_from: [14]
 adrs: []
 spec: docs/superpowers/specs/2026-08-20-wsresolve-stamp-pruning-design.md
-plan:
+plan: docs/superpowers/plans/2026-08-20-wsresolve-stamp-pruning-plan.md
 results:
 trivial: false
 auto_groomable: true
 branch: feat/wsresolve-stamp-pruning
-claimed_at: 2026-08-20T04:31:00Z
+claimed_at: 2026-08-20T04:40:00Z
 pr:
 blocked_by:
 reconciled: true
@@ -29,6 +29,7 @@ reconciled: true
 | Artifact | Link |
 |---|---|
 | Spec | [2026-08-20-wsresolve-stamp-pruning-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-20-wsresolve-stamp-pruning-design.md) |
+| Plan | [2026-08-20-wsresolve-stamp-pruning-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/wsresolve-stamp-pruning/docs/superpowers/plans/2026-08-20-wsresolve-stamp-pruning-plan.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
