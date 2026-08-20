@@ -178,6 +178,21 @@ func Freshen(wsRoot string) (Report, error) {
 		// 5d. Re-fold, through the canonical fold and no fork of it. The
 		// value is OPAQUE: compared for equality only, never parsed, split,
 		// or ordered.
+		//
+		// foldMember re-opens with the SAME graph.OpenExisting predicate 5a
+		// used, and unlike 5a a failure here is FATAL. That asymmetry is
+		// deliberate: 5a asks "was this member available at all?", and the
+		// answer "no" is the ordinary skip. This open asks a strictly later
+		// question — the member WAS available moments ago and has just been
+		// freshened, so a failure now means the index was rebuilt, removed or
+		// version-bumped underneath the pass MID-FLIGHT. That is a different
+		// condition, and folding it into the skip path would be unsafe rather
+		// than merely lossy: a racing rebuild would drop the member out of
+		// Dirty, leave its stale stamp unread, and let the gate return a
+		// quietly WRONG clean verdict. A member that was never available
+		// cannot produce that error, because it never had a stamp this pass
+		// could be wrong about. Failing the pass makes the caller retry
+		// against a settled tree instead.
 		root, err := foldMember(rm.AbsRoot)
 		if err != nil {
 			return rep, fmt.Errorf("wsfresh: member %q: %w", id, err)
@@ -265,6 +280,12 @@ func Freshen(wsRoot string) (Report, error) {
 // foldMember re-opens absRoot's index and folds it to its canonical merkle
 // root, closing the handle before returning. It exists so the open/fold/close
 // triple is not open-coded next to the freshen it must follow.
+//
+// It uses the same graph.OpenExisting availability predicate as step 5a, but
+// reports an open failure as an error rather than swallowing it: by the time
+// this runs the member has already opened once this pass, so a failure here
+// is a mid-flight mutation, not an unavailable member. Step 5d's call site
+// carries the full argument for why that outcome is fatal there.
 func foldMember(absRoot string) (string, error) {
 	st, err := graph.OpenExisting(memberIndexPath(absRoot))
 	if err != nil {

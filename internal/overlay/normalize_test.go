@@ -60,11 +60,17 @@ func TestNormalizeMembersEmpty(t *testing.T) {
 
 // TestNormalizeMembersMatchesRegistry ties the export to its stated contract:
 // what ReplaceRegistry stores is what NormalizeMembers predicts.
+//
+// The ids are declared OUT of sort order on purpose ("b" before "a"): wsfresh
+// compares the stored registry to NormalizeMembers over WHOLE RECORDS,
+// member order included, so this test must pin ordinal round-tripping too.
+// With ids in sort order, Registry()'s ORDER BY ord and an accidental
+// ORDER BY id are indistinguishable and the guard proves nothing about order.
 func TestNormalizeMembersMatchesRegistry(t *testing.T) {
 	s := newStore(t)
 	members := []config.Member{
-		{ID: "a", Root: "pkg/a", Namespaces: []string{"A", "A", "B"}, Deps: []string{}},
 		{ID: "b", Root: "pkg/b", Namespaces: nil, Deps: []string{"a", "a"}},
+		{ID: "a", Root: "pkg/a", Namespaces: []string{"A", "A", "B"}, Deps: []string{}},
 	}
 	if err := s.ReplaceRegistry(&config.Workspace{Members: members}); err != nil {
 		t.Fatalf("ReplaceRegistry: %v", err)

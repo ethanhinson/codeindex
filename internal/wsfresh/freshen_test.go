@@ -301,6 +301,30 @@ func TestFreshenManifestDepsDriftReResolves(t *testing.T) {
 	}
 }
 
+// TestFreshenManifestMemberOrderDriftReResolves is the third named component of
+// the drift comparison, and the only one no other test moves: member ORDER.
+// Swapping two members edits no field of any record — the same ids, roots,
+// namespaces and deps are all still present — so an order-insensitive
+// comparison sees no drift at all, while the stored registry's ordinals have
+// genuinely changed. Nothing is dirty, because no source file and no stamp
+// moved; the whole-record, order-sensitive comparison is the only signal.
+func TestFreshenManifestMemberOrderDriftReResolves(t *testing.T) {
+	wsRoot := freshenedWS(t)
+	editManifest(t, wsRoot, func(ws *config.Workspace) {
+		ws.Members[0], ws.Members[1] = ws.Members[1], ws.Members[0]
+	})
+	rep, err := Freshen(wsRoot)
+	if err != nil {
+		t.Fatalf("Freshen: %v", err)
+	}
+	if len(rep.Dirty) != 0 {
+		t.Fatalf("Dirty = %v, want empty — only the member order moved", rep.Dirty)
+	}
+	if !rep.Resolved {
+		t.Fatal("Resolved = false after a member reorder; the drift check must catch it")
+	}
+}
+
 // TestFreshenConvergesOnDuplicateNamespace is the first convergence sibling.
 // A duplicate namespace entry is a LEGAL manifest — config validation does not
 // reject it — but ReplaceRegistry dedupes on the way in, so the stored form can
