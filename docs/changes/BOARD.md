@@ -1,6 +1,6 @@
 # Backlog
 
-**15 changes** — 🟡 5 proposed · 🔵 1 implemented · ✅ 9 done
+**15 changes** — 🟡 5 proposed · ✅ 10 done
 
 ## 🟡 Proposed (5)
 
@@ -10,13 +10,7 @@
 | [0007](active/0007-session-stable-query-cache.md) | Session-stable query cache keyed by index version | `medium` | `perf` | needs-brainstorm |
 | [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-brainstorm |
 | [0010](active/0010-workspace-bench-corpus-monorepo-growth.md) | Grow the workspace bench corpus — monorepo declaration coverage in every supported language | `medium` | `chore` | needs-brainstorm |
-| [0015](active/0015-wsresolve-stamp-pruning.md) | Stamp pruning for unavailable members — close the stale-edges-after-unavailability hole | `high` | `fix` | ⏳ waiting on #14 — needs your merge |
-
-## 🔵 Implemented — awaiting merge (1)
-
-| # | Title | Priority | Type | PR | Readiness |
-|---|-------|----------|------|----|-----------|
-| [0014](active/0014-workspace-freshen-internals.md) | Workspace freshen internals — per-member freshen + stamp-gated re-resolution | `high` | `feat` | [#12](https://github.com/ethanhinson/codeindex/pull/12) |  |
+| [0015](active/0015-wsresolve-stamp-pruning.md) | Stamp pruning for unavailable members — close the stale-edges-after-unavailability hole | `high` | `fix` | needs-brainstorm |
 
 ```mermaid
 graph TD
@@ -24,16 +18,16 @@ graph TD
   0007
   0008
   0010
-  0013 --> 0014
   0014 --> 0015
-  0013:::done
+  0014:::done
   classDef done fill:#d3f9d8;
 ```
 
-<details><summary>✅ Archive — done (9)</summary>
+<details><summary>✅ Archive — done (10)</summary>
 
 | # | Title | Merged |
 |---|-------|--------|
+| [0014](archive/2026-08-20-0014-workspace-freshen-internals.md) | Workspace freshen internals — per-member freshen + stamp-gated re-resolution | 2026-08-20 |
 | [0013](archive/2026-08-20-0013-workspace-resolution-ladder.md) | Cross-repo resolution ladder — import-mediated exact, bare-name inferred, ambiguity, suppression | 2026-08-20 |
 | [0012](archive/2026-08-19-0012-workspace-overlay-store.md) | Workspace overlay store — member registry, cross-edges by stable key, freshness stamps | 2026-08-19 |
 | [0011](archive/2026-08-19-0011-fix-searchtool-test-nollama.md) | Make TestSearchToolAndPrompt honest under nollama builds | 2026-08-19 |
