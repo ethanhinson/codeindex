@@ -20,6 +20,7 @@ type DefRef struct {
 	File      string `json:"file"`
 	Line      int    `json:"line"`
 	Signature string `json:"signature,omitempty"`
+	Repo      string `json:"repo,omitempty"`
 }
 
 // CallerRef is one calling symbol with its call-site line.
@@ -30,6 +31,8 @@ type CallerRef struct {
 	File      string `json:"file"`
 	Line      int    `json:"line"`
 	Ambiguous bool   `json:"ambiguous,omitempty"`
+	Inferred  bool   `json:"inferred,omitempty"`
+	Repo      string `json:"repo,omitempty"`
 }
 
 // CalleeRef is one called symbol. DefFile=="" means the call did not resolve
@@ -44,6 +47,8 @@ type CalleeRef struct {
 	Ambiguous   bool   `json:"ambiguous,omitempty"`
 	Dep         string `json:"dep,omitempty"` // "namespace@version" provenance
 	DepModified bool   `json:"dep_modified,omitempty"`
+	Inferred    bool   `json:"inferred,omitempty"`
+	Repo        string `json:"repo,omitempty"`
 }
 
 // DependentRef is one importer/extender/implementer.
@@ -52,6 +57,7 @@ type DependentRef struct {
 	QName string `json:"qname"` // qualified symbol, or the file itself for imports
 	File  string `json:"file"`
 	Line  int    `json:"line"`
+	Repo  string `json:"repo,omitempty"`
 }
 
 // FindRef is one ranked symbol-search result.
@@ -64,6 +70,7 @@ type FindRef struct {
 	Dep         string `json:"dep,omitempty"`
 	DepModified bool   `json:"dep_modified,omitempty"`
 	Match       string `json:"match"`
+	Repo        string `json:"repo,omitempty"`
 }
 
 // GrepRef is one grouped content hit. QName=="" means the hit sits outside
@@ -74,6 +81,7 @@ type GrepRef struct {
 	Line  int    `json:"line"`
 	Hits  int    `json:"hits"`
 	IsDef bool   `json:"is_definition,omitempty"`
+	Repo  string `json:"repo,omitempty"`
 }
 
 // DepRef is one outgoing dependency edge.
@@ -83,6 +91,7 @@ type DepRef struct {
 	DefFile string `json:"def_file,omitempty"`
 	DefLine int    `json:"def_line,omitempty"`
 	Line    int    `json:"line"`
+	Repo    string `json:"repo,omitempty"`
 }
 
 // EnclosingRef is one symbol overlapping a queried line range.
@@ -95,6 +104,7 @@ type EnclosingRef struct {
 	EndLine         int    `json:"end_line"`
 	Callers         int    `json:"callers"`
 	ExternalCallers int    `json:"external_callers"`
+	Repo            string `json:"repo,omitempty"`
 }
 
 // CallersAnswer is definitions + callers + referencing files for an anchor.
@@ -113,7 +123,8 @@ func (a *CallersAnswer) Text() string {
 	writeDefs(&b, a.Anchor, a.Definitions)
 	fmt.Fprintf(&b, "callers (%d):\n", a.CallersTotal)
 	for _, c := range a.Callers {
-		fmt.Fprintf(&b, "  %s:%d  %s%s\n", c.File, c.Line, c.QName, ambigTag(c.Ambiguous))
+		fmt.Fprintf(&b, "  %s%s:%d  %s%s%s\n",
+			repoPrefix(c.Repo), c.File, c.Line, c.QName, ambigTag(c.Ambiguous), inferredTag(c.Inferred))
 	}
 	if a.CallersTotal > len(a.Callers) {
 		fmt.Fprintf(&b, "  ... (+%d more; raise limit)\n", a.CallersTotal-len(a.Callers))
@@ -142,10 +153,10 @@ func (a *CalleesAnswer) Text() string {
 	for _, c := range a.Callees {
 		target := "unresolved"
 		if c.DefFile != "" {
-			target = fmt.Sprintf("%s:%d", c.DefFile, c.DefLine)
+			target = fmt.Sprintf("%s%s:%d", repoPrefix(c.Repo), c.DefFile, c.DefLine)
 		}
-		fmt.Fprintf(&b, "  %s  -> %s  @call:%d%s%s\n",
-			c.QName, target, c.CallLine, ambigTag(c.Ambiguous), depTag(c.Dep, c.DepModified))
+		fmt.Fprintf(&b, "  %s  -> %s  @call:%d%s%s%s\n",
+			c.QName, target, c.CallLine, ambigTag(c.Ambiguous), inferredTag(c.Inferred), depTag(c.Dep, c.DepModified))
 	}
 	if a.Total > len(a.Callees) {
 		fmt.Fprintf(&b, "  ... (+%d more; raise limit)\n", a.Total-len(a.Callees))
@@ -168,8 +179,8 @@ func (a *FindAnswer) Text() string {
 		if r.Callers > 0 {
 			callers = fmt.Sprintf("  callers=%d", r.Callers)
 		}
-		fmt.Fprintf(&b, "  %s  %s  %s:%d%s%s  [%s]\n",
-			r.QName, r.Kind, r.File, r.Line, callers, depTag(r.Dep, r.DepModified), r.Match)
+		fmt.Fprintf(&b, "  %s  %s  %s%s:%d%s%s  [%s]\n",
+			r.QName, r.Kind, repoPrefix(r.Repo), r.File, r.Line, callers, depTag(r.Dep, r.DepModified), r.Match)
 	}
 	if len(a.Results) == 0 {
 		// A multi-token miss is usually a concept/feature phrase, not a
@@ -205,7 +216,7 @@ func (a *GrepAnswer) Text() string {
 		if g.IsDef {
 			def = "  [definition]"
 		}
-		fmt.Fprintf(&b, "  %s  %s:%d  hits=%d%s\n", name, g.File, g.Line, g.Hits, def)
+		fmt.Fprintf(&b, "  %s  %s%s:%d  hits=%d%s\n", name, repoPrefix(g.Repo), g.File, g.Line, g.Hits, def)
 	}
 	return b.String()
 }
@@ -237,8 +248,8 @@ func (a *NavAnswer) Text() string {
 			if r.Callers > 0 {
 				callers = fmt.Sprintf("  callers=%d", r.Callers)
 			}
-			fmt.Fprintf(&b, "  %s  %s  %s:%d%s%s  [%s]\n",
-				r.QName, r.Kind, r.File, r.Line, callers, depTag(r.Dep, r.DepModified), r.Match)
+			fmt.Fprintf(&b, "  %s  %s  %s%s:%d%s%s  [%s]\n",
+				r.QName, r.Kind, repoPrefix(r.Repo), r.File, r.Line, callers, depTag(r.Dep, r.DepModified), r.Match)
 		}
 	}
 	if a.CallersFromGrep {
@@ -247,7 +258,8 @@ func (a *NavAnswer) Text() string {
 		fmt.Fprintf(&b, "callers (%d):\n", a.CallersTotal)
 	}
 	for _, c := range a.Callers {
-		fmt.Fprintf(&b, "  %s:%d  %s%s\n", c.File, c.Line, c.QName, ambigTag(c.Ambiguous))
+		fmt.Fprintf(&b, "  %s%s:%d  %s%s%s\n",
+			repoPrefix(c.Repo), c.File, c.Line, c.QName, ambigTag(c.Ambiguous), inferredTag(c.Inferred))
 	}
 	if a.CallersTotal > len(a.Callers) {
 		fmt.Fprintf(&b, "  ... (+%d more; raise limit)\n", a.CallersTotal-len(a.Callers))
@@ -274,7 +286,7 @@ func (a *DependentsAnswer) Text() string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "dependents of %s (%d):\n", a.Anchor, a.Total)
 	for _, d := range a.Dependents {
-		fmt.Fprintf(&b, "  %-10s %s:%d  %s\n", d.Kind, d.File, d.Line, d.QName)
+		fmt.Fprintf(&b, "  %-10s %s%s:%d  %s\n", d.Kind, repoPrefix(d.Repo), d.File, d.Line, d.QName)
 	}
 	if a.Total > len(a.Dependents) {
 		fmt.Fprintf(&b, "  ... (+%d more; raise limit)\n", a.Total-len(a.Dependents))
@@ -303,7 +315,7 @@ func (a *DepsAnswer) Text() string {
 		for _, d := range s.Deps {
 			target := d.Target
 			if d.DefFile != "" {
-				target = fmt.Sprintf("%s (%s:%d)", d.Target, d.DefFile, d.DefLine)
+				target = fmt.Sprintf("%s (%s%s:%d)", d.Target, repoPrefix(d.Repo), d.DefFile, d.DefLine)
 			}
 			fmt.Fprintf(&b, "  %-10s %s  @%d\n", d.Kind, target, d.Line)
 		}
@@ -337,14 +349,15 @@ func (a *ImpactAnswer) Text() string {
 	writeDefs(&b, a.Anchor, a.Definitions)
 	fmt.Fprintf(&b, "\ncallers — these break if %s's behavior/signature changes:\n", a.Anchor)
 	for _, c := range a.Callers {
-		fmt.Fprintf(&b, "  %s:%d  %s%s\n", c.File, c.Line, c.QName, ambigTag(c.Ambiguous))
+		fmt.Fprintf(&b, "  %s%s:%d  %s%s%s\n",
+			repoPrefix(c.Repo), c.File, c.Line, c.QName, ambigTag(c.Ambiguous), inferredTag(c.Inferred))
 	}
 	if a.CallersTotal > len(a.Callers) {
 		fmt.Fprintf(&b, "  ... (+%d more)\n", a.CallersTotal-len(a.Callers))
 	}
 	fmt.Fprintf(&b, "\ndependents — who imports/extends/implements %s:\n", a.Anchor)
 	for _, d := range a.Dependents {
-		fmt.Fprintf(&b, "  %-10s %s:%d  %s\n", d.Kind, d.File, d.Line, d.QName)
+		fmt.Fprintf(&b, "  %-10s %s%s:%d  %s\n", d.Kind, repoPrefix(d.Repo), d.File, d.Line, d.QName)
 	}
 	if a.DependentsTotal > len(a.Dependents) {
 		fmt.Fprintf(&b, "  ... (+%d more)\n", a.DependentsTotal-len(a.Dependents))
@@ -354,7 +367,8 @@ func (a *ImpactAnswer) Text() string {
 		if c.DefFile == "" {
 			continue // unresolved (stdlib/external) — noise in an impact summary
 		}
-		fmt.Fprintf(&b, "  %s  %s:%d%s\n", c.QName, c.DefFile, c.DefLine, depTag(c.Dep, c.DepModified))
+		fmt.Fprintf(&b, "  %s  %s%s:%d%s%s\n",
+			c.QName, repoPrefix(c.Repo), c.DefFile, c.DefLine, inferredTag(c.Inferred), depTag(c.Dep, c.DepModified))
 	}
 	if a.CalleesTotal > len(a.Callees) {
 		fmt.Fprintf(&b, "  ... (+%d more)\n", a.CalleesTotal-len(a.Callees))
@@ -374,15 +388,15 @@ type EnclosingAnswer struct {
 func (a *EnclosingAnswer) Text() string {
 	var b strings.Builder
 	for _, e := range a.Symbols {
-		fmt.Fprintf(&b, "sym  %s  %s  %s:%d-%d  callers=%d external=%d\n",
-			e.Name, e.Kind, e.File, e.StartLine, e.EndLine, e.Callers, e.ExternalCallers)
+		fmt.Fprintf(&b, "sym  %s  %s  %s%s:%d-%d  callers=%d external=%d\n",
+			e.Name, e.Kind, repoPrefix(e.Repo), e.File, e.StartLine, e.EndLine, e.Callers, e.ExternalCallers)
 	}
 	return b.String()
 }
 
 func writeDefs(b *strings.Builder, anchor string, defs []DefRef) {
 	for _, d := range defs {
-		fmt.Fprintf(b, "def  %s  %s:%d  %s\n", d.QName, d.File, d.Line, d.Signature)
+		fmt.Fprintf(b, "def  %s  %s%s:%d  %s\n", d.QName, repoPrefix(d.Repo), d.File, d.Line, d.Signature)
 	}
 	if len(defs) == 0 {
 		fmt.Fprintf(b, "def  %s: (not found in index)\n", anchor)
@@ -392,6 +406,27 @@ func writeDefs(b *strings.Builder, anchor string, defs []DefRef) {
 func ambigTag(ambiguous bool) string {
 	if ambiguous {
 		return "  [ambiguous]"
+	}
+	return ""
+}
+
+// repoPrefix renders the owning member id immediately before a path, and
+// nothing at all in repo mode (Repo == ""), where every reference is local and
+// the prefix would be noise. Repo-mode bytes are a measured non-regression bar
+// (golden_test.go), so this branch must stay the only difference.
+func repoPrefix(repo string) string {
+	if repo == "" {
+		return ""
+	}
+	return repo + ": "
+}
+
+// inferredTag marks a reference recovered by a lower-confidence rung. The
+// renderers deliberately know nothing of the overlay's "exact"/"inferred"
+// vocabulary — they key on the boolean, exactly as ambigTag does.
+func inferredTag(inferred bool) string {
+	if inferred {
+		return "  [inferred]"
 	}
 	return ""
 }
