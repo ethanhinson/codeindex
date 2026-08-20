@@ -526,3 +526,38 @@ func TestFreshenFailureIsItsOwnOutcome(t *testing.T) {
 			rep.Stats.MembersResolved, want)
 	}
 }
+
+// TestFreshenFailedIDsMatchCount: MembersFreshenFailedIDs carries the ids
+// behind MembersFreshenFailed, written at the same site so the two cannot
+// disagree. A single-failure fixture cannot catch a divergence between the
+// count and the slice — appending the wrong id, or appending twice, still
+// leaves len == count at one failure — so this uses two broken members.
+func TestFreshenFailedIDsMatchCount(t *testing.T) {
+	wsRoot := crossEdgeWS(t)
+	// crossEdgeWS's own members are "app" and "lib"; break both to get two
+	// independent freshen failures.
+	breakMemberFreshen(t, wsRoot, "app")
+	breakMemberFreshen(t, wsRoot, "lib")
+
+	rep, err := Freshen(wsRoot)
+	if err != nil {
+		t.Fatalf("Freshen: %v", err)
+	}
+	if rep.MembersFreshenFailed != 2 {
+		t.Fatalf("MembersFreshenFailed = %d, want 2", rep.MembersFreshenFailed)
+	}
+	if len(rep.MembersFreshenFailedIDs) != rep.MembersFreshenFailed {
+		t.Errorf("len(MembersFreshenFailedIDs) = %d, want %d (MembersFreshenFailed)",
+			len(rep.MembersFreshenFailedIDs), rep.MembersFreshenFailed)
+	}
+	want := map[string]bool{"app": true, "lib": true}
+	for _, id := range rep.MembersFreshenFailedIDs {
+		if !want[id] {
+			t.Errorf("MembersFreshenFailedIDs contains unexpected id %q", id)
+		}
+		delete(want, id)
+	}
+	if len(want) != 0 {
+		t.Errorf("MembersFreshenFailedIDs missing ids: %v", want)
+	}
+}

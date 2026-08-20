@@ -217,6 +217,7 @@ func Freshen(wsRoot string) (Report, error) {
 		// relation to wsresolve.Stats false in both directions at once.
 		if _, err := query.Fresh(rm.AbsRoot); err != nil {
 			rep.MembersFreshenFailed++
+			rep.MembersFreshenFailedIDs = append(rep.MembersFreshenFailedIDs, id)
 			continue
 		}
 		rep.MembersFreshened++

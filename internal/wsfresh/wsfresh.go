@@ -62,6 +62,12 @@ type Report struct {
 	// Stats.MembersUnavailable — see the identities in the type comment.
 	MembersFreshenFailed int
 
+	// MembersFreshenFailedIDs lists the ids behind the MembersFreshenFailed
+	// count, in manifest order. It is written at the SAME site as the count,
+	// so the two cannot disagree: len(MembersFreshenFailedIDs) ==
+	// MembersFreshenFailed always holds.
+	MembersFreshenFailedIDs []string
+
 	// MembersUnindexed counts members PRESENT on disk whose graph.OpenExisting
 	// failed: no index, schema-version mismatch, otherwise unopenable. It
 	// EXCLUDES members absent from disk (those are in MembersMissing) and
