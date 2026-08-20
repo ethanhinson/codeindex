@@ -1,5 +1,5 @@
 <!-- docket:backlink:start (generated — do not hand-edit) -->
-> ↩ **[Change 0015 — Stamp pruning for unavailable members — close the stale-edges-after-unavailability hole](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/active/0015-wsresolve-stamp-pruning.md)**
+> ↩ **[Change 0015 — Stamp pruning for unavailable members — close the stale-edges-after-unavailability hole](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/archive/2026-08-20-0015-wsresolve-stamp-pruning.md)**
 <!-- docket:backlink:end -->
 
 # Stamp pruning for unavailable members — design
