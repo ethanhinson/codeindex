@@ -2,7 +2,7 @@
 id: 15
 slug: wsresolve-stamp-pruning
 title: Stamp pruning for unavailable members — close the stale-edges-after-unavailability hole
-status: implemented
+status: done
 priority: high
 type: fix
 created: 2026-08-20
@@ -17,7 +17,7 @@ results: docs/results/2026-08-20-wsresolve-stamp-pruning-results.md
 trivial: false
 auto_groomable: true
 branch: feat/wsresolve-stamp-pruning
-claimed_at: 2026-08-20T05:30:00Z
+claimed_at: 
 pr: https://github.com/ethanhinson/codeindex/pull/13
 blocked_by:
 reconciled: true
