@@ -13,6 +13,7 @@ One curated finding per file; this index is the hint surface. Load it, then read
 ## review
 
 - [one-invariant-many-sites-drifts](one-invariant-many-sites-drifts.md) — When one spec'd invariant must be enforced at several sites, check the sites against EACH OTHER — drift shows up as their doc comments arguing. · also: invariants, spec-fidelity, data-integrity ⟨needs promotion⟩
+- [ordering-claims-must-survive-the-error-return](ordering-claims-must-survive-the-error-return.md) — An ordering claim defended only by 'nothing clobbers anything' is unproven — the case that decides it is the error return, where the partial pass the ordering exists for actually happens. · also: invariants, crash-safety, spec-fidelity, data-integrity ⟨needs promotion⟩
 
 ## testing
 
