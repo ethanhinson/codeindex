@@ -2,7 +2,7 @@
 id: 14
 slug: workspace-freshen-internals
 title: Workspace freshen internals — per-member freshen + stamp-gated re-resolution
-status: proposed
+status: in-progress
 priority: high
 type: feat
 created: 2026-08-20
@@ -16,9 +16,10 @@ plan:
 results:
 trivial: false
 auto_groomable: true
-branch:
+branch: feat/workspace-freshen-internals
 pr:
 blocked_by:
+claimed_at: 2026-08-20T01:30:06Z
 reconciled: false
 ---
 
