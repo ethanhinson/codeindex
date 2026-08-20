@@ -47,9 +47,12 @@ type Stats struct {
 	// MembersResolved counts the members whose overlay contribution this pass
 	// rewrote — present on disk with a usable index.
 	MembersResolved int
-	// MembersUnavailable counts declared members with no usable index, left
-	// untouched: absent from disk, indexed at a different schema version, or
-	// otherwise unopenable. Not an error — see Resolve.
+	// MembersUnavailable counts declared members with no usable index: absent
+	// from disk, indexed at a different schema version, or otherwise
+	// unopenable. Not an error — see Resolve. These members are PRUNED from
+	// the overlay by step 9a: the pass deletes their incident records and then
+	// their stamp, so a member the resolver could not see contributes nothing
+	// and leaves nothing behind.
 	MembersUnavailable int
 	// CrossEdges, Ambiguities and Suppressions count the records this pass
 	// derived. Two derived records can share the same storage key
@@ -76,7 +79,9 @@ type Stats struct {
 //  6. open each present member's index with graph.OpenExisting.
 //  7. derive member-over-dep suppressions across the available members.
 //  8. run the ladder for each available member, accumulating in MEMORY.
-//  9. clear every available member's prior rows,
+//  9. prune every DECLARED member that is not available this pass — its
+//     records first, its stamp last (step 9a) — then clear every available
+//     member's prior rows,
 //  10. write the whole derived set, and
 //  11. stamp every available member LAST.
 //
@@ -96,16 +101,55 @@ type Stats struct {
 // # Missing and unavailable members
 //
 // A member with no usable index contributes no candidates, is not a candidate
-// target, gets no stamp, and its overlay rows are not cleared. It is counted in
+// target, and is not stamped by this pass. It is counted in
 // Stats.MembersUnavailable and the pass returns NO error: an unbuilt or
-// checked-out-elsewhere member is a runtime condition, and a workspace must keep
-// answering while one member is unavailable. An absent member and a member whose
-// index is absent, version-mismatched or unopenable are the same case here.
+// checked-out-elsewhere member is a runtime condition, and a workspace must
+// keep answering while one member is unavailable. An absent member and a member
+// whose index is absent, version-mismatched or unopenable are the same case
+// here.
 //
-// Step 9 does collaterally delete an unavailable member's rows that are incident
-// to an available one. That is unavoidable and correct: the available member's
-// whole contribution is being rewritten and such an edge cannot be re-derived at
-// this pass. Rows joining two unavailable members are never touched.
+// Its overlay rows, and any stamp an earlier pass left it, do NOT stay behind.
+// Step 9a PRUNES every member the manifest DECLARES that is not available this
+// pass — the set Stats.MembersUnavailable counts, which is the members absent
+// from disk plus every present member graph.OpenExisting could not open —
+// running before step 9 clears anything and therefore before any of step 10's
+// writes. Rows joining two unavailable
+// members go with the rest: an edge between two members the resolver could not
+// see is precisely an edge the overlay must not carry, and it is the one class
+// nothing else would ever clear, since step 9 only reaches rows incident to an
+// available member. The prune set is DECLARED-scoped on purpose. A stamp or a
+// row for an id the manifest no longer declares is not touched here; that is
+// ReplaceRegistry's orphan prune (step 5). Widening step 9a to "every stamped
+// member not available this pass" would reach past this pass's own subject
+// matter into ids the manifest never named, and internal/wsfresh plants an
+// orphan stamp for one such id as a tripwire against exactly that.
+//
+// Step 9 still collaterally deletes an unavailable member's rows that are
+// incident to an available one. That remains unavoidable and correct: the
+// available member's whole contribution is being rewritten and such an edge
+// cannot be re-derived at this pass.
+//
+// # Why the prune deletes records first and the stamp last
+//
+// Per member the order is fixed: ReplaceMemberEdges first, DeleteStamp last.
+// It is the same stamp-last rule step 11 follows for writes, applied to
+// deletes, and it is what makes a mid-prune crash recoverable.
+//
+//   - Completed prune: the member is unstamped and carries no rows. Its later
+//     RETURN to availability is caught by the absent-stamp-is-dirty rule in
+//     internal/wsfresh and re-derives cleanly.
+//   - Crash between the two calls: the member is STILL STAMPED and its rows are
+//     already gone. That surviving stamp is the signal — wsfresh's
+//     surviving-stamp trigger fires on a declared member that is unavailable
+//     yet still stamped, so the next freshen pass re-runs Resolve and the prune
+//     completes. Under-serving, and self-healing.
+//
+// The reverse order is unsafe, which is why it is spelled out here. An
+// unavailable member is skipped before its stamp is read, so it can never enter
+// wsfresh's Dirty set by the absent-stamp route; deleting the stamp first and
+// then dying would leave the stale rows served with NO signal left that could
+// ever fire again, silently restoring the hole. Records-first fails towards
+// under-serving; stamp-first fails towards over-serving stale cross-edges.
 //
 // # Crash safety
 //
@@ -114,7 +158,9 @@ type Stats struct {
 // re-derivable by re-running. Stamps go last, so a pass that dies part-way
 // leaves the affected members stampless and a later staleness gate re-resolves
 // them: crash-safety carried by the ordering, not by a transaction the overlay
-// API does not offer.
+// API does not offer. Step 9a carries the same ordering in the other direction
+// — see "Why the prune deletes records first and the stamp last" above — so a
+// crash inside the prune also leaves a stamp the gate can fire on.
 //
 // No member graph.db is ever written. Indexes are opened with
 // graph.OpenExisting, never graph.Open, which would create an absent index and
@@ -210,6 +256,56 @@ func Resolve(wsRoot string) (Stats, error) {
 		}
 		crossEdges = append(crossEdges, recs.CrossEdges...)
 		ambiguities = append(ambiguities, recs.Ambiguities...)
+	}
+
+	// 9a. Prune every DECLARED member that is not available this pass, in
+	// MANIFEST ORDER, before the clear loop and therefore before any of step
+	// 10's writes. The set is ws.Members ∖ available: exactly what
+	// Stats.MembersUnavailable counts, and exactly the set wsfresh's
+	// surviving-stamp trigger reads, because availability is the one
+	// graph.OpenExisting predicate both sites share.
+	//
+	// The order is derived by walking ws.Members ONCE and filtering. It is not
+	// `missing` concatenated with the ids that failed to open above: those are
+	// two disjoint manifest-ordered subsequences, and their concatenation is
+	// not manifest order.
+	//
+	// Records first, stamp last, per member — the safety argument is in the doc
+	// comment and must not be reversed. The prune is unconditional: DeleteStamp
+	// and an empty ReplaceMemberEdges are both no-ops when there is nothing to
+	// remove, so no "does it have rows?" pre-check buys anything, and a second
+	// pass over an already-pruned member deletes nothing.
+	//
+	// The loop cannot clobber itself the way a per-member derive-and-write loop
+	// would (see above): it passes empty inputs, so there is no write for a
+	// later iteration's either-end delete to take back.
+	//
+	// Not a gap: ReplaceMemberEdges deletes dep_suppressions on consumer_member
+	// only, never owner_member (deliberately — internal/overlay/edges.go), so
+	// rows where the pruned member is merely the OWNER survive this call. The
+	// prune is still complete, by a different argument. Every surviving such
+	// row's consumer is one of three things: available — cleared at step 9 and
+	// re-derived at step 10 without the pruned member, since Suppress draws
+	// only from `available`; itself unavailable — cleared by its own iteration
+	// here; or no longer declared at all — in which case ReplaceRegistry's
+	// orphan prune already deleted it at step 5, on EITHER column. Do not
+	// "fix" this by widening the delete.
+	avail := make(map[string]bool, len(available))
+	for _, m := range available {
+		avail[m.ID] = true
+	}
+	for _, dm := range ws.Members {
+		if avail[dm.ID] {
+			continue
+		}
+		// Records first ...
+		if err := ov.ReplaceMemberEdges(dm.ID, nil, nil, nil); err != nil {
+			return stats, fmt.Errorf("wsresolve: pruning member %q: %w", dm.ID, err)
+		}
+		// ... stamp last.
+		if err := ov.DeleteStamp(dm.ID); err != nil {
+			return stats, fmt.Errorf("wsresolve: pruning member %q: %w", dm.ID, err)
+		}
 	}
 
 	// 9. Clear every available member's prior contribution — all of it, before
