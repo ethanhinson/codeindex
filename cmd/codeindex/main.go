@@ -9,12 +9,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
 
+	"codeindex/internal/config"
 	"codeindex/internal/depmap"
 	"codeindex/internal/engine"
 	"codeindex/internal/graph"
@@ -22,12 +24,26 @@ import (
 	"codeindex/internal/merkle"
 	"codeindex/internal/progress"
 	"codeindex/internal/query"
+	"codeindex/internal/wsfresh"
+	"codeindex/internal/wsquery"
 )
 
 const version = "0.2.0"
 
 // usageVerbs is the single-line usage banner printed by the arg-count guard.
-const usageVerbs = "usage: codeindex <build|refresh|status|callers|callees|impact|dependents|deps|nav|find|grep|search|model|ingest|depmap|export|import|enclosing|serve|mcp|bench|init-workspace> <repo-root> ..."
+//
+// The anchor-prefix sentence is load-bearing documentation, not decoration:
+// the CLI is the ONLY surface that documents the optional <member-id>: anchor
+// prefix. The MCP tool descriptions are frozen by owner ruling 2 and
+// deliberately do not mention it (spec assumption 18), so removing it here
+// leaves the feature undocumented everywhere.
+const usageVerbs = "usage: codeindex <build|refresh|status|callers|callees|impact|dependents|deps|nav|find|grep|search|model|ingest|depmap|export|import|enclosing|serve|mcp|bench|init-workspace> <repo-root> ...\n" +
+	"  on a workspace root, an anchor may carry an optional <member-id>: prefix (e.g. api:HandleLogin) to scope the lookup to that member"
+
+// anchorArg is the anchor placeholder shown in the per-verb usage lines of the
+// verbs that take one. It names the optional member prefix at every anchor
+// site so the documentation is not stranded on the top-level banner alone.
+const anchorArg = "<[member-id:]anchor>"
 
 func main() {
 	// Test/benchmark isolation escape hatch: when CODEINDEX_DISABLED is set,
@@ -45,18 +61,21 @@ func main() {
 	cmd, root := os.Args[1], os.Args[2]
 	switch cmd {
 	case "build":
-		if err := runBuild(root, hasFlag("--progress")); err != nil {
+		if err := dispatchBuild(root, hasFlag("--progress")); err != nil {
 			fatal(err)
 		}
 	case "refresh":
-		if err := runRefresh(root, hasFlag("--progress")); err != nil {
+		if err := dispatchRefresh(root, hasFlag("--progress")); err != nil {
 			fatal(err)
 		}
 	case "status":
-		if err := runStatus(root, hasFlag("--json")); err != nil {
+		if err := dispatchStatus(root, hasFlag("--json")); err != nil {
 			fatal(err)
 		}
 	case "export":
+		if err := refuseWorkspaceRoot("export", root); err != nil {
+			fatal(err)
+		}
 		if len(os.Args) < 4 {
 			fatal(fmt.Errorf("usage: codeindex export <repo-root> <out.db>"))
 		}
@@ -68,6 +87,9 @@ func main() {
 		done(fmt.Sprintf("exported %s (freshened: %d files, %d symbols)",
 			os.Args[3], st.FilesParsed, st.Symbols))
 	case "import":
+		if err := refuseWorkspaceRoot("import", root); err != nil {
+			fatal(err)
+		}
 		if len(os.Args) < 4 {
 			fatal(fmt.Errorf("usage: codeindex import <repo-root> <artifact.db>"))
 		}
@@ -88,39 +110,42 @@ func main() {
 		}
 	case "query", "callers":
 		if len(os.Args) < 4 {
-			fatal(fmt.Errorf("usage: codeindex %s <repo-root> <symbol> [--limit N] [--json]", cmd))
+			fatal(fmt.Errorf("usage: codeindex %s <repo-root> %s [--limit N] [--json]", cmd, anchorArg))
 		}
-		a, err := query.Callers(root, os.Args[3], intFlag("--limit", 50))
+		a, err := wsquery.Callers(root, os.Args[3], intFlag("--limit", 50))
 		if err != nil {
 			fatal(err)
 		}
 		emit(a, hasFlag("--json"))
 	case "impact":
 		if len(os.Args) < 4 {
-			fatal(fmt.Errorf("usage: codeindex impact <repo-root> <symbol> [--limit N] [--json]"))
+			fatal(fmt.Errorf("usage: codeindex impact <repo-root> %s [--limit N] [--json]", anchorArg))
 		}
-		a, err := query.Impact(root, os.Args[3], intFlag("--limit", 50))
+		a, err := wsquery.Impact(root, os.Args[3], intFlag("--limit", 50))
 		if err != nil {
 			fatal(err)
 		}
 		emit(a, hasFlag("--json"))
 	case "dependents", "deps":
 		if len(os.Args) < 4 {
-			fatal(fmt.Errorf("usage: codeindex %s <repo-root> <anchor> [--limit N] [--json]", cmd))
+			fatal(fmt.Errorf("usage: codeindex %s <repo-root> %s [--limit N] [--json]", cmd, anchorArg))
 		}
 		limit := intFlag("--limit", 50)
 		var a answer
 		var err error
 		if cmd == "dependents" {
-			a, err = query.Dependents(root, os.Args[3], limit)
+			a, err = wsquery.Dependents(root, os.Args[3], limit)
 		} else {
-			a, err = query.Deps(root, os.Args[3], limit)
+			a, err = wsquery.Deps(root, os.Args[3], limit)
 		}
 		if err != nil {
 			fatal(err)
 		}
 		emit(a, hasFlag("--json"))
 	case "depmap":
+		if err := refuseWorkspaceRoot("depmap", root); err != nil {
+			fatal(err)
+		}
 		// codeindex depmap <dir> --namespace <ns> --version <v> -o <out.db>
 		var ns, ver, out string
 		for i := 3; i < len(os.Args)-1; i++ {
@@ -145,16 +170,16 @@ func main() {
 		if len(os.Args) < 4 {
 			fatal(fmt.Errorf("usage: codeindex find <repo-root> <query> [--kind k] [--path p] [--limit N] [--json]"))
 		}
-		a, err := query.Find(root, os.Args[3], strFlag("--kind"), strFlag("--path"), intFlag("--limit", 20))
+		a, err := wsquery.Find(root, os.Args[3], strFlag("--kind"), strFlag("--path"), intFlag("--limit", 20))
 		if err != nil {
 			fatal(err)
 		}
 		emit(a, hasFlag("--json"))
 	case "nav":
 		if len(os.Args) < 4 {
-			fatal(fmt.Errorf("usage: codeindex nav <repo-root> <anchor> [--limit N] [--json]"))
+			fatal(fmt.Errorf("usage: codeindex nav <repo-root> %s [--limit N] [--json]", anchorArg))
 		}
-		a, err := query.Nav(root, os.Args[3], intFlag("--limit", 50))
+		a, err := wsquery.Nav(root, os.Args[3], intFlag("--limit", 50))
 		if err != nil {
 			fatal(err)
 		}
@@ -163,7 +188,7 @@ func main() {
 		if len(os.Args) < 4 {
 			fatal(fmt.Errorf("usage: codeindex grep <repo-root> <pattern> [-w] [--limit N] [--json]"))
 		}
-		a, err := query.Grep(root, os.Args[3], intFlag("--limit", 30), hasFlag("-w") || hasFlag("--word"))
+		a, err := wsquery.Grep(root, os.Args[3], intFlag("--limit", 30), hasFlag("-w") || hasFlag("--word"))
 		if err != nil {
 			fatal(err)
 		}
@@ -172,7 +197,7 @@ func main() {
 		if len(os.Args) < 4 {
 			fatal(fmt.Errorf("usage: codeindex search <repo-root> <concept query> [--hints \"a b c\"] [--error-text \"...\"] [--limit N] [--flat]"))
 		}
-		out, err := query.SearchText(root, os.Args[3],
+		out, err := wsquery.SearchText(root, os.Args[3],
 			strings.Fields(strFlag("--hints")), strFlag("--error-text"),
 			intFlag("--limit", 20), hasFlag("--flat"))
 		if err != nil {
@@ -187,11 +212,17 @@ func main() {
 			fatal(err)
 		}
 	case "ingest":
+		if err := refuseWorkspaceRoot("ingest", root); err != nil {
+			fatal(err)
+		}
 		// codeindex ingest <repo> [profile-or-dir] [--check]
 		if err := runIngest(root, os.Args[3:]); err != nil {
 			fatal(err)
 		}
 	case "serve":
+		if err := refuseWorkspaceRoot("serve", root); err != nil {
+			fatal(err)
+		}
 		addr := "127.0.0.1:7676"
 		rest := os.Args[3:]
 		for i, a := range rest {
@@ -212,9 +243,9 @@ func main() {
 		}
 	case "callees":
 		if len(os.Args) < 4 {
-			fatal(fmt.Errorf("usage: codeindex callees <repo-root> <symbol> [--limit N] [--json]"))
+			fatal(fmt.Errorf("usage: codeindex callees <repo-root> %s [--limit N] [--json]", anchorArg))
 		}
-		a, err := query.Callees(root, os.Args[3], intFlag("--limit", 50))
+		a, err := wsquery.Callees(root, os.Args[3], intFlag("--limit", 50))
 		if err != nil {
 			fatal(err)
 		}
@@ -228,7 +259,7 @@ func main() {
 		if _, err := fmt.Sscanf(os.Args[4], "%d:%d", &start, &end); err != nil {
 			fatal(fmt.Errorf("bad range %q (want start:end): %w", os.Args[4], err))
 		}
-		a, err := query.Enclosing(root, os.Args[3], start, end)
+		a, err := wsquery.Enclosing(root, os.Args[3], start, end)
 		if err != nil {
 			fatal(err)
 		}
@@ -315,6 +346,179 @@ func dbPath(root string) string { return filepath.Join(root, ".codeindex", "grap
 
 func ensureDBDir(root string) error {
 	return os.MkdirAll(filepath.Join(root, ".codeindex"), 0o755)
+}
+
+// isWorkspaceRoot reports whether root carries a workspace manifest.
+//
+// Detection goes through wsquery.RootKind, never engine.DetectRootKind:
+// wsquery's package doc pins DetectRootKind to a single non-test caller, and a
+// second branch here would be a second enforcement site for one rule.
+//
+// A detection ERROR is deliberately reported as "not a workspace" rather than
+// propagated. DetectRootKind errors on a root that holds neither a manifest
+// nor indexable source, and that diagnosis belongs to the per-repo path the
+// verb was already going to take — surfacing it from a root-kind probe would
+// replace every verb's own error message with one about workspaces.
+func isWorkspaceRoot(root string) bool {
+	kind, err := wsquery.RootKind(root)
+	return err == nil && kind == engine.RootWorkspace
+}
+
+// refuseWorkspaceRoot is the guard the five non-query per-repo verbs
+// (export, import, ingest, depmap, serve) call before doing any work. It
+// returns nil on a repo root and the single shared refusal message on a
+// workspace root.
+//
+// search is NOT in this list: it refuses inside wsquery.SearchText, so the CLI
+// and the MCP handler share one refusal rather than testing the root kind at
+// two call sites.
+//
+// A malformed manifest surfaces here as the config fault it is:
+// wsquery.RefuseWorkspaceRoot propagates config.LoadWorkspace's error
+// unchanged rather than printing a refusal with an empty member list.
+func refuseWorkspaceRoot(verb, root string) error {
+	if !isWorkspaceRoot(root) {
+		return nil
+	}
+	return wsquery.RefuseWorkspaceRoot(verb, root)
+}
+
+// fanOut runs per against every member of wsRoot's manifest, in manifest
+// order, printing a per-member-prefixed line for each.
+//
+// Three properties are load-bearing (spec §2.1, assumption 14):
+//
+//   - A member missing from disk is REPORTED BY ID, never skipped silently. A
+//     silent skip is how a workspace ends up half-built with the operator
+//     believing otherwise.
+//   - A member whose per-repo call fails does NOT abort the pass. The failure
+//     is printed against that member's id and the loop continues, so the
+//     members after the failure still get built.
+//   - The returned aggregate error names EVERY failed member. Returning only
+//     the first would leave the rest of the failures visible on stdout but
+//     absent from the error the caller acts on.
+//
+// The aggregate error is returned to main's existing fatal, which is
+// os.Exit(1) unconditionally. This adds no second exit mechanism: exit 2
+// remains the pre-dispatch usage code, since a workspace root is a well-formed
+// argument.
+func fanOut(verb, wsRoot string, w io.Writer, per func(m config.ResolvedMember) error) error {
+	ws, err := config.LoadWorkspace(wsRoot)
+	if err != nil {
+		return err
+	}
+	present, missing, err := ws.Resolve(wsRoot)
+	if err != nil {
+		return err
+	}
+	byID := make(map[string]config.ResolvedMember, len(present))
+	for _, m := range present {
+		byID[m.Member.ID] = m
+	}
+	missingSet := make(map[string]bool, len(missing))
+	for _, id := range missing {
+		missingSet[id] = true
+	}
+
+	var failed []string
+	// Iterate the manifest itself rather than `present`, so present and
+	// missing members interleave in the one order the user authored.
+	for _, decl := range ws.Members {
+		if missingSet[decl.ID] {
+			fmt.Fprintf(w, "%s: missing — declared root %q is not on disk; skipping %s\n",
+				decl.ID, decl.Root, verb)
+			continue
+		}
+		m, ok := byID[decl.ID]
+		if !ok {
+			continue
+		}
+		fmt.Fprintf(w, "%s: %s %s\n", decl.ID, verb, m.AbsRoot)
+		if err := per(m); err != nil {
+			fmt.Fprintf(w, "%s: %s failed: %v\n", decl.ID, verb, err)
+			failed = append(failed, decl.ID)
+		}
+	}
+	if len(failed) > 0 {
+		return fmt.Errorf("codeindex %s: %d of %d present member(s) failed: %s",
+			verb, len(failed), len(present), strings.Join(failed, ", "))
+	}
+	return nil
+}
+
+// dispatchBuild routes build by root kind: the unchanged per-repo build on a
+// repo root, the §2.1 fan-out on a workspace root.
+func dispatchBuild(root string, jsonl bool) error {
+	if !isWorkspaceRoot(root) {
+		return runBuild(root, jsonl)
+	}
+	return fanOut("build", root, os.Stdout, func(m config.ResolvedMember) error {
+		return runBuild(m.AbsRoot, jsonl)
+	})
+}
+
+// dispatchStatus routes status by root kind. On a workspace root it prints the
+// per-member fan-out and THEN the workspace-status block, so one command
+// answers both halves (§2.1, §6).
+func dispatchStatus(root string, asJSON bool) error {
+	if !isWorkspaceRoot(root) {
+		return runStatus(root, asJSON)
+	}
+	ferr := fanOut("status", root, os.Stdout, func(m config.ResolvedMember) error {
+		return runStatus(m.AbsRoot, asJSON)
+	})
+	// The workspace block runs even when a member's status failed: it reads
+	// overlay state, not member indexes, so it is exactly the diagnostic an
+	// operator wants when a member just reported a problem. The fan-out's
+	// aggregate error is returned afterwards so the exit code still reflects
+	// it.
+	if err := runWorkspaceStatusBlock(root, asJSON); err != nil && ferr == nil {
+		return err
+	}
+	return ferr
+}
+
+// runWorkspaceStatusBlock prints the workspace-status report block for wsRoot
+// — the overlay schema version, cross-edge and ambiguity counts, per-member
+// stamp state, and the vendor version-skew lines (§6).
+//
+// THIS IS THE SEAM FOR THE workspace-status VERB. That verb is a separate task
+// and is not wired yet, so the block is empty today; `status <workspace-root>`
+// already calls it in the right position (after the fan-out, before the
+// aggregate error is returned), and the verb's implementation lands entirely
+// inside this function plus its own `case "workspace-status"` in the dispatch
+// switch. Nothing else in main.go has to move.
+func runWorkspaceStatusBlock(wsRoot string, asJSON bool) error {
+	return nil
+}
+
+// dispatchRefresh routes refresh by root kind.
+//
+// The workspace branch ITERATES NOTHING: wsfresh.Freshen IS the per-member
+// freshen plus the overlay re-resolution gate. A per-member loop here would be
+// a second enforcement site for ADR-0012's whole-pass rule, which is precisely
+// the drift the gate exists to prevent — so refresh is the one maintenance
+// verb that does not fan out (§2.1).
+func dispatchRefresh(root string, jsonl bool) error {
+	if !isWorkspaceRoot(root) {
+		return runRefresh(root, jsonl)
+	}
+	rep, err := wsfresh.Freshen(root)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("workspace refreshed: %d member(s) freshened, %d freshen-failed, %d unindexed, %d missing\n",
+		rep.MembersFreshened, rep.MembersFreshenFailed, rep.MembersUnindexed, len(rep.MembersMissing))
+	if len(rep.MembersFreshenFailedIDs) > 0 {
+		fmt.Printf("  freshen failed: %s\n", strings.Join(rep.MembersFreshenFailedIDs, ", "))
+	}
+	if len(rep.MembersMissing) > 0 {
+		fmt.Printf("  missing: %s\n", strings.Join(rep.MembersMissing, ", "))
+	}
+	if rep.Resolved {
+		fmt.Printf("  cross-repo edges re-resolved (dirty: %s)\n", strings.Join(rep.Dirty, ", "))
+	}
+	return nil
 }
 
 func runBuild(root string, jsonl bool) error {
