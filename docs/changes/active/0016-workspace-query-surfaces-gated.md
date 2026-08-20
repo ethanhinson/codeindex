@@ -2,7 +2,7 @@
 id: 16
 slug: workspace-query-surfaces-gated
 title: Workspace query surfaces — union-graph verbs, CLI/MCP wiring, workspace-status; merge gated on the D7 evidence run
-status: proposed
+status: in-progress
 priority: high
 type: feat
 created: 2026-08-20
@@ -16,7 +16,8 @@ plan:
 results:
 trivial: false
 auto_groomable: true
-branch:
+branch: feat/workspace-query-surfaces-gated
+claimed_at: 2026-08-20T21:31:32Z
 pr:
 blocked_by:
 reconciled: false
