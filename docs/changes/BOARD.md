@@ -1,8 +1,14 @@
 # Backlog
 
-**14 changes** — 🟡 5 proposed · ✅ 9 done
+**14 changes** — 🟢 1 in progress · 🟡 4 proposed · ✅ 9 done
 
-## 🟡 Proposed (5)
+## 🟢 In progress (1)
+
+| # | Title | Priority | Type | Spec | Branch |
+|---|-------|----------|------|------|--------|
+| [0014](active/0014-workspace-freshen-internals.md) | Workspace freshen internals — per-member freshen + stamp-gated re-resolution | `high` | `feat` | [spec](../superpowers/specs/2026-08-20-workspace-freshen-internals-design.md) | `feat/workspace-freshen-internals` |
+
+## 🟡 Proposed (4)
 
 | # | Title | Priority | Type | Readiness |
 |---|-------|----------|------|-----------|
@@ -10,7 +16,6 @@
 | [0007](active/0007-session-stable-query-cache.md) | Session-stable query cache keyed by index version | `medium` | `perf` | needs-brainstorm |
 | [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-brainstorm |
 | [0010](active/0010-workspace-bench-corpus-monorepo-growth.md) | Grow the workspace bench corpus — monorepo declaration coverage in every supported language | `medium` | `chore` | needs-brainstorm |
-| [0014](active/0014-workspace-freshen-internals.md) | Workspace freshen internals — per-member freshen + stamp-gated re-resolution | `high` | `feat` | build-ready |
 
 ```mermaid
 graph TD
