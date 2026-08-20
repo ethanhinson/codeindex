@@ -11,7 +11,7 @@ depends_on: [15]
 related: [9, 12, 13, 14, 15, 10]
 discovered_from: []
 adrs: [12]
-spec:
+spec: docs/superpowers/specs/2026-08-20-workspace-query-surfaces-gated-design.md
 plan:
 results:
 trivial: false
@@ -27,6 +27,7 @@ reconciled: false
 <!-- docket:artifacts:start (generated — do not hand-edit) -->
 | Artifact | Link |
 |---|---|
+| Spec | [2026-08-20-workspace-query-surfaces-gated-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-20-workspace-query-surfaces-gated-design.md) |
 | ADRs | [ADR-0012](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0012-workspace-freshness-re-resolves-whole-workspace.md) |
 <!-- docket:artifacts:end -->
 
@@ -50,25 +51,38 @@ that is a legitimate outcome (kill condition, frozen in D7).
 
 Per frozen design D4 (query semantics) and D5 (surfaces):
 
-- **Union-graph verbs (§4.1):** `callers`/`callees`/`impact`/`nav` over
-  member graph + overlay in-edges; `impact` crosses member boundaries by
-  default; `find`/`grep` fan out across members (complete sets, no
-  rank-merge; members in manifest order). Workspace-relative paths;
-  every reference carries `repo: <member-id>`; anchors accept an
-  optional `<member-id>:` prefix. Two recorded obligations from the
-  engine slices are discharged here: filter the surviving intra-repo
-  tier-1 edge via `dep_suppressions` (conditioned on a same-call-site
-  cross-edge, else double-count), and reconcile the overlay's
-  `exact`/`inferred` confidence vocabulary with `graph.Confidence` at
-  the surface.
+- **New package `internal/wsquery`** — the union layer. An import cycle
+  forces it (`wsfresh` already imports `query`); its `RootRepo` branch
+  tail-calls `internal/query` verbatim, which is what makes the
+  non-regression bar mechanical. It is also the single root-kind
+  detection site the whole binary routes through.
+- **Union-graph verbs (§4.1):** `callers`/`callees`/`impact`/`nav`, plus
+  `dependents`/`deps` (forced: `impact` embeds the dependents block, so
+  a per-repo `dependents` would contradict it), over member graph +
+  overlay edges; `impact` stays depth-1 and simply includes cross-edges;
+  `find`/`grep` fan out (complete sets, no rank-merge; manifest order).
+  Workspace-relative paths; every reference carries `repo:
+  <member-id>`; anchors accept an optional `<member-id>:` prefix. Two
+  recorded obligations are discharged here: the `dep_suppressions`
+  filter, conditioned on a same-call-site cross-edge exactly as
+  `wsresolve`'s package doc narrows it; and the overlay's
+  `exact`/`inferred` vocabulary, reconciled onto the surface's existing
+  `Ambiguous` flag plus one new `Inferred` flag (the surface carries no
+  `graph.Confidence` at all — that framing was wrong).
 - **CLI root-kind wiring (§4.2):** every verb's root argument accepts a
-  workspace root via 0009's `DetectRootKind` (first real call site);
-  single-repo goldens stay byte-identical; the
-  single-member-workspace ≡ single-repo bar (deferred from §3.5) lands
-  here.
+  workspace root via `engine.DetectRootKind` (first real call site);
+  single-repo goldens stay byte-identical — **measured, not structural**,
+  since the nine shared `Text()` renderers are being edited, so goldens
+  are extended from five to all nine first. The single-member-workspace
+  ≡ single-repo bar (deferred from §3.5) lands here, so **§3.5 is ticked
+  by this slice too**.
 - **MCP (§4.3):** `codeindex mcp <workspace-root>` serves the union
-  graph; `repo` field in result schemas; no new tools; plugin note
-  untouched (house rule).
+  graph; `repo` provenance as a workspace-mode-only text prefix per
+  owner ruling 2; no new tools, no schema or description edits; plugin
+  note untouched (house rule).
+- **Refusals:** `export`/`import`/`ingest`/`depmap`/`serve` error on a
+  workspace root per owner ruling 1, and `search` joins them — cross-
+  workspace semantic search is a frozen non-goal, not a gap.
 - **`workspace-status` verb** (§3.4's gated half): per-member
   build/stamp state, member/vendor version skew from suppression
   records.
@@ -76,8 +90,11 @@ Per frozen design D4 (query semantics) and D5 (surfaces):
   pinned; the D7 freshness scenario (mutate one member, query from
   another, no explicit rebuild → answer reflects it or the coverage
   clause names the member stale) as an executable property test.
-  Freshen wiring calls `wsfresh.Freshen` on query entry (D2: lazy,
-  members consulted by the query where the verb permits).
+  Freshen wiring calls `wsfresh.Freshen` on query entry, **whole
+  workspace** — argued from `Freshen`'s subset-free signature and the
+  unknowable-without-folding cost, *not* from ADR-0012, which governs
+  re-resolution scope only. A `Freshen` error degrades and discloses
+  rather than failing the query, naming every declared member stale.
 
 **Merge gate (§5, runs on this PR before merge):** re-run the
 four-class leak audit over campaign transcripts (standing pre-verdict
@@ -99,7 +116,20 @@ the run is an owner-attended step, not part of the autonomous build.
 - Scoped incident re-resolution (ADR-0012 stands; a D7-measured
   follow-up if latency demands).
 
-## Owner rulings (2026-08-20) + carried groom record
+## Owner rulings (2026-08-20) — settled, folded into the spec
+
+Groomed 2026-08-20. Both abstain questions were owner-ruled and are now
+carried in the linked spec; the prior groom's verified findings and the
+critic's corrections were distilled into it and are no longer restated
+at proposal altitude. Design detail lives in the spec — this section
+keeps only the rulings themselves and one record correction.
+
+**Record correction (2026-08-20).** Carried finding 6 below said "only
+three of the nine [renderers] have goldens today
+(`internal/query/query_test.go:43,113,140`)". The tree has **five** —
+it missed `TestEnclosingText:128` and `TestGrepTextAndJSON:186`. Both
+critic passes confirmed five independently against `origin/main` at
+2c8b9c3. The conclusion (extend goldens to all nine) is unchanged.
 
 The first groom pass abstained on two narrowings of the frozen D5
 surface paragraph; the owner ruled on both (full abstain record in git
