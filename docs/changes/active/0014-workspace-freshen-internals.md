@@ -19,8 +19,8 @@ auto_groomable: true
 branch: feat/workspace-freshen-internals
 pr:
 blocked_by:
-claimed_at: 2026-08-20T01:30:06Z
-reconciled: false
+claimed_at: 2026-08-20T01:33:12Z
+reconciled: true
 ---
 
 ## Artifacts
@@ -105,3 +105,37 @@ Per design D2 (freshness) and the recorded 0012/0013 hand-offs:
 ## Reconcile log
 
 <!-- Appended by docket-implement-next's reconcile pass: dated entries of what changed. -->
+
+### 2026-08-20 — implementer reconcile (change 0014)
+
+Re-read against the spec, `related` 0012/0013 (both archived `done`), ADRs 0001–0011, the learnings
+ledger, and the current `origin/main` tree. **The design holds — no scope change, no kill, no
+invalidation.** `depends_on: [13]` re-verified satisfied.
+
+Every API the spec names was re-verified against current code; all sixteen signatures match what the
+design assumed, and `internal/wsfresh` does not exist with nothing in tree referencing `Freshen`.
+Three refinements were folded into the spec as a **Reconcile addendum**, none of which changes the
+design:
+
+- **R1 — one exported normalizer, not a copied `dedupe`.** The spec's step 6 requires normalizing the
+  manifest side with *exactly* `ReplaceRegistry`'s transforms, but those live in the unexported
+  `overlay.dedupe()` (called inside the unexported `insertMembers`), so `wsfresh` cannot reach them.
+  The build exports one normalizer from `internal/overlay` and routes `insertMembers` through it, so
+  the drift comparison and the store's write path stay a single implementation. Copying the three
+  lines into `wsfresh` is rejected as the `one-invariant-many-sites-drifts` shape, whose divergence
+  mode is the permanent-drift non-convergence Assumption 5's sibling test exists to catch. Additive
+  and behavior-preserving; in scope.
+- **R2 — the content-equality tuple is per-member.** `MemberEdges` and `AmbiguitiesFor` are scoped by
+  `memberID` (only `Registry`, `Stamps`, `Suppressions` are whole-store), so tests 1 and 8 iterate the
+  registry in manifest order and sort the concatenation on a key total over every field — per
+  `determinism-tests-need-a-total-sort-key`. Absent members are still visited, so a registry write
+  that *drops* a member cannot compare equal.
+- **R3 — ADRs 0005 and 0006 bear on the slice; neither conflicts.** ADR-0006 records that
+  `internal/merkle` is flat per-file hashing and the name is a historical artifact, which is why
+  treating `MemberMerkleRoot`'s value as opaque is the right posture. ADR-0005's on-demand-build
+  posture is *narrowed* by Assumption 2 at the workspace layer, not reversed — `query.Fresh` keeps its
+  cold-build branch for single-repo. No new ADR required for either.
+
+Auto-capture is disabled for this repo, so no stubs were minted; nothing adjacent surfaced that
+would have qualified.
+

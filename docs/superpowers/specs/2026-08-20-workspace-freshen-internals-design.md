@@ -268,3 +268,93 @@ Every decision below was defaulted autonomously; each records the rejected alter
 13. **Dependency state.** `depends_on: [13]` is satisfied — 0013 (`85e090b`, PR #11), 0012
     (`f6d4dee`, PR #10) and 0009 (`528fc08`, PR #8) are all `done` and merged on `origin/main`. No
     unmet dependency at design time; the implementer's reconcile re-validates at build time.
+
+## Reconcile addendum — 2026-08-20 (implementer pass, change 0014)
+
+Every API this spec names was re-verified against `origin/main` at reconcile time. The design holds;
+the signatures below are the authoritative ones to build against, and three items are refinements
+the spec did not settle.
+
+### Verified signatures (unchanged from the design's assumptions)
+
+| Symbol | Signature |
+|---|---|
+| `wsresolve.Resolve` | `func Resolve(wsRoot string) (Stats, error)` |
+| `wsresolve.Stats` | `MembersResolved, MembersUnavailable, CrossEdges, Ambiguities, Suppressions int` |
+| `graph.OpenExisting` | `func OpenExisting(path string) (*Store, error)` |
+| `(*graph.Store).MemberMerkleRoot` | `func () (string, error)` — sha256 hex, opaque |
+| `overlay.Open` | `func Open(path string) (*Store, error)` |
+| `(*overlay.Store).Registry` | `func () ([]config.Member, error)` — manifest order |
+| `(*overlay.Store).ReplaceRegistry` | `func (ws *config.Workspace) error` |
+| `(*overlay.Store).Stamp` | `func (memberID string) (Stamp, bool, error)` — `(Stamp{}, false, nil)` on absence |
+| `(*overlay.Store).Stamps` | `func () ([]Stamp, error)` |
+| `(*overlay.Store).MemberEdges` | `func (memberID string) ([]CrossEdge, error)` |
+| `(*overlay.Store).AmbiguitiesFor` | `func (memberID string) ([]Ambiguity, error)` |
+| `(*overlay.Store).Suppressions` | `func () ([]Suppression, error)` |
+| `config.LoadWorkspace` | `func LoadWorkspace(wsRoot string) (*Workspace, error)` |
+| `(*config.Workspace).Resolve` | `func (wsRoot string) (present []ResolvedMember, missing []string, err error)` |
+| `config.Member` | `ID, Root string; Namespaces, Deps []string` |
+| `engine.DetectRootKind` | `func DetectRootKind(root string) (RootKind, error)`; constant `engine.RootWorkspace` |
+| `query.Fresh` | `func Fresh(root string) (FreshInfo, error)`; cold-build branch confirmed at `query.go:75-83` |
+
+`internal/wsfresh` does not exist and nothing in tree references `Freshen` — a clean slate, as the
+design assumed.
+
+### R1 — `dedupe()` is unexported, so step 6's normalization needs one exported seam
+
+**The gap.** Step 6 and Assumption 5 require the manifest side to be normalized with *exactly*
+`ReplaceRegistry`'s own transforms. Those transforms live in `internal/overlay/registry.go` as the
+unexported `dedupe()`, applied inside the equally unexported `insertMembers` — once to
+`m.Namespaces` and once to `m.Deps` — and `dedupe` returns `nil` for an empty input, which is where
+the nil-coalescing the spec names actually comes from. `internal/wsfresh` cannot call it.
+
+**Resolution — export one normalizer in `internal/overlay`, and route the writer through it.** Add
+an exported function to `internal/overlay` that returns the normalized form of a member list exactly
+as `ReplaceRegistry` would store it, and change `insertMembers` to consume that same function rather
+than calling `dedupe` inline. Then `wsfresh`'s drift comparison and the store's write path are one
+implementation with two callers, not two implementations that agree today.
+
+Re-implementing `dedupe`'s three lines inside `wsfresh` is **rejected**: it is precisely the
+`one-invariant-many-sites-drifts` shape — a second enforcement site for a normalization rule with no
+compiler and no test tying it to the first, whose divergence mode (drift reported forever, whole
+workspace re-resolved on every call) is the exact non-convergence Assumption 5's sibling test exists
+to catch. Test 5's sibling pins the behavior; this pins the structure.
+
+The change to `internal/overlay` is additive and behavior-preserving — a refactor of an existing
+private path into an exported one, no schema change, no change to what `ReplaceRegistry` writes. It
+stays inside this slice's scope; it is not a redesign of the registry.
+
+### R2 — the content-equality tuple is per-member, so the test must iterate
+
+`MemberEdges` and `AmbiguitiesFor` are both scoped by `memberID`; only `Registry()`, `Stamps()` and
+`Suppressions()` are whole-store. Test 1 (and test 8's determinism comparison) must therefore build
+its comparison tuple by iterating the registry's members **in manifest order**, concatenating each
+member's edges and ambiguities, and then sorting the whole thing on a total key — per
+`determinism-tests-need-a-total-sort-key`, comparing two reads of one store proves nothing without
+a key total over the rows the query can return, so the helper sorts on every field of `CrossEdge`
+(`Src`/`Dst` triples, `Kind`, `Provenance`, `Confidence`, `Line`) and of `Ambiguity` (`Src`,
+`RefName`, `RefNS`, `Kind`, `Line`, `Count`, then the ordered candidate list) rather than on a
+prefix. A member present in the manifest but absent from the registry must still be visited, or a
+spurious `ReplaceRegistry` that *drops* a member would compare equal.
+
+### R3 — two ADRs bear on this slice; neither conflicts
+
+- **ADR-0006** (`change-detection-flat-per-file-hashes-not-merkle-tree`) states change detection is
+  flat per-file hashing, explicitly *not* a Merkle tree, and records that the package name
+  `internal/merkle` "is a historical artifact and does not imply a tree structure." `MemberMerkleRoot`
+  inherits that naming. It is a fold over flat per-file hashes plus the dep-file state, not a tree
+  root, and this slice treats its value as opaque — equality only, never parsed or ordered — which is
+  exactly what keeps the naming harmless. No ADR is contradicted and none is needed.
+- **ADR-0005** (`freshness-on-demand-build-lazy-per-query-recheck`) establishes on-demand build plus a
+  lazy per-query re-check. Assumption 2 (a present-but-unindexed member is reported unindexed and
+  never built) **narrows** that posture at the workspace layer without reversing it: `query.Fresh`
+  keeps its cold-build branch for the single-repo path, and `Freshen` simply never reaches that
+  branch, because availability is established first. Whether a workspace verb should offer to build
+  members is §4's, with a user in front of it. No ADR change.
+
+### Unchanged
+
+Scope, the whole-pass decision and its two reasons, the Report shape, all 13 assumptions, and the
+8 tests stand as written. `depends_on: [13]` re-verified satisfied — 0013 is archived `done`
+(`2026-08-20-0013-workspace-resolution-ladder.md`), as are 0012 and 0009. Honest suite remains
+`go test -tags nollama ./...`.
