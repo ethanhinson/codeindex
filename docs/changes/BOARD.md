@@ -1,6 +1,6 @@
 # Backlog
 
-**13 changes** — 🟡 4 proposed · 🔵 1 implemented · ✅ 8 done
+**13 changes** — 🟡 4 proposed · ✅ 9 done
 
 ## 🟡 Proposed (4)
 
@@ -11,27 +11,19 @@
 | [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-brainstorm |
 | [0010](active/0010-workspace-bench-corpus-monorepo-growth.md) | Grow the workspace bench corpus — monorepo declaration coverage in every supported language | `medium` | `chore` | needs-brainstorm |
 
-## 🔵 Implemented — awaiting merge (1)
-
-| # | Title | Priority | Type | PR | Readiness |
-|---|-------|----------|------|----|-----------|
-| [0013](active/0013-workspace-resolution-ladder.md) | Cross-repo resolution ladder — import-mediated exact, bare-name inferred, ambiguity, suppression | `high` | `feat` | [#11](https://github.com/ethanhinson/codeindex/pull/11) |  |
-
 ```mermaid
 graph TD
   0006
   0007
   0008
   0010
-  0012 --> 0013
-  0012:::done
-  classDef done fill:#d3f9d8;
 ```
 
-<details><summary>✅ Archive — done (8)</summary>
+<details><summary>✅ Archive — done (9)</summary>
 
 | # | Title | Merged |
 |---|-------|--------|
+| [0013](archive/2026-08-20-0013-workspace-resolution-ladder.md) | Cross-repo resolution ladder — import-mediated exact, bare-name inferred, ambiguity, suppression | 2026-08-20 |
 | [0012](archive/2026-08-19-0012-workspace-overlay-store.md) | Workspace overlay store — member registry, cross-edges by stable key, freshness stamps | 2026-08-19 |
 | [0011](archive/2026-08-19-0011-fix-searchtool-test-nollama.md) | Make TestSearchToolAndPrompt honest under nollama builds | 2026-08-19 |
 | [0009](archive/2026-08-19-0009-workspace-manifest-init-scan.md) | Workspace manifest load/validate + init-workspace --scan | 2026-08-19 |
