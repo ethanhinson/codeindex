@@ -7,6 +7,7 @@ import (
 
 	"codeindex/internal/config"
 	"codeindex/internal/query"
+	"codeindex/internal/wsresolve"
 )
 
 // --- fixtures -------------------------------------------------------------
@@ -173,8 +174,202 @@ func TestFreshenFirstPassIsDirty(t *testing.T) {
 	if len(rep.Dirty) != 2 || rep.Dirty[0] != "app" || rep.Dirty[1] != "lib" {
 		t.Fatalf("Dirty = %v, want [app lib] in manifest order", rep.Dirty)
 	}
+	// Dirty members take the gate's other branch: exactly one whole-pass
+	// resolution, whose Stats are carried into the Report.
+	if !rep.Resolved {
+		t.Fatal("Resolved = false; a dirty first pass must re-resolve")
+	}
+	if rep.Stats.MembersResolved != 2 {
+		t.Fatalf("Stats.MembersResolved = %d, want 2 — the Resolve Stats must be carried into the Report",
+			rep.Stats.MembersResolved)
+	}
+}
+
+// TestFreshenCleanSecondPassDoesNotResolve is the gate's clean branch: nothing
+// dirty and no registry drift means the derived set is still entailed by what
+// is on disk, so the pass ends without re-resolving. (Task 6 adds the full
+// content-tuple assertion that no overlay content was written at all; this
+// asserts the gate's own decision.)
+func TestFreshenCleanSecondPassDoesNotResolve(t *testing.T) {
+	wsRoot := buildWS(t,
+		wsMember{id: "app", namespaces: []string{"App"}, deps: []string{"lib"},
+			src: goSrc("app", "AppOne")},
+		wsMember{id: "lib", namespaces: []string{"Lib"}, src: goSrc("lib", "LibOne")},
+	)
+	if _, err := Freshen(wsRoot); err != nil {
+		t.Fatalf("first Freshen: %v", err)
+	}
+	rep, err := Freshen(wsRoot)
+	if err != nil {
+		t.Fatalf("second Freshen: %v", err)
+	}
+	if len(rep.Dirty) != 0 {
+		t.Fatalf("Dirty = %v, want empty on an unchanged workspace", rep.Dirty)
+	}
 	if rep.Resolved {
-		t.Fatal("Resolved = true; steps 6-7 are Task 4 and must not run yet")
+		t.Fatal("Resolved = true on a clean pass; the gate must not re-resolve")
+	}
+	if rep.Stats != (wsresolve.Stats{}) {
+		t.Fatalf("Stats = %+v, want the zero value when Resolved is false", rep.Stats)
+	}
+}
+
+// TestFreshenManifestNamespacesDriftReResolves: namespaces are a ladder INPUT
+// (rung 1 resolves on them). Editing only a member's namespaces changes
+// resolution while every source file, every merkle root and every stamp stays
+// exactly where it was — so nothing is dirty, and only the registry-drift half
+// of the gate can catch it. An id-set-only comparison would let the overlay
+// serve edges derived from the old claims indefinitely.
+func TestFreshenManifestNamespacesDriftReResolves(t *testing.T) {
+	wsRoot := freshenedWS(t)
+	editManifest(t, wsRoot, func(ws *config.Workspace) {
+		ws.Members[1].Namespaces = []string{"Lib", "LibExtra"}
+	})
+	rep, err := Freshen(wsRoot)
+	if err != nil {
+		t.Fatalf("Freshen: %v", err)
+	}
+	if len(rep.Dirty) != 0 {
+		t.Fatalf("Dirty = %v, want empty — no source changed, so drift is the only signal",
+			rep.Dirty)
+	}
+	if !rep.Resolved {
+		t.Fatal("Resolved = false after a namespaces: edit; the drift check must catch it")
+	}
+}
+
+// TestFreshenManifestDepsDriftReResolves is the same argument for deps, the
+// other ladder input: Suppress derives member-over-dep precedence from it.
+func TestFreshenManifestDepsDriftReResolves(t *testing.T) {
+	wsRoot := freshenedWS(t)
+	editManifest(t, wsRoot, func(ws *config.Workspace) {
+		ws.Members[1].Deps = []string{"app"}
+	})
+	rep, err := Freshen(wsRoot)
+	if err != nil {
+		t.Fatalf("Freshen: %v", err)
+	}
+	if len(rep.Dirty) != 0 {
+		t.Fatalf("Dirty = %v, want empty — no source changed", rep.Dirty)
+	}
+	if !rep.Resolved {
+		t.Fatal("Resolved = false after a deps: edit; the drift check must catch it")
+	}
+}
+
+// TestFreshenConvergesOnDuplicateNamespace is the first convergence sibling.
+// A duplicate namespace entry is a LEGAL manifest — config validation does not
+// reject it — but ReplaceRegistry dedupes on the way in, so the stored form can
+// never equal the raw manifest. Comparing the raw slice therefore reports drift
+// on every pass and re-resolves the whole workspace forever. Normalizing the
+// manifest side with the writer's own normalizer is what makes this converge.
+func TestFreshenConvergesOnDuplicateNamespace(t *testing.T) {
+	wsRoot := buildWS(t,
+		wsMember{id: "app", namespaces: []string{"App", "App"}, deps: []string{"lib"},
+			src: goSrc("app", "AppOne")},
+		wsMember{id: "lib", namespaces: []string{"Lib"}, src: goSrc("lib", "LibOne")},
+	)
+	assertConverges(t, wsRoot)
+}
+
+// TestFreshenConvergesOnEmptyDepsArray is the second convergence sibling. An
+// explicit "deps": [] in the committed manifest unmarshals to a non-nil empty
+// slice, while dedupe() stores nil for it — so a raw comparison never settles.
+// The manifest is written by hand here because config.SaveWorkspace's
+// omitempty tag would drop the field and hide the case entirely.
+func TestFreshenConvergesOnEmptyDepsArray(t *testing.T) {
+	wsRoot := buildWS(t,
+		wsMember{id: "app", namespaces: []string{"App"}, src: goSrc("app", "AppOne")},
+		wsMember{id: "lib", namespaces: []string{"Lib"}, src: goSrc("lib", "LibOne")},
+	)
+	writeManifestJSON(t, wsRoot, `{
+  "version": 1,
+  "members": [
+    {"id": "app", "root": "app", "namespaces": ["App"], "deps": []},
+    {"id": "lib", "root": "lib", "namespaces": ["Lib"], "deps": []}
+  ]
+}
+`)
+	// Guard the premise: if the manifest ever stopped round-tripping "deps": []
+	// as a non-nil empty slice, this test would pass vacuously.
+	ws, err := config.LoadWorkspace(wsRoot)
+	if err != nil {
+		t.Fatalf("LoadWorkspace: %v", err)
+	}
+	if ws.Members[0].Deps == nil || len(ws.Members[0].Deps) != 0 {
+		t.Fatalf(`Deps = %#v, want a non-nil empty slice — the premise of this test`,
+			ws.Members[0].Deps)
+	}
+	assertConverges(t, wsRoot)
+}
+
+// assertConverges runs two Freshens and requires the second to be clean: the
+// first pass is dirty (no stamps yet) and writes the registry, the second must
+// agree with what was written.
+func assertConverges(t *testing.T, wsRoot string) {
+	t.Helper()
+	first, err := Freshen(wsRoot)
+	if err != nil {
+		t.Fatalf("first Freshen: %v", err)
+	}
+	if !first.Resolved {
+		t.Fatal("first Freshen did not resolve; the fixture is not exercising the gate")
+	}
+	second, err := Freshen(wsRoot)
+	if err != nil {
+		t.Fatalf("second Freshen: %v", err)
+	}
+	if len(second.Dirty) != 0 {
+		t.Fatalf("second Freshen Dirty = %v, want empty", second.Dirty)
+	}
+	if second.Resolved {
+		t.Fatal("second Freshen re-resolved: the drift comparison does not converge on a legal manifest")
+	}
+}
+
+// freshenedWS is a two-member workspace already taken through one Freshen, so
+// every stamp matches and the registry is in sync — the state in which the only
+// thing a manifest edit can move is the drift check.
+func freshenedWS(t *testing.T) string {
+	t.Helper()
+	wsRoot := buildWS(t,
+		wsMember{id: "app", namespaces: []string{"App"}, deps: []string{"lib"},
+			src: goSrc("app", "AppOne")},
+		wsMember{id: "lib", namespaces: []string{"Lib"}, src: goSrc("lib", "LibOne")},
+	)
+	if _, err := Freshen(wsRoot); err != nil {
+		t.Fatalf("priming Freshen: %v", err)
+	}
+	rep, err := Freshen(wsRoot)
+	if err != nil {
+		t.Fatalf("settling Freshen: %v", err)
+	}
+	if rep.Resolved || len(rep.Dirty) != 0 {
+		t.Fatalf("workspace did not settle: Resolved=%v Dirty=%v", rep.Resolved, rep.Dirty)
+	}
+	return wsRoot
+}
+
+// editManifest rewrites the manifest through mutate, touching no source file
+// and no index — so merkle roots and stamps are untouched by construction.
+func editManifest(t *testing.T, wsRoot string, mutate func(*config.Workspace)) {
+	t.Helper()
+	ws, err := config.LoadWorkspace(wsRoot)
+	if err != nil {
+		t.Fatalf("LoadWorkspace: %v", err)
+	}
+	mutate(ws)
+	if err := config.SaveWorkspace(wsRoot, ws); err != nil {
+		t.Fatalf("SaveWorkspace: %v", err)
+	}
+}
+
+// writeManifestJSON writes the manifest bytes verbatim, for shapes
+// config.SaveWorkspace cannot emit.
+func writeManifestJSON(t *testing.T, wsRoot, body string) {
+	t.Helper()
+	if err := os.WriteFile(filepath.Join(wsRoot, config.WorkspaceFile), []byte(body), 0o644); err != nil {
+		t.Fatal(err)
 	}
 }
 

@@ -3,12 +3,14 @@ package wsfresh
 import (
 	"fmt"
 	"path/filepath"
+	"reflect"
 
 	"codeindex/internal/config"
 	"codeindex/internal/engine"
 	"codeindex/internal/graph"
 	"codeindex/internal/overlay"
 	"codeindex/internal/query"
+	"codeindex/internal/wsresolve"
 )
 
 // Freshen runs one freshness pass over the workspace rooted at wsRoot: it
@@ -25,10 +27,17 @@ import (
 //  5. for each present member, in manifest order: establish availability,
 //     freshen its own index, and re-fold its merkle root.
 //  6. mark the member dirty when its stamp is absent or has moved.
+//  7. compare the stored registry against the manifest's normalized form.
+//  8. gate: nothing dirty and no drift ⇒ return having written no overlay
+//     CONTENT at all; otherwise exactly one whole-pass wsresolve.Resolve.
 //
-// Steps 7 and 8 — registry drift and the resolution gate — are NOT here yet;
-// see the seam at the end of this function. Until they land, Freshen always
-// returns Resolved false and writes no overlay content at all.
+// # The gate is the whole point
+//
+// A clean pass must write nothing derived — that is what makes a freshness
+// check cheap enough to run unconditionally. A dirty pass re-resolves the
+// WHOLE workspace exactly once, never per member: overlay.ReplaceMemberEdges
+// deletes on either endpoint, so a per-dirty-member loop clobbers its own
+// earlier iterations. Both halves of that are design, not shortcut.
 //
 // # Availability has exactly one predicate
 //
@@ -140,13 +149,62 @@ func Freshen(wsRoot string) (Report, error) {
 		}
 	}
 
-	// SEAM — Task 4 continues here with step 7 (registry drift: ov.Registry()
-	// against overlay.NormalizeMembers(ws.Members), whole records, member
-	// order included) and step 8 (the gate: no dirty member and no drift ⇒
-	// return with Resolved false and zero overlay content writes; otherwise
-	// exactly one whole-pass wsresolve.Resolve(wsRoot), Resolved true, its
-	// Stats carried into the Report). Until then the dirty list is computed
-	// and reported but not acted on.
+	// 7. Registry drift. ov.Registry() returns what ReplaceRegistry STORED, so
+	// the manifest side is put into that same stored form first, with the very
+	// function insertMembers itself uses — the two sides cannot drift apart
+	// because there is only one normalizer.
+	//
+	// The comparison is over WHOLE RECORDS — id, root, ordered namespaces,
+	// ordered deps, and member order. Neither weaker comparison is admissible:
+	//
+	//   - Raw ws.Members, unnormalized: a legal manifest carrying a duplicate
+	//     namespace or "deps": [] never equals its own stored form, so every
+	//     pass reports drift and re-resolves the whole workspace forever.
+	//   - The id set alone: a namespaces: or deps: edit then changes ladder
+	//     resolution while every merkle root and every stamp stays put. Zero
+	//     dirty members, Resolved false, and the overlay keeps serving edges
+	//     derived from the old claims indefinitely. Both fields are ladder
+	//     INPUTS — rung 1 resolves on namespaces, Suppress derives precedence
+	//     from deps — so this is precisely the silent staleness the gate is
+	//     here to prevent.
+	stored, err := ov.Registry()
+	if err != nil {
+		return rep, fmt.Errorf("wsfresh: %w", err)
+	}
+	drift := !reflect.DeepEqual(stored, overlay.NormalizeMembers(ws.Members))
+
+	// 8. The gate. Nothing dirty and no drift ⇒ the overlay's derived set is
+	// still entailed by what is on disk, so the pass ends having written no
+	// CONTENT at all: no registry row, no edge, no ambiguity, no suppression,
+	// no stamp. (The overlay was opened, which re-executes schema and PRAGMA
+	// user_version; the file is therefore never a no-write witness, and
+	// content is.)
+	//
+	// An unindexed or missing member does not by itself make the pass dirty:
+	// there is nothing new to derive from a member with no usable index, and
+	// treating it as dirty would re-resolve the workspace on every pass for as
+	// long as it stays unavailable.
+	if len(rep.Dirty) == 0 && !drift {
+		return rep, nil
+	}
+
+	// Otherwise exactly ONE whole-pass resolution. Not a per-member or
+	// incident-scoped one: ReplaceMemberEdges deletes rows incident to a member
+	// on EITHER endpoint (WHERE src_member = ? OR dst_member = ?), so the
+	// obvious loop over dirty members deletes what the previous iteration just
+	// wrote — this repo has shipped that bug once already. Scoped
+	// re-resolution is deferred by the spec; the whole pass is the decision.
+	//
+	// Resolve re-derives root kind, manifest, presence and the member opens
+	// this function just did. That duplication is accepted: Resolve(wsRoot
+	// string) is a frozen signature and widening it would re-litigate change
+	// 0013. The cost falls on the dirty path only.
+	stats, err := wsresolve.Resolve(wsRoot)
+	if err != nil {
+		return rep, fmt.Errorf("wsfresh: %w", err)
+	}
+	rep.Resolved = true
+	rep.Stats = stats
 	return rep, nil
 }
 
