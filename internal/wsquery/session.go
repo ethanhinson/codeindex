@@ -34,6 +34,10 @@ type session struct {
 	// ANSWER. The freshen pass is deliberately not recorded here: it opens
 	// every present member, so recording it would make the field constant.
 	consulted map[string]bool
+	// keysUnmapped counts references dropped because their stable key
+	// inverted to no symbol (§3.8). Incremented at the re-map site by
+	// remapKey, so a drop and its disclosure cannot come apart.
+	keysUnmapped int
 }
 
 // newSession loads the manifest, then runs the whole-workspace freshen, then
@@ -117,6 +121,7 @@ func (s *session) clause(verb string) Clause {
 		MembersStale:     s.staleMembers(),
 		Boundary:         Boundary,
 		Layer:            ClauseLayer(verb),
+		KeysUnmapped:     s.keysUnmapped,
 	}
 	if s.freshenErr != nil {
 		c.FreshenFailed = s.freshenErr.Error()

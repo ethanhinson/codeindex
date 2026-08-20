@@ -94,6 +94,22 @@ type Clause struct {
 	// pass failed and the query degraded past it (§4.2). Empty otherwise.
 	FreshenFailed string `json:"freshen_failed,omitempty"`
 
+	// KeysUnmapped is how many references were DROPPED from this answer
+	// because their stable key inverted to no symbol in the owning member's
+	// database — the member was rebuilt and the symbol is gone (§3.8).
+	//
+	// It is ADDITIVE to D6's three reserved fields and never a substitute for
+	// any of them. It exists so a drop cannot be silent: the alternative is an
+	// answer that is quietly short by n references, which is the one thing a
+	// coverage clause is for.
+	//
+	// Unlike the three reserved fields it is omitted when zero, here and in
+	// String. It discloses an ANOMALY rather than describing the answer's
+	// scope, and with nothing dropped there is nothing to disclose; printing a
+	// zero on every workspace answer is noise the reader learns to skip past,
+	// which is how a disclosure field stops being read at all.
+	KeysUnmapped int `json:"keys_unmapped,omitempty"`
+
 	// Layer is §4.6's per-verb reading policy. Not serialized; see the type
 	// comment.
 	Layer Layer `json:"-"`
@@ -110,6 +126,9 @@ func (c Clause) String() string {
 	b.WriteString(idList(c.MembersConsulted))
 	b.WriteString("; members_stale: ")
 	b.WriteString(idList(c.MembersStale))
+	if c.KeysUnmapped > 0 {
+		fmt.Fprintf(&b, "; keys_unmapped: %d", c.KeysUnmapped)
+	}
 	if c.FreshenFailed != "" {
 		b.WriteString("; freshen_failed: ")
 		b.WriteString(singleLine(c.FreshenFailed))
