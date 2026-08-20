@@ -17,10 +17,10 @@ results:
 trivial: false
 auto_groomable: true
 branch: feat/workspace-query-surfaces-gated
-claimed_at: 2026-08-20T21:31:32Z
+claimed_at: 2026-08-20T21:42:40Z
 pr:
 blocked_by:
-reconciled: false
+reconciled: true
 ---
 
 ## Artifacts
@@ -213,3 +213,82 @@ exactly this wiring. The two open questions are narrow rulings, not a redesign.
 ## Reconcile log
 
 <!-- Appended by docket-implement-next's reconcile pass: dated entries of what changed. -->
+
+### 2026-08-20 — reconcile (docket-implement-next)
+
+**Baseline unmoved.** The spec was authored against `origin/main` at `2c8b9c3`
+and `origin/main` is still exactly `2c8b9c3` (change 0015's merge, PR #13). No
+intervening code has landed, so nothing in the design is stale by drift. Scope,
+`depends_on: [15]` (satisfied, archived `2026-08-20-0015-wsresolve-stamp-pruning.md`),
+and the frozen non-goals are unchanged. No work has been done elsewhere; no
+constraint has been added. **The change body and spec are carried forward
+unedited** apart from the record note below.
+
+**Independent re-verification of the spec's load-bearing code citations.** Every
+fact the design rests on was re-checked against the tree, and all of them hold:
+
+- The import cycle forcing `internal/wsquery` is real — `internal/wsfresh/freshen.go:12`
+  imports `internal/query` and calls `query.Fresh` at `:218`.
+- `internal/wsquery` does **not** exist yet, and no `workspace-status` verb
+  exists anywhere — both are genuinely new (`wsfresh.go:8-9` only comments that
+  the verb is deliberately unwired). The slice is still unbuilt in full.
+- **Nine** `Text()` renderers in `internal/query/answers.go` (Callers:111,
+  Callees:139, Find:163, Grep:195, Nav:228, Dependents:273, Deps:299,
+  Impact:332, Enclosing:374) — the count the golden-extension task keys on.
+- **Five** existing text goldens, exactly as the spec's record correction says
+  (`TestCallersTextGolden:43`, `TestCalleesTextGolden:113`, `TestEnclosingText:128`,
+  `TestNavTextGolden:140`, `TestGrepTextAndJSON:186`) — so the change body's
+  carried finding 6 ("only three") stays the erroneous side and the spec's five
+  is operative. Confirmed a third time here.
+- `Ambiguous bool` exists on `CallerRef` (`:32`) and `CalleeRef` (`:44`) and on
+  **no other** reference struct — so §3.7's reconcile onto `Ambiguous` + a new
+  `Inferred` is correct and no answer type carries a `graph.Confidence`.
+- `SplitAnchor` (`query.go:31-39`) parses `::` first (`strings.Index`, `:32`)
+  then the last `.` (`strings.LastIndex`, `:35`) — §3.4's narrower prefix rule
+  is required as written.
+- `Impact` is depth-1 (`query.go:523`), `impactCoverage` at `:518-519`,
+  `ImpactAnswer.Coverage` is a `string` (`answers.go:322`) rendered
+  unconditionally at `:336`.
+- `graph.ProjectDefs` (`wsreaders.go:127`) and `TierOneEdges` (`:92`) exist;
+  `Definitions` is `store.go:656`. §3.8's "`ProjectDefs`, never `Definitions`"
+  binding stands.
+- `wsfresh.Report` is exactly as §4.3's blocking note describes:
+  `MembersFreshened`/`MembersFreshenFailed`/`MembersUnindexed` are `int`
+  (`:52`, `:63`, `:81`); `MembersMissing`/`Dirty`/`StaleStamped` are `[]string`
+  (`:88`, `:95`, `:126`); plus `Resolved bool` (`:132`) and `Stats` (`:141`).
+  The additive id slice for freshen-failed members is genuinely needed.
+- The `Dirty`-with-`Resolved: false` degrade window is real and must be
+  honoured: `rep.Dirty` appended at `freshen.go:255`, `rep.Resolved = true` only
+  at `:375`, error returns at `:292`, `:318`, `:373` sitting between them.
+- `wsresolve.go:19-29` records the `dep_suppressions` obligation verbatim,
+  including the load-bearing **ONLY WHEN … same call site** narrowing.
+- `fatal()` (`cmd/codeindex/main.go:646-649`) is `os.Exit(1)` unconditionally —
+  assumption 14's withdrawal of "exit 2" holds.
+- MCP: eight tools plus the `search` handler at `mcpserver.go:178`
+  (`query.SearchText`) and the `explore-feature` **prompt** at `:186` returning a
+  static string — assumption 16 stands, the prompt is untouched.
+- `overlay.Suppressions()` (`:513`), `OutEdges` (`:408`), `InEdges` (`:417`),
+  `Suppression{ConsumerMember, Namespace, OwnerMember, SuppressedVersion}`
+  (`:47-50`), `CrossEdge.Confidence` `"exact"|"inferred"` (`:26`) — all present.
+- `config.LoadWorkspace` (`:44`) and `Workspace.Resolve` (`:106`) returning
+  `present` first, with `ResolvedMember{Member{ID, Root}, AbsRoot}` — §2.3's
+  absolute longest-prefix match is implementable exactly as specified.
+
+**One non-load-bearing correction.** A few cited line numbers drift by one to
+five lines against the tree: the reference structs are at `DefRef:15`,
+`CallerRef:26`, `CalleeRef:37`, `DependentRef:50`, `FindRef:58`, `GrepRef:71`,
+`DepRef:80`, `EnclosingRef:89` (§5 lists 14/24/36/49/57/68/79/88), and
+`ladder.go`'s `ProjectDefs` call is at `:210` with the parent-less fallback at
+`:214-217` (§3.8 cites `:211,215` and `:213-218`). Every *identity* is correct
+and every rule the numbers illustrate is unaffected, so the spec is **not**
+edited for this — line numbers are the least durable part of a design doc and
+re-pinning them buys nothing. Recorded here so the builder trusts the names over
+the offsets.
+
+**Merge gate unchanged and still owner-attended.** §9's D7 evidence run is not
+part of this build (the bench harness and corpus are local-main-only, unpushed).
+This run stops at the open PR; the gate and the kill condition remain live and
+the owner's to execute.
+
+**Auto-capture:** disabled for this repo (`AUTO_CAPTURE_ENABLED=false`), so no
+stubs were minted. Nothing surfaced in this pass that warranted one regardless.
