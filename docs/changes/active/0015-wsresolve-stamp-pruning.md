@@ -2,7 +2,7 @@
 id: 15
 slug: wsresolve-stamp-pruning
 title: Stamp pruning for unavailable members — close the stale-edges-after-unavailability hole
-status: in-progress
+status: implemented
 priority: high
 type: fix
 created: 2026-08-20
@@ -13,12 +13,12 @@ discovered_from: [14]
 adrs: []
 spec: docs/superpowers/specs/2026-08-20-wsresolve-stamp-pruning-design.md
 plan: docs/superpowers/plans/2026-08-20-wsresolve-stamp-pruning-plan.md
-results:
+results: docs/results/2026-08-20-wsresolve-stamp-pruning-results.md
 trivial: false
 auto_groomable: true
 branch: feat/wsresolve-stamp-pruning
-claimed_at: 2026-08-20T04:40:00Z
-pr:
+claimed_at: 2026-08-20T05:30:00Z
+pr: https://github.com/ethanhinson/codeindex/pull/13
 blocked_by:
 reconciled: true
 ---
@@ -30,6 +30,8 @@ reconciled: true
 |---|---|
 | Spec | [2026-08-20-wsresolve-stamp-pruning-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-20-wsresolve-stamp-pruning-design.md) |
 | Plan | [2026-08-20-wsresolve-stamp-pruning-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/wsresolve-stamp-pruning/docs/superpowers/plans/2026-08-20-wsresolve-stamp-pruning-plan.md) |
+| Results | [2026-08-20-wsresolve-stamp-pruning-results.md](https://github.com/ethanhinson/codeindex/blob/feat/wsresolve-stamp-pruning/docs/results/2026-08-20-wsresolve-stamp-pruning-results.md) |
+| PR | [#13](https://github.com/ethanhinson/codeindex/pull/13) |
 <!-- docket:artifacts:end -->
 
 ## Why
