@@ -2,7 +2,7 @@
 id: 14
 slug: workspace-freshen-internals
 title: Workspace freshen internals — per-member freshen + stamp-gated re-resolution
-status: implemented
+status: done
 priority: high
 type: feat
 created: 2026-08-20
@@ -19,7 +19,7 @@ auto_groomable: true
 branch: feat/workspace-freshen-internals
 pr: https://github.com/ethanhinson/codeindex/pull/12
 blocked_by:
-claimed_at: 2026-08-20T02:32:25Z
+claimed_at: 
 reconciled: true
 ---
 
