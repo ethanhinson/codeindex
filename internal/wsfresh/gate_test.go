@@ -247,7 +247,8 @@ func TestFreshenIsDeterministicAcrossRebuilds(t *testing.T) {
 // Resolved true, that is very likely an IMPROVEMENT — but only if
 // wsresolve.Resolve now PRUNES the stamp of an unavailable member ... Delete or
 // invert this test deliberately, with that check done." Change 0015 landed that
-// prune as wsresolve.Resolve's step 9a, so the condition is discharged, and
+// stamp prune as wsresolve.Resolve's step 11a (its step 9a takes the records),
+// so the condition is discharged, and
 // TestFreshenConvergesWithABadVersionMember (the non-convergence that condition
 // was protecting) is untouched: its member is never stamped in the first place.
 //
@@ -378,6 +379,151 @@ func TestVanishedMemberConvergesInThreePasses(t *testing.T) {
 			t.Fatalf("pass %d changed overlay content.\nbefore:\n%s\n\nafter:\n%s",
 				pass, settled, after)
 		}
+	}
+}
+
+// --- both halves of the unavailable set, in manifest order ----------------
+
+// Namespaces for the two-kinds fixture below. app imports both verbatim, so
+// each resolves at rung 1 (cross_repo_import / exact) exactly as nsLib does.
+const (
+	nsVanish = "example.com/vanish"
+	nsGone   = "example.com/gone"
+)
+
+// twoKindsWS is the fixture for the test below: app depends on two members that
+// will each become unavailable a DIFFERENT way, declared so that the one which
+// goes present-but-unopenable comes BEFORE the one which goes absent from disk.
+//
+// That declaration order is the whole point. The two kinds reach Freshen by
+// disjoint routes — `vanish` is rejected by graph.OpenExisting at step 5a,
+// `gone` arrives in config.Workspace.Resolve's `missing` slice — and each route
+// is itself manifest-ordered, so their CONCATENATION is [gone vanish] while
+// manifest order is [vanish gone]. A fixture that declared them the other way
+// round, or that used only one kind, could not tell the two constructions
+// apart.
+func twoKindsWS(t *testing.T) string {
+	t.Helper()
+	return buildWS(t,
+		wsMember{id: "app", namespaces: []string{nsApp}, deps: []string{"vanish", "gone"},
+			src: map[string]string{
+				"app.go": "package app\n\nimport (\n\t\"" + nsVanish + "\"\n\t\"" + nsGone + "\"\n)\n\n" +
+					"func AppOne() int { return vanish.VanishTarget() + gone.GoneTarget() }\n",
+			}},
+		wsMember{id: "vanish", namespaces: []string{nsVanish},
+			src: map[string]string{"vanish.go": "package vanish\n\nfunc VanishTarget() int { return 1 }\n"}},
+		wsMember{id: "gone", namespaces: []string{nsGone},
+			src: map[string]string{"gone.go": "package gone\n\nfunc GoneTarget() int { return 2 }\n"}},
+	)
+}
+
+// TestStaleStampedCoversBothUnavailabilityKindsInManifestOrder closes the two
+// gaps the single-member vanish tests above leave open.
+//
+// A declared member can be unavailable two ways, and StaleStamped's trigger set
+// is the union: ABSENT FROM DISK (it lands in config.Workspace.Resolve's
+// `missing` slice, and Freshen seeds the unavailable set from it) or PRESENT BUT
+// UNOPENABLE (graph.OpenExisting rejects it at step 5a). Every other assertion
+// on StaleStamped in this package reaches the field through the SECOND route
+// only — TestVanishedMemberIsPrunedThenReportsClean and
+// TestVanishedMemberConvergesInThreePasses both delete a member's graph.db,
+// which trips 5a and never touches `missing`, and TestFreshenMissingMember's
+// absent member was never stamped in the first place, so it cannot reach this
+// field at all. Deleting Freshen's seed loop therefore left the suite green,
+// while a member whose ROOT was removed after being stamped would go on serving
+// its cross-edges under a permanently clean gate. This test exercises that half.
+//
+// It is simultaneously the ORDER assertion. StaleStamped promises manifest
+// order, and Freshen's step 6b delivers it by walking ws.Members once and
+// filtering — expressly NOT by concatenating `missing` with the ids 5a rejected,
+// which are two disjoint manifest-ordered subsequences whose concatenation is
+// not manifest order. With a single-element expectation the two constructions
+// are indistinguishable, which is why the fixture declares the unopenable member
+// FIRST: the forbidden concatenation yields [gone vanish] and this test goes
+// red on it.
+//
+// Both members must be STAMPED before they go unavailable, so the pass is
+// primed first and the damage done afterwards.
+func TestStaleStampedCoversBothUnavailabilityKindsInManifestOrder(t *testing.T) {
+	wsRoot := twoKindsWS(t)
+	if _, err := Freshen(wsRoot); err != nil {
+		t.Fatalf("priming Freshen: %v", err)
+	}
+	goneEdge := overlay.SymKey{Member: "gone", File: "gone.go", QName: "GoneTarget"}
+	assertEdgeInto(t, wsRoot, goneEdge, true)
+	for _, id := range []string{"vanish", "gone"} {
+		if _, ok, err := openOverlay(t, wsRoot).Stamp(id); err != nil {
+			t.Fatal(err)
+		} else if !ok {
+			t.Fatalf("member %q is not stamped after the priming pass; this test's premise is gone", id)
+		}
+	}
+
+	// vanish: PRESENT on disk, index unopenable -> rejected at step 5a.
+	if err := os.Remove(memberDB(wsRoot, "vanish")); err != nil {
+		t.Fatalf("removing vanish's index: %v", err)
+	}
+	// gone: ABSENT from disk entirely -> arrives in the `missing` slice.
+	if err := os.RemoveAll(memberDir(wsRoot, "gone")); err != nil {
+		t.Fatalf("removing gone's root: %v", err)
+	}
+
+	rep, err := Freshen(wsRoot)
+	if err != nil {
+		t.Fatalf("Freshen: %v", err)
+	}
+
+	// Premise: the two members really did become unavailable by the two
+	// DIFFERENT routes, one counted each way.
+	if rep.MembersUnindexed != 1 {
+		t.Fatalf("MembersUnindexed = %d, want 1 (vanish) — the present-but-unopenable half "+
+			"is not being exercised", rep.MembersUnindexed)
+	}
+	if len(rep.MembersMissing) != 1 || rep.MembersMissing[0] != "gone" {
+		t.Fatalf("MembersMissing = %v, want [gone] — the absent-from-disk half is not being "+
+			"exercised", rep.MembersMissing)
+	}
+
+	// The union, in MANIFEST order. [gone vanish] here is the concatenation
+	// implementation; [vanish] alone is the missing seed loop deleted.
+	want := []string{"vanish", "gone"}
+	if len(rep.StaleStamped) != len(want) ||
+		rep.StaleStamped[0] != want[0] || rep.StaleStamped[1] != want[1] {
+		t.Fatalf("StaleStamped = %v, want %v — the field is the UNION of both unavailability "+
+			"kinds, in MANIFEST order (a `missing`-then-5a concatenation would give [gone vanish])",
+			rep.StaleStamped, want)
+	}
+	if len(rep.Dirty) != 0 {
+		t.Fatalf("Dirty = %v, want empty — neither unavailable member has a re-fold to be "+
+			"dirty against", rep.Dirty)
+	}
+	if !rep.Resolved {
+		t.Fatal("Resolved = false with both members stale-stamped; StaleStamped must trip the gate")
+	}
+
+	// And the absent member was actually retired: its incident edge is gone and
+	// so is its stamp.
+	assertEdgeInto(t, wsRoot, goneEdge, false)
+	assertStampAbsent(t, wsRoot, "gone")
+}
+
+// assertEdgeInto asserts the presence (want true) or absence (want false) of an
+// app -> dst cross-edge under app's view. It names the specific destination
+// rather than counting app's edges, so the assertion stays about the one member
+// under test while app's other edge is free to come and go.
+func assertEdgeInto(t *testing.T, wsRoot string, dst overlay.SymKey, want bool) {
+	t.Helper()
+	edges := memberEdges(t, wsRoot, "app")
+	for _, e := range edges {
+		if e.Dst == dst {
+			if !want {
+				t.Fatalf("cross-edge into the pruned member survived: %+v", e)
+			}
+			return
+		}
+	}
+	if want {
+		t.Fatalf("no app cross-edge into %+v; MemberEdges(app) = %+v", dst, edges)
 	}
 }
 

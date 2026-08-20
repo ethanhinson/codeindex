@@ -118,15 +118,17 @@ type Report struct {
 	//
 	// It is non-empty for at most ONE pass per transition, which is what makes
 	// acting on it converge rather than re-resolve the workspace forever:
-	// wsresolve.Resolve's step 9a deletes each unavailable declared member's
-	// records and THEN its stamp, so the next pass finds nothing stamped, this
+	// wsresolve.Resolve deletes each unavailable declared member's records at
+	// its step 9a and THEN, once the rest of the pass has succeeded, its stamp
+	// at its step 11a, so the next pass finds nothing stamped, this
 	// field is empty, and the gate holds. Reading a stamp is not a content
 	// write, so a pass that finds nothing here still writes nothing.
 	StaleStamped []string
 
 	// Resolved records whether this pass ran wsresolve.Resolve. False means
-	// the gate held: no dirty member and no registry drift, so no overlay
-	// content was written.
+	// the gate held on all THREE of its clauses: no dirty member, no
+	// stale-stamped member, and no registry drift — so no overlay content was
+	// written.
 	Resolved bool
 
 	// Stats is the resolver pass's own report. It is MEANINGFUL ONLY WHEN

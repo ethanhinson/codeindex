@@ -67,8 +67,9 @@ import (
 //
 // Acting on that signal converges only because the prune this used to
 // forward-reference has LANDED — wsresolve.Resolve retires the whole
-// DECLARED ∖ available set at its step 9a (change 0015). Prune-then-clean, pass
-// by pass:
+// DECLARED ∖ available set across its steps 9a and 11a (change 0015): one
+// precomputed set, records deleted at 9a and stamps at 11a. Prune-then-clean,
+// pass by pass:
 //
 //   - Pass 1, the pass on which lib vanishes: StaleStamped is [lib], the gate
 //     trips, exactly one whole-pass Resolve runs. It re-derives app without lib
@@ -277,9 +278,9 @@ func Freshen(wsRoot string) (Report, error) {
 	// still reaches the gate having written no overlay content.
 	//
 	// What comes out is the STAMPED part of the unavailable set, and that is
-	// what makes acting on it converge: wsresolve.Resolve's step 9a prunes
-	// precisely DECLARED ∖
-	// available, records first and stamp last, so a member that trips this walk
+	// what makes acting on it converge: wsresolve.Resolve prunes precisely
+	// DECLARED ∖ available — records first at its step 9a, stamps last at its
+	// step 11a — so a member that trips this walk
 	// is unstamped by the time the next pass reaches it. Availability is the
 	// one graph.OpenExisting predicate at both sites, which is what makes "the
 	// set this reads" and "the set Resolve prunes" the same set.
