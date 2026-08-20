@@ -1,5 +1,5 @@
 <!-- docket:backlink:start (generated — do not hand-edit) -->
-> ↩ **[Change 0014 — Workspace freshen internals — per-member freshen + stamp-gated re-resolution](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/active/0014-workspace-freshen-internals.md)**
+> ↩ **[Change 0014 — Workspace freshen internals — per-member freshen + stamp-gated re-resolution](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/archive/2026-08-20-0014-workspace-freshen-internals.md)**
 <!-- docket:backlink:end -->
 
 # Workspace freshen internals — per-member freshen + stamp-gated re-resolution
