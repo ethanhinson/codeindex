@@ -10,7 +10,7 @@ updated: 2026-08-20
 depends_on: [13]
 related: [12, 13]
 discovered_from: []
-adrs: []
+adrs: [12]
 spec: docs/superpowers/specs/2026-08-20-workspace-freshen-internals-design.md
 plan: docs/superpowers/plans/2026-08-20-workspace-freshen-internals-plan.md
 results:
@@ -19,7 +19,7 @@ auto_groomable: true
 branch: feat/workspace-freshen-internals
 pr:
 blocked_by:
-claimed_at: 2026-08-20T01:35:48Z
+claimed_at: 2026-08-20T02:29:52Z
 reconciled: true
 ---
 
@@ -30,6 +30,7 @@ reconciled: true
 |---|---|
 | Spec | [2026-08-20-workspace-freshen-internals-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-20-workspace-freshen-internals-design.md) |
 | Plan | [2026-08-20-workspace-freshen-internals-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-freshen-internals/docs/superpowers/plans/2026-08-20-workspace-freshen-internals-plan.md) |
+| ADRs | [ADR-0012](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0012-workspace-freshness-re-resolves-whole-workspace.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
