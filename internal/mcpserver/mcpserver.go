@@ -17,6 +17,7 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"codeindex/internal/query"
+	"codeindex/internal/wsquery"
 )
 
 const trust = "The output is COMPLETE and always fresh (the index self-updates " +
@@ -67,7 +68,7 @@ func New(repo, version string) *mcp.Server {
 			"function/method/type, when assessing refactor impact, or for " +
 			"dead-code checks. " + trust + notFor,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, in symbolArgs) (*mcp.CallToolResult, any, error) {
-		out, err := query.ImpactText(repo, in.Symbol, limitOr(in.Limit))
+		out, err := wsquery.ImpactText(repo, in.Symbol, limitOr(in.Limit))
 		if err != nil {
 			return nil, nil, fmt.Errorf("impact %q: %w", in.Symbol, err)
 		}
@@ -83,7 +84,7 @@ func New(repo, version string) *mcp.Server {
 			"name and want to orient (where defined / who calls / what " +
 			"references) without choosing between the narrower tools. " + trust,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, in symbolArgs) (*mcp.CallToolResult, any, error) {
-		out, err := query.NavText(repo, in.Symbol, limitOr(in.Limit))
+		out, err := wsquery.NavText(repo, in.Symbol, limitOr(in.Limit))
 		if err != nil {
 			return nil, nil, fmt.Errorf("nav %q: %w", in.Symbol, err)
 		}
@@ -97,7 +98,7 @@ func New(repo, version string) *mcp.Server {
 			"Use for 'who calls X / which functions use X / is X dead code'. " +
 			trust + notFor,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, in symbolArgs) (*mcp.CallToolResult, any, error) {
-		out, err := query.CallersText(repo, in.Symbol, limitOr(in.Limit))
+		out, err := wsquery.CallersText(repo, in.Symbol, limitOr(in.Limit))
 		if err != nil {
 			return nil, nil, fmt.Errorf("callers %q: %w", in.Symbol, err)
 		}
@@ -110,7 +111,7 @@ func New(repo, version string) *mcp.Server {
 			"definition (path:line). Use for tracing downward from a function " +
 			"('what does X depend on / call into'). " + trust + notFor,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, in symbolArgs) (*mcp.CallToolResult, any, error) {
-		out, err := query.CalleesText(repo, in.Symbol, limitOr(in.Limit))
+		out, err := wsquery.CalleesText(repo, in.Symbol, limitOr(in.Limit))
 		if err != nil {
 			return nil, nil, fmt.Errorf("callees %q: %w", in.Symbol, err)
 		}
@@ -124,7 +125,7 @@ func New(repo, version string) *mcp.Server {
 			"(subclasses, implementers, importers). Go packages match by full " +
 			"path or last segment. " + trust + notFor,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, in symbolArgs) (*mcp.CallToolResult, any, error) {
-		out, err := query.DependentsText(repo, in.Symbol, limitOr(in.Limit))
+		out, err := wsquery.DependentsText(repo, in.Symbol, limitOr(in.Limit))
 		if err != nil {
 			return nil, nil, fmt.Errorf("dependents %q: %w", in.Symbol, err)
 		}
@@ -149,7 +150,7 @@ func New(repo, version string) *mcp.Server {
 		if limit <= 0 {
 			limit = 20
 		}
-		out, err := query.FindText(repo, in.Query, in.Kind, in.Path, limit)
+		out, err := wsquery.FindText(repo, in.Query, in.Kind, in.Path, limit)
 		if err != nil {
 			return nil, nil, fmt.Errorf("find %q: %w", in.Query, err)
 		}
@@ -175,7 +176,7 @@ func New(repo, version string) *mcp.Server {
 			"symbol → impact/callers/callees; distinctive exact name → plain " +
 			"text search. " + trust,
 	}, func(ctx context.Context, req *mcp.CallToolRequest, in searchArgs) (*mcp.CallToolResult, any, error) {
-		out, err := query.SearchText(repo, in.Query, in.Hints, in.ErrorText, limitOr20(in.Limit), false)
+		out, err := wsquery.SearchText(repo, in.Query, in.Hints, in.ErrorText, limitOr20(in.Limit), false)
 		if err != nil {
 			return nil, nil, fmt.Errorf("search %q: %w", in.Query, err)
 		}
@@ -224,7 +225,7 @@ func New(repo, version string) *mcp.Server {
 		if limit <= 0 {
 			limit = 30
 		}
-		out, err := query.GrepText(repo, in.Pattern, limit, in.Word)
+		out, err := wsquery.GrepText(repo, in.Pattern, limit, in.Word)
 		if err != nil {
 			return nil, nil, fmt.Errorf("grep %q: %w", in.Pattern, err)
 		}

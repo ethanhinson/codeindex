@@ -1,0 +1,205 @@
+[
+  {
+    "name": "callees",
+    "description": "What a KNOWN symbol (Go, TS/JS, Python, PHP) calls, each callee resolved to its definition (path:line). Use for tracing downward from a function ('what does X depend on / call into'). The output is COMPLETE and always fresh (the index self-updates before answering): answer directly from the returned path:line references — do not re-verify by reading files, except entries flagged [ambiguous]. NOT for locating/finding things (where is X defined, which files mention Y) — plain text search is cheaper for those.",
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "description": "max references to return (default 50)",
+          "type": "integer"
+        },
+        "symbol": {
+          "description": "the exact function, method, or type name (a known anchor, e.g. HasDuplicateLabelNames)",
+          "type": "string"
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "type": "object"
+    }
+  },
+  {
+    "name": "callers",
+    "description": "Who calls a KNOWN symbol (Go, TS/JS, Python, PHP): its definition(s) plus every call site as path:line references with the calling function's name. Use for 'who calls X / which functions use X / is X dead code'. The output is COMPLETE and always fresh (the index self-updates before answering): answer directly from the returned path:line references — do not re-verify by reading files, except entries flagged [ambiguous]. NOT for locating/finding things (where is X defined, which files mention Y) — plain text search is cheaper for those.",
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "description": "max references to return (default 50)",
+          "type": "integer"
+        },
+        "symbol": {
+          "description": "the exact function, method, or type name (a known anchor, e.g. HasDuplicateLabelNames)",
+          "type": "string"
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "type": "object"
+    }
+  },
+  {
+    "name": "dependents",
+    "description": "Who imports, extends, or implements a KNOWN symbol/module (Go, TS/JS, Python, PHP) — the type-level half of blast radius (subclasses, implementers, importers). Go packages match by full path or last segment. The output is COMPLETE and always fresh (the index self-updates before answering): answer directly from the returned path:line references — do not re-verify by reading files, except entries flagged [ambiguous]. NOT for locating/finding things (where is X defined, which files mention Y) — plain text search is cheaper for those.",
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "description": "max references to return (default 50)",
+          "type": "integer"
+        },
+        "symbol": {
+          "description": "the exact function, method, or type name (a known anchor, e.g. HasDuplicateLabelNames)",
+          "type": "string"
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "type": "object"
+    }
+  },
+  {
+    "name": "find",
+    "description": "Ranked symbol search when you only PARTIALLY know the name (vague, differently-cased, synonym, or common name) — one call replaces iterative grep probing; results ranked by usage (caller count). If you know the exact distinctive name, plain text search is still cheaper. The output is COMPLETE and always fresh (the index self-updates before answering): answer directly from the returned path:line references — do not re-verify by reading files, except entries flagged [ambiguous]. ",
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "description": "optional; restrict results to one of: func | method | type",
+          "type": "string"
+        },
+        "limit": {
+          "type": "integer"
+        },
+        "path": {
+          "description": "optional; only include results whose file path contains this substring",
+          "type": "string"
+        },
+        "query": {
+          "description": "partial or vague symbol name — tokens in any order/convention (e.g. 'config load' matches LoadConfig, load_config, ConfigLoader)",
+          "type": "string"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "type": "object"
+    }
+  },
+  {
+    "name": "grep",
+    "description": "Content search with symbol attribution: every hit comes back attributed to its enclosing function/method, deduped with counts, definitions first — so you learn WHERE and IN WHAT the pattern occurs without reading files to attribute lines. Use when you need to understand occurrences, not just locate one. The output is COMPLETE and always fresh (the index self-updates before answering): answer directly from the returned path:line references — do not re-verify by reading files, except entries flagged [ambiguous]. ",
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "type": "integer"
+        },
+        "pattern": {
+          "description": "regex/text pattern to search file contents for",
+          "type": "string"
+        },
+        "word": {
+          "description": "match whole words only (rg -w semantics), so Handler does not also match HandlerFunc",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "pattern"
+      ],
+      "type": "object"
+    }
+  },
+  {
+    "name": "impact",
+    "description": "Blast-radius summary for a KNOWN symbol (Go, TS/JS, Python, PHP) you are about to modify, rename, or delete: its definitions, every caller (what breaks), and its callees, counts-first. Use BEFORE changing a function/method/type, when assessing refactor impact, or for dead-code checks. The output is COMPLETE and always fresh (the index self-updates before answering): answer directly from the returned path:line references — do not re-verify by reading files, except entries flagged [ambiguous]. NOT for locating/finding things (where is X defined, which files mention Y) — plain text search is cheaper for those.",
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "description": "max references to return (default 50)",
+          "type": "integer"
+        },
+        "symbol": {
+          "description": "the exact function, method, or type name (a known anchor, e.g. HasDuplicateLabelNames)",
+          "type": "string"
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "type": "object"
+    }
+  },
+  {
+    "name": "nav",
+    "description": "One-shot navigation for a symbol name (Go, TS/JS, Python, PHP): where it is defined (every same-name owner), who calls it, and every file referencing it — callers + ranked name search + content grep, unioned in one answer. Use when you have a symbol name and want to orient (where defined / who calls / what references) without choosing between the narrower tools. The output is COMPLETE and always fresh (the index self-updates before answering): answer directly from the returned path:line references — do not re-verify by reading files, except entries flagged [ambiguous]. ",
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "description": "max references to return (default 50)",
+          "type": "integer"
+        },
+        "symbol": {
+          "description": "the exact function, method, or type name (a known anchor, e.g. HasDuplicateLabelNames)",
+          "type": "string"
+        }
+      },
+      "required": [
+        "symbol"
+      ],
+      "type": "object"
+    }
+  },
+  {
+    "name": "search",
+    "description": "Semantic code search for CONCEPT/FEATURE questions ('where is the onboarding flow', 'code that handles retry backoff') and BUG/SYMPTOM questions — for those, pass the error/warning text verbatim via error_text (literal string evidence outranks semantic similarity). Embedding + symbol-graph + literal hybrid; answers as a feature map: results clustered by call-graph connectivity, each cluster led by its most central entry point. Routing: concept/feature/symptom question → this tool; known symbol → impact/callers/callees; distinctive exact name → plain text search. The output is COMPLETE and always fresh (the index self-updates before answering): answer directly from the returned path:line references — do not re-verify by reading files, except entries flagged [ambiguous]. ",
+    "schema": {
+      "additionalProperties": false,
+      "properties": {
+        "error_text": {
+          "description": "optional: paste error messages, warning text, or stack-trace lines VERBATIM — literal string evidence is the strongest signal for bug/symptom queries",
+          "type": "string"
+        },
+        "hints": {
+          "description": "optional identifier-style token guesses for the concept (e.g. ['onboard','signup','listing']) — you know naming conventions; supplying 3-6 guesses sharpens ranking",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "null",
+            "array"
+          ]
+        },
+        "limit": {
+          "description": "max symbols in the answer (default 20)",
+          "type": "integer"
+        },
+        "query": {
+          "description": "concept or feature phrase in natural language (e.g. 'host onboarding lifecycle')",
+          "type": "string"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "type": "object"
+    }
+  },
+  {
+    "name": "explore-feature",
+    "description": "Understand a feature end-to-end: semantic search to find the entry points, then impact on the best entry to map its blast radius.",
+    "arguments": [
+      {
+        "name": "feature",
+        "description": "the feature/concept to explore",
+        "required": true
+      }
+    ]
+  }
+]
