@@ -26,52 +26,74 @@ import (
 //  4. open the overlay (schema only — no content write on this path).
 //  5. for each present member, in manifest order: establish availability,
 //     freshen its own index, and re-fold its merkle root.
-//  6. mark the member dirty when its stamp is absent or has moved.
+//  6. mark the member dirty when its stamp is absent or has moved; then, after
+//     the loop, walk the manifest once and collect into StaleStamped every
+//     DECLARED member that is NOT available this pass yet is still stamped
+//     (step 6b).
 //  7. compare the stored registry against the manifest's normalized form.
-//  8. gate: nothing dirty and no drift ⇒ return having written no overlay
-//     CONTENT at all; otherwise exactly one whole-pass wsresolve.Resolve.
+//  8. gate: nothing dirty, nothing stale-stamped and no drift ⇒ return having
+//     written no overlay CONTENT at all; otherwise exactly one whole-pass
+//     wsresolve.Resolve.
 //
 // # What a clean pass does and does not entail
 //
-// Nothing dirty and no drift means every member that is STILL AVAILABLE folds
-// to the root its stamp records, and the manifest still matches the stored
-// registry. It does NOT mean the overlay's derived set is what a fresh
-// wsresolve.Resolve would produce right now. There is one known exception, and
-// it is the available -> unavailable transition.
+// Nothing dirty, nothing stale-stamped and no drift means three things: every
+// member that is STILL AVAILABLE folds to the root its stamp records, no
+// member that has STOPPED being available is still carrying a stamp from when
+// it was, and the manifest still matches the stored registry. It does NOT mean
+// the overlay's derived set is what a fresh wsresolve.Resolve would produce
+// right now — this pass re-derives nothing, so it cannot speak for a row whose
+// inputs it never re-read. The available -> unavailable transition used to be
+// this claim's one known exception; it is now covered by the second clause,
+// and the next section is how.
 //
-// # Known limitation: a member that goes from available to unavailable
+// # A member that goes from available to unavailable
 //
 // Suppose lib is resolved and stamped, and app carries cross-edges into it.
 // Then lib's .codeindex/graph.db is deleted, or lib's root is removed, or a
-// repo-wide schema bump makes graph.OpenExisting reject it. On the next pass
-// lib is counted unindexed and skipped at 5a, so its stamp is never read — step
-// 6 only reads ov.Stamp for members that opened. The manifest is untouched, so
-// there is no registry drift either. The gate therefore holds, Report says
-// Resolved false with an empty Dirty, and the overlay goes on serving
-// app -> lib cross-edges into a member that no longer exists. A
-// wsresolve.Resolve run at that moment would clear app's rows and re-derive
-// them WITHOUT lib as a candidate, dropping those edges. Report has no field
-// that separates "clean" from "clean but still serving edges into a vanished
-// member"; callers must not read Resolved false as "the overlay equals a fresh
-// resolution".
+// repo-wide schema bump makes graph.OpenExisting reject it. lib is counted
+// unindexed and skipped at 5a, so it is never freshened and never re-folded,
+// and it does NOT enter Dirty: Dirty is a claim about a member's RE-FOLDED
+// merkle root — stamp absent, or stamp moved away from that fold — and both
+// halves need a fold that an unavailable member does not have. The
+// manifest is untouched, so there is no registry drift either. Left there, the
+// gate would hold while the overlay went on serving app -> lib cross-edges
+// into a member that no longer exists.
 //
-// This is deliberate, not an oversight, and the repair is NOT local to this
-// function. The detection signal already exists and is deliberately unread: a
-// stamp present for a member that is now unavailable. Acting on it here —
-// reading the stamp of a member that failed 5a and marking it dirty — makes
-// that member dirty on EVERY subsequent pass, because wsresolve.Resolve never
-// PRUNES the stamp of a member it could not open. That is a perpetual
-// re-resolution of the whole workspace with no source ever changing: precisely
-// the non-convergence Assumption 10 and plan test 7
-// (TestFreshenConvergesWithABadVersionMember) exist to forbid.
+// What closes it is lib's SURVIVING STAMP, read at step 6b: a declared member
+// that is unavailable now but still stamped was resolved by an earlier pass,
+// so its rows are in the overlay. Step 6b puts it in StaleStamped, and
+// StaleStamped trips the gate exactly as Dirty does.
 //
-// So the honest fix is stamp pruning inside wsresolve.Resolve — prune, or
-// otherwise retire, the stamp of a member that is unavailable at resolution
-// time — and only THEN may this pass treat a surviving stamp for an
-// unavailable member as dirty. wsresolve.Resolve is frozen by change 0013, so
-// that ordering is a hard prerequisite. A later slice (§4.1) must not build on
-// the stronger entailment claim, and must not "fix" this by reading the stamp
-// here alone.
+// Acting on that signal converges only because the prune this used to
+// forward-reference has LANDED — wsresolve.Resolve retires the whole
+// DECLARED ∖ available set across its steps 9a and 11a (change 0015): one
+// precomputed set, records deleted at 9a and stamps at 11a. Prune-then-clean,
+// pass by pass:
+//
+//   - Pass 1, the pass on which lib vanishes: StaleStamped is [lib], the gate
+//     trips, exactly one whole-pass Resolve runs. It re-derives app without lib
+//     as a candidate and prunes lib outright — incident records first, stamp
+//     last. Resolved is true.
+//   - Pass 2 and onward: lib is still unavailable but no longer stamped, so
+//     StaleStamped is empty, Dirty is empty, the gate holds and nothing is
+//     written. Resolved is false. The trigger is one-shot per transition, which
+//     is what keeps this out of the perpetual whole-workspace re-resolution
+//     that TestFreshenConvergesWithABadVersionMember forbids.
+//
+// Records first and stamp last is what makes that safe rather than merely
+// tidy, and it is the reason this function may read the stamp at all. A crash
+// between Resolve's two deletes leaves lib unavailable and STILL STAMPED with
+// its rows already gone, so 6b fires again on the next pass and the prune
+// completes — under-serving, and self-healing. The reverse order would destroy
+// the one signal this pass has (an unavailable member cannot reach the
+// absent-stamp-is-dirty rule at step 6, which only members that opened ever
+// reach) and leave the stale rows served with nothing left to notice them.
+// wsresolve.Resolve's doc comment owns that argument in full.
+//
+// lib's later RETURN to availability needs no machinery of its own: it opens,
+// freshens, re-folds, finds no stamp, and absent-stamp-is-dirty at step 6
+// re-derives it. Convergence holds in both directions.
 //
 // # The gate is the whole point
 //
@@ -102,14 +124,23 @@ import (
 // A member that is absent, unopenable, or whose own freshen fails is counted
 // and skipped: the workspace must keep answering while one member is
 // unavailable. Only a bad root, an unloadable manifest, a failed presence
-// split, an unopenable overlay, or a fold/stamp read that errors on an
-// otherwise-available member stops the pass.
+// split, an unopenable overlay, a fold/stamp read that errors on an
+// otherwise-available member, or a stamp read that errors during the step-6b
+// walk stops the pass. That last one is fatal even though its subject is an
+// UNAVAILABLE member, and the distinction is the same one 5d draws: an overlay
+// read that ERRORS is a broken overlay, not a member that is merely missing —
+// swallowing it would drop the member out of StaleStamped and let the gate
+// return a quietly wrong clean verdict.
 //
 // # Single-threaded, manifest order
 //
 // query.Fresh holds a package-level mutex for its entire body, so a parallel
-// loop would serialize to nothing; determinism of Dirty and MembersMissing is
-// a stated bar, and both are in manifest order.
+// loop would serialize to nothing; determinism of Dirty, MembersMissing and
+// StaleStamped is a stated bar, and all three are in manifest order. Dirty and
+// MembersMissing get it from iterating members in manifest order; StaleStamped
+// gets it from step 6b walking ws.Members once and filtering, rather than from
+// appending to the two disjoint subsequences that would be the obvious way to
+// build the same SET in the wrong ORDER.
 func Freshen(wsRoot string) (Report, error) {
 	var rep Report
 
@@ -148,15 +179,30 @@ func Freshen(wsRoot string) (Report, error) {
 	}
 	defer ov.Close()
 
+	// unavailable is the DECLARED ∖ available set: the ids the manifest names
+	// that this pass cannot use. It starts as the members absent from disk and
+	// collects the present-but-unopenable ones as 5a rejects them, so that step
+	// 6b has something to filter ws.Members against. It is a SET, not the
+	// ordered answer — the order StaleStamped promises comes from the manifest
+	// walk at 6b, never from the order ids were put in here.
+	unavailable := make(map[string]bool, len(missing))
+	for _, id := range missing {
+		unavailable[id] = true
+	}
+
 	// 5-6. Per present member, in manifest order.
 	for _, rm := range present {
 		id := rm.Member.ID
 
 		// 5a. Availability. Every failure class is one answer: unindexed,
-		// skipped, no error, overlay rows left alone.
+		// skipped, no error, no fold and no stamp comparison. The id is
+		// RETAINED, because a member this pass could not open may still be
+		// carrying a stamp an earlier pass wrote, and that is step 6b's
+		// subject.
 		st, err := graph.OpenExisting(memberIndexPath(rm.AbsRoot))
 		if err != nil {
 			rep.MembersUnindexed++
+			unavailable[id] = true
 			continue
 		}
 		// 5b. Close before the freshen: query.Fresh runs engine.Patch, which
@@ -210,6 +256,45 @@ func Freshen(wsRoot string) (Report, error) {
 		}
 	}
 
+	// 6b. The surviving-stamp walk, which is the other half of step 6 and the
+	// only place this pass looks at an UNAVAILABLE member's stamp. A declared
+	// member that is not available now but is still stamped was resolved by
+	// some earlier pass: its cross-member rows are in the overlay and being
+	// served, and nothing short of a whole-pass resolution retires them.
+	//
+	// The walk is over ws.Members, ONCE, filtered by the unavailable set — not
+	// `missing` concatenated with the ids 5a rejected. Those two are disjoint
+	// manifest-ordered subsequences and their concatenation is not manifest
+	// order, which is the order StaleStamped's doc comment promises.
+	//
+	// DECLARED-scoped, deliberately: the loop cannot see a stamp whose id the
+	// manifest does not name, and must not. Orphan stamps are
+	// overlay.ReplaceRegistry's prune to take, this pass leaves them alone, and
+	// TestFreshenCleanPassWritesNoOverlayContent plants one as a tripwire
+	// against exactly this loop being widened to "every stamped member that is
+	// not available".
+	//
+	// A stamp READ is not a content write, so a pass that finds nothing here
+	// still reaches the gate having written no overlay content.
+	//
+	// What comes out is the STAMPED part of the unavailable set, and that is
+	// what makes acting on it converge: wsresolve.Resolve prunes precisely
+	// DECLARED ∖ available — records first at its step 9a, stamps last at its
+	// step 11a — so a member that trips this walk
+	// is unstamped by the time the next pass reaches it. Availability is the
+	// one graph.OpenExisting predicate at both sites, which is what makes "the
+	// set this reads" and "the set Resolve prunes" the same set.
+	for _, m := range ws.Members {
+		if !unavailable[m.ID] {
+			continue
+		}
+		if _, ok, err := ov.Stamp(m.ID); err != nil {
+			return rep, fmt.Errorf("wsfresh: member %q: %w", m.ID, err)
+		} else if ok {
+			rep.StaleStamped = append(rep.StaleStamped, m.ID)
+		}
+	}
+
 	// 7. Registry drift. ov.Registry() returns what ReplaceRegistry STORED, so
 	// the manifest side is put into that same stored form first, with the very
 	// function insertMembers itself uses — the two sides cannot drift apart
@@ -234,26 +319,41 @@ func Freshen(wsRoot string) (Report, error) {
 	}
 	drift := !reflect.DeepEqual(stored, overlay.NormalizeMembers(ws.Members))
 
-	// 8. The gate. Nothing dirty and no drift ⇒ every member that is still
-	// AVAILABLE folds to its stamped root and the manifest still matches the
-	// stored registry, so the pass ends having written no CONTENT at all: no
-	// registry row, no edge, no ambiguity, no suppression, no stamp.
+	// 8. The gate. Nothing dirty, nothing stale-stamped and no drift ⇒ every
+	// member that is still AVAILABLE folds to its stamped root, no member that
+	// has STOPPED being available is still carrying a stamp, and the manifest
+	// still matches the stored registry — so the pass ends having written no
+	// CONTENT at all: no registry row, no edge, no ambiguity, no suppression,
+	// no stamp. (The overlay was opened, which re-executes schema and PRAGMA
+	// user_version; the file is therefore never a no-write witness, and content
+	// is. The stamp reads at 6 and 6b are reads, not writes.)
 	//
-	// That is strictly weaker than "the derived set is entailed by what is on
-	// disk", and deliberately so — see the known limitation in the doc comment:
-	// a member that was available and stamped and has since become unavailable
-	// is skipped before its stamp is ever read, so the gate holds while the
-	// overlay keeps serving cross-edges into it. Closing that needs stamp
-	// pruning in wsresolve.Resolve first; do not close it here. (The overlay was opened, which re-executes schema and PRAGMA
-	// user_version; the file is therefore never a no-write witness, and
-	// content is.)
+	// StaleStamped is the available -> unavailable transition, and it belongs
+	// in the trip condition rather than being reported and ignored: the
+	// vanished member's rows are still in the overlay, and a whole-pass
+	// wsresolve.Resolve is the only thing that retires them. It converges
+	// because that same Resolve prunes the stamp this fired on — see
+	// "A member that goes from available to unavailable" in the doc comment
+	// above for the pass-by-pass table.
+	//
+	// It is a SEPARATE condition from Dirty and must stay one. Dirty is a claim
+	// about a member's re-folded merkle root — stamp absent, or stamp moved
+	// away from that fold — and an unavailable member never got a re-fold, so
+	// neither half of Dirty can be said about it. Three tests assert it never
+	// appears there.
+	//
+	// This gate is still strictly weaker than "the derived set is entailed by
+	// what is on disk". A clean pass says every available member folds to what
+	// it was stamped at and no vanished member is still stamped; it does not
+	// re-derive anything, so it cannot speak for rows whose inputs never moved.
 	//
 	// An unindexed, freshen-failed or missing member does not by itself make
-	// the pass dirty:
-	// there is nothing new to derive from a member with no usable index, and
-	// treating it as dirty would re-resolve the workspace on every pass for as
-	// long as it stays unavailable.
-	if len(rep.Dirty) == 0 && !drift {
+	// the pass dirty: there is nothing new to derive from a member with no
+	// usable index, and treating unavailability alone as dirty would re-resolve
+	// the workspace on every pass for as long as it stays unavailable. The
+	// narrower condition that DOES re-resolve is such a member still being
+	// STAMPED, and that is one-shot, because the resolution clears it.
+	if len(rep.Dirty) == 0 && len(rep.StaleStamped) == 0 && !drift {
 		return rep, nil
 	}
 

@@ -379,11 +379,28 @@ func TestResolveIdempotent(t *testing.T) {
 
 // --- missing members ------------------------------------------------------
 
-// TestMissingMembersLeftAlone: a declared member absent from disk contributes
-// nothing and is never stamped, and a row joining two missing members survives
-// a pass untouched — only rows incident to a member being re-resolved are
-// cleared.
-func TestMissingMembersLeftAlone(t *testing.T) {
+// TestMissingMembersArePruned: a declared member absent from disk contributes
+// nothing and is never stamped — and its rows do not survive the pass either.
+// The seeded gone1 -> gone2 row joins two members the resolver could not see,
+// and step 9a prunes it.
+//
+// This flips the edge assertion this test shipped with under change 0013,
+// which required exactly that row to survive. The reversal is knowing and is
+// the point of change 0015: its stub authorizes the prune "so the overlay
+// never carries edges for members the resolver could not see"
+// (0015-wsresolve-stamp-pruning.md). Nothing in this test's own earlier
+// comment licensed the inversion — unlike the wsfresh characterization test it
+// travels with, which pre-authorized its own flip — so the authority is cited
+// here explicitly rather than borrowed from that sibling.
+//
+// A row joining two unavailable members is the one class no other path would
+// ever clear: step 9's clear loop only reaches rows incident to an AVAILABLE
+// member, and ReplaceRegistry's orphan prune only reaches members that left the
+// manifest. gone1 and gone2 are still declared, so 9a is what removes it.
+//
+// The stamp assertions are unchanged: unavailable members stay unstamped,
+// available ones stay stamped.
+func TestMissingMembersArePruned(t *testing.T) {
 	wsRoot := buildWS(t,
 		wsMember{
 			id: "m1", namespaces: []string{"example.com/m1"},
@@ -421,8 +438,11 @@ func TestMissingMembersLeftAlone(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !hasEdge(edges, orphan.Src, orphan.Dst) {
-		t.Errorf("row joining two missing members did not survive; edges = %+v", edges)
+	if hasEdge(edges, orphan.Src, orphan.Dst) {
+		t.Errorf("row joining two missing members was not pruned; edges = %+v", edges)
+	}
+	if len(edges) != 0 {
+		t.Errorf("pruned member gone1 still has rows: %+v", edges)
 	}
 	for _, id := range []string{"gone1", "gone2"} {
 		if _, ok, err := ov.Stamp(id); err != nil {
@@ -437,6 +457,308 @@ func TestMissingMembersLeftAlone(t *testing.T) {
 		} else if !ok {
 			t.Errorf("available member %q was not stamped", id)
 		}
+	}
+}
+
+// --- the prune, across passes ---------------------------------------------
+
+// TestStampedMemberGoingUnavailableIsPruned is the available -> unavailable
+// transition change 0015 exists for. Pass 1 stamps every member and writes
+// app's cross-edges into all three targets; between the passes one member
+// loses its whole directory (the `missing` half of DECLARED ∖ available) and
+// another loses only its index (the present-but-unopenable half). Pass 2 must
+// retire BOTH stamps and leave neither member carrying a row, while the edge
+// into the still-available member survives.
+//
+// The stamp assertions are what make this a prune test rather than a restating
+// of step 9: step 9's clear loop deletes rows and never touches a stamp, so an
+// absent stamp for a member that is no longer available can only have come
+// from step 11a. Both halves of the prune set are covered because the prune set
+// is filtered out of ws.Members, not read off the `missing` slice.
+func TestStampedMemberGoingUnavailableIsPruned(t *testing.T) {
+	wsRoot := buildWS(t,
+		wsMember{
+			id: "app", namespaces: []string{"example.com/app"},
+			defs: []def{{"a.go", "Caller", "", 1}},
+			calls: []wsCall{
+				{file: "a.go", from: "Caller", callee: "Boot", ns: "example.com/gone", line: 7},
+				{file: "a.go", from: "Caller", callee: "Ping", ns: "example.com/broken", line: 8},
+				{file: "a.go", from: "Caller", callee: "Pong", ns: "example.com/other", line: 9},
+			},
+		},
+		wsMember{id: "gone", namespaces: []string{"example.com/gone"},
+			defs: []def{{"g.go", "Boot", "", 1}}},
+		wsMember{id: "broken", namespaces: []string{"example.com/broken"},
+			defs: []def{{"b.go", "Ping", "", 1}}},
+		wsMember{id: "other", namespaces: []string{"example.com/other"},
+			defs: []def{{"o.go", "Pong", "", 1}}},
+	)
+
+	first := mustResolve(t, wsRoot)
+	if first.MembersResolved != 4 || first.MembersUnavailable != 0 || first.CrossEdges != 3 {
+		t.Fatalf("pass 1 Stats = %+v, want 4 resolved / 0 unavailable / 3 edges", first)
+	}
+	ov := openOverlay(t, wsRoot)
+	for _, id := range []string{"app", "gone", "broken", "other"} {
+		if _, ok, err := ov.Stamp(id); err != nil {
+			t.Fatal(err)
+		} else if !ok {
+			t.Fatalf("pass 1 did not stamp %q", id)
+		}
+	}
+
+	// gone loses its directory entirely; broken keeps its directory but loses
+	// its index. Both are unavailable, by the one graph.OpenExisting predicate.
+	if err := os.RemoveAll(filepath.Join(wsRoot, "gone")); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.RemoveAll(filepath.Join(wsRoot, "broken", ".codeindex")); err != nil {
+		t.Fatal(err)
+	}
+
+	second := mustResolve(t, wsRoot)
+	if second.MembersResolved != 2 || second.MembersUnavailable != 2 {
+		t.Errorf("pass 2 Stats = %+v, want 2 resolved / 2 unavailable", second)
+	}
+
+	for _, id := range []string{"gone", "broken"} {
+		if _, ok, err := ov.Stamp(id); err != nil {
+			t.Fatal(err)
+		} else if ok {
+			t.Errorf("unavailable member %q kept its stamp: step 11a did not prune it", id)
+		}
+		edges, err := ov.MemberEdges(id)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(edges) != 0 {
+			t.Errorf("unavailable member %q kept incident rows: %+v", id, edges)
+		}
+	}
+
+	// The available members are untouched by the prune: still stamped, and the
+	// edge between them re-derived.
+	for _, id := range []string{"app", "other"} {
+		if _, ok, err := ov.Stamp(id); err != nil {
+			t.Fatal(err)
+		} else if !ok {
+			t.Errorf("available member %q lost its stamp", id)
+		}
+	}
+	edges, err := ov.MemberEdges("other")
+	if err != nil {
+		t.Fatal(err)
+	}
+	src := overlay.SymKey{Member: "app", File: "a.go", QName: "Caller"}
+	dst := overlay.SymKey{Member: "other", File: "o.go", QName: "Pong"}
+	if !hasEdge(edges, src, dst) {
+		t.Errorf("app -> other edge did not survive the prune; edges = %+v", edges)
+	}
+}
+
+// --- never-thin, under the prune ------------------------------------------
+
+// TestPruneDeletesAmbiguityWholeNotThinned pins that the prune rides
+// ReplaceMemberEdges' existing never-thin rule rather than inventing a second,
+// narrower incidence rule inside this package.
+//
+// s's reference to Boot resolves in a, b and u, so pass 1 records ONE ambiguity
+// sourced from s with three candidates. u then goes unavailable. Step 9a calls
+// ReplaceMemberEdges(u, nil, nil, nil), which is incident to that ambiguity on
+// its CANDIDATE end only — and deletes the parent record whole, candidate rows
+// and all, rather than dropping u's candidate row and leaving a stored
+// candidate_count of 3 contradicting two surviving rows. s, being available,
+// re-derives the reference at step 10 and records it afresh over a and b.
+//
+// The witness is therefore a rewritten record with Count == len(Candidates) ==
+// 2 and no candidate naming u — a thinning bug shows up as a surviving u
+// candidate, or as a Count that no longer matches its own rows.
+func TestPruneDeletesAmbiguityWholeNotThinned(t *testing.T) {
+	wsRoot := buildWS(t,
+		wsMember{
+			id: "s", namespaces: []string{"example.com/s"},
+			defs: []def{{"s.go", "Src", "", 1}},
+			// No ns hint: rung 1 cannot fire, and three members define Boot
+			// once each, so rung 2 misses and rung 3 records an ambiguity.
+			calls: []wsCall{{file: "s.go", from: "Src", callee: "Boot", line: 5}},
+		},
+		wsMember{id: "a", namespaces: []string{"example.com/a"}, defs: []def{{"a.go", "Boot", "", 1}}},
+		wsMember{id: "b", namespaces: []string{"example.com/b"}, defs: []def{{"b.go", "Boot", "", 1}}},
+		wsMember{id: "u", namespaces: []string{"example.com/u"}, defs: []def{{"u.go", "Boot", "", 1}}},
+	)
+
+	if first := mustResolve(t, wsRoot); first.Ambiguities != 1 {
+		t.Fatalf("pass 1 Stats.Ambiguities = %d, want 1", first.Ambiguities)
+	}
+	ov := openOverlay(t, wsRoot)
+	ambs, err := ov.AmbiguitiesFor("s")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(ambs) != 1 || len(ambs[0].Candidates) != 3 || ambs[0].Count != 3 {
+		t.Fatalf("pass 1 ambiguities = %+v, want one with 3 candidates", ambs)
+	}
+
+	// u goes unavailable: present on disk, no index.
+	if err := os.RemoveAll(filepath.Join(wsRoot, "u", ".codeindex")); err != nil {
+		t.Fatal(err)
+	}
+
+	if second := mustResolve(t, wsRoot); second.MembersUnavailable != 1 {
+		t.Fatalf("pass 2 Stats = %+v, want 1 unavailable", second)
+	}
+
+	ambs, err = ov.AmbiguitiesFor("s")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(ambs) != 1 {
+		t.Fatalf("pass 2 ambiguities for s = %+v, want exactly one re-derived record", ambs)
+	}
+	got := ambs[0]
+	want := []overlay.SymKey{
+		{Member: "a", File: "a.go", QName: "Boot"},
+		{Member: "b", File: "b.go", QName: "Boot"},
+	}
+	if len(got.Candidates) != len(want) {
+		t.Fatalf("candidates = %+v, want %+v", got.Candidates, want)
+	}
+	for i := range want {
+		if got.Candidates[i] != want[i] {
+			t.Errorf("candidate %d = %+v, want %+v", i, got.Candidates[i], want[i])
+		}
+	}
+	if got.Count != len(got.Candidates) {
+		t.Errorf("Count = %d but %d candidate rows survive: the record was thinned, not replaced",
+			got.Count, len(got.Candidates))
+	}
+	for _, c := range got.Candidates {
+		if c.Member == "u" {
+			t.Errorf("unavailable member u survives as a candidate: %+v", c)
+		}
+	}
+	if _, ok, err := ov.Stamp("u"); err != nil {
+		t.Fatal(err)
+	} else if ok {
+		t.Error("unavailable member u kept its stamp")
+	}
+}
+
+// --- the prune, across a failed pass --------------------------------------
+
+// dropMerkleTable corrupts a member index so that graph.OpenExisting still
+// succeeds — it checks only presence and user_version — but MemberMerkleRoot,
+// which this pass reaches ONLY from step 11, fails with "no such table:
+// merkle". Nothing earlier in the pass reads that table. This is a real index
+// in a real broken state, not a stubbed error: it is the ordinary error return
+// the recoverability argument has to survive.
+func dropMerkleTable(t *testing.T, dbPath string) {
+	t.Helper()
+	db, err := graph.OpenRaw(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err := db.Exec(`DROP TABLE merkle`); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestPruneStampSurvivesAFailureAfterTheClear is records-first/stamp-last at
+// PASS scale, which is strictly stronger than the per-member ordering the
+// other prune tests cover.
+//
+// A SUCCESSFUL pass cannot distinguish the two placements of the stamp delete:
+// either way it ends with the pruned member unstamped and rowless. The
+// difference is only observable in the wreckage of a pass that dies BETWEEN
+// them, so this test makes the pass die there for real — `other`'s index loses
+// the one table MemberMerkleRoot reads, so step 11 returns an ordinary error
+// after step 9 has already cleared every available member and step 10 has
+// already written the new set.
+//
+// What must survive that is `gone`'s stamp. It is the last remaining trigger:
+// `app`'s stamp is unchanged and still matches its unchanged merkle root, so
+// wsfresh's Dirty is empty; ReplaceRegistry ran at step 5, so there is no
+// registry drift; and an unavailable member never reaches the
+// absent-stamp-is-dirty rule. Retire `gone`'s stamp before this point and the
+// half-written overlay reports clean forever. Keep it and it lands in
+// Report.StaleStamped, which trips the gate and re-runs Resolve.
+func TestPruneStampSurvivesAFailureAfterTheClear(t *testing.T) {
+	wsRoot := buildWS(t,
+		wsMember{
+			id: "app", namespaces: []string{"example.com/app"},
+			defs: []def{{"a.go", "Caller", "", 1}},
+			calls: []wsCall{
+				{file: "a.go", from: "Caller", callee: "Boot", ns: "example.com/gone", line: 7},
+				{file: "a.go", from: "Caller", callee: "Pong", ns: "example.com/other", line: 9},
+			},
+		},
+		wsMember{id: "gone", namespaces: []string{"example.com/gone"},
+			defs: []def{{"g.go", "Boot", "", 1}}},
+		wsMember{id: "other", namespaces: []string{"example.com/other"},
+			defs: []def{{"o.go", "Pong", "", 1}}},
+	)
+
+	if first := mustResolve(t, wsRoot); first.MembersResolved != 3 || first.CrossEdges != 2 {
+		t.Fatalf("pass 1 Stats = %+v, want 3 resolved / 2 edges", first)
+	}
+	ov := openOverlay(t, wsRoot)
+	if _, ok, err := ov.Stamp("gone"); err != nil {
+		t.Fatal(err)
+	} else if !ok {
+		t.Fatal("pass 1 did not stamp gone")
+	}
+
+	// gone becomes unavailable, so pass 2 must prune it; other stays available
+	// but will fail at step 11.
+	if err := os.RemoveAll(filepath.Join(wsRoot, "gone")); err != nil {
+		t.Fatal(err)
+	}
+	dropMerkleTable(t, filepath.Join(wsRoot, "other", ".codeindex", "graph.db"))
+
+	if _, err := Resolve(wsRoot); err == nil {
+		t.Fatal("pass 2 succeeded; the fixture no longer fails at step 11")
+	}
+
+	// The failure really was at step 11 and not somewhere before step 10:
+	// step 10's write of the app -> other edge landed.
+	edges, err := ov.MemberEdges("other")
+	if err != nil {
+		t.Fatal(err)
+	}
+	src := overlay.SymKey{Member: "app", File: "a.go", QName: "Caller"}
+	dst := overlay.SymKey{Member: "other", File: "o.go", QName: "Pong"}
+	if !hasEdge(edges, src, dst) {
+		t.Fatalf("pass 2 died before step 10 wrote app -> other, so this test proves nothing; edges = %+v", edges)
+	}
+
+	// Records first: gone's rows are already gone.
+	goneEdges, err := ov.MemberEdges("gone")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(goneEdges) != 0 {
+		t.Errorf("pruned member gone kept rows through the failed pass: %+v", goneEdges)
+	}
+
+	// Stamp last, at PASS scale: the trigger outlives the failure.
+	if _, ok, err := ov.Stamp("gone"); err != nil {
+		t.Fatal(err)
+	} else if !ok {
+		t.Error("gone's stamp was retired before the pass finished: a failure in steps 10-11 " +
+			"now leaves an overlay with no cross-edges, no stamp for gone, and nothing left to trip the gate")
+	}
+
+	// And the prune still converges: repair the index and the next pass
+	// completes it.
+	writeIndex(t, filepath.Join(wsRoot, "other"), []def{{"o.go", "Pong", "", 1}}, nil, false)
+	if third := mustResolve(t, wsRoot); third.MembersUnavailable != 1 {
+		t.Fatalf("pass 3 Stats = %+v, want 1 unavailable", third)
+	}
+	if _, ok, err := ov.Stamp("gone"); err != nil {
+		t.Fatal(err)
+	} else if ok {
+		t.Error("pass 3 did not retire gone's stamp: the prune never completes")
 	}
 }
 

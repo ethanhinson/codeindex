@@ -94,9 +94,41 @@ type Report struct {
 	// part-way.
 	Dirty []string
 
+	// StaleStamped lists the ids of members the manifest DECLARES that are NOT
+	// available this pass — absent from disk, or present with an index
+	// graph.OpenExisting could not open — and yet still carry an overlay stamp
+	// some earlier pass left behind, in manifest order. It is the
+	// available -> unavailable transition, and like Dirty it trips the gate:
+	// such a member's cross-member rows are still in the overlay being served,
+	// and only a whole-pass wsresolve.Resolve retires them.
+	//
+	// It is deliberately NOT folded into Dirty, and that is a correctness point
+	// rather than a taste one. Dirty's stated definition is "stamp absent or
+	// moved away from the member's RE-FOLDED merkle root" — an unavailable
+	// member has no re-fold, so there is nothing for its stamp to have moved
+	// away from. Putting it in Dirty would make that definition false and break
+	// Dirty ⊆ the members this pass freshened; three live assertions require
+	// that an unavailable member never appears in Dirty. This package has
+	// already paid twice for one name carrying two denominators (see
+	// MembersUnindexed), so the discipline here is to split.
+	//
+	// It is DECLARED-scoped. A stamp for an id the manifest no longer names is
+	// not this field's subject at all: that is an orphan, and orphans belong to
+	// overlay.ReplaceRegistry's prune.
+	//
+	// It is non-empty for at most ONE pass per transition, which is what makes
+	// acting on it converge rather than re-resolve the workspace forever:
+	// wsresolve.Resolve deletes each unavailable declared member's records at
+	// its step 9a and THEN, once the rest of the pass has succeeded, its stamp
+	// at its step 11a, so the next pass finds nothing stamped, this
+	// field is empty, and the gate holds. Reading a stamp is not a content
+	// write, so a pass that finds nothing here still writes nothing.
+	StaleStamped []string
+
 	// Resolved records whether this pass ran wsresolve.Resolve. False means
-	// the gate held: no dirty member and no registry drift, so no overlay
-	// content was written.
+	// the gate held on all THREE of its clauses: no dirty member, no
+	// stale-stamped member, and no registry drift — so no overlay content was
+	// written.
 	Resolved bool
 
 	// Stats is the resolver pass's own report. It is MEANINGFUL ONLY WHEN
