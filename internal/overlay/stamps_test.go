@@ -64,6 +64,13 @@ func TestDeleteStampRemovesExactlyOne(t *testing.T) {
 	if err := s.PutStamp("lib", "root2"); err != nil {
 		t.Fatalf("PutStamp(lib): %v", err)
 	}
+	want, ok, err := s.Stamp("lib")
+	if err != nil {
+		t.Fatalf("Stamp(lib) before delete: %v", err)
+	}
+	if !ok {
+		t.Fatalf("Stamp(lib) before delete ok = false, want true")
+	}
 	if err := s.DeleteStamp("app"); err != nil {
 		t.Fatalf("DeleteStamp: %v", err)
 	}
@@ -77,7 +84,6 @@ func TestDeleteStampRemovesExactlyOne(t *testing.T) {
 	if !ok {
 		t.Fatalf("Stamp(lib) ok = false, want true")
 	}
-	want := Stamp{MemberID: "lib", MerkleRoot: "root2", ResolvedAt: got.ResolvedAt}
 	if got != want {
 		t.Fatalf("Stamp(lib) = %+v, want %+v", got, want)
 	}

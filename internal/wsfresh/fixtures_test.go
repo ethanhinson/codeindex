@@ -189,8 +189,9 @@ func corruptIndexVersion(t *testing.T, wsRoot, memberID string) {
 
 // deleteStamp removes one member's stamp row from the overlay directly,
 // simulating a pass that died after writing content but before 0013's
-// stamps-last step. overlay exposes no stamp deletion — deliberately, it is not
-// a product operation — so this reaches the table through the driver.
+// stamps-last step. overlay now exposes DeleteStamp as a product operation,
+// but this helper stays on raw SQL deliberately, so the meta-test witnesses
+// the fixture independently of the code under test.
 func deleteStamp(t *testing.T, wsRoot, memberID string) {
 	t.Helper()
 	deleteOneRow(t, wsRoot, `DELETE FROM member_stamps WHERE member_id = ?`, memberID,
