@@ -473,8 +473,8 @@ func TestMissingMembersArePruned(t *testing.T) {
 // The stamp assertions are what make this a prune test rather than a restating
 // of step 9: step 9's clear loop deletes rows and never touches a stamp, so an
 // absent stamp for a member that is no longer available can only have come
-// from step 9a. Both halves of the prune set are covered because 9a iterates
-// ws.Members, not the `missing` slice.
+// from step 11a. Both halves of the prune set are covered because the prune set
+// is filtered out of ws.Members, not read off the `missing` slice.
 func TestStampedMemberGoingUnavailableIsPruned(t *testing.T) {
 	wsRoot := buildWS(t,
 		wsMember{
@@ -525,7 +525,7 @@ func TestStampedMemberGoingUnavailableIsPruned(t *testing.T) {
 		if _, ok, err := ov.Stamp(id); err != nil {
 			t.Fatal(err)
 		} else if ok {
-			t.Errorf("unavailable member %q kept its stamp: step 9a did not prune it", id)
+			t.Errorf("unavailable member %q kept its stamp: step 11a did not prune it", id)
 		}
 		edges, err := ov.MemberEdges(id)
 		if err != nil {
@@ -641,6 +641,124 @@ func TestPruneDeletesAmbiguityWholeNotThinned(t *testing.T) {
 		t.Fatal(err)
 	} else if ok {
 		t.Error("unavailable member u kept its stamp")
+	}
+}
+
+// --- the prune, across a failed pass --------------------------------------
+
+// dropMerkleTable corrupts a member index so that graph.OpenExisting still
+// succeeds — it checks only presence and user_version — but MemberMerkleRoot,
+// which this pass reaches ONLY from step 11, fails with "no such table:
+// merkle". Nothing earlier in the pass reads that table. This is a real index
+// in a real broken state, not a stubbed error: it is the ordinary error return
+// the recoverability argument has to survive.
+func dropMerkleTable(t *testing.T, dbPath string) {
+	t.Helper()
+	db, err := graph.OpenRaw(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err := db.Exec(`DROP TABLE merkle`); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestPruneStampSurvivesAFailureAfterTheClear is records-first/stamp-last at
+// PASS scale, which is strictly stronger than the per-member ordering the
+// other prune tests cover.
+//
+// A SUCCESSFUL pass cannot distinguish the two placements of the stamp delete:
+// either way it ends with the pruned member unstamped and rowless. The
+// difference is only observable in the wreckage of a pass that dies BETWEEN
+// them, so this test makes the pass die there for real — `other`'s index loses
+// the one table MemberMerkleRoot reads, so step 11 returns an ordinary error
+// after step 9 has already cleared every available member and step 10 has
+// already written the new set.
+//
+// What must survive that is `gone`'s stamp. It is the last remaining trigger:
+// `app`'s stamp is unchanged and still matches its unchanged merkle root, so
+// wsfresh's Dirty is empty; ReplaceRegistry ran at step 5, so there is no
+// registry drift; and an unavailable member never reaches the
+// absent-stamp-is-dirty rule. Retire `gone`'s stamp before this point and the
+// half-written overlay reports clean forever. Keep it and it lands in
+// Report.StaleStamped, which trips the gate and re-runs Resolve.
+func TestPruneStampSurvivesAFailureAfterTheClear(t *testing.T) {
+	wsRoot := buildWS(t,
+		wsMember{
+			id: "app", namespaces: []string{"example.com/app"},
+			defs: []def{{"a.go", "Caller", "", 1}},
+			calls: []wsCall{
+				{file: "a.go", from: "Caller", callee: "Boot", ns: "example.com/gone", line: 7},
+				{file: "a.go", from: "Caller", callee: "Pong", ns: "example.com/other", line: 9},
+			},
+		},
+		wsMember{id: "gone", namespaces: []string{"example.com/gone"},
+			defs: []def{{"g.go", "Boot", "", 1}}},
+		wsMember{id: "other", namespaces: []string{"example.com/other"},
+			defs: []def{{"o.go", "Pong", "", 1}}},
+	)
+
+	if first := mustResolve(t, wsRoot); first.MembersResolved != 3 || first.CrossEdges != 2 {
+		t.Fatalf("pass 1 Stats = %+v, want 3 resolved / 2 edges", first)
+	}
+	ov := openOverlay(t, wsRoot)
+	if _, ok, err := ov.Stamp("gone"); err != nil {
+		t.Fatal(err)
+	} else if !ok {
+		t.Fatal("pass 1 did not stamp gone")
+	}
+
+	// gone becomes unavailable, so pass 2 must prune it; other stays available
+	// but will fail at step 11.
+	if err := os.RemoveAll(filepath.Join(wsRoot, "gone")); err != nil {
+		t.Fatal(err)
+	}
+	dropMerkleTable(t, filepath.Join(wsRoot, "other", ".codeindex", "graph.db"))
+
+	if _, err := Resolve(wsRoot); err == nil {
+		t.Fatal("pass 2 succeeded; the fixture no longer fails at step 11")
+	}
+
+	// The failure really was at step 11 and not somewhere before step 10:
+	// step 10's write of the app -> other edge landed.
+	edges, err := ov.MemberEdges("other")
+	if err != nil {
+		t.Fatal(err)
+	}
+	src := overlay.SymKey{Member: "app", File: "a.go", QName: "Caller"}
+	dst := overlay.SymKey{Member: "other", File: "o.go", QName: "Pong"}
+	if !hasEdge(edges, src, dst) {
+		t.Fatalf("pass 2 died before step 10 wrote app -> other, so this test proves nothing; edges = %+v", edges)
+	}
+
+	// Records first: gone's rows are already gone.
+	goneEdges, err := ov.MemberEdges("gone")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(goneEdges) != 0 {
+		t.Errorf("pruned member gone kept rows through the failed pass: %+v", goneEdges)
+	}
+
+	// Stamp last, at PASS scale: the trigger outlives the failure.
+	if _, ok, err := ov.Stamp("gone"); err != nil {
+		t.Fatal(err)
+	} else if !ok {
+		t.Error("gone's stamp was retired before the pass finished: a failure in steps 10-11 " +
+			"now leaves an overlay with no cross-edges, no stamp for gone, and nothing left to trip the gate")
+	}
+
+	// And the prune still converges: repair the index and the next pass
+	// completes it.
+	writeIndex(t, filepath.Join(wsRoot, "other"), []def{{"o.go", "Pong", "", 1}}, nil, false)
+	if third := mustResolve(t, wsRoot); third.MembersUnavailable != 1 {
+		t.Fatalf("pass 3 Stats = %+v, want 1 unavailable", third)
+	}
+	if _, ok, err := ov.Stamp("gone"); err != nil {
+		t.Fatal(err)
+	} else if ok {
+		t.Error("pass 3 did not retire gone's stamp: the prune never completes")
 	}
 }
 

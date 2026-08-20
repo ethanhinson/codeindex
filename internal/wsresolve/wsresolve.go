@@ -50,9 +50,9 @@ type Stats struct {
 	// MembersUnavailable counts declared members with no usable index: absent
 	// from disk, indexed at a different schema version, or otherwise
 	// unopenable. Not an error — see Resolve. These members are PRUNED from
-	// the overlay by step 9a: the pass deletes their incident records and then
-	// their stamp, so a member the resolver could not see contributes nothing
-	// and leaves nothing behind.
+	// the overlay: the pass deletes their incident records (step 9a) and, once
+	// everything else has succeeded, their stamps (step 11a), so a member the
+	// resolver could not see contributes nothing and leaves nothing behind.
 	MembersUnavailable int
 	// CrossEdges, Ambiguities and Suppressions count the records this pass
 	// derived. Two derived records can share the same storage key
@@ -79,11 +79,13 @@ type Stats struct {
 //  6. open each present member's index with graph.OpenExisting.
 //  7. derive member-over-dep suppressions across the available members.
 //  8. run the ladder for each available member, accumulating in MEMORY.
-//  9. prune every DECLARED member that is not available this pass — its
-//     records first, its stamp last (step 9a) — then clear every available
-//     member's prior rows,
+//  9. delete the RECORDS of every DECLARED member that is not available this
+//     pass (step 9a), then clear every available member's prior rows,
 //  10. write the whole derived set, and
-//  11. stamp every available member LAST.
+//  11. stamp every available member LAST — and only once that has succeeded,
+//     delete the pruned members' STAMPS (step 11a). The prune is therefore
+//     split across the pass rather than run in one region: see "Why the prune
+//     deletes records first and the stamp last".
 //
 // # Why steps 9 and 10 are separate
 //
@@ -109,17 +111,20 @@ type Stats struct {
 // here.
 //
 // Its overlay rows, and any stamp an earlier pass left it, do NOT stay behind.
-// Step 9a PRUNES every member the manifest DECLARES that is not available this
-// pass — the set Stats.MembersUnavailable counts, which is the members absent
-// from disk plus every present member graph.OpenExisting could not open —
-// running before step 9 clears anything and therefore before any of step 10's
-// writes. Rows joining two unavailable
-// members go with the rest: an edge between two members the resolver could not
-// see is precisely an edge the overlay must not carry, and it is the one class
-// nothing else would ever clear, since step 9 only reaches rows incident to an
-// available member. The prune set is DECLARED-scoped on purpose. A stamp or a
+// The pass PRUNES every member the manifest DECLARES that is not available —
+// the set Stats.MembersUnavailable counts, which is the members absent from
+// disk plus every present member graph.OpenExisting could not open. The set is
+// computed ONCE, in manifest order, and both halves of the prune walk that one
+// slice: step 9a deletes the records, before step 9 clears anything and
+// therefore before any of step 10's writes, and step 11a deletes the stamps
+// after step 11. Rows joining two unavailable members go with the rest: an edge
+// between two members the resolver could not see is precisely an edge the
+// overlay must not carry, and it is the one class nothing else would ever
+// clear, since step 9 only reaches rows incident to an available member.
+//
+// The prune set is DECLARED-scoped on purpose. A stamp or a
 // row for an id the manifest no longer declares is not touched here; that is
-// ReplaceRegistry's orphan prune (step 5). Widening step 9a to "every stamped
+// ReplaceRegistry's orphan prune (step 5). Widening the prune to "every stamped
 // member not available this pass" would reach past this pass's own subject
 // matter into ids the manifest never named, and internal/wsfresh plants an
 // orphan stamp for one such id as a tripwire against exactly that.
@@ -131,18 +136,23 @@ type Stats struct {
 //
 // # Why the prune deletes records first and the stamp last
 //
-// Per member the order is fixed: ReplaceMemberEdges first, DeleteStamp last.
-// It is the same stamp-last rule step 11 follows for writes, applied to
-// deletes, and it is what makes a mid-prune crash recoverable.
+// The order is fixed at BOTH scales, and that is why the prune is two loops
+// rather than one. Per member: ReplaceMemberEdges before DeleteStamp. Across
+// the pass: EVERY record delete (step 9a) before ANY stamp delete (step 11a),
+// with the whole of steps 9-11 in between. It is the same stamp-last rule step
+// 11 follows for writes, applied to deletes, and it is what makes a failed
+// pass recoverable.
 //
 //   - Completed prune: the member is unstamped and carries no rows. Its later
 //     RETURN to availability is caught by the absent-stamp-is-dirty rule in
 //     internal/wsfresh and re-derives cleanly.
-//   - Crash between the two calls: the member is STILL STAMPED and its rows are
-//     already gone. That surviving stamp is the signal — a declared member that
-//     is unavailable yet still stamped lands in wsfresh.Report.StaleStamped,
-//     which trips the freshen gate, so the next freshen pass re-runs Resolve
-//     and the prune completes. Under-serving, and self-healing.
+//   - Failure or crash anywhere between the two loops — including inside steps
+//     9, 10 and 11, every one of which can return an ordinary error: the pruned
+//     member is STILL STAMPED and its rows are already gone. That surviving
+//     stamp is the signal — a declared member that is unavailable yet still
+//     stamped lands in wsfresh.Report.StaleStamped, which trips the freshen
+//     gate, so the next freshen pass re-runs Resolve and the prune completes.
+//     Under-serving, and self-healing.
 //
 // The reverse order is unsafe, which is why it is spelled out here. An
 // unavailable member is skipped before its stamp is read, so it can never enter
@@ -151,16 +161,54 @@ type Stats struct {
 // ever fire again, silently restoring the hole. Records-first fails towards
 // under-serving; stamp-first fails towards over-serving stale cross-edges.
 //
+// Keeping the stamp delete adjacent to the record delete, in one region of
+// deletion, would read better and would be WRONG. Nothing steps 10 and 11 write
+// is incident to a prune-set member — Ladder and Suppress both draw only from
+// `available` — so the clobbering argument permits the adjacent placement; the
+// recovery argument does not. With both deletes before step 9, a failure at
+// step 10 or 11 leaves an overlay whose available members still carry their
+// PREVIOUS stamps (step 9 clears rows and never touches a stamp), matching
+// their unchanged merkle roots, over a set of rows that has been cleared and
+// only partly rewritten. Dirty is empty, ReplaceRegistry already ran so there
+// is no drift, and StaleStamped is empty because the one stamp that could have
+// filled it is already deleted. The gate reports clean over a hollowed overlay,
+// permanently. Step 11a is what keeps a pass that HAS a prune set out of that
+// state; a pass with an empty prune set has no such stamp to preserve and is
+// the residual case "# Crash safety" names.
+//
 // # Crash safety
 //
 // The pass is not one transaction and does not need to be. Each overlay call is
 // individually atomic, the overlay holds no primary data, and every row is
-// re-derivable by re-running. Stamps go last, so a pass that dies part-way
-// leaves the affected members stampless and a later staleness gate re-resolves
-// them: crash-safety carried by the ordering, not by a transaction the overlay
-// API does not offer. Step 9a carries the same ordering in the other direction
-// — see "Why the prune deletes records first and the stamp last" above — so a
-// crash inside the prune also leaves a stamp the gate can fire on.
+// re-derivable by re-running.
+//
+// What the ordering guarantees is narrower than "a half-finished pass is always
+// detectable", so state it exactly. Detection always works the same way — some
+// stamp CONTRADICTS the rows and the freshen gate fires on the contradiction —
+// but two different mechanisms produce that stamp, neither one covers the
+// other's case, and a third case is covered by neither.
+//
+//   - A member being resolved for the FIRST time is stampless when the pass
+//     dies before step 11, and absent-stamp-is-dirty re-resolves it.
+//   - A member RE-resolved keeps the stamp an earlier pass gave it, and that
+//     stamp still matches its merkle root if nothing about the member changed.
+//     Nothing in Dirty, nothing to fire on — so on a re-resolution the
+//     first-pass argument above guarantees NOTHING. The prune's step-11a stamp
+//     is what covers this case: it is the one stamp a half-finished pass leaves
+//     that provably contradicts the rows, and StaleStamped fires on it.
+//
+// The uncovered case is a pass that dies between step 9 and the end of step 10
+// with NO member in the prune set and every available member already correctly
+// stamped by an earlier pass. Its rows are cleared and only partly rewritten,
+// yet every stamp still matches its member's root, so the gate reports clean
+// and stays clean until some member's content actually moves. That hole is
+// real, it PREDATES this change, and the ordering cannot close it: only a
+// transaction spanning steps 9-11, which the overlay API does not offer, can.
+// The prune's contribution is to not ADD itself to that hole — which is
+// precisely what a stamp delete before step 9 would have done, and why step 11a
+// exists. Do not read the stamp-last rule as a general crash-safety guarantee
+// for the whole pass; it is a guarantee about the prune's own stamps and about
+// first-ever resolutions.
 //
 // No member graph.db is ever written. Indexes are opened with
 // graph.OpenExisting, never graph.Open, which would create an absent index and
@@ -258,23 +306,41 @@ func Resolve(wsRoot string) (Stats, error) {
 		ambiguities = append(ambiguities, recs.Ambiguities...)
 	}
 
-	// 9a. Prune every DECLARED member that is not available this pass, in
-	// MANIFEST ORDER, before the clear loop and therefore before any of step
-	// 10's writes. The set is ws.Members ∖ available: exactly what
+	// The prune set: every DECLARED member that is not available this pass, in
+	// MANIFEST ORDER. It is ws.Members ∖ available — exactly what
 	// Stats.MembersUnavailable counts, and exactly the set wsfresh walks to
 	// fill Report.StaleStamped, because availability is the one
 	// graph.OpenExisting predicate both sites share.
 	//
-	// The order is derived by walking ws.Members ONCE and filtering. It is not
-	// `missing` concatenated with the ids that failed to open above: those are
-	// two disjoint manifest-ordered subsequences, and their concatenation is
-	// not manifest order.
+	// Derived by walking ws.Members ONCE and filtering. It is not `missing`
+	// concatenated with the ids that failed to open above: those are two
+	// disjoint manifest-ordered subsequences, and their concatenation is not
+	// manifest order.
 	//
-	// Records first, stamp last, per member — the safety argument is in the doc
-	// comment and must not be reversed. The prune is unconditional: DeleteStamp
-	// and an empty ReplaceMemberEdges are both no-ops when there is nothing to
-	// remove, so no "does it have rows?" pre-check buys anything, and a second
-	// pass over an already-pruned member deletes nothing.
+	// Computed once and held, not re-derived at step 11a. The two halves of the
+	// prune must walk the same ids in the same order, and a second derivation
+	// of the same set is a second enforcement site that can drift from the
+	// first.
+	avail := make(map[string]bool, len(available))
+	for _, m := range available {
+		avail[m.ID] = true
+	}
+	var prune []string
+	for _, dm := range ws.Members {
+		if !avail[dm.ID] {
+			prune = append(prune, dm.ID)
+		}
+	}
+
+	// 9a. Half one of the prune: the RECORDS, before the clear loop and
+	// therefore before any of step 10's writes. The stamps are half two and
+	// wait until step 11a, after everything that can fail has succeeded — the
+	// safety argument is in the doc comment and must not be collapsed back into
+	// one loop.
+	//
+	// The prune is unconditional: an empty ReplaceMemberEdges is a no-op when
+	// there is nothing to remove, so no "does it have rows?" pre-check buys
+	// anything, and a second pass over an already-pruned member deletes nothing.
 	//
 	// The loop cannot clobber itself the way a per-member derive-and-write loop
 	// would (see above): it passes empty inputs, so there is no write for a
@@ -290,21 +356,9 @@ func Resolve(wsRoot string) (Stats, error) {
 	// here; or no longer declared at all — in which case ReplaceRegistry's
 	// orphan prune already deleted it at step 5, on EITHER column. Do not
 	// "fix" this by widening the delete.
-	avail := make(map[string]bool, len(available))
-	for _, m := range available {
-		avail[m.ID] = true
-	}
-	for _, dm := range ws.Members {
-		if avail[dm.ID] {
-			continue
-		}
-		// Records first ...
-		if err := ov.ReplaceMemberEdges(dm.ID, nil, nil, nil); err != nil {
-			return stats, fmt.Errorf("wsresolve: pruning member %q: %w", dm.ID, err)
-		}
-		// ... stamp last.
-		if err := ov.DeleteStamp(dm.ID); err != nil {
-			return stats, fmt.Errorf("wsresolve: pruning member %q: %w", dm.ID, err)
+	for _, id := range prune {
+		if err := ov.ReplaceMemberEdges(id, nil, nil, nil); err != nil {
+			return stats, fmt.Errorf("wsresolve: pruning member %q: %w", id, err)
 		}
 	}
 
@@ -327,9 +381,10 @@ func Resolve(wsRoot string) (Stats, error) {
 		return stats, fmt.Errorf("wsresolve: %w", err)
 	}
 
-	// 11. Stamps last: a pass that dies before here leaves the affected members
-	// stampless, which is exactly what makes a later staleness gate re-resolve
-	// them.
+	// 11. Stamps last: a pass that dies before here leaves a member being
+	// resolved for the FIRST time stampless, which is what makes a later
+	// staleness gate re-resolve it. See "# Crash safety" for what this does and
+	// does not cover on a re-resolution.
 	for _, m := range available {
 		root, err := m.Store.MemberMerkleRoot()
 		if err != nil {
@@ -337,6 +392,21 @@ func Resolve(wsRoot string) (Stats, error) {
 		}
 		if err := ov.PutStamp(m.ID, root); err != nil {
 			return stats, fmt.Errorf("wsresolve: member %q: %w", m.ID, err)
+		}
+	}
+
+	// 11a. Half two of the prune: the STAMPS, walking the same `prune` slice in
+	// the same manifest order as step 9a, and only now that every step that can
+	// return an error has returned none. Until this loop runs, each pruned
+	// member's surviving stamp contradicts its already-deleted rows, and that
+	// contradiction is the trigger wsfresh.Report.StaleStamped fires on — the
+	// only trigger a half-finished re-resolution has left. Deleting it earlier
+	// would be tidier and would make a failure at step 10 or 11 permanently
+	// invisible. DeleteStamp is a no-op on an unstamped member, so the loop is
+	// idempotent and needs no pre-check.
+	for _, id := range prune {
+		if err := ov.DeleteStamp(id); err != nil {
+			return stats, fmt.Errorf("wsresolve: pruning member %q: %w", id, err)
 		}
 	}
 
