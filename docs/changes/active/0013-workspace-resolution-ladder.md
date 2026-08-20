@@ -105,6 +105,18 @@ belongs to §4.2.
 - The evidence gate run (§5.x).
 - Member discovery changes (change 0010).
 
+## Owner sign-off (2026-08-19, merge gate)
+
+The D7 merge-gate conflict is resolved by owner ruling: a second dated
+amendment (on this change's PR branch, commit a75046d) narrows the
+2026-08-18 amendment's explicit block list to its own criterion — the
+hard-block binds where a verb gets wired to workspace/overlay data
+(§3.4's `workspace-status`, §4.x surfaces/goldens), not to unwired
+engine internals. The §3.3 ladder ships unwired and may merge. All D7
+bars and the kill condition are untouched. The `MemberMerkleRoot` fold
+was checked at the gate: deterministic, documented opaque/equality-only,
+canonical for §3.4 reuse.
+
 ## Reconcile log
 
 <!-- Appended by docket-implement-next's reconcile pass: dated entries of what changed. -->
