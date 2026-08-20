@@ -33,7 +33,7 @@ type CrossEdge struct {
 type Ambiguity struct {
 	Src     SymKey
 	RefName string
-	// RefNS is D3's namespace hint: empty for a rung-2 bare name.
+	// RefNS is the namespace hint as recorded — empty when the reference carried none.
 	RefNS      string
 	Kind       string
 	Line       int

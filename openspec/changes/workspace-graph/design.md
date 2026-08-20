@@ -278,3 +278,22 @@ are all query-behavior work and SHALL NOT merge until the
 pre-registered D7 gate passes. This amendment narrows *when* the gate
 binds; it does not weaken any bar, and it does not touch the kill
 condition.
+
+### 2026-08-19: D7 merge-gate interpretation — the block binds at wiring
+
+The 2026-08-18 amendment's explicit block list named the resolution
+ladder, but the list was written broader than the amendment's own
+criterion ("work that can change the answer any verb returns"). Owner
+ruling 2026-08-19: the criterion is the load-bearing rule, and the
+hard-block binds where a verb gets **wired** to workspace/overlay data
+— `workspace-status` (§3.4), the union-graph query paths, CLI/MCP
+root-kind wiring, and the workspace goldens (§4.x). Those SHALL NOT
+merge before the pre-registered D7 gate passes.
+
+Unwired engine internals — the §3.3 ladder, whose only entry point
+(`internal/wsresolve.Resolve`) has no non-test caller and whose output
+no verb reads — change no answer any verb returns and may merge ahead,
+on the same rationale that admitted §3.1 and §3.2. This narrows *where*
+the gate binds; every D7 bar and the kill condition are untouched. If
+the gate fails, unwired engine code is removed without any shipped
+behavior to walk back.
