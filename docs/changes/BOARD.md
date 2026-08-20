@@ -1,8 +1,8 @@
 # Backlog
 
-**13 changes** — 🟡 4 proposed · ✅ 9 done
+**14 changes** — 🟡 5 proposed · ✅ 9 done
 
-## 🟡 Proposed (4)
+## 🟡 Proposed (5)
 
 | # | Title | Priority | Type | Readiness |
 |---|-------|----------|------|-----------|
@@ -10,6 +10,7 @@
 | [0007](active/0007-session-stable-query-cache.md) | Session-stable query cache keyed by index version | `medium` | `perf` | needs-brainstorm |
 | [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-brainstorm |
 | [0010](active/0010-workspace-bench-corpus-monorepo-growth.md) | Grow the workspace bench corpus — monorepo declaration coverage in every supported language | `medium` | `chore` | needs-brainstorm |
+| [0014](active/0014-workspace-freshen-internals.md) | Workspace freshen internals — per-member freshen + stamp-gated incident-edge re-resolution | `high` | `feat` | needs-brainstorm |
 
 ```mermaid
 graph TD
@@ -17,6 +18,9 @@ graph TD
   0007
   0008
   0010
+  0013 --> 0014
+  0013:::done
+  classDef done fill:#d3f9d8;
 ```
 
 <details><summary>✅ Archive — done (9)</summary>
