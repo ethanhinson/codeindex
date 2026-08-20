@@ -83,22 +83,46 @@ func insertMembers(tx *sql.Tx, members []config.Member) error {
 	}
 	defer insDep.Close()
 
-	for i, m := range members {
+	// Insert exactly what NormalizeMembers predicts: it is the single
+	// implementation of the stored form, and this is one of its two callers.
+	for i, m := range NormalizeMembers(members) {
 		if _, err := insMember.Exec(m.ID, m.Root, i); err != nil {
 			return fmt.Errorf("overlay: member %q: %w", m.ID, err)
 		}
-		for j, ns := range dedupe(m.Namespaces) {
+		for j, ns := range m.Namespaces {
 			if _, err := insNS.Exec(m.ID, ns, j); err != nil {
 				return fmt.Errorf("overlay: member %q namespace %q: %w", m.ID, ns, err)
 			}
 		}
-		for j, dep := range dedupe(m.Deps) {
+		for j, dep := range m.Deps {
 			if _, err := insDep.Exec(m.ID, dep, j); err != nil {
 				return fmt.Errorf("overlay: member %q dep %q: %w", m.ID, dep, err)
 			}
 		}
 	}
 	return nil
+}
+
+// NormalizeMembers returns members in the exact form ReplaceRegistry stores
+// them, and therefore in the exact form (*Store).Registry will return them:
+// ID and Root untouched, member order preserved, and Namespaces and Deps
+// de-duplicated in first-occurrence order — nil when the result is empty,
+// which is how an empty-but-non-nil manifest slice comes back.
+//
+// It exists so a drift comparison against Registry has a single source of
+// truth: normalize the *manifest* side with this function before comparing,
+// or a manifest carrying a legal duplicate namespace or an explicit
+// "deps": [] would compare unequal forever.
+//
+// The input is never mutated: every returned slice is freshly allocated.
+func NormalizeMembers(members []config.Member) []config.Member {
+	out := make([]config.Member, len(members))
+	for i, m := range members {
+		out[i] = m
+		out[i].Namespaces = dedupe(m.Namespaces)
+		out[i].Deps = dedupe(m.Deps)
+	}
+	return out
 }
 
 // dedupe returns in's distinct values in first-occurrence order.
