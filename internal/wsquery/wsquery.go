@@ -104,7 +104,15 @@ func RefuseWorkspaceRoot(verb, root string) error {
 		verb, root, reason, example, strings.Join(ids, ", "))
 }
 
-// Callers routes to query.Callers on a repo root.
+// workspaceSession opens the freshness context every RootWorkspace branch runs
+// against. It is the FIRST act of each such branch: the manifest is loaded
+// explicitly (a manifest fault is a configuration error, not a staleness
+// condition) and the whole-workspace freshen runs before anything is read.
+func workspaceSession(root string) (*session, error) { return newSession(root) }
+
+// Callers answers definitions + callers of an anchor. On a workspace root the
+// answer is the UNION of the anchor's own member's callers and the overlay's
+// inbound cross-edges, resolved through each source member's own database.
 func Callers(root, anchor string, limit int) (*query.CallersAnswer, error) {
 	kind, err := RootKind(root)
 	if err != nil {
@@ -113,10 +121,15 @@ func Callers(root, anchor string, limit int) (*query.CallersAnswer, error) {
 	if kind == engine.RootRepo {
 		return query.Callers(root, anchor, limit)
 	}
-	return nil, ErrWorkspaceNotWired
+	s, err := workspaceSession(root)
+	if err != nil {
+		return nil, err
+	}
+	return callersWorkspace(s, anchor, limit)
 }
 
-// CallersText routes to query.CallersText on a repo root.
+// CallersText renders Callers, with the workspace coverage clause appended as a
+// trailing line on a workspace root.
 func CallersText(root, anchor string, limit int) (string, error) {
 	kind, err := RootKind(root)
 	if err != nil {
@@ -125,10 +138,19 @@ func CallersText(root, anchor string, limit int) (string, error) {
 	if kind == engine.RootRepo {
 		return query.CallersText(root, anchor, limit)
 	}
-	return "", ErrWorkspaceNotWired
+	s, err := workspaceSession(root)
+	if err != nil {
+		return "", err
+	}
+	a, err := callersWorkspace(s, anchor, limit)
+	if err != nil {
+		return "", err
+	}
+	return WithClause(a, s.clause("callers")).Text(), nil
 }
 
-// Callees routes to query.Callees on a repo root.
+// Callees answers what the anchor calls: the anchor member's own callees union
+// the overlay's outbound call cross-edges.
 func Callees(root, anchor string, limit int) (*query.CalleesAnswer, error) {
 	kind, err := RootKind(root)
 	if err != nil {
@@ -137,10 +159,14 @@ func Callees(root, anchor string, limit int) (*query.CalleesAnswer, error) {
 	if kind == engine.RootRepo {
 		return query.Callees(root, anchor, limit)
 	}
-	return nil, ErrWorkspaceNotWired
+	s, err := workspaceSession(root)
+	if err != nil {
+		return nil, err
+	}
+	return calleesWorkspace(s, anchor, limit)
 }
 
-// CalleesText routes to query.CalleesText on a repo root.
+// CalleesText renders Callees, with the coverage clause on a workspace root.
 func CalleesText(root, anchor string, limit int) (string, error) {
 	kind, err := RootKind(root)
 	if err != nil {
@@ -149,10 +175,23 @@ func CalleesText(root, anchor string, limit int) (string, error) {
 	if kind == engine.RootRepo {
 		return query.CalleesText(root, anchor, limit)
 	}
-	return "", ErrWorkspaceNotWired
+	s, err := workspaceSession(root)
+	if err != nil {
+		return "", err
+	}
+	a, err := calleesWorkspace(s, anchor, limit)
+	if err != nil {
+		return "", err
+	}
+	return WithClause(a, s.clause("callees")).Text(), nil
 }
 
-// Impact routes to query.Impact on a repo root.
+// Impact is the depth-1 blast radius. On a workspace root the depth-1
+// neighbourhood includes cross-edges with no flag — and stays depth-1: no
+// transitive closure the single-repo path lacks (§3.3).
+//
+// The clause rides inside Coverage, which is where impact's coverage sentence
+// already lives, so the answer needs no second surface.
 func Impact(root, anchor string, limit int) (*query.ImpactAnswer, error) {
 	kind, err := RootKind(root)
 	if err != nil {
@@ -161,10 +200,19 @@ func Impact(root, anchor string, limit int) (*query.ImpactAnswer, error) {
 	if kind == engine.RootRepo {
 		return query.Impact(root, anchor, limit)
 	}
-	return nil, ErrWorkspaceNotWired
+	s, err := workspaceSession(root)
+	if err != nil {
+		return nil, err
+	}
+	a, err := impactWorkspace(s, anchor, limit)
+	if err != nil {
+		return nil, err
+	}
+	WithImpactClause(a, s.clause("impact"))
+	return a, nil
 }
 
-// ImpactText routes to query.ImpactText on a repo root.
+// ImpactText renders Impact.
 func ImpactText(root, anchor string, limit int) (string, error) {
 	kind, err := RootKind(root)
 	if err != nil {
@@ -173,10 +221,20 @@ func ImpactText(root, anchor string, limit int) (string, error) {
 	if kind == engine.RootRepo {
 		return query.ImpactText(root, anchor, limit)
 	}
-	return "", ErrWorkspaceNotWired
+	s, err := workspaceSession(root)
+	if err != nil {
+		return "", err
+	}
+	a, err := impactWorkspace(s, anchor, limit)
+	if err != nil {
+		return "", err
+	}
+	return WithImpactClause(a, s.clause("impact")).Text(), nil
 }
 
-// Nav routes to query.Nav on a repo root.
+// Nav is the one-shot navigation union. Its callers component unions across
+// members exactly as Callers does; its name-search and grep components fan out
+// per member and concatenate.
 func Nav(root, anchor string, limit int) (*query.NavAnswer, error) {
 	kind, err := RootKind(root)
 	if err != nil {
@@ -185,10 +243,14 @@ func Nav(root, anchor string, limit int) (*query.NavAnswer, error) {
 	if kind == engine.RootRepo {
 		return query.Nav(root, anchor, limit)
 	}
-	return nil, ErrWorkspaceNotWired
+	s, err := workspaceSession(root)
+	if err != nil {
+		return nil, err
+	}
+	return navWorkspace(s, anchor, limit)
 }
 
-// NavText routes to query.NavText on a repo root.
+// NavText renders Nav, with the coverage clause on a workspace root.
 func NavText(root, anchor string, limit int) (string, error) {
 	kind, err := RootKind(root)
 	if err != nil {
@@ -197,7 +259,15 @@ func NavText(root, anchor string, limit int) (string, error) {
 	if kind == engine.RootRepo {
 		return query.NavText(root, anchor, limit)
 	}
-	return "", ErrWorkspaceNotWired
+	s, err := workspaceSession(root)
+	if err != nil {
+		return "", err
+	}
+	a, err := navWorkspace(s, anchor, limit)
+	if err != nil {
+		return "", err
+	}
+	return WithClause(a, s.clause("nav")).Text(), nil
 }
 
 // Find routes to query.Find on a repo root.
@@ -248,7 +318,13 @@ func GrepText(root, pattern string, limit int, word bool) (string, error) {
 	return "", ErrWorkspaceNotWired
 }
 
-// Dependents routes to query.Dependents on a repo root.
+// Dependents answers who imports/extends/implements the anchor.
+//
+// It is a UNION verb by force, not by choice: ImpactAnswer embeds the
+// dependents block and impact crosses member boundaries by owner ruling, so a
+// per-repo dependents here would make `codeindex dependents` and the dependents
+// block of `codeindex impact` report different numbers for the same anchor from
+// the same root — one invariant, two sites, guaranteed drift.
 func Dependents(root, anchor string, limit int) (*query.DependentsAnswer, error) {
 	kind, err := RootKind(root)
 	if err != nil {
@@ -257,10 +333,15 @@ func Dependents(root, anchor string, limit int) (*query.DependentsAnswer, error)
 	if kind == engine.RootRepo {
 		return query.Dependents(root, anchor, limit)
 	}
-	return nil, ErrWorkspaceNotWired
+	s, err := workspaceSession(root)
+	if err != nil {
+		return nil, err
+	}
+	return dependentsWorkspace(s, anchor, limit)
 }
 
-// DependentsText routes to query.DependentsText on a repo root.
+// DependentsText renders Dependents, with the coverage clause on a workspace
+// root.
 func DependentsText(root, anchor string, limit int) (string, error) {
 	kind, err := RootKind(root)
 	if err != nil {
@@ -269,10 +350,20 @@ func DependentsText(root, anchor string, limit int) (string, error) {
 	if kind == engine.RootRepo {
 		return query.DependentsText(root, anchor, limit)
 	}
-	return "", ErrWorkspaceNotWired
+	s, err := workspaceSession(root)
+	if err != nil {
+		return "", err
+	}
+	a, err := dependentsWorkspace(s, anchor, limit)
+	if err != nil {
+		return "", err
+	}
+	return WithClause(a, s.clause("dependents")).Text(), nil
 }
 
-// Deps routes to query.Deps on a repo root.
+// Deps answers what the anchor depends on. It is unioned for directional
+// symmetry with Dependents — the same edge table read in the other direction
+// (assumption 1a, the discretionary half of the pair).
 func Deps(root, anchor string, limit int) (*query.DepsAnswer, error) {
 	kind, err := RootKind(root)
 	if err != nil {
@@ -281,10 +372,14 @@ func Deps(root, anchor string, limit int) (*query.DepsAnswer, error) {
 	if kind == engine.RootRepo {
 		return query.Deps(root, anchor, limit)
 	}
-	return nil, ErrWorkspaceNotWired
+	s, err := workspaceSession(root)
+	if err != nil {
+		return nil, err
+	}
+	return depsWorkspace(s, anchor, limit)
 }
 
-// DepsText routes to query.DepsText on a repo root.
+// DepsText renders Deps, with the coverage clause on a workspace root.
 func DepsText(root, anchor string, limit int) (string, error) {
 	kind, err := RootKind(root)
 	if err != nil {
@@ -293,7 +388,15 @@ func DepsText(root, anchor string, limit int) (string, error) {
 	if kind == engine.RootRepo {
 		return query.DepsText(root, anchor, limit)
 	}
-	return "", ErrWorkspaceNotWired
+	s, err := workspaceSession(root)
+	if err != nil {
+		return "", err
+	}
+	a, err := depsWorkspace(s, anchor, limit)
+	if err != nil {
+		return "", err
+	}
+	return WithClause(a, s.clause("deps")).Text(), nil
 }
 
 // Enclosing routes to query.Enclosing on a repo root. There is no
