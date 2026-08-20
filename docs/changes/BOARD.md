@@ -1,12 +1,6 @@
 # Backlog
 
-**15 changes** — 🟢 1 in progress · 🟡 4 proposed · ✅ 10 done
-
-## 🟢 In progress (1)
-
-| # | Title | Priority | Type | Spec | Branch |
-|---|-------|----------|------|------|--------|
-| [0015](active/0015-wsresolve-stamp-pruning.md) | Stamp pruning for unavailable members — close the stale-edges-after-unavailability hole | `high` | `fix` | [spec](../superpowers/specs/2026-08-20-wsresolve-stamp-pruning-design.md) | `feat/wsresolve-stamp-pruning` |
+**15 changes** — 🟡 4 proposed · 🔵 1 implemented · ✅ 10 done
 
 ## 🟡 Proposed (4)
 
@@ -16,6 +10,12 @@
 | [0007](active/0007-session-stable-query-cache.md) | Session-stable query cache keyed by index version | `medium` | `perf` | needs-brainstorm |
 | [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-brainstorm |
 | [0010](active/0010-workspace-bench-corpus-monorepo-growth.md) | Grow the workspace bench corpus — monorepo declaration coverage in every supported language | `medium` | `chore` | needs-brainstorm |
+
+## 🔵 Implemented — awaiting merge (1)
+
+| # | Title | Priority | Type | PR | Readiness |
+|---|-------|----------|------|----|-----------|
+| [0015](active/0015-wsresolve-stamp-pruning.md) | Stamp pruning for unavailable members — close the stale-edges-after-unavailability hole | `high` | `fix` | [#13](https://github.com/ethanhinson/codeindex/pull/13) |  |
 
 ```mermaid
 graph TD
