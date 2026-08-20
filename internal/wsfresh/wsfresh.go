@@ -81,8 +81,9 @@ type Report struct {
 	MembersUnindexed int
 
 	// MembersMissing lists the ids of members the manifest DECLARES but which
-	// are absent from disk, in manifest order. Disjoint from the
-	// MembersUnindexed count; together the two make up the resolver's
+	// are absent from disk, or present but not a directory — as
+	// config.Workspace.Resolve defines it — in manifest order. Disjoint from
+	// the MembersUnindexed count; together the two make up the resolver's
 	// Stats.MembersUnavailable exactly.
 	MembersMissing []string
 
