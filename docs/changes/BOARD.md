@@ -10,7 +10,7 @@
 | [0007](active/0007-session-stable-query-cache.md) | Session-stable query cache keyed by index version | `medium` | `perf` | needs-brainstorm |
 | [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-brainstorm |
 | [0010](active/0010-workspace-bench-corpus-monorepo-growth.md) | Grow the workspace bench corpus — monorepo declaration coverage in every supported language | `medium` | `chore` | needs-brainstorm |
-| [0014](active/0014-workspace-freshen-internals.md) | Workspace freshen internals — per-member freshen + stamp-gated incident-edge re-resolution | `high` | `feat` | needs-brainstorm |
+| [0014](active/0014-workspace-freshen-internals.md) | Workspace freshen internals — per-member freshen + stamp-gated re-resolution | `high` | `feat` | build-ready |
 
 ```mermaid
 graph TD
