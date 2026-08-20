@@ -15,6 +15,7 @@ Immutable, numbered record of *why*. ADRs are never archived or rewritten; once 
 - [ADR-0009](0009-graph-api-schema-version-contract.md) — Versioned symbol-graph JSON API contract for `serve` (Accepted) ← change #3 · relates to ADR-0007
 - [ADR-0010](0010-ambiguous-subset-scored-against-authored-expectation.md) — Ambiguous-subset accuracy is scored against the authored expectation, not the tool's self-report (Accepted) ← change #5
 - [ADR-0011](0011-capability-tests-assert-on-degradation-disclosure.md) — Capability-dependent tests assert against the product's own degradation disclosure (Accepted) ← change #11
+- [ADR-0012](0012-workspace-freshness-re-resolves-whole-workspace.md) — Workspace freshness re-resolves the whole workspace, not the incident edge set (Accepted) ← change #14 · relates to ADR-0005, ADR-0006
 
 ## Superseded / Reversed
 
