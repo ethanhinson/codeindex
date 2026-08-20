@@ -17,10 +17,10 @@ results:
 trivial: false
 auto_groomable: true
 branch: feat/wsresolve-stamp-pruning
-claimed_at: 2026-08-20T04:26:24Z
+claimed_at: 2026-08-20T04:31:00Z
 pr:
 blocked_by:
-reconciled: false
+reconciled: true
 ---
 
 ## Artifacts
@@ -88,3 +88,41 @@ ADR-0012 stands unamended; no new ADR.
 ## Reconcile log
 
 <!-- Appended by docket-implement-next's reconcile pass: dated entries of what changed. -->
+
+### 2026-08-20
+
+Reconciled against `origin/main` @ `16b2f37` — which is exactly the 0014
+merge commit the spec's assumption 10 names, so no drift has accumulated
+since the design was groomed. Verified rather than assumed:
+
+- `depends_on: [14]` satisfied — 0014 archived `done`
+  (`docs/changes/archive/2026-08-20-0014-workspace-freshen-internals.md`).
+- All three target packages present and unchanged since the spec was
+  written: `internal/overlay` (`stamps.go` carries `PutStamp`/`Stamp`/
+  `Stamps` and no `DeleteStamp`, so §1 is genuinely additive),
+  `internal/wsresolve`, `internal/wsfresh`.
+- All six doc/test sites §4 says must move together still carry the old
+  invariant verbatim: `wsresolve.Resolve`'s "gets no stamp, and its
+  overlay rows are not cleared" and "Rows joining two unavailable members
+  are never touched"; `Stats.MembersUnavailable`'s field comment;
+  **both** sections of `wsfresh.Freshen`'s doc comment (`# What a clean
+  pass does and does not entail`'s "one known exception" and
+  `# Known limitation`, including the "the honest fix is stamp pruning
+  inside wsresolve.Resolve" forward reference this change discharges);
+  the inline step-8 gate comment's "do not close it here"; and the two
+  tests.
+- Related changes 13 and 14 are both archived `done`; no in-flight change
+  touches these packages, so no scope needs dropping.
+
+No scope change, no new constraints folded in, no ADR. Spec stands as
+groomed; the 11 assumptions remain binding, including the two the spec
+itself flags as most worth a second look — assumption 6 (a separate
+`StaleStamped` field rather than widening `Dirty`, forced by three live
+assertions that an unavailable member never appears in `Dirty`) and
+assumption 7 (knowingly reversing `TestMissingMembersLeftAlone`'s
+orphan-row-survives assertion on the authority of the human-authored
+stub, not the sibling test's licence).
+
+Auto-capture is disabled for this repo (`AUTO_CAPTURE_ENABLED=false`), so
+no stubs were minted; no follow-up work surfaced during reconcile beyond
+what the spec's *Out of scope* already records.
