@@ -15,7 +15,7 @@ spec:
 plan:
 results:
 trivial: false
-auto_groomable: true
+auto_groomable: false
 branch:
 pr:
 blocked_by:
@@ -25,6 +25,9 @@ reconciled: false
 ## Artifacts
 
 <!-- docket:artifacts:start (generated — do not hand-edit) -->
+| Artifact | Link |
+|---|---|
+| ADRs | [ADR-0012](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0012-workspace-freshness-re-resolves-whole-workspace.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
@@ -95,6 +98,68 @@ the run is an owner-attended step, not part of the autonomous build.
   language expansion, re-ranking (frozen non-goals).
 - Scoped incident re-resolution (ADR-0012 stands; a D7-measured
   follow-up if latency demands).
+
+## Auto-groom blocked
+
+### 2026-08-20
+
+`docket-auto-groom` abstained. **The blocker is the adversarial gate, not the
+design.** A full designer pass ran and produced a complete draft spec; the
+`docket-auto-groom-critic` dispatch was issued twice-over the same draft (one
+dispatch plus one collect attempt against the running agent) and **returned no
+legible verdict within the run's window**. The host harness resolved the
+dispatch asynchronously and exposed no mechanism that makes the parent block on
+the child's return, so the protocol's fresh foreground re-dispatch leg could
+only have repeated the first. Per the convention's *Dispatch-capability
+resolution*, that is **Tier B**: the groom abstains rather than self-review,
+because the agent that drafted a spec cannot be its own adversarial gate. The
+draft was **discarded uncommitted** — emitting it would mark this change
+build-ready, and an ungated spec on the largest, merge-gated slice of the
+campaign is exactly what the gate exists to prevent.
+
+**What a human should supply.** Nothing about the design is known to be
+missing — re-arm by running `docket-groom-next` interactively (you are the
+gate), or by re-running `docket-auto-groom` in a harness where the critic
+dispatch returns synchronously. Either way, delete this section on re-arm.
+
+**Designer-pass findings, ungated — verify before trusting any of them.** These
+were established by reading `origin/main` at 2c8b9c3 and are recorded so the
+work is not lost; none has survived adversarial review:
+
+1. **An import cycle forces a new package.** `internal/wsfresh` already imports
+   `internal/query` (`internal/wsfresh/freshen.go:12` — it calls `query.Fresh`
+   per member), so the union-graph layer cannot live in `internal/query`. A new
+   `internal/wsquery` (importing `query`, `wsfresh`, `overlay`, `config`,
+   `graph`, `engine`) is the natural home, with `DetectRootKind` routing and the
+   `RootRepo` branch tail-calling `internal/query` verbatim so §4.2's
+   byte-identical bar is structural rather than measured.
+2. **The `dep_suppressions` filter needs no new `internal/graph` reader.**
+   `graph.(*Store).TierOneEdges()` (`internal/graph/wsreaders.go:92`) already
+   returns the exact five-part call-site tuple plus the resolved target's
+   `DstNamespace`, which is precisely the key the same-call-site condition in
+   `internal/wsresolve/wsresolve.go:19-29` is stated against.
+3. **MCP result "schemas" are text.** Every `mcpserver` tool returns
+   `TextContent` carrying `query.*Text()` byte-for-byte
+   (`internal/mcpserver/mcpserver.go:37-232`), so "`repo` in result schemas"
+   can only mean the rendered text plus the CLI `--json` shape — a structured
+   MCP result would be a new surface, not wiring. Worth an owner ruling.
+4. **`impact` is depth-1 today**, not a transitive closure
+   (`internal/query/answers.go:320`), so D4's "crosses member boundaries by
+   default" should mean the depth-1 neighbourhood includes cross-edges with no
+   flag — not a new closure the single-repo verb lacks.
+5. **Two decisions look like the ones most needing you.** (a) D2's "members
+   freshen lazily (only those consulted)" appears unreachable without the
+   incident-scoped re-resolution ADR-0012 rejects by name, which points at
+   whole-workspace freshen on every query with latency as a D7-measured
+   residual. (b) D5's "every verb's root accepts a workspace root" has no
+   frozen answer for the non-query verbs (`build`, `refresh`, `export`,
+   `search`, `serve`, …); erroring honestly rather than silently creating a
+   stray `graph.db` at the workspace root was the draft's default, but it is a
+   scope call.
+
+**Recommendation: neither kill nor defer.** The change is well-formed, its
+dependency is satisfied, and the campaign's engine work is merged and waiting on
+exactly this wiring.
 
 ## Reconcile log
 
