@@ -88,6 +88,14 @@ ADR-0012 stands unamended; no new ADR.
   mismatch" beyond what `graph.OpenExisting` already reports — both are
   unavailable; finer states are §4's coverage-clause vocabulary if ever.
 
+## Owner sign-off (2026-08-20, merge gate)
+
+The build's departure from spec assumption 4 is accepted: the prune is
+split 9a (records) + 11a (stamps, after all writes succeed), so a
+mid-pass error leaves the stale stamp armed as the `StaleStamped`
+trigger instead of a clean-but-empty overlay. Records-first/stamp-last
+at pass scale is the ratified semantic.
+
 ## Reconcile log
 
 <!-- Appended by docket-implement-next's reconcile pass: dated entries of what changed. -->
