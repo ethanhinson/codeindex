@@ -31,6 +31,48 @@ import (
 //  8. gate: nothing dirty and no drift ⇒ return having written no overlay
 //     CONTENT at all; otherwise exactly one whole-pass wsresolve.Resolve.
 //
+// # What a clean pass does and does not entail
+//
+// Nothing dirty and no drift means every member that is STILL AVAILABLE folds
+// to the root its stamp records, and the manifest still matches the stored
+// registry. It does NOT mean the overlay's derived set is what a fresh
+// wsresolve.Resolve would produce right now. There is one known exception, and
+// it is the available -> unavailable transition.
+//
+// # Known limitation: a member that goes from available to unavailable
+//
+// Suppose lib is resolved and stamped, and app carries cross-edges into it.
+// Then lib's .codeindex/graph.db is deleted, or lib's root is removed, or a
+// repo-wide schema bump makes graph.OpenExisting reject it. On the next pass
+// lib is counted unindexed and skipped at 5a, so its stamp is never read — step
+// 6 only reads ov.Stamp for members that opened. The manifest is untouched, so
+// there is no registry drift either. The gate therefore holds, Report says
+// Resolved false with an empty Dirty, and the overlay goes on serving
+// app -> lib cross-edges into a member that no longer exists. A
+// wsresolve.Resolve run at that moment would clear app's rows and re-derive
+// them WITHOUT lib as a candidate, dropping those edges. Report has no field
+// that separates "clean" from "clean but still serving edges into a vanished
+// member"; callers must not read Resolved false as "the overlay equals a fresh
+// resolution".
+//
+// This is deliberate, not an oversight, and the repair is NOT local to this
+// function. The detection signal already exists and is deliberately unread: a
+// stamp present for a member that is now unavailable. Acting on it here —
+// reading the stamp of a member that failed 5a and marking it dirty — makes
+// that member dirty on EVERY subsequent pass, because wsresolve.Resolve never
+// PRUNES the stamp of a member it could not open. That is a perpetual
+// re-resolution of the whole workspace with no source ever changing: precisely
+// the non-convergence Assumption 10 and plan test 7
+// (TestFreshenConvergesWithABadVersionMember) exist to forbid.
+//
+// So the honest fix is stamp pruning inside wsresolve.Resolve — prune, or
+// otherwise retire, the stamp of a member that is unavailable at resolution
+// time — and only THEN may this pass treat a surviving stamp for an
+// unavailable member as dirty. wsresolve.Resolve is frozen by change 0013, so
+// that ordering is a hard prerequisite. A later slice (§4.1) must not build on
+// the stronger entailment claim, and must not "fix" this by reading the stamp
+// here alone.
+//
 // # The gate is the whole point
 //
 // A clean pass must write nothing derived — that is what makes a freshness
@@ -177,10 +219,17 @@ func Freshen(wsRoot string) (Report, error) {
 	}
 	drift := !reflect.DeepEqual(stored, overlay.NormalizeMembers(ws.Members))
 
-	// 8. The gate. Nothing dirty and no drift ⇒ the overlay's derived set is
-	// still entailed by what is on disk, so the pass ends having written no
-	// CONTENT at all: no registry row, no edge, no ambiguity, no suppression,
-	// no stamp. (The overlay was opened, which re-executes schema and PRAGMA
+	// 8. The gate. Nothing dirty and no drift ⇒ every member that is still
+	// AVAILABLE folds to its stamped root and the manifest still matches the
+	// stored registry, so the pass ends having written no CONTENT at all: no
+	// registry row, no edge, no ambiguity, no suppression, no stamp.
+	//
+	// That is strictly weaker than "the derived set is entailed by what is on
+	// disk", and deliberately so — see the known limitation in the doc comment:
+	// a member that was available and stamped and has since become unavailable
+	// is skipped before its stamp is ever read, so the gate holds while the
+	// overlay keeps serving cross-edges into it. Closing that needs stamp
+	// pruning in wsresolve.Resolve first; do not close it here. (The overlay was opened, which re-executes schema and PRAGMA
 	// user_version; the file is therefore never a no-write witness, and
 	// content is.)
 	//

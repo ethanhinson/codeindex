@@ -1,6 +1,7 @@
 package wsfresh
 
 import (
+	"os"
 	"testing"
 
 	"codeindex/internal/overlay"
@@ -234,6 +235,55 @@ func TestFreshenIsDeterministicAcrossRebuilds(t *testing.T) {
 		t.Fatalf("two rebuilds over identical content disagree.\nfirst:\n%s\n\nsecond:\n%s",
 			first, second)
 	}
+}
+
+// --- pinned KNOWN LIMITATION, not a guarantee -----------------------------
+
+// TestKNOWNLIMITATIONVanishedMemberLeavesStaleEdgesReportedClean pins CURRENT
+// behavior that is WRONG, so that a change to it is noticed rather than
+// silently made. Read nothing here as desirable and nothing here as a
+// contract: every assertion below describes a defect Freshen's doc comment
+// names as a known limitation.
+//
+// The transition is available -> unavailable. lib is resolved and stamped, and
+// app carries a cross-edge into it; then lib's own index is deleted. On the
+// next pass lib fails the availability predicate and is skipped BEFORE its
+// stamp is read, the manifest is untouched so there is no registry drift, and
+// the gate consequently holds. The overlay goes on serving app -> lib edges
+// into a member that no longer exists, and Report cannot say so.
+//
+// A wsresolve.Resolve at that moment would clear app's rows and re-derive them
+// without lib as a candidate, dropping the edge. If a future slice makes this
+// test fail by dropping the stale edge or by reporting Resolved true, that is
+// very likely an IMPROVEMENT — but only if wsresolve.Resolve now PRUNES the
+// stamp of an unavailable member. Without that pruning, "fixing" this turns
+// the member perpetually dirty and re-resolves the whole workspace on every
+// pass forever, which is what TestFreshenConvergesWithABadVersionMember
+// forbids. Delete or invert this test deliberately, with that check done.
+func TestKNOWNLIMITATIONVanishedMemberLeavesStaleEdgesReportedClean(t *testing.T) {
+	wsRoot := freshenedCrossEdgeWS(t)
+	assertCrossEdge(t, wsRoot, targetFile)
+
+	// lib was available and stamped; now it is not available at all.
+	if err := os.Remove(memberDB(wsRoot, "lib")); err != nil {
+		t.Fatalf("removing lib's index: %v", err)
+	}
+
+	rep, err := Freshen(wsRoot)
+	if err != nil {
+		t.Fatalf("Freshen: %v", err)
+	}
+	if rep.MembersUnindexed != 1 {
+		t.Fatalf("MembersUnindexed = %d, want 1 — lib was not actually made unavailable, "+
+			"so this test is not exercising the limitation", rep.MembersUnindexed)
+	}
+	if len(rep.Dirty) != 0 || rep.Resolved {
+		t.Fatalf("Dirty = %v, Resolved = %v — CURRENT behavior is the gate holding; if this "+
+			"changed on purpose, check wsresolve.Resolve prunes unavailable members' stamps "+
+			"before accepting it", rep.Dirty, rep.Resolved)
+	}
+	// The defect itself: the edge into the vanished member survives.
+	assertCrossEdge(t, wsRoot, targetFile)
 }
 
 // memberEdges reads one member's incident cross-edges.
