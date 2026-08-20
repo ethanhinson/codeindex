@@ -15,7 +15,7 @@ spec:
 plan:
 results:
 trivial: false
-auto_groomable: false
+auto_groomable: true
 branch:
 pr:
 blocked_by:
@@ -99,46 +99,24 @@ the run is an owner-attended step, not part of the autonomous build.
 - Scoped incident re-resolution (ADR-0012 stands; a D7-measured
   follow-up if latency demands).
 
-## Auto-groom blocked
+## Owner rulings (2026-08-20) + carried groom record
 
-### 2026-08-20
+The first groom pass abstained on two narrowings of the frozen D5
+surface paragraph; the owner ruled on both (full abstain record in git
+history):
 
-`docket-auto-groom` abstained. A full designer pass produced a complete draft
-spec; the `docket-auto-groom-critic` gate attacked it and returned
-**needs-human-context**, so no spec was emitted and the draft was discarded
-uncommitted — emission equals build-ready, and the autonomous builder must not
-build a design whose frozen-text fidelity is unresolved.
-
-**The blocker is a pattern across one frozen D5 paragraph, not any single
-defect.** The critic verified the design's hardest parts as sound — the
-import-cycle claim, the `dep_suppressions` formula end-to-end, the confidence
-reconciliation, the D6 coverage-clause shape, the depth-1 `impact` call, and the
-one-PR framing. What it would not let pass autonomously is that the draft
-**narrowed the same owner-frozen D5 sentence pair twice**:
-
-**Question 1 — what does "accepts a workspace root" mean per verb?** D5 says
-"every verb's `<repo-root>` argument accepts a workspace root." The draft turned
-that into *eight verbs error*. For `export`/`import`/`ingest`/`depmap`/`serve`
-that is obviously right. For `build`/`refresh`/`status` it is not: `refresh` on a
-workspace root **is** `wsfresh.Freshen`, already built and merged, and which the
-draft itself calls on every query entry; `status` already has `workspace-status`
-in this very change. The draft's own rejection ("a new capability nobody
-scoped") is therefore self-contradicting. Needed: a per-verb disposition —
-error vs per-member fan-out.
-
-**Question 2 — how does `repo` reach MCP consumers?** D5 froze "tool schemas
-gain the `repo` result field" and §4.3 froze "`repo` in result schemas". But
-every MCP tool returns `TextContent` only (`internal/mcpserver/mcpserver.go:42`;
-no `OutputSchema`, no `StructuredContent`), and the draft had `Repo` render
-nothing in `Text()`. Net effect: a workspace MCP consumer would get **no member
-provenance at all**. The draft stated this plainly rather than resolving it,
-which is candour, not discharge. A workspace-mode-only text tag would satisfy
-the obligation without a new tool or touching the plugin note — but that is the
-same frozen paragraph as Question 1, so it is your call.
-
-**What a human should supply.** Rulings on those two questions. Then re-arm:
-flip `auto_groomable` back to `true` and delete this section, or groom
-interactively with `docket-groom-next` (you are the gate).
+1. **Maintenance verbs on a workspace root — run per member.**
+   `build`/`refresh`/`status` fan out across members in manifest order
+   (`refresh` on a workspace root is `wsfresh.Freshen`, already merged;
+   `status` pairs with the new `workspace-status`). Data/serve verbs
+   (`export`/`import`/`ingest`/`depmap`/`serve`) error on a workspace
+   root with a clear per-repo message.
+2. **MCP `repo` provenance — workspace-mode-only text prefix.** Each
+   result line carries the member id (e.g. `api: services/api/u.go:42`)
+   in workspace mode only; single-repo text output stays byte-identical;
+   no new tools; the plugin note stays untouched. This discharges the
+   frozen "`repo` in result schemas" via the text surface the tools
+   actually have.
 
 **Verified designer-pass findings** — established against `origin/main` at
 2c8b9c3 and confirmed by the critic; safe to build on:
