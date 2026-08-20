@@ -2,11 +2,11 @@
 id: 13
 slug: workspace-resolution-ladder
 title: Cross-repo resolution ladder — import-mediated exact, bare-name inferred, ambiguity, suppression
-status: implemented
+status: done
 priority: high
 type: feat
 created: 2026-08-19
-updated: 2026-08-19
+updated: 2026-08-20
 depends_on: [12]
 related: [9, 12]
 discovered_from: []
@@ -19,7 +19,7 @@ auto_groomable: true
 branch: feat/workspace-resolution-ladder
 pr: https://github.com/ethanhinson/codeindex/pull/11
 blocked_by:
-claimed_at: 2026-08-19T23:05:00Z
+claimed_at: 
 reconciled: true
 ---
 
