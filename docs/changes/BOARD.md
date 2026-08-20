@@ -1,6 +1,6 @@
 # Backlog
 
-**15 changes** — 🟡 4 proposed · 🔵 1 implemented · ✅ 10 done
+**15 changes** — 🟡 4 proposed · ✅ 11 done
 
 ## 🟡 Proposed (4)
 
@@ -11,27 +11,19 @@
 | [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-brainstorm |
 | [0010](active/0010-workspace-bench-corpus-monorepo-growth.md) | Grow the workspace bench corpus — monorepo declaration coverage in every supported language | `medium` | `chore` | needs-brainstorm |
 
-## 🔵 Implemented — awaiting merge (1)
-
-| # | Title | Priority | Type | PR | Readiness |
-|---|-------|----------|------|----|-----------|
-| [0015](active/0015-wsresolve-stamp-pruning.md) | Stamp pruning for unavailable members — close the stale-edges-after-unavailability hole | `high` | `fix` | [#13](https://github.com/ethanhinson/codeindex/pull/13) |  |
-
 ```mermaid
 graph TD
   0006
   0007
   0008
   0010
-  0014 --> 0015
-  0014:::done
-  classDef done fill:#d3f9d8;
 ```
 
-<details><summary>✅ Archive — done (10)</summary>
+<details><summary>✅ Archive — done (11)</summary>
 
 | # | Title | Merged |
 |---|-------|--------|
+| [0015](archive/2026-08-20-0015-wsresolve-stamp-pruning.md) | Stamp pruning for unavailable members — close the stale-edges-after-unavailability hole | 2026-08-20 |
 | [0014](archive/2026-08-20-0014-workspace-freshen-internals.md) | Workspace freshen internals — per-member freshen + stamp-gated re-resolution | 2026-08-20 |
 | [0013](archive/2026-08-20-0013-workspace-resolution-ladder.md) | Cross-repo resolution ladder — import-mediated exact, bare-name inferred, ambiguity, suppression | 2026-08-20 |
 | [0012](archive/2026-08-19-0012-workspace-overlay-store.md) | Workspace overlay store — member registry, cross-edges by stable key, freshness stamps | 2026-08-19 |
