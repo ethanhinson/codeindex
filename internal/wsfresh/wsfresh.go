@@ -31,20 +31,42 @@ import (
 // MembersUnavailable folds together every declared member the resolver could
 // not use — absent from disk, unindexed, version-mismatched, unopenable.
 //
-// Report partitions the same declared members three ways instead of two:
-// MembersFreshened, MembersUnindexed, and len(MembersMissing). Its
-// MembersUnindexed is therefore a STRICTLY NARROWER count than the resolver's
-// MembersUnavailable, which is why it does not carry that name.
+// Report partitions the same declared members FOUR ways instead of two:
+// MembersFreshened, MembersFreshenFailed, MembersUnindexed, and
+// len(MembersMissing). The split is what keeps the two types readable against
+// each other, because the resolver's two-way partition cuts across it:
+//
+//	Stats.MembersUnavailable == MembersUnindexed + len(MembersMissing)
+//	Stats.MembersResolved    == MembersFreshened + MembersFreshenFailed
+//
+// Both identities hold only when Resolved is true (otherwise Stats was never
+// filled in) and assume the workspace on disk did not change between this
+// pass's member loop and the resolution it triggered. The point of the fourth
+// counter is that the second identity is TRUE: a member whose own freshen
+// failed still opened, so the resolver counts it RESOLVED, and folding it into
+// MembersUnindexed would have made both identities false at once.
 type Report struct {
 	// MembersFreshened counts the available members whose per-repo freshen
 	// actually ran — present on disk, index openable, freshen returned no
 	// error.
 	MembersFreshened int
 
+	// MembersFreshenFailed counts members that were AVAILABLE — present on
+	// disk, graph.OpenExisting succeeded — but whose per-repo query.Fresh
+	// returned an error, so the pass skipped them without folding or stamping.
+	//
+	// It is separate from MembersUnindexed on purpose. Such a member IS
+	// indexed; only the patch failed. The resolver's one availability
+	// predicate is graph.OpenExisting, which this member passes, so
+	// wsresolve counts it in Stats.MembersResolved, not in
+	// Stats.MembersUnavailable — see the identities in the type comment.
+	MembersFreshenFailed int
+
 	// MembersUnindexed counts members PRESENT on disk whose graph.OpenExisting
-	// failed (no index, schema-version mismatch, otherwise unopenable), plus
-	// those whose per-repo freshen failed. It EXCLUDES members that are absent
-	// from disk — those are in MembersMissing.
+	// failed: no index, schema-version mismatch, otherwise unopenable. It
+	// EXCLUDES members absent from disk (those are in MembersMissing) and
+	// members that opened but failed to freshen (those are in
+	// MembersFreshenFailed).
 	//
 	// It is deliberately NOT called MembersUnavailable. The name
 	// MembersUnavailable is already spoken for by wsresolve.Stats over a
@@ -54,13 +76,14 @@ type Report struct {
 	// under one name, which is the drift shape this repo has already paid for
 	// twice — the tell being two doc comments in the same area that explain
 	// opposite treatments of the same data and each read fine alone. Expect
-	// MembersUnindexed <= Stats.MembersUnavailable, never equality in general.
+	// MembersUnindexed <= Stats.MembersUnavailable, with equality exactly when
+	// MembersMissing is empty.
 	MembersUnindexed int
 
 	// MembersMissing lists the ids of members the manifest DECLARES but which
 	// are absent from disk, in manifest order. Disjoint from the
-	// MembersUnindexed count; both are inside the resolver's
-	// Stats.MembersUnavailable.
+	// MembersUnindexed count; together the two make up the resolver's
+	// Stats.MembersUnavailable exactly.
 	MembersMissing []string
 
 	// Dirty lists the ids of members whose overlay stamp was absent or had

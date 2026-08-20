@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"codeindex/internal/config"
+	"codeindex/internal/graph"
 	"codeindex/internal/query"
 	"codeindex/internal/wsresolve"
 )
@@ -423,4 +424,81 @@ func contains(s, sub string) bool {
 		}
 	}
 	return false
+}
+
+// --- the freshen-failure outcome ------------------------------------------
+
+// breakMemberFreshen makes query.Fresh fail on a member whose index opens
+// cleanly. engine.Patch's very first act is loadAssociations, which calls
+// config.Load, which fails on a malformed .codeindex.json — so Fresh returns an
+// error while the member's graph.db is untouched and graph.OpenExisting (the
+// ONE availability predicate, shared with wsresolve.Resolve) still succeeds.
+// That combination is the whole point: this member is available and indexed,
+// and only its patch failed.
+func breakMemberFreshen(t *testing.T, wsRoot, memberID string) {
+	t.Helper()
+	p := filepath.Join(memberDir(wsRoot, memberID), config.FileName)
+	if err := os.WriteFile(p, []byte("{ this is not json"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestFreshenFailureIsItsOwnOutcome: a member that OPENS but whose per-repo
+// freshen fails is counted in MembersFreshenFailed, NOT MembersUnindexed.
+//
+// This is Report's documented relation to wsresolve.Stats with teeth. The
+// resolver's availability predicate is graph.OpenExisting alone, so it counts
+// this member RESOLVED; folding it into MembersUnindexed would break both
+// stated identities at once — MembersUnindexed would exceed
+// Stats.MembersUnavailable (0 here), and MembersFreshened alone would no longer
+// account for Stats.MembersResolved.
+func TestFreshenFailureIsItsOwnOutcome(t *testing.T) {
+	wsRoot := crossEdgeWS(t, wsMember{
+		id: "brk", namespaces: []string{"example.com/brk"},
+		src: goSrc("brk", "BrkOne"),
+	})
+	breakMemberFreshen(t, wsRoot, "brk")
+
+	// Premise guard: the member is available, and only Fresh fails.
+	if _, err := query.Fresh(memberDir(wsRoot, "brk")); err == nil {
+		t.Fatal("query.Fresh succeeded on the broken member; the fixture forges nothing")
+	}
+	if st, err := graph.OpenExisting(memberDB(wsRoot, "brk")); err != nil {
+		t.Fatalf("graph.OpenExisting failed on the broken member (%v); it would be "+
+			"unindexed, not freshen-failed, and the test proves nothing", err)
+	} else {
+		st.Close()
+	}
+
+	rep, err := Freshen(wsRoot)
+	if err != nil {
+		t.Fatalf("Freshen: %v", err)
+	}
+	if rep.MembersFreshenFailed != 1 {
+		t.Errorf("MembersFreshenFailed = %d, want 1", rep.MembersFreshenFailed)
+	}
+	if rep.MembersUnindexed != 0 {
+		t.Errorf("MembersUnindexed = %d, want 0 — a member that opened is indexed; "+
+			"only its patch failed", rep.MembersUnindexed)
+	}
+	if rep.MembersFreshened != 2 {
+		t.Errorf("MembersFreshened = %d, want 2 (app and lib)", rep.MembersFreshened)
+	}
+	if len(rep.MembersMissing) != 0 {
+		t.Errorf("MembersMissing = %v, want empty", rep.MembersMissing)
+	}
+	if !rep.Resolved {
+		t.Fatal("first pass did not resolve; Stats is meaningless and the identities untestable")
+	}
+
+	// The two identities the Report type comment states.
+	if want := rep.MembersUnindexed + len(rep.MembersMissing); rep.Stats.MembersUnavailable != want {
+		t.Errorf("Stats.MembersUnavailable = %d, want %d (MembersUnindexed + len(MembersMissing))",
+			rep.Stats.MembersUnavailable, want)
+	}
+	if want := rep.MembersFreshened + rep.MembersFreshenFailed; rep.Stats.MembersResolved != want {
+		t.Errorf("Stats.MembersResolved = %d, want %d (MembersFreshened + MembersFreshenFailed) "+
+			"— the resolver counts a freshen-failed member as resolved",
+			rep.Stats.MembersResolved, want)
+	}
 }

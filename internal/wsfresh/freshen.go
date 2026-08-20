@@ -122,9 +122,13 @@ func Freshen(wsRoot string) (Report, error) {
 		// invites lock contention.
 		st.Close()
 
-		// 5c. The member's own freshen. A failure here is not fatal.
+		// 5c. The member's own freshen. A failure here is not fatal — and it
+		// is NOT the same outcome as 5a. This member opened, so the resolver's
+		// one availability predicate accepts it and wsresolve counts it
+		// resolved; counting it unindexed here would make Report's stated
+		// relation to wsresolve.Stats false in both directions at once.
 		if _, err := query.Fresh(rm.AbsRoot); err != nil {
-			rep.MembersUnindexed++
+			rep.MembersFreshenFailed++
 			continue
 		}
 		rep.MembersFreshened++
@@ -180,7 +184,8 @@ func Freshen(wsRoot string) (Report, error) {
 	// user_version; the file is therefore never a no-write witness, and
 	// content is.)
 	//
-	// An unindexed or missing member does not by itself make the pass dirty:
+	// An unindexed, freshen-failed or missing member does not by itself make
+	// the pass dirty:
 	// there is nothing new to derive from a member with no usable index, and
 	// treating it as dirty would re-resolve the workspace on every pass for as
 	// long as it stays unavailable.
