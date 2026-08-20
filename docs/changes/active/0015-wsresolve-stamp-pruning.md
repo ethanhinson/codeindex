@@ -11,7 +11,7 @@ depends_on: [14]
 related: [13, 14]
 discovered_from: [14]
 adrs: []
-spec:
+spec: docs/superpowers/specs/2026-08-20-wsresolve-stamp-pruning-design.md
 plan:
 results:
 trivial: false
@@ -25,6 +25,9 @@ reconciled: false
 ## Artifacts
 
 <!-- docket:artifacts:start (generated — do not hand-edit) -->
+| Artifact | Link |
+|---|---|
+| Spec | [2026-08-20-wsresolve-stamp-pruning-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-20-wsresolve-stamp-pruning-design.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
@@ -46,20 +49,32 @@ sequenced ahead of §4 via `depends_on`.
 
 ## What changes
 
-Inside `internal/wsresolve` (0013's API — this change may amend it,
-that is the point): when a resolve pass runs and a *declared* member is
-unavailable, prune — remove the member's overlay stamp and its incident
-cross-edge/ambiguity/suppression records (never-thin applies: records
-delete whole) — so the overlay never carries edges for members the
-resolver could not see, and a member's return to availability makes it
-dirty by the absent-stamp rule (0014's crash-healing signal) and
-re-derives cleanly.
+Three coordinated edits; the design is settled in the linked spec.
 
-`wsfresh.Freshen`'s gate semantics follow: an unavailable-but-stamped
-member becomes prune-then-clean rather than silently clean. Flip 0014's
-characterization test from pinning the hole to asserting the fix;
-convergence must hold (prune is idempotent — a second pass with the
-member still unavailable writes nothing).
+- `internal/overlay`: add `(*Store).DeleteStamp(memberID)` — the only
+  new overlay surface. Additive and idempotent.
+- `internal/wsresolve.Resolve`: signature stays frozen. A new step 9a,
+  before the clear/write phases, prunes every member in
+  `DECLARED ∖ available` (availability still the single
+  `graph.OpenExisting` predicate): records first via
+  `ReplaceMemberEdges(U, nil, nil, nil)` — never-thin unchanged — then
+  the stamp. Records-first/stamp-last is the same stamp-last rule 0013
+  records for writes, applied to deletes: a mid-prune crash must leave a
+  stamp that contradicts the rows, because that surviving stamp is the
+  only remaining trigger.
+- `internal/wsfresh.Freshen`: `Report` gains `StaleStamped` — declared
+  members unavailable this pass that still carry a stamp — and the gate
+  trips on it. Semantics become prune-then-clean: pass 1 resolves and
+  prunes, pass 2 onward is clean and writes nothing, and the member's
+  later return is caught by 0014's absent-stamp-is-dirty rule.
+
+0014's characterization test flips from pinning the hole to asserting
+the fix. `wsresolve.TestMissingMembersLeftAlone`'s seeded orphan row
+joining two unavailable members is knowingly reversed — that row is
+exactly the class of edge the prune exists to remove. Six doc/test sites
+carry the old invariant and all move together.
+
+ADR-0012 stands unamended; no new ADR.
 
 ## Out of scope
 
