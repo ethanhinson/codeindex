@@ -1,14 +1,36 @@
 // Package wsfresh is the workspace freshen pass: per-member freshen plus
 // stamp-gated re-resolution of the workspace overlay.
 //
-// # This package is UNWIRED
+// # Callers
 //
-// It has no verb and no non-test caller. That is deliberate, not an oversight.
-// The `workspace-status` verb is NOT here: it is gated at verb wiring by the
-// D7 second amendment of the workspace-graph design (owner ruling 2026-08-19),
-// and rides a later gated change together with openspec §4. Nothing in this
-// package may add a verb, a CLI flag, or an MCP surface; a caller arrives with
-// that later change or not at all.
+// Freshen is this package's only exported function, and it has exactly two
+// non-test callers:
+//
+//   - internal/wsquery.newSession — every workspace query entry point runs the
+//     whole-workspace pass before reading anything (§4.1/§4.2).
+//   - cmd/codeindex/main.go's dispatchRefresh — the `refresh` verb, when the
+//     root is a workspace root.
+//
+// The `workspace-status` verb is NOT here. It is wired in cmd/codeindex over
+// wsquery.WorkspaceStatus, which deliberately does NOT freshen: it reads state
+// only, so it stays usable on a workspace whose freshen is the thing being
+// diagnosed.
+//
+// # Freshen is the SINGLE ENFORCEMENT SITE — no surface may be added here
+//
+// Still prohibited, and now for a live reason rather than a sequencing one: no
+// verb, no CLI flag, and no MCP surface may be added INSIDE THIS PACKAGE.
+// Freshen is the one place ADR-0012's whole-pass rule is enforced — per-member
+// freshen plus the stamp-gated whole-workspace re-resolution, together, with
+// no way for a caller to take one without the other. A surface defined here
+// would grow its own scoping (a member subset, a skip-resolve flag) and become
+// a second enforcement site for that rule, which is the drift the gate exists
+// to prevent.
+//
+// That is also why dispatchRefresh on a workspace root DELEGATES to Freshen
+// and iterates nothing: a per-member loop at the verb would be exactly that
+// second site (§2.1). Callers wire their surfaces in cmd/codeindex and
+// internal/wsquery, and call Freshen whole.
 package wsfresh
 
 import (
