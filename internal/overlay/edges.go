@@ -508,6 +508,24 @@ func (s *Store) AmbiguitiesFor(memberID string) ([]Ambiguity, error) {
 	return out, cands.Err()
 }
 
+// Counts returns the WHOLE-OVERLAY totals: how many cross-edges and how many
+// ambiguities are recorded, across every member.
+//
+// It is deliberately not derived by summing MemberEdges over the registry:
+// a cross-edge is incident to TWO members, so that sum double-counts every
+// edge, and a reporting surface that quietly doubles its headline number is
+// worse than no number. One COUNT(*) per table is the only total that is
+// actually total.
+func (s *Store) Counts() (crossEdges, ambiguities int, err error) {
+	if err = s.db.QueryRow(`SELECT COUNT(*) FROM cross_edges`).Scan(&crossEdges); err != nil {
+		return 0, 0, err
+	}
+	if err = s.db.QueryRow(`SELECT COUNT(*) FROM cross_ambiguities`).Scan(&ambiguities); err != nil {
+		return 0, 0, err
+	}
+	return crossEdges, ambiguities, nil
+}
+
 // Suppressions returns every recorded suppression, ordered by consumer member
 // then namespace — the primary key, so the order is total.
 func (s *Store) Suppressions() ([]Suppression, error) {

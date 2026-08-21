@@ -37,7 +37,7 @@ const version = "0.2.0"
 // prefix. The MCP tool descriptions are frozen by owner ruling 2 and
 // deliberately do not mention it (spec assumption 18), so removing it here
 // leaves the feature undocumented everywhere.
-const usageVerbs = "usage: codeindex <build|refresh|status|callers|callees|impact|dependents|deps|nav|find|grep|search|model|ingest|depmap|export|import|enclosing|serve|mcp|bench|init-workspace> <repo-root> ...\n" +
+const usageVerbs = "usage: codeindex <build|refresh|status|workspace-status|callers|callees|impact|dependents|deps|nav|find|grep|search|model|ingest|depmap|export|import|enclosing|serve|mcp|bench|init-workspace> <repo-root> ...\n" +
 	"  on a workspace root, an anchor may carry an optional <member-id>: prefix (e.g. api:HandleLogin) to scope the lookup to that member"
 
 // anchorArg is the anchor placeholder shown in the per-verb usage lines of the
@@ -70,6 +70,10 @@ func main() {
 		}
 	case "status":
 		if err := dispatchStatus(root, hasFlag("--json")); err != nil {
+			fatal(err)
+		}
+	case "workspace-status":
+		if err := dispatchWorkspaceStatus(root, hasFlag("--json")); err != nil {
 			fatal(err)
 		}
 	case "export":
@@ -112,7 +116,7 @@ func main() {
 		if len(os.Args) < 4 {
 			fatal(fmt.Errorf("usage: codeindex %s <repo-root> %s [--limit N] [--json]", cmd, anchorArg))
 		}
-		a, err := wsquery.Callers(root, os.Args[3], intFlag("--limit", 50))
+		a, err := wsquery.CallersStructured(root, os.Args[3], intFlag("--limit", 50))
 		if err != nil {
 			fatal(err)
 		}
@@ -121,7 +125,7 @@ func main() {
 		if len(os.Args) < 4 {
 			fatal(fmt.Errorf("usage: codeindex impact <repo-root> %s [--limit N] [--json]", anchorArg))
 		}
-		a, err := wsquery.Impact(root, os.Args[3], intFlag("--limit", 50))
+		a, err := wsquery.ImpactStructured(root, os.Args[3], intFlag("--limit", 50))
 		if err != nil {
 			fatal(err)
 		}
@@ -134,9 +138,9 @@ func main() {
 		var a answer
 		var err error
 		if cmd == "dependents" {
-			a, err = wsquery.Dependents(root, os.Args[3], limit)
+			a, err = wsquery.DependentsStructured(root, os.Args[3], limit)
 		} else {
-			a, err = wsquery.Deps(root, os.Args[3], limit)
+			a, err = wsquery.DepsStructured(root, os.Args[3], limit)
 		}
 		if err != nil {
 			fatal(err)
@@ -170,7 +174,7 @@ func main() {
 		if len(os.Args) < 4 {
 			fatal(fmt.Errorf("usage: codeindex find <repo-root> <query> [--kind k] [--path p] [--limit N] [--json]"))
 		}
-		a, err := wsquery.Find(root, os.Args[3], strFlag("--kind"), strFlag("--path"), intFlag("--limit", 20))
+		a, err := wsquery.FindStructured(root, os.Args[3], strFlag("--kind"), strFlag("--path"), intFlag("--limit", 20))
 		if err != nil {
 			fatal(err)
 		}
@@ -179,7 +183,7 @@ func main() {
 		if len(os.Args) < 4 {
 			fatal(fmt.Errorf("usage: codeindex nav <repo-root> %s [--limit N] [--json]", anchorArg))
 		}
-		a, err := wsquery.Nav(root, os.Args[3], intFlag("--limit", 50))
+		a, err := wsquery.NavStructured(root, os.Args[3], intFlag("--limit", 50))
 		if err != nil {
 			fatal(err)
 		}
@@ -188,7 +192,7 @@ func main() {
 		if len(os.Args) < 4 {
 			fatal(fmt.Errorf("usage: codeindex grep <repo-root> <pattern> [-w] [--limit N] [--json]"))
 		}
-		a, err := wsquery.Grep(root, os.Args[3], intFlag("--limit", 30), hasFlag("-w") || hasFlag("--word"))
+		a, err := wsquery.GrepStructured(root, os.Args[3], intFlag("--limit", 30), hasFlag("-w") || hasFlag("--word"))
 		if err != nil {
 			fatal(err)
 		}
@@ -245,7 +249,7 @@ func main() {
 		if len(os.Args) < 4 {
 			fatal(fmt.Errorf("usage: codeindex callees <repo-root> %s [--limit N] [--json]", anchorArg))
 		}
-		a, err := wsquery.Callees(root, os.Args[3], intFlag("--limit", 50))
+		a, err := wsquery.CalleesStructured(root, os.Args[3], intFlag("--limit", 50))
 		if err != nil {
 			fatal(err)
 		}
@@ -259,7 +263,7 @@ func main() {
 		if _, err := fmt.Sscanf(os.Args[4], "%d:%d", &start, &end); err != nil {
 			fatal(fmt.Errorf("bad range %q (want start:end): %w", os.Args[4], err))
 		}
-		a, err := wsquery.Enclosing(root, os.Args[3], start, end)
+		a, err := wsquery.EnclosingStructured(root, os.Args[3], start, end)
 		if err != nil {
 			fatal(err)
 		}
@@ -482,14 +486,42 @@ func dispatchStatus(root string, asJSON bool) error {
 // — the overlay schema version, cross-edge and ambiguity counts, per-member
 // stamp state, and the vendor version-skew lines (§6).
 //
-// THIS IS THE SEAM FOR THE workspace-status VERB. That verb is a separate task
-// and is not wired yet, so the block is empty today; `status <workspace-root>`
-// already calls it in the right position (after the fan-out, before the
-// aggregate error is returned), and the verb's implementation lands entirely
-// inside this function plus its own `case "workspace-status"` in the dispatch
-// switch. Nothing else in main.go has to move.
+// It READS STATE AND DOES NOT FRESHEN — wsquery.WorkspaceStatus calls neither
+// wsfresh.Freshen nor a query session — which is what makes it usable as a
+// diagnostic on a workspace whose freshen is the thing being diagnosed, and
+// what makes it safe for dispatchStatus to run it after a member's status has
+// already failed.
+//
+// THIS IS THE ONE RENDERING SITE for the §6 report. `workspace-status` and
+// `status <workspace-root>` both land here rather than each formatting a
+// report of their own: two renderers for one report is two places for the
+// D3 skew lines to drift apart.
 func runWorkspaceStatusBlock(wsRoot string, asJSON bool) error {
+	st, err := wsquery.WorkspaceStatus(wsRoot)
+	if err != nil {
+		return err
+	}
+	if asJSON {
+		b, err := json.MarshalIndent(st, "", "  ")
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(b))
+		return nil
+	}
+	fmt.Print(st.Text())
 	return nil
+}
+
+// dispatchWorkspaceStatus is the `workspace-status` verb. It is the mirror of
+// the five per-repo verbs' refusal: handed a REPO root it refuses and names
+// the repo-mode `status` verb, which is the verb that answers the same
+// question there.
+func dispatchWorkspaceStatus(root string, asJSON bool) error {
+	if !isWorkspaceRoot(root) {
+		return wsquery.RefuseRepoRoot("workspace-status", root, "status")
+	}
+	return runWorkspaceStatusBlock(root, asJSON)
 }
 
 // dispatchRefresh routes refresh by root kind.
