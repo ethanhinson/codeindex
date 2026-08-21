@@ -2,23 +2,23 @@
 id: 16
 slug: workspace-query-surfaces-gated
 title: Workspace query surfaces — union-graph verbs, CLI/MCP wiring, workspace-status; merge gated on the D7 evidence run
-status: in-progress
+status: implemented
 priority: high
 type: feat
 created: 2026-08-20
-updated: 2026-08-20
+updated: 2026-08-21
 depends_on: [15]
 related: [9, 12, 13, 14, 15, 10]
 discovered_from: []
 adrs: [12, 13]
 spec: docs/superpowers/specs/2026-08-20-workspace-query-surfaces-gated-design.md
 plan: docs/superpowers/plans/2026-08-20-workspace-query-surfaces-gated-plan.md
-results:
+results: docs/results/2026-08-21-workspace-query-surfaces-gated-results.md
 trivial: false
 auto_groomable: true
 branch: feat/workspace-query-surfaces-gated
-claimed_at: 2026-08-21T02:10:46Z
-pr:
+claimed_at: 2026-08-21T02:15:05Z
+pr: https://github.com/ethanhinson/codeindex/pull/14
 blocked_by:
 reconciled: true
 ---
@@ -30,6 +30,8 @@ reconciled: true
 |---|---|
 | Spec | [2026-08-20-workspace-query-surfaces-gated-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-20-workspace-query-surfaces-gated-design.md) |
 | Plan | [2026-08-20-workspace-query-surfaces-gated-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-query-surfaces-gated/docs/superpowers/plans/2026-08-20-workspace-query-surfaces-gated-plan.md) |
+| Results | [2026-08-21-workspace-query-surfaces-gated-results.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-query-surfaces-gated/docs/results/2026-08-21-workspace-query-surfaces-gated-results.md) |
+| PR | [#14](https://github.com/ethanhinson/codeindex/pull/14) |
 | ADRs | [ADR-0012](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0012-workspace-freshness-re-resolves-whole-workspace.md), [ADR-0013](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0013-unindexed-member-named-stale-every-pass.md) |
 <!-- docket:artifacts:end -->
 
