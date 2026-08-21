@@ -38,6 +38,14 @@ type session struct {
 	// inverted to no symbol (§3.8). Incremented at the re-map site by
 	// remapKey, so a drop and its disclosure cannot come apart.
 	keysUnmapped int
+	// rowsWithheld counts rows this answer composed and then lost to the
+	// caller's `limit` when it bounded the concatenated list, and
+	// membersTruncated is the set of members those rows came from. Both are
+	// recorded AT THE CUT by truncateOwned, for the reason consult() records at
+	// the read: a disclosure derived a second time somewhere else is a
+	// disclosure that can come apart from the thing it discloses.
+	rowsWithheld     int
+	membersTruncated map[string]bool
 	// overlaySchemaSkew is set by openUnion when the overlay file exists at a
 	// schema version this binary does not read. The overlay is then read as
 	// EMPTY rather than rebuilt, so this sentence is the only thing standing
@@ -96,11 +104,12 @@ func newSession(wsRoot string) (*session, error) {
 // contriving a fixture that happens to produce one.
 func sessionFrom(root string, ws *config.Workspace, rep wsfresh.Report, freshenErr error) *session {
 	return &session{
-		root:       root,
-		ws:         ws,
-		report:     rep,
-		freshenErr: freshenErr,
-		consulted:  make(map[string]bool, len(ws.Members)),
+		root:             root,
+		ws:               ws,
+		report:           rep,
+		freshenErr:       freshenErr,
+		consulted:        make(map[string]bool, len(ws.Members)),
+		membersTruncated: make(map[string]bool, len(ws.Members)),
 	}
 }
 
@@ -128,7 +137,11 @@ func (s *session) clause(verb string) Clause {
 		Boundary:          Boundary,
 		Layer:             ClauseLayer(verb),
 		KeysUnmapped:      s.keysUnmapped,
+		RowsWithheld:      s.rowsWithheld,
 		OverlayUnreadable: s.overlaySchemaSkew,
+	}
+	if len(s.membersTruncated) > 0 {
+		c.MembersTruncated = s.manifestOrder(s.membersTruncated)
 	}
 	if s.freshenErr != nil {
 		c.FreshenFailed = s.freshenErr.Error()

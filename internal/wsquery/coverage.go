@@ -112,6 +112,43 @@ type Clause struct {
 	// which is how a disclosure field stops being read at all.
 	KeysUnmapped int `json:"keys_unmapped,omitempty"`
 
+	// RowsWithheld is how many rows `limit` cut off the END of this answer's
+	// unioned/concatenated list(s) — rows that WERE composed and then did not
+	// survive the cut. An answer with several lists (impact, callers'
+	// referenced files, nav) sums them: it is one answer, and one count of what
+	// that answer is short by is what a reader can act on.
+	//
+	// It is NOT a corpus total. The fan-out verbs cap each member at `limit`
+	// before concatenating (see fanout.go), so rows a member dropped on its own
+	// were never here to withhold.
+	//
+	// # Why this exists
+	//
+	// D4 froze the union as complete sets concatenated in MANIFEST ORDER — no
+	// rank-merge, no scoring — and §3.5 has `limit` bound that concatenation.
+	// Both are correct and neither is revisited here. Their joint consequence is
+	// that one prolific early member can fill the whole budget, so an answer can
+	// omit every row of eight later members while the clause affirms all ten as
+	// consulted with `members_stale: (none)` — which reads as "I looked
+	// everywhere and this is everything". Disclosing the cut is what keeps
+	// manifest-order concatenation honest rather than quietly lossy; the remedy
+	// for a member-skewed answer is a bigger limit, NOT a re-rank.
+	//
+	// Like KeysUnmapped it is ADDITIVE to D6's three reserved fields and omitted
+	// when zero: an untruncated answer has nothing to disclose, and a field that
+	// prints on every answer is one the reader stops seeing.
+	RowsWithheld int `json:"rows_withheld,omitempty"`
+
+	// MembersTruncated names the consulted members that contributed at least one
+	// withheld row, in manifest order. It is the actionable half of this
+	// disclosure: a bare "+61 more" cannot distinguish "one member has more
+	// hits" from "eight members' answers were eaten", and only the latter means
+	// the answer is member-SKEWED rather than merely long.
+	//
+	// A partially-cut member is named too — it did contribute rows that did not
+	// survive. Omitted when empty, for KeysUnmapped's reason.
+	MembersTruncated []string `json:"members_truncated,omitempty"`
+
 	// OverlayUnreadable discloses that the overlay file exists at a schema
 	// version this binary does not read, so the answer carries NO cross-member
 	// edges at all. The overlay is deliberately not rebuilt on a query path —
@@ -143,6 +180,13 @@ func (c Clause) String() string {
 	b.WriteString(idList(c.MembersStale))
 	if c.KeysUnmapped > 0 {
 		fmt.Fprintf(&b, "; keys_unmapped: %d", c.KeysUnmapped)
+	}
+	if c.RowsWithheld > 0 {
+		fmt.Fprintf(&b, "; rows_withheld: %d", c.RowsWithheld)
+	}
+	if len(c.MembersTruncated) > 0 {
+		b.WriteString("; members_truncated: ")
+		b.WriteString(idList(c.MembersTruncated))
 	}
 	if c.OverlayUnreadable != "" {
 		b.WriteString("; overlay_unreadable: ")

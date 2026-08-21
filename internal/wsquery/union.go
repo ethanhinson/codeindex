@@ -103,6 +103,12 @@ type unionCtx struct {
 	sup []overlay.Suppression
 	// dropped memoizes the §3.6 suppression filter's dropped set per member.
 	dropped map[string][]graph.TierOneEdge
+	// fileOwner maps a workspace-relative path in a FILE LIST back to the
+	// member that contributed it. The file lists are []string, so unlike every
+	// other unioned list they carry no Repo field of their own — and without an
+	// owner the truncation disclosure could count their withheld rows but never
+	// name a member. Populated wherever a file list is built.
+	fileOwner map[string]string
 }
 
 // openUnion opens the read context, VERSION-GATING the overlay first.
@@ -156,12 +162,13 @@ func openUnion(s *session) (*unionCtx, error) {
 	}
 	u := &unionCtx{
 		s: s, ov: ov, present: present,
-		idx:     make(map[string]int, len(s.ws.Members)),
-		root:    make(map[string]string, len(s.ws.Members)),
-		abs:     make(map[string]string, len(present)),
-		stores:  make(map[string]*graph.Store, len(present)),
-		sup:     sup,
-		dropped: make(map[string][]graph.TierOneEdge, len(present)),
+		idx:       make(map[string]int, len(s.ws.Members)),
+		root:      make(map[string]string, len(s.ws.Members)),
+		abs:       make(map[string]string, len(present)),
+		stores:    make(map[string]*graph.Store, len(present)),
+		sup:       sup,
+		dropped:   make(map[string][]graph.TierOneEdge, len(present)),
+		fileOwner: make(map[string]string),
 	}
 	for i, m := range s.ws.Members {
 		u.idx[m.ID] = i
@@ -551,6 +558,33 @@ func truncate[T any](xs []T, limit int) []T {
 	return xs
 }
 
+// truncateOwned is truncate plus the disclosure D6's clause owes the reader: it
+// records how many rows the cut discarded and WHICH MEMBERS those rows belonged
+// to, so a manifest-order concatenation cannot silently answer for one member
+// while omitting eight others (see Clause.RowsWithheld).
+//
+// owner maps a row to its member id. A row whose owner is unknown ("") still
+// counts toward rows_withheld — the count must stay reconcilable with the list
+// — but names nobody, because inventing an id is how a name and a denominator
+// come apart.
+//
+// Every workspace list bounded by `limit` goes through THIS, not through
+// truncate: a site that keeps calling the bare helper is a silent cut again,
+// and this is the whole defect.
+func truncateOwned[T any](s *session, xs []T, limit int, owner func(T) string) []T {
+	kept := truncate(xs, limit)
+	for _, x := range xs[len(kept):] {
+		s.rowsWithheld++
+		if id := owner(x); id != "" {
+			if s.membersTruncated == nil {
+				s.membersTruncated = map[string]bool{}
+			}
+			s.membersTruncated[id] = true
+		}
+	}
+	return kept
+}
+
 // --- the suppression filter's own half (§3.6) --------------------------------
 //
 // The filter removes the OWN-member intra-repo edge that a cross-edge at the
@@ -715,13 +749,7 @@ func outDrops(dropped []graph.TierOneEdge, name, parent string, kinds map[string
 // unioned referencing-file list — all UNTRUNCATED. Applying limit is the
 // caller's job, once, at the end.
 func (u *unionCtx) callersUnion(ra resolvedAnchor) (defs []query.DefRef, callers []query.CallerRef, files []string, err error) {
-	seen := map[string]bool{}
-	addFile := func(p string) {
-		if p != "" && !seen[p] {
-			seen[p] = true
-			files = append(files, p)
-		}
-	}
+	addFile := u.fileAdder(&files)
 	for _, am := range ra.members {
 		u.s.consult(am.id)
 		inner, err := query.Callers(am.absRoot, ra.text, unlimited)
@@ -747,7 +775,7 @@ func (u *unionCtx) callersUnion(ra resolvedAnchor) (defs []query.DefRef, callers
 			callers = append(callers, c)
 		}
 		for _, f := range inner.ReferencedFiles {
-			addFile(u.wsPath(am.id, f))
+			addFile(am.id, u.wsPath(am.id, f))
 		}
 	}
 	cross, err := u.cross(ra.keys(), true, nil)
@@ -761,7 +789,7 @@ func (u *unionCtx) callersUnion(ra resolvedAnchor) (defs []query.DefRef, callers
 			File: file, Line: c.edge.Line,
 			Ambiguous: c.flags.Ambiguous, Inferred: c.flags.Inferred, Repo: c.member,
 		})
-		addFile(file)
+		addFile(c.member, file)
 	}
 	return defs, callers, files, nil
 }
@@ -844,6 +872,41 @@ func (u *unionCtx) dependentsUnion(ra resolvedAnchor) ([]query.DependentRef, err
 	return out, nil
 }
 
+// The owner accessors the truncation disclosure reads. Named functions rather
+// than inline closures so every verb attributes a withheld row the same way.
+func callerOwner(c query.CallerRef) string       { return c.Repo }
+func calleeOwner(c query.CalleeRef) string       { return c.Repo }
+func dependentOwner(d query.DependentRef) string { return d.Repo }
+func depOwner(d query.DepRef) string             { return d.Repo }
+func findOwner(f query.FindRef) string           { return f.Repo }
+func grepOwner(g query.GrepRef) string           { return g.Repo }
+
+// fileAdder returns the deduping appender every unioned FILE LIST is built
+// with. There is ONE of these because there are two such lists (callers'
+// referenced files and nav's) and each has to record its paths' OWNING MEMBER
+// as it goes — a []string row carries no Repo field, so a path missed here is a
+// row the truncation disclosure can count but never name. Two hand-rolled
+// dedupe loops is exactly how one of them would forget.
+//
+// It reports whether the path was APPENDED; false means empty or already seen,
+// which is what lets nav keep its FilesTotal from double-counting a path two
+// nested members both claim.
+func (u *unionCtx) fileAdder(dst *[]string) func(member, p string) bool {
+	seen := map[string]bool{}
+	return func(member, p string) bool {
+		if p == "" || seen[p] {
+			return false
+		}
+		seen[p] = true
+		u.fileOwner[p] = member
+		*dst = append(*dst, p)
+		return true
+	}
+}
+
+// fileOwnerOf attributes a path in a unioned FILE LIST to its member.
+func (u *unionCtx) fileOwnerOf(p string) string { return u.fileOwner[p] }
+
 func callersWorkspace(s *session, anchor string, limit int) (*query.CallersAnswer, error) {
 	u, err := openUnion(s)
 	if err != nil {
@@ -862,9 +925,9 @@ func callersWorkspace(s *session, anchor string, limit int) (*query.CallersAnswe
 		Anchor:               anchor,
 		Definitions:          append(make([]query.DefRef, 0, len(defs)), defs...),
 		CallersTotal:         len(callers),
-		Callers:              append(make([]query.CallerRef, 0), truncate(callers, limit)...),
+		Callers:              append(make([]query.CallerRef, 0), truncateOwned(s, callers, limit, callerOwner)...),
 		ReferencedFilesTotal: len(files),
-		ReferencedFiles:      append(make([]string, 0), truncate(files, limit)...),
+		ReferencedFiles:      append(make([]string, 0), truncateOwned(s, files, limit, u.fileOwnerOf)...),
 	}
 	return a, nil
 }
@@ -886,7 +949,7 @@ func calleesWorkspace(s *session, anchor string, limit int) (*query.CalleesAnswe
 	return &query.CalleesAnswer{
 		Anchor:  anchor,
 		Total:   len(callees),
-		Callees: append(make([]query.CalleeRef, 0), truncate(callees, limit)...),
+		Callees: append(make([]query.CalleeRef, 0), truncateOwned(s, callees, limit, calleeOwner)...),
 	}, nil
 }
 
@@ -907,7 +970,7 @@ func dependentsWorkspace(s *session, anchor string, limit int) (*query.Dependent
 	return &query.DependentsAnswer{
 		Anchor:     anchor,
 		Total:      len(deps),
-		Dependents: append(make([]query.DependentRef, 0), truncate(deps, limit)...),
+		Dependents: append(make([]query.DependentRef, 0), truncateOwned(s, deps, limit, dependentOwner)...),
 	}, nil
 }
 
@@ -975,7 +1038,7 @@ func depsWorkspace(s *session, anchor string, limit int) (*query.DepsAnswer, err
 				rows := rewrite(sec.Deps, false)
 				fileSections = append(fileSections, query.DepSection{
 					Label: "imports of " + u.wsPath(am.id, am.file),
-					Total: len(rows), Deps: truncate(rows, limit),
+					Total: len(rows), Deps: truncateOwned(s, rows, limit, depOwner),
 				})
 			}
 			continue
@@ -991,7 +1054,7 @@ func depsWorkspace(s *session, anchor string, limit int) (*query.DepsAnswer, err
 				label = "file imports (" + u.wsPath(am.id, am.defs[0].File) + ")"
 			}
 			fileSections = append(fileSections, query.DepSection{
-				Label: label, Total: len(rows), Deps: truncate(rows, limit),
+				Label: label, Total: len(rows), Deps: truncateOwned(s, rows, limit, depOwner),
 			})
 		}
 	}
@@ -1011,7 +1074,7 @@ func depsWorkspace(s *session, anchor string, limit int) (*query.DepsAnswer, err
 		}
 		sections = append(sections, query.DepSection{
 			Label: symLabel, Total: len(symDeps),
-			Deps: append(make([]query.DepRef, 0), truncate(symDeps, limit)...),
+			Deps: append(make([]query.DepRef, 0), truncateOwned(s, symDeps, limit, depOwner)...),
 		})
 	}
 	sections = append(sections, fileSections...)
@@ -1064,11 +1127,11 @@ func impactWorkspace(s *session, anchor string, limit int) (*query.ImpactAnswer,
 		Coverage:        impactCoverage,
 		Definitions:     append(make([]query.DefRef, 0, len(defs)), defs...),
 		CallersTotal:    len(callers),
-		Callers:         append(make([]query.CallerRef, 0), truncate(callers, limit)...),
+		Callers:         append(make([]query.CallerRef, 0), truncateOwned(s, callers, limit, callerOwner)...),
 		DependentsTotal: len(dependents),
-		Dependents:      append(make([]query.DependentRef, 0), truncate(dependents, limit)...),
+		Dependents:      append(make([]query.DependentRef, 0), truncateOwned(s, dependents, limit, dependentOwner)...),
 		CalleesTotal:    len(callees),
-		Callees:         append(make([]query.CalleeRef, 0), truncate(callees, limit)...),
+		Callees:         append(make([]query.CalleeRef, 0), truncateOwned(s, callees, limit, calleeOwner)...),
 	}, nil
 }
 
@@ -1131,7 +1194,7 @@ func navWorkspace(s *session, anchor string, limit int) (*query.NavAnswer, error
 		filesTotal       int
 		grepCallersTotal int
 	)
-	seen := map[string]bool{}
+	addFile := u.fileAdder(&files)
 	for _, rm := range u.present {
 		id := rm.Member.ID
 		if u.store(id) == nil {
@@ -1150,7 +1213,7 @@ func navWorkspace(s *session, anchor string, limit int) (*query.NavAnswer, error
 		filesTotal += inner.FilesTotal
 		for _, f := range inner.Files {
 			p := u.wsPath(id, f)
-			if seen[p] {
+			if !addFile(id, p) {
 				// A path two members both claim, which can only happen when one
 				// member's root nests inside another's. Decrementing keeps the
 				// total from double-counting what we can SEE collide; a
@@ -1159,10 +1222,7 @@ func navWorkspace(s *session, anchor string, limit int) (*query.NavAnswer, error
 				// workspaces cannot hit either case — query.Nav already deduped
 				// — so §7.4's bar stays exact.
 				filesTotal--
-				continue
 			}
-			seen[p] = true
-			files = append(files, p)
 		}
 		if inner.CallersFromGrep {
 			grepCallersTotal += inner.CallersTotal
@@ -1182,7 +1242,7 @@ func navWorkspace(s *session, anchor string, limit int) (*query.NavAnswer, error
 	a := &query.NavAnswer{
 		Anchor:      anchor,
 		Definitions: defs,
-		Matches:     append(make([]query.FindRef, 0), truncate(matches, limit)...),
+		Matches:     append(make([]query.FindRef, 0), truncateOwned(s, matches, limit, findOwner)...),
 		Callers:     make([]query.CallerRef, 0),
 		Files:       make([]string, 0),
 	}
@@ -1210,8 +1270,8 @@ func navWorkspace(s *session, anchor string, limit int) (*query.NavAnswer, error
 		callersTotal = grepCallersTotal
 	}
 	a.CallersTotal = callersTotal
-	a.Callers = append(a.Callers, truncate(callers, limit)...)
+	a.Callers = append(a.Callers, truncateOwned(s, callers, limit, callerOwner)...)
 	a.FilesTotal = filesTotal
-	a.Files = append(a.Files, truncate(files, limit)...)
+	a.Files = append(a.Files, truncateOwned(s, files, limit, u.fileOwnerOf)...)
 	return a, nil
 }

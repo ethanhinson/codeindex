@@ -118,9 +118,10 @@ func findWorkspace(s *session, q, kind, path string, limit int) (*query.FindAnsw
 		}
 	}
 	return &query.FindAnswer{
-		Query:   q,
-		Total:   total,
-		Results: append(make([]query.FindRef, 0, len(results)), truncate(results, limit)...),
+		Query: q,
+		Total: total,
+		Results: append(make([]query.FindRef, 0, len(results)),
+			truncateOwned(s, results, limit, findOwner)...),
 	}, nil
 }
 
@@ -160,7 +161,8 @@ func grepWorkspace(s *session, pattern string, limit int, word bool) (*query.Gre
 		Word:    word,
 		RawHits: raw,
 		Backend: joinBackends(backends),
-		Groups:  append(make([]query.GrepRef, 0, len(groups)), truncate(groups, limit)...),
+		Groups: append(make([]query.GrepRef, 0, len(groups)),
+			truncateOwned(s, groups, limit, grepOwner)...),
 	}, nil
 }
 

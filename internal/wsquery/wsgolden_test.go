@@ -367,6 +367,13 @@ func TestWorkspaceGoldenSuppressionDedupesExactlyOneCallSite(t *testing.T) {
 // counts the UNIONED set, and the "+N more" the renderer prints is exactly the
 // difference. Applying the limit per member and concatenating would make all
 // three disagree.
+//
+// The clause line here is DELIBERATELY not goldenClauseBoth: a truncated
+// workspace answer discloses the cut (rows_withheld / members_truncated), and
+// this is the one golden in this file whose answer is truncated. Both members
+// are named because both contributed callers that did not survive — the graph
+// half reads each member with `unlimited`, so unlike the fan-out verbs a member
+// can be cut PARTIALLY here.
 func TestWorkspaceGoldenCallersLimitTruncatesTheUnion(t *testing.T) {
 	defer cleanFreshen(t)()
 	ws := goldenFixture(t)
@@ -398,7 +405,9 @@ func TestWorkspaceGoldenCallersLimitTruncatesTheUnion(t *testing.T) {
 		"  api: services/api/caller.go:4  ApiCallsZeta",
 		"  ... (+2 more; raise limit)",
 		"referenced in 2 file(s): services/web/consumer.go services/api/caller.go",
-		goldenClauseBoth,
+		"workspace: members_consulted: web, api; members_stale: (none); "+
+			"rows_withheld: 2; members_truncated: web, api; "+
+			"boundary: symbols outside this workspace are unknown to it",
 	)
 	assertGolden(t, "callers Zeta limit 2", got, want)
 }
