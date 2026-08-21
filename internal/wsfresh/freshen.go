@@ -202,6 +202,7 @@ func Freshen(wsRoot string) (Report, error) {
 		st, err := graph.OpenExisting(memberIndexPath(rm.AbsRoot))
 		if err != nil {
 			rep.MembersUnindexed++
+			rep.MembersUnindexedIDs = append(rep.MembersUnindexedIDs, id)
 			unavailable[id] = true
 			continue
 		}

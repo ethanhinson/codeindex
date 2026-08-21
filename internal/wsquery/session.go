@@ -143,12 +143,13 @@ func (s *session) clause(verb string) Clause {
 // D7 gate hard-fails. An over-broad stale list on a rare path is the price,
 // and it buys the guarantee.
 //
-// # Otherwise, the FOUR-WAY union of §4.3
+// # Otherwise, a FIVE-WAY SET UNION
 //
 //  1. Dirty                   — stamp absent or moved from the re-folded root
 //  2. StaleStamped            — declared-but-unavailable and still stamped
 //  3. MembersMissing          — declared, absent from disk
 //  4. MembersFreshenFailedIDs — available, but the member's own Fresh errored
+//  5. MembersUnindexedIDs     — declared and present, but the index will not open
 //
 // Dirty is dropped ONLY WHEN Resolved is true: the whole-pass resolution that
 // just ran retired those members' staleness, so naming them stale would be a
@@ -162,14 +163,41 @@ func (s *session) clause(verb string) Clause {
 // through. An earlier draft of the design claimed the state "cannot occur";
 // that claim is WITHDRAWN AS FALSE, and
 // TestDirtyStaysInTheStaleUnionWhenResolvedIsFalse is what stops it coming
-// back. Do not collapse this to a three-way union.
+// back. Do not drop Dirty from the union.
 //
-// MembersUnindexed is deliberately NOT one of the four. A member that is
-// present but unopenable is already covered by StaleStamped when it previously
-// contributed overlay rows, and by the boundary sentence when it never did;
-// adding it whole would double-count. (It is a count, not an id slice, so
-// there is nothing here to add it FROM either — see its field comment for why
-// this package splits names rather than overloading them.)
+// # §4.3's FOUR-WAY phrasing is SUPERSEDED — do not restore it
+//
+// The spec (§4.3, assumption 6) writes this union as four sets and excludes
+// MembersUnindexed, on the stated ground that a present-but-unopenable member
+// is "covered by StaleStamped when it previously contributed rows, and by
+// boundary when it never did". BOTH HALVES OF THAT COVER ARGUMENT ARE FALSE,
+// which is why the letter of §4.3 is not followed here:
+//
+//   - StaleStamped is ONE-SHOT. Its own doc comment says it is non-empty for at
+//     most ONE pass per transition: the pass that reports it trips the gate, and
+//     the wsresolve.Resolve that follows prunes the very stamp it fired on. From
+//     the next query onward the member is not Dirty (nothing re-folded it), not
+//     StaleStamped (no stamp left) and not MembersMissing (still on disk).
+//   - Boundary is a FIXED CONSTANT — "symbols outside this workspace are unknown
+//     to it" — which says nothing whatever about a DECLARED member INSIDE the
+//     workspace whose rows this answer omitted.
+//
+// So under the four-way rule such a member produced `members_stale: (none)`
+// with its rows silently missing, from the second query onward and forever.
+// That is the D7 hard fail the gate refuses, and it is not an exotic state: a
+// freshly cloned, never-built member reaches it on the VERY FIRST query.
+//
+// The double-count §4.3 worried about is handled by SET-UNION semantics, not by
+// exclusion: these are five id sets accumulated into one map, so a member that
+// is both stale-stamped and unindexed is named exactly once. The union reads
+// MembersUnindexedIDs and never the MembersUnindexed COUNT — a count names
+// nobody, and inventing ids for it is how a name and a denominator come apart.
+//
+// DIRTY MUST STAY, and so must this fifth set. A reader tempted to restore
+// §4.3's letter should note that
+// TestD7FreshnessPropertyUnindexedMemberIsNamedStaleOnEveryPass queries TWICE
+// on purpose: a single-pass test cannot catch a one-shot disclosure, which is
+// exactly how the four-way rule survived review once already.
 func (s *session) staleMembers() []string {
 	if s.freshenErr != nil {
 		return s.declaredIDs()
@@ -187,6 +215,9 @@ func (s *session) staleMembers() []string {
 		stale[id] = true
 	}
 	for _, id := range s.report.MembersFreshenFailedIDs {
+		stale[id] = true
+	}
+	for _, id := range s.report.MembersUnindexedIDs {
 		stale[id] = true
 	}
 	return s.manifestOrder(stale)

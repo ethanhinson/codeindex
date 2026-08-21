@@ -167,11 +167,12 @@ func TestFreshenFailureDoesNotFailTheQuery(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// The four-way union (§4.3, item 4)
+// The five-way union (§4.3 item 4, plus MembersUnindexedIDs — see staleMembers
+// for why §4.3's four-way phrasing is superseded)
 // ---------------------------------------------------------------------------
 
 // TestDirtyStaysInTheStaleUnionWhenResolvedIsFalse EXISTS TO STOP A FUTURE
-// READER COLLAPSING THE FOUR-WAY UNION TO THREE.
+// READER DROPPING DIRTY FROM THE UNION.
 //
 // The window it pins is REAL, not hypothetical. wsfresh.Freshen appends to
 // rep.Dirty at ~freshen.go:255 and sets rep.Resolved = true only at ~:375, and
@@ -188,8 +189,8 @@ func TestDirtyStaysInTheStaleUnionWhenResolvedIsFalse(t *testing.T) {
 	}
 	// No freshenErr: this is the future path §4.3 warns about, where a partial
 	// report arrives WITHOUT an error and §4.2's every-declared-member rule
-	// therefore does not cover it. The four-way union is the only thing that
-	// discloses api here.
+	// therefore does not cover it. The union is the only thing that discloses
+	// api here.
 	s := sessionFrom("/ws", ws, rep, nil)
 	c := s.clause("impact")
 
@@ -217,15 +218,44 @@ func TestDirtyIsDroppedFromTheStaleUnionWhenResolvedIsTrue(t *testing.T) {
 	assertDegradeReason(t, c, "clean")
 }
 
-// TestMembersUnindexedIsNotInTheStaleUnion: an unindexed member is already
-// covered by StaleStamped (it previously contributed rows) or by boundary (it
-// never did). Adding it whole would double-count.
+// TestMembersUnindexedIDsAreInTheStaleUnion: a declared member that is present
+// but whose index will not open has its rows OMITTED from the answer, and
+// nothing else discloses that durably — so it is named stale.
 //
-// The Report below carries MembersUnindexed == 2 and NO id set that names a
-// member, so any implementation that reached for the count would have to
-// invent ids — and any that folded unindexed members in by some other route
-// would have to name one here.
-func TestMembersUnindexedIsNotInTheStaleUnion(t *testing.T) {
+// §4.3 originally excluded it, on the argument that it is "covered by
+// StaleStamped when it previously contributed rows, and by boundary when it
+// never did". Both halves are false: StaleStamped is one-shot by its own doc
+// comment, and boundary is a fixed constant about symbols OUTSIDE the
+// workspace. See staleMembers for the full note.
+//
+// Resolved is TRUE here on purpose. That is the steady state the old exclusion
+// went silent in: the resolution has already run and retired the stamp, and if
+// unindexed ids were dropped alongside Dirty the clause would say nothing while
+// the member's rows stayed missing.
+func TestMembersUnindexedIDsAreInTheStaleUnion(t *testing.T) {
+	ws := threeMemberManifest()
+	rep := wsfresh.Report{
+		MembersUnindexed:    2,
+		MembersUnindexedIDs: []string{"web", "shared"},
+		Resolved:            true,
+	}
+	s := sessionFrom("/ws", ws, rep, nil)
+	c := s.clause("callers")
+	if want := []string{"web", "shared"}; !reflect.DeepEqual(c.MembersStale, want) {
+		t.Fatalf("members_stale = %v, want %v — an unindexed declared member's rows are omitted, "+
+			"and members_stale is the only durable disclosure of that", c.MembersStale, want)
+	}
+	assertDegradeReason(t, c, "members_stale")
+}
+
+// TestBareMembersUnindexedCountAddsNothingToTheStaleUnion: the union draws from
+// the ID SLICE, never from the count. A Report carrying a count with no ids
+// names nobody — any implementation reaching for the count would have to invent
+// ids, and inventing them is how a name and a denominator come apart.
+//
+// This pairs with wsfresh's TestUnindexedIDsMatchCount, which is what keeps the
+// two in step at the write site; here the read side simply never guesses.
+func TestBareMembersUnindexedCountAddsNothingToTheStaleUnion(t *testing.T) {
 	ws := threeMemberManifest()
 	rep := wsfresh.Report{
 		MembersUnindexed: 2,
@@ -234,14 +264,15 @@ func TestMembersUnindexedIsNotInTheStaleUnion(t *testing.T) {
 	s := sessionFrom("/ws", ws, rep, nil)
 	c := s.clause("callers")
 	if len(c.MembersStale) != 0 {
-		t.Fatalf("members_stale = %v, want empty: MembersUnindexed is not one of the four sets", c.MembersStale)
+		t.Fatalf("members_stale = %v, want empty: the count names no member, so the clause "+
+			"must not invent one", c.MembersStale)
 	}
 }
 
-// TestStaleUnionIsAllFourSetsInManifestOrder exercises every set at once,
+// TestStaleUnionIsAllFiveSetsInManifestOrder exercises every set at once,
 // including the Dirty member, and pins the ORDER as manifest order rather than
-// the concatenation order of the four sets (which would be web-last).
-func TestStaleUnionIsAllFourSetsInManifestOrder(t *testing.T) {
+// the concatenation order of the five sets (which would be web-last).
+func TestStaleUnionIsAllFiveSetsInManifestOrder(t *testing.T) {
 	ws := threeMemberManifest() // web, api, shared
 	rep := wsfresh.Report{
 		Dirty:                   []string{"shared"},
@@ -249,6 +280,8 @@ func TestStaleUnionIsAllFourSetsInManifestOrder(t *testing.T) {
 		MembersMissing:          []string{"api"},
 		MembersFreshenFailedIDs: []string{"shared"}, // overlaps Dirty: a union, not a concatenation
 		MembersFreshenFailed:    1,
+		MembersUnindexedIDs:     []string{"web"}, // overlaps StaleStamped, for the same reason
+		MembersUnindexed:        1,
 		Resolved:                false,
 	}
 	s := sessionFrom("/ws", ws, rep, nil)

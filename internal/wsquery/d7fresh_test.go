@@ -415,9 +415,9 @@ func TestD7FreshnessPropertyFreshenFailureNamesEveryDeclaredMember(t *testing.T)
 //
 // The real wsfresh.Freshen runs here — no stub — and the arm queries TWICE,
 // because MembersMissing is recomputed from the manifest on every pass and the
-// disclosure must therefore be durable rather than one-shot. (Contrast
-// TestBYDESIGNAnUnindexedMemberIsNamedStaleOnlyOnTheTransitionPass below, where
-// it is not.)
+// disclosure must therefore be durable rather than one-shot. (The unindexed
+// arm below queries twice for the same reason, and did NOT always survive it:
+// see TestD7FreshnessPropertyUnindexedMemberIsNamedStaleOnEveryPass.)
 func TestD7FreshnessPropertyMissingMemberIsNamedStale(t *testing.T) {
 	ws := d7Fixture(t)
 	if err := os.RemoveAll(filepath.Join(ws, "services", d7MemberAlpha)); err != nil {
@@ -439,12 +439,13 @@ func TestD7FreshnessPropertyMissingMemberIsNamedStale(t *testing.T) {
 // TestD7StaleStampedMemberIsNamedOnTheTransitionPass is the
 // available -> unavailable transition: alpha is present and mutated, but its
 // index is gone, and an earlier pass stamped it. wsfresh reports it
-// StaleStamped, which §4.3 puts in the four-way union, so the clause names it.
+// StaleStamped, which the stale union admits, so the clause names it.
 //
 // Only ONE probe runs here, and deliberately so: the very pass that reports
 // StaleStamped also triggers the whole-pass resolution that RETIRES the stamp,
-// so the disclosure exists exactly once. That is not a defect of this test —
-// it is behaviour, and the next test pins it.
+// so THIS disclosure channel exists exactly once. The member stays disclosed
+// afterwards through MembersUnindexedIDs instead — the next test is what proves
+// the handover actually happens.
 func TestD7StaleStampedMemberIsNamedOnTheTransitionPass(t *testing.T) {
 	ws := d7Fixture(t)
 	d7Mutate(t, ws)
@@ -458,75 +459,56 @@ func TestD7StaleStampedMemberIsNamedOnTheTransitionPass(t *testing.T) {
 	}
 }
 
-// TestBYDESIGNAnUnindexedMemberIsNamedStaleOnlyOnTheTransitionPass pins
-// behaviour that this task DISCOVERED and deliberately did not change. A reader
-// who finds this test must not read it as an aspiration, and must not "fix" it
-// here — see the prerequisite at the bottom of this comment.
+// TestD7FreshnessPropertyUnindexedMemberIsNamedStaleOnEveryPass is the
+// present-but-unopenable state, and it REPLACES a characterization test that
+// pinned the opposite (an unindexed member disclosed only on the transition
+// pass, then silently omitted forever after). That characterization named its
+// own exit condition — an additive wsfresh.Report.MembersUnindexedIDs plus a
+// fifth set in the union — and both now exist, so the case is folded into the
+// property arms where it belongs.
 //
-// # What the code does
+// # Why §4.3's exclusion did not survive
 //
-// A member that is present but whose index will not open is counted in
-// wsfresh.Report.MembersUnindexed, which §4.3 excludes from members_stale by
-// design, on the argument that such a member is "covered by StaleStamped when
-// it previously contributed rows, and by boundary when it never did".
+// §4.3 excluded MembersUnindexed on the ground that such a member is "covered
+// by StaleStamped when it previously contributed rows, and by boundary when it
+// never did". BOTH halves are false:
 //
-// The StaleStamped half of that cover is ONE-SHOT. The pass that reports
-// StaleStamped also trips wsfresh's gate, and the whole-pass wsresolve.Resolve
-// it triggers PRUNES the stamp it fired on. From the next query onward the
-// member is unindexed and unstamped: not Dirty (never re-folded), not
-// StaleStamped (no stamp left), not MembersMissing (still on disk). So
-// members_stale is empty while the answer keeps omitting that member's rows.
+//   - StaleStamped is ONE-SHOT by its own doc comment — the pass that reports
+//     it also trips the gate, and the wsresolve.Resolve that follows prunes the
+//     stamp it fired on. From pass 2 onward the member is not Dirty (never
+//     re-folded), not StaleStamped (no stamp left) and not MembersMissing
+//     (still on disk).
+//   - boundary is a FIXED CONSTANT about symbols OUTSIDE the workspace. It says
+//     nothing about a declared member inside it whose rows were omitted.
 //
-// # Why it is pinned rather than fixed
+// So the state it left behind was `members_stale: (none)` with rows silently
+// missing, which is the D7 hard fail — and a freshly cloned, never-built member
+// reaches it on the VERY FIRST query.
 //
-// The exclusion is an explicit, argued design decision (§4.3 and assumption 6),
-// MembersUnindexed is a COUNT with no id slice to draw from, and this task is
-// tests-only. Widening the union would contradict the spec, not implement it.
+// # Why this arm queries TWICE
 //
-// # The surviving disclosure, asserted here so it cannot rot away
-//
-// members_consulted still omits the member while the manifest still declares
-// it, so the difference between the two sets is the signal a reader has. This
-// test asserts that difference exists; if a later change makes members_consulted
-// list unreadable members, this test reddens and the last disclosure channel is
-// gone.
-//
-// # Prerequisite for tightening it
-//
-// An additive MembersUnindexedIDs slice on wsfresh.Report — written at the same
-// site as the count, exactly as MembersFreshenFailedIDs already is — plus an
-// amendment to §4.3 admitting it as a fifth set in the union. Both are outside
-// this slice.
-func TestBYDESIGNAnUnindexedMemberIsNamedStaleOnlyOnTheTransitionPass(t *testing.T) {
+// A single-pass test cannot catch a one-shot disclosure: pass 1 would have
+// passed against the broken behaviour too. That is exactly how the gap
+// survived, so the steady-state pass is the load-bearing half here.
+func TestD7FreshnessPropertyUnindexedMemberIsNamedStaleOnEveryPass(t *testing.T) {
 	ws := d7Fixture(t)
 	d7Mutate(t, ws)
 	d7DropIndex(t, ws)
 
 	p := d7Probes()[0] // callers
-	// Pass 1: the transition. The stamp is still there, so the clause discloses
-	// — and this pass is what retires the stamp.
-	if got, _ := d7Run(t, ws, p); got != d7NamedStale {
-		t.Fatalf("premise broken: the transition pass did not disclose (%s); the characterization "+
-			"below is about what happens AFTER that disclosure", got)
-	}
-
-	// Pass 2: the stamp is gone. This is what the code DOES today.
-	got, c := d7Run(t, ws, p)
-	if got != d7SilentlyStale {
-		t.Fatalf("this characterization no longer holds: pass 2 gave %q. If members_stale now "+
-			"names the unindexed member, the §4.3 exclusion was tightened — DELETE this test and "+
-			"fold the case into the property arms above.", got)
-	}
-	if len(c.MembersStale) != 0 {
-		t.Errorf("members_stale = %v, want empty — the documented consequence of §4.3 excluding "+
-			"MembersUnindexed once the stamp has been retired", c.MembersStale)
-	}
-	// The surviving disclosure channel: consulted omits alpha, the manifest
-	// does not. A reader can still tell a member went unread.
-	if !reflect.DeepEqual(c.MembersConsulted, []string{d7MemberBeta}) {
-		t.Errorf("members_consulted = %v, want only %q — this is the LAST signal that alpha went "+
-			"unread, and losing it would make the omission undetectable",
-			c.MembersConsulted, d7MemberBeta)
+	for _, pass := range []string{"transition pass", "steady-state pass"} {
+		got, c := d7Run(t, ws, p)
+		d7Require(t, "member unindexed / "+pass, p.verb, got, d7NamedStale)
+		if !reflect.DeepEqual(c.MembersStale, []string{d7MemberAlpha}) {
+			t.Errorf("[%s] members_stale = %v, want [%s] — an unindexed declared member is the "+
+				"fifth set of the union and its disclosure is durable, not one-shot",
+				pass, c.MembersStale, d7MemberAlpha)
+		}
+		// The second disclosure channel, kept from the test this replaces:
+		// consulted omits alpha while the manifest still declares it.
+		if !reflect.DeepEqual(c.MembersConsulted, []string{d7MemberBeta}) {
+			t.Errorf("[%s] members_consulted = %v, want only %q", pass, c.MembersConsulted, d7MemberBeta)
+		}
 	}
 }
 

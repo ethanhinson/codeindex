@@ -86,6 +86,22 @@ type Report struct {
 	// MembersMissing is empty.
 	MembersUnindexed int
 
+	// MembersUnindexedIDs lists the ids behind the MembersUnindexed count, in
+	// manifest order. It is written at the SAME site as the count, so the two
+	// cannot disagree: len(MembersUnindexedIDs) == MembersUnindexed always
+	// holds. That is the one-name-one-denominator discipline
+	// MembersFreshenFailedIDs already follows for its own count, and it is
+	// ADDITIVE — MembersUnindexed keeps its type and its meaning.
+	//
+	// The ids are LOAD-BEARING rather than merely convenient. A declared member
+	// that will not open has its rows omitted from every workspace answer, and
+	// no other field of this Report discloses that DURABLY: StaleStamped is
+	// non-empty for at most one pass per transition and is then pruned, and
+	// MembersMissing does not cover a member still present on disk. Without
+	// these ids the query surface has a count it cannot attribute, which is a
+	// disclosure it cannot make — see wsquery.session.staleMembers.
+	MembersUnindexedIDs []string
+
 	// MembersMissing lists the ids of members the manifest DECLARES but which
 	// are absent from disk, or present but not a directory — as
 	// config.Workspace.Resolve defines it — in manifest order. Disjoint from

@@ -3,6 +3,7 @@ package wsfresh
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"codeindex/internal/config"
@@ -559,5 +560,64 @@ func TestFreshenFailedIDsMatchCount(t *testing.T) {
 	}
 	if len(want) != 0 {
 		t.Errorf("MembersFreshenFailedIDs missing ids: %v", want)
+	}
+}
+
+// TestUnindexedIDsMatchCount: MembersUnindexedIDs carries the ids behind
+// MembersUnindexed, written at the same site so the two cannot disagree — the
+// identical discipline TestFreshenFailedIDsMatchCount pins for the other
+// count/slice pair.
+//
+// TWO unindexed members, for the same reason that test uses two: at one member
+// a wrong id, or a double append, still leaves len == count. They are unindexed
+// by the two DIFFERENT routes 5a folds together — never indexed, and indexed at
+// a version graph.OpenExisting rejects — so the slice cannot be filled from one
+// route only.
+//
+// The order assertion is manifest order (raw before old, as declared), which is
+// what the per-member loop's iteration over ws.Resolve's present set gives.
+func TestUnindexedIDsMatchCount(t *testing.T) {
+	wsRoot := crossEdgeWS(t,
+		wsMember{
+			id: "raw", namespaces: []string{"example.com/raw"},
+			src: goSrc("raw", "RawOne"), state: stateNoIndex,
+		},
+		wsMember{
+			id: "old", namespaces: []string{"example.com/old"},
+			src: goSrc("old", "OldOne"), state: stateBadVersion,
+		},
+	)
+
+	rep, err := Freshen(wsRoot)
+	if err != nil {
+		t.Fatalf("Freshen: %v", err)
+	}
+	if rep.MembersUnindexed != 2 {
+		t.Fatalf("MembersUnindexed = %d, want 2 — the fixture is not producing two "+
+			"present-but-unopenable members", rep.MembersUnindexed)
+	}
+	if len(rep.MembersUnindexedIDs) != rep.MembersUnindexed {
+		t.Fatalf("len(MembersUnindexedIDs) = %d, want %d (MembersUnindexed) — the count and "+
+			"the slice are written at one site precisely so they cannot disagree",
+			len(rep.MembersUnindexedIDs), rep.MembersUnindexed)
+	}
+	if want := []string{"raw", "old"}; !reflect.DeepEqual(rep.MembersUnindexedIDs, want) {
+		t.Errorf("MembersUnindexedIDs = %v, want %v (manifest order, both unopenable routes)",
+			rep.MembersUnindexedIDs, want)
+	}
+	// Disjoint from the other two partitions, exactly as the counts are.
+	for _, id := range rep.MembersUnindexedIDs {
+		for _, other := range rep.MembersMissing {
+			if id == other {
+				t.Errorf("id %q is in BOTH MembersUnindexedIDs and MembersMissing; the "+
+					"partitions must stay disjoint", id)
+			}
+		}
+		for _, other := range rep.MembersFreshenFailedIDs {
+			if id == other {
+				t.Errorf("id %q is in BOTH MembersUnindexedIDs and MembersFreshenFailedIDs; "+
+					"a member that never opened cannot have had its freshen fail", id)
+			}
+		}
 	}
 }

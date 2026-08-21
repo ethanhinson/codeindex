@@ -84,7 +84,9 @@ type Clause struct {
 	// COMPOSE THIS ANSWER, EXCLUDING the freshen pass, in manifest order.
 	MembersConsulted []string `json:"members_consulted"`
 
-	// MembersStale is the four-way union of §4.3, in manifest order.
+	// MembersStale is the stale-member union, in manifest order. It is §4.3's
+	// four sets PLUS the unindexed ids; see session.staleMembers for why the
+	// spec's four-way phrasing is superseded.
 	MembersStale []string `json:"members_stale"`
 
 	// Boundary is the fixed sentence; see the Boundary constant.
