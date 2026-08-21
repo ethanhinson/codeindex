@@ -98,6 +98,12 @@ func splitQName(qname string) (parent, name string) {
 // store of key.Member; RemapKey cannot check that, because a DefsReader carries
 // no identity.
 //
+// A FILE-SCOPE key (empty QName — a module-scope reference, inside no symbol)
+// must not reach here: it names no symbol, so ProjectDefs("", "") would find
+// none and RemapUnmapped would drop and count a reference that was never
+// missing. The answer path short-circuits those keys before calling this; see
+// unionCtx.cross.
+//
 // key.File is deliberately NOT used as a filter. §3.8 defines the cardinality
 // rules on the parent alone, and a member rebuild that moved a symbol between
 // files is exactly the case the stable key exists to survive — narrowing by

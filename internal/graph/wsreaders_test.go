@@ -279,6 +279,15 @@ func wsTierFixture(t *testing.T) *Store {
 			{EnclosingIdx: -1, Kind: KindImports, Target: "acme/z", Source: "acme/z", Line: 1},
 		},
 	})
+	// A MODULE-SCOPE import of a name the depmap defines: src_symbol_id = 0 and,
+	// after the attach, dst_symbol_id pointing at a tier-1 symbol. Its own file,
+	// so the hint binding it introduces cannot perturb pkg/a.go's edges.
+	putFile(t, st, &ParsedFile{
+		Path: "pkg/c.go",
+		Deps: []RawDep{
+			{EnclosingIdx: -1, Kind: KindImports, Target: "Zeta", Source: "acme/z", Line: 2},
+		},
+	})
 
 	ns, _, names, err := st.AttachMap(mapPath, "vendor/acme")
 	if err != nil {
@@ -312,6 +321,9 @@ func wsTierFixture(t *testing.T) *Store {
 	if n := count(`e.src_symbol_id = 0 AND e.kind = 'imports'`); n == 0 {
 		t.Fatalf("fixture has no file-level import edge")
 	}
+	if n := count(`e.src_symbol_id = 0 AND e.dst_symbol_id != 0 AND d.tier = 1`); n != 1 {
+		t.Fatalf("fixture has %d module-scope tier-1-resolved edges, want 1", n)
+	}
 	return st
 }
 
@@ -329,6 +341,10 @@ func TestTierOneEdges(t *testing.T) {
 			DstName: "Yankee", DstQualifier: "Zed", Kind: "calls", Line: 31}, DstNamespace: "acme/z"},
 		{UnresolvedEdge: UnresolvedEdge{SrcFile: "pkg/a.go", SrcName: "Run", SrcParent: "Server",
 			DstName: "Zeta", Kind: "calls", Line: 12}, DstNamespace: "acme/z"},
+		// Module scope: same reader, same widening as UnresolvedEdges — empty
+		// SrcName/SrcParent, and it sorts last on src_file.
+		{UnresolvedEdge: UnresolvedEdge{SrcFile: "pkg/c.go", SrcName: "", SrcParent: "",
+			DstName: "Zeta", DstNS: "acme/z", Kind: "imports", Line: 2}, DstNamespace: "acme/z"},
 	}
 	if len(got) != len(want) {
 		t.Fatalf("got %d edges %+v, want %d", len(got), got, len(want))
@@ -390,13 +406,32 @@ func assertTiePair(t *testing.T, lo, hi UnresolvedEdge, dstName, qualifier strin
 	}
 }
 
-func TestUnresolvedEdgesExcludesResolvedAndFileLevelImports(t *testing.T) {
+// TestUnresolvedEdgesIncludesModuleScopeEdgesExcludesResolved pins the whole
+// input set of the workspace resolution ladder: every edge with
+// dst_symbol_id = 0, INCLUDING the module-scope ones.
+//
+// A module-scope reference — an import at file scope — carries
+// src_symbol_id = 0. It is an unresolved edge like any other and it is the
+// import-mediated signal the ladder's rung 1 is built on, so dropping it
+// silences that rung entirely. The module-scope row comes back with EMPTY
+// SrcName and SrcParent: the file alone names its source end.
+func TestUnresolvedEdgesIncludesModuleScopeEdgesExcludesResolved(t *testing.T) {
+	// The ladder keys a source end with Symbol{Name: SrcName, Parent: SrcParent}
+	// .QName(). On a module-scope row both are empty, and that must produce the
+	// empty string — a "." would be a key naming a symbol that does not exist.
+	if q := (Symbol{}).QName(); q != "" {
+		t.Fatalf("QName of an all-empty symbol = %q, want the empty string", q)
+	}
 	st := wsFixture(t)
 	got, err := st.UnresolvedEdges()
 	if err != nil {
 		t.Fatal(err)
 	}
 	want := []UnresolvedEdge{
+		// The module-scope import: no source symbol, so it sorts first among
+		// pkg/a.go's rows and carries no SrcName/SrcParent.
+		{SrcFile: "pkg/a.go", SrcName: "", SrcParent: "", DstName: "acme/z",
+			DstNS: "acme/z", Kind: "imports", Line: 1},
 		{SrcFile: "pkg/a.go", SrcName: "Boot", SrcParent: "", DstName: "Alpha", Kind: "calls", Line: 31},
 		{SrcFile: "pkg/a.go", SrcName: "Boot", SrcParent: "", DstName: "Alpha",
 			DstQualifier: "Beta", DstNS: "acme/z", Kind: "calls", Line: 31},
@@ -428,11 +463,12 @@ func TestUnresolvedEdgesDeterministicOrder(t *testing.T) {
 			t.Fatalf("order not stable at %d: %+v vs %+v", i, a[i], b[i])
 		}
 	}
-	// (src_file, src_name, ...) => Boot sorts before Run.
-	if len(a) < 3 || a[0].SrcName != "Boot" || a[2].SrcName != "Run" {
+	// (src_file, src_name, ...) => the source-symbol-less module-scope import
+	// first, then Boot, then Run.
+	if len(a) < 4 || a[0].SrcName != "" || a[1].SrcName != "Boot" || a[3].SrcName != "Run" {
 		t.Fatalf("unexpected order: %+v", a)
 	}
-	assertTiePair(t, a[0], a[1], "Alpha", "Beta")
+	assertTiePair(t, a[1], a[2], "Alpha", "Beta")
 }
 
 func TestProjectDefs(t *testing.T) {

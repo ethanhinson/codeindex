@@ -23,8 +23,7 @@ type UnresolvedEdge struct {
 	Line         int
 }
 
-// UnresolvedEdges returns every edge with dst_symbol_id = 0 whose source is a
-// real symbol (src_symbol_id != 0), ordered by
+// UnresolvedEdges returns EVERY edge with dst_symbol_id = 0, ordered by
 // (src_file, src_name, src_parent, dst_name, kind, line, dst_qualifier,
 // dst_ns, id).
 //
@@ -33,19 +32,36 @@ type UnresolvedEdge struct {
 // namespace hint tie on every other key, and the trailing dst_qualifier,
 // dst_ns and id break that tie rather than leaving it to SQLite.
 //
-// File-level import edges carry src_symbol_id = 0 and are excluded: they have
-// no source symbol, so no stable key can name their source end. Their
-// information is not lost — those imports are exactly the namespace hints
-// (dst_ns) the ladder's import-mediated rung consumes.
+// # Module-scope edges are included
+//
+// A reference written at MODULE SCOPE — an import statement, chiefly — sits
+// inside no symbol and carries src_symbol_id = 0. Such an edge is returned,
+// with EMPTY SrcName and SrcParent: the source end is the FILE, and
+// {member, file, ""} is a perfectly stable key for it. That is why the join is
+// a LEFT JOIN with COALESCE and why there is no src_symbol_id predicate.
+//
+// Excluding them, as this reader once did on the theory that a source without
+// a symbol has no stable key, discarded the entire import-mediated signal the
+// ladder's rung 1 exists to consume — the imports ARE the namespace hints, and
+// a hint nobody hands to the ladder resolves nothing. Whether a reference sits
+// inside a symbol says nothing about whether it is a candidate cross-edge; only
+// dst_symbol_id = 0 does.
 //
 // The `edges` view exposes src_file but neither src_name nor src_parent, so
 // this is a join to `symbols` on src_symbol_id, not a single-table select.
+//
+// The ORDER BY sorts on the JOINED columns, NULL for a module-scope row. SQLite
+// sorts NULL before every string, which is where the empty string the scan
+// COALESCEs it to sorts too, so the order
+// agrees with the values returned; and it still terminates in e.id, so it stays
+// total whatever ties above it.
 func (s *Store) UnresolvedEdges() ([]UnresolvedEdge, error) {
 	rows, err := s.db.Query(
-		`SELECT e.src_file, y.name, y.parent, e.dst_name, e.dst_qualifier,
-		        e.dst_ns, e.kind, e.line
-		 FROM edges e JOIN symbols y ON y.id = e.src_symbol_id
-		 WHERE e.dst_symbol_id = 0 AND e.src_symbol_id != 0
+		`SELECT e.src_file, COALESCE(y.name, ''), COALESCE(y.parent, ''),
+		        e.dst_name, e.dst_qualifier, e.dst_ns, e.kind, e.line
+		 FROM edges e
+		 LEFT JOIN symbols y ON y.id = e.src_symbol_id AND e.src_symbol_id != 0
+		 WHERE e.dst_symbol_id = 0
 		 ORDER BY e.src_file, y.name, y.parent, e.dst_name, e.kind, e.line,
 		          e.dst_qualifier, e.dst_ns, e.id`)
 	if err != nil {
@@ -84,19 +100,28 @@ type TierOneEdge struct {
 // dst_qualifier, dst_ns, id) — total for the same reason UnresolvedEdges'
 // order is.
 //
-// Same source-symbol requirement as UnresolvedEdges: src_symbol_id != 0, so
-// file-level import edges are excluded for the same reason (no source symbol,
-// hence no stable key for the source end). Edges resolved to a tier-0 symbol
-// are excluded by the tier filter on the destination join, and unresolved
-// edges (dst_symbol_id = 0) never match that join at all.
+// Module-scope edges are included, on the SAME terms and for the SAME reason as
+// UnresolvedEdges — read the two doc comments against each other; a divergence
+// here is a bug, not a subtlety. Both readers exist to feed the ladder, both
+// build their source key from (src_file, src_name, src_parent), and a
+// module-scope row means the same thing in both: empty SrcName and SrcParent,
+// the file naming the source end. `use Vendored\Thing;` at file scope is the
+// canonical shape of a suppression candidate in PHP, so keeping the old
+// src_symbol_id != 0 filter on this reader alone would reproduce, in the
+// member-over-dep path, exactly the silence removing it from UnresolvedEdges
+// fixed in the import-mediated one.
+//
+// Edges resolved to a tier-0 symbol are excluded by the tier filter on the
+// destination join, and unresolved edges (dst_symbol_id = 0) never match that
+// join at all.
 func (s *Store) TierOneEdges() ([]TierOneEdge, error) {
 	rows, err := s.db.Query(
-		`SELECT e.src_file, y.name, y.parent, e.dst_name, e.dst_qualifier,
-		        e.dst_ns, e.kind, e.line, d.namespace
+		`SELECT e.src_file, COALESCE(y.name, ''), COALESCE(y.parent, ''),
+		        e.dst_name, e.dst_qualifier, e.dst_ns, e.kind, e.line, d.namespace
 		 FROM edges e
-		 JOIN symbols y ON y.id = e.src_symbol_id
+		 LEFT JOIN symbols y ON y.id = e.src_symbol_id AND e.src_symbol_id != 0
 		 JOIN symbols d ON d.id = e.dst_symbol_id
-		 WHERE e.src_symbol_id != 0 AND d.tier = 1
+		 WHERE d.tier = 1
 		 ORDER BY e.src_file, y.name, y.parent, e.dst_name, e.kind, e.line,
 		          e.dst_qualifier, e.dst_ns, e.id`)
 	if err != nil {

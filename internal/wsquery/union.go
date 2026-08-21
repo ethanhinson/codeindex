@@ -390,6 +390,15 @@ type crossRef struct {
 
 func (c crossRef) qname() string {
 	if !c.resolved {
+		// A FILE-SCOPE key — empty QName — is a reference with no enclosing
+		// symbol, and the file is its name. That is not this package's
+		// invention: graph.Dependent.QName does exactly this for the own half's
+		// module-scope import rows, so a dependents answer that unions the two
+		// halves states one convention rather than two. The path is the
+		// member-relative one the own half uses as well.
+		if c.key.QName == "" {
+			return c.key.File
+		}
 		return c.key.QName
 	}
 	return c.sym.QName()
@@ -483,6 +492,18 @@ func (u *unionCtx) cross(keys []overlay.SymKey, inbound bool, kinds map[string]b
 				continue
 			}
 			u.s.consult(ck.Member)
+			if ck.QName == "" {
+				// A FILE-SCOPE counterpart: the reference sits at module scope
+				// (an import), inside no symbol, and the ladder recorded it as
+				// {member, file, ""}. There is nothing to invert — the key is
+				// already complete — so it is NOT run through the re-map and
+				// NOT counted as an unmapped key. Doing so would ask
+				// ProjectDefs for a symbol named "", find none, and drop every
+				// cross-repo import the ladder resolved into keys_unmapped.
+				out = append(out, crossRef{
+					member: ck.Member, idx: u.idx[ck.Member], edge: e, key: ck, flags: flags})
+				continue
+			}
 			rm, err := u.s.remapKey(st, ck)
 			if err != nil {
 				return nil, err
@@ -619,10 +640,21 @@ func (d dropSet[K]) take(k K) bool {
 	return false
 }
 
-// edgeQName is a tier-1 edge's source qualified name, built exactly as
-// SourceCallSite builds it so the two cannot disagree.
+// edgeQName is a tier-1 edge's source qualified name AS THE OWN-HALF ANSWER
+// ROWS SPELL IT: internal/query renders a module-scope row (no enclosing
+// symbol) with the file as its qualified name — graph.Dependent.QName — so a
+// drop key built without that fallback would never match the row it is meant to
+// remove, and the §3.6 filter would leave a double-counted import behind.
+//
+// It therefore does NOT match SourceCallSite, which keys the same edge for the
+// join against the OVERLAY, where the stored src_qname of a module-scope source
+// is the empty string. Two joins, two counterparties, two spellings — and the
+// difference is exactly the module-scope case. Do not collapse them.
 func edgeQName(e graph.UnresolvedEdge) string {
-	return graph.Symbol{Name: e.SrcName, Parent: e.SrcParent}.QName()
+	if q := (graph.Symbol{Name: e.SrcName, Parent: e.SrcParent}).QName(); q != "" {
+		return q
+	}
+	return e.SrcFile
 }
 
 // callerDrops indexes the dropped edges that target name, for filtering own
@@ -887,10 +919,12 @@ func dependentsWorkspace(s *session, anchor string, limit int) (*query.Dependent
 // each, because each names a different file and merging them would produce a
 // section whose label could only name one of them.
 //
-// File-level import edges carry src_symbol_id = 0, so the resolution ladder
-// never gives them a stable source key and the overlay never carries one: a
-// file-imports section therefore has no cross half by construction, not by
-// omission.
+// The file-imports section has no cross half. That is a property of THIS VERB's
+// anchor, not of the data: the overlay does carry file-scope source keys
+// ({member, file, ""}, from module-scope imports the ladder resolved), but this
+// section is reached from a SYMBOL anchor and reads the anchor member's own
+// imports of the defining file. Reading a file-scope key's outbound cross-edges
+// here would be a new query surface, not a fix; it is deliberately out of scope.
 func depsWorkspace(s *session, anchor string, limit int) (*query.DepsAnswer, error) {
 	u, err := openUnion(s)
 	if err != nil {
