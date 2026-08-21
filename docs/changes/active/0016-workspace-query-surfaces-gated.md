@@ -17,7 +17,7 @@ results: docs/results/2026-08-21-workspace-query-surfaces-gated-results.md
 trivial: false
 auto_groomable: true
 branch: feat/workspace-query-surfaces-gated
-claimed_at: 2026-08-21T02:15:05Z
+claimed_at: 2026-08-21T03:14:06Z
 pr: https://github.com/ethanhinson/codeindex/pull/14
 blocked_by:
 reconciled: true
