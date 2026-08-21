@@ -966,12 +966,33 @@ func impactWorkspace(s *session, anchor string, limit int) (*query.ImpactAnswer,
 // # Why the retrieval half is called with the CALLER'S limit, not `unlimited`
 //
 // nav's limit is not a pure display bound on those components: query.Nav passes
-// it into the find lane, and FilesTotal is then derived from the bounded match
-// set. Handing the per-member call `unlimited` would make a ONE-MEMBER
-// workspace's FilesTotal differ from the single-repo answer's, which is D7's
-// frozen non-regression bar. The graph half is different and does use
-// `unlimited`: CallersTotal is a true count of a complete set, so §3.5's union
-// arithmetic applies to it.
+// it straight into search.Find, which TRUNCATES the ranked result set before nav
+// derives anything from it. Both `Files` (find hits first, then grep hits) and
+// the definitions fallback are then computed over that bounded match set, and
+// FilesTotal counts the result. So `unlimited` would give a ONE-MEMBER workspace
+// MORE files and MORE fallback definitions than the single-repo answer has —
+// the opposite regression, and just as much a break of D7's frozen bar. The
+// graph half is different and does use `unlimited`: CallersTotal there is a true
+// count of a complete set, so §3.5's union arithmetic applies to it directly.
+//
+// # But the per-member *Total fields must be ACCUMULATED, never recounted
+//
+// The per-member-limit convention is shared with findWorkspace, but the
+// arithmetic underneath it is NOT. FindAnswer.Total is POST-truncation in repo
+// mode (query.Find sets Total = len(results) after search.Find applied the
+// limit), so there the total and the row count coincide. NavAnswer's totals are
+// the opposite: FilesTotal and the grep-attribution CallersTotal are
+// PRE-truncation counts reported alongside lists query.Nav has already capped
+// at `limit`, so the two DIVERGE the moment a member overflows. Recounting
+// `len(files)` here would pin FilesTotal to the limit, so the renderer's
+// "referenced in %d file(s)" header would under-report and its "... (+%d more)"
+// tail could never fire. The per-member totals are therefore summed, and §3.5's
+// "*Total counts the unioned set" holds over the union of the per-member sets.
+//
+// Truncating per member and concatenating is safe for the LISTS here (unlike the
+// anchor verbs, where §3.5 forbids it) because each member contributes a prefix
+// of length min(n_i, limit): the first `limit` rows of the concatenation are
+// exactly the first `limit` rows of the untruncated concatenation.
 func navWorkspace(s *session, anchor string, limit int) (*query.NavAnswer, error) {
 	u, err := openUnion(s)
 	if err != nil {
@@ -992,6 +1013,11 @@ func navWorkspace(s *session, anchor string, limit int) (*query.NavAnswer, error
 		grepCallers []query.CallerRef
 		fallbackDef []query.DefRef
 		files       []string
+		// filesTotal and grepCallersTotal accumulate the per-member
+		// PRE-truncation counts. See the note above: recounting the rows we
+		// iterated would recount an already-truncated list.
+		filesTotal       int
+		grepCallersTotal int
 	)
 	seen := map[string]bool{}
 	for _, rm := range u.present {
@@ -1009,14 +1035,25 @@ func navWorkspace(s *session, anchor string, limit int) (*query.NavAnswer, error
 			m.File = u.wsPath(id, m.File)
 			matches = append(matches, m)
 		}
+		filesTotal += inner.FilesTotal
 		for _, f := range inner.Files {
 			p := u.wsPath(id, f)
-			if !seen[p] {
-				seen[p] = true
-				files = append(files, p)
+			if seen[p] {
+				// A path two members both claim, which can only happen when one
+				// member's root nests inside another's. Decrementing keeps the
+				// total from double-counting what we can SEE collide; a
+				// collision hidden past a member's own truncation is not
+				// observable here and is left in the total. Single-member
+				// workspaces cannot hit either case — query.Nav already deduped
+				// — so §7.4's bar stays exact.
+				filesTotal--
+				continue
 			}
+			seen[p] = true
+			files = append(files, p)
 		}
 		if inner.CallersFromGrep {
+			grepCallersTotal += inner.CallersTotal
 			for _, c := range inner.Callers {
 				c.Repo = id
 				c.File = u.wsPath(id, c.File)
@@ -1048,13 +1085,21 @@ func navWorkspace(s *session, anchor string, limit int) (*query.NavAnswer, error
 	}
 	// Grep attribution stands in for callers only when the union found NO call
 	// edges at all — the same condition repo-mode nav uses, lifted to the union.
+	//
+	// The two lanes' totals come from different places, and that asymmetry is
+	// the point: the graph lane's `callers` is a COMPLETE union (callersUnion
+	// reads every member with `unlimited`), so len() is its true count, while
+	// the grep lane's rows arrive already capped per member and its count must
+	// be the accumulated one.
+	callersTotal := len(callers)
 	if len(callers) == 0 && len(grepCallers) > 0 {
 		a.CallersFromGrep = true
 		callers = grepCallers
+		callersTotal = grepCallersTotal
 	}
-	a.CallersTotal = len(callers)
+	a.CallersTotal = callersTotal
 	a.Callers = append(a.Callers, truncate(callers, limit)...)
-	a.FilesTotal = len(files)
+	a.FilesTotal = filesTotal
 	a.Files = append(a.Files, truncate(files, limit)...)
 	return a, nil
 }

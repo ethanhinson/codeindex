@@ -1,6 +1,7 @@
 package wsquery
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -54,8 +55,7 @@ const soloMemberID = "solo"
 // comparable rather than merely similar.
 func soloFixture(t *testing.T) string {
 	t.Helper()
-	dir := t.TempDir()
-	files := map[string]string{
+	return soloFixtureFrom(t, map[string]string{
 		"a.go": `package p
 
 type Base struct{}
@@ -79,7 +79,15 @@ func CallerTwo() {
 	Target()
 }
 `,
-	}
+	})
+}
+
+// soloFixtureFrom is soloFixture's body over an arbitrary file set, so a case
+// that needs a DIFFERENT shape of repo (see the truncation case below) gets the
+// same one-member/root-"." workspace without cloning the manifest.
+func soloFixtureFrom(t *testing.T, files map[string]string) string {
+	t.Helper()
+	dir := t.TempDir()
 	for name, content := range files {
 		if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o644); err != nil {
 			t.Fatal(err)
@@ -334,6 +342,121 @@ func TestSingleMemberWorkspaceMatchesSingleRepoModuloRepo(t *testing.T) {
 			if got != repoText {
 				t.Errorf("one-member workspace text differs from single-repo text by more than the "+
 					"repo prefix\n got: %q\nwant: %q", got, repoText)
+			}
+		})
+	}
+}
+
+// navTruncationFixture is a one-member workspace whose nav answer OVERFLOWS the
+// limit on every lane the answer's *Total fields count:
+//
+//   - "Target" has 8 graph callers in 8 files, and grep attributes it in 9 files
+//     (the 8 callers plus its own definition) — so both CallersTotal and
+//     FilesTotal exceed a small limit on the ordinary lane;
+//   - "Orphan" is DEFINED and never called, but named in a comment in 8 files —
+//     zero call edges, so nav falls to grep attribution and CallersTotal is the
+//     grep group count, which also exceeds the limit.
+//
+// The fixture exists because soloFixture cannot enter the truncation branch at
+// all: two files and limit 10. A nav bug that only shows up once a *Total
+// exceeds the limit — precisely the class where nav's totals are PRE-truncation
+// counts while its lists are post-truncation — is invisible to a fixture that
+// never truncates, so the frozen bar of §7.4 was being asserted only on the easy
+// half of the arithmetic.
+func navTruncationFixture(t *testing.T) string {
+	t.Helper()
+	files := map[string]string{
+		"target.go": `package p
+
+func Target() {}
+
+func Orphan() {}
+`,
+	}
+	for i := 0; i < 8; i++ {
+		files[fmt.Sprintf("c%d.go", i)] = fmt.Sprintf(`package p
+
+// Orphan is named here but never called.
+func Caller%d() {
+	Target()
+}
+`, i)
+	}
+	return soloFixtureFrom(t, files)
+}
+
+// TestSingleMemberWorkspaceNavTruncationMatchesSingleRepo holds §7.4's frozen
+// bar for nav ACROSS THE TRUNCATION BOUNDARY, on both of nav's caller lanes.
+//
+// It is the regression test for a defect the main bar could not see: the
+// workspace path recomputed FilesTotal/CallersTotal from the per-member lists it
+// had just iterated, but those lists are what query.Nav already TRUNCATED to the
+// limit, while the *Total fields it reports are the counts BEFORE truncation. A
+// one-member workspace therefore reported FilesTotal == limit where repo mode
+// reported the true count, and the renderer's "referenced in %d file(s)" header
+// and its "... (+%d more)" tail both went wrong — the tail could never fire.
+func TestSingleMemberWorkspaceNavTruncationMatchesSingleRepo(t *testing.T) {
+	defer cleanFreshen(t)()
+	root := navTruncationFixture(t)
+
+	const limit = 3
+	for _, anchor := range []string{"Target", "Orphan"} {
+		t.Run(anchor, func(t *testing.T) {
+			repoAnswer, err := query.Nav(root, anchor, limit)
+			if err != nil {
+				t.Fatalf("repo mode: %v", err)
+			}
+			// The fixture must actually overflow, or this test is the same
+			// vacuous assertion the main bar already makes.
+			if repoAnswer.FilesTotal <= limit {
+				t.Fatalf("fixture does not truncate the file lane: FilesTotal=%d limit=%d",
+					repoAnswer.FilesTotal, limit)
+			}
+			if repoAnswer.CallersTotal <= limit {
+				t.Fatalf("fixture does not truncate the caller lane: CallersTotal=%d limit=%d",
+					repoAnswer.CallersTotal, limit)
+			}
+			if anchor == "Orphan" && !repoAnswer.CallersFromGrep {
+				t.Fatalf("the Orphan case is meant to exercise grep attribution, but repo mode " +
+					"found call edges for it")
+			}
+			if anchor == "Target" && repoAnswer.CallersFromGrep {
+				t.Fatalf("the Target case is meant to exercise the graph caller lane, but repo " +
+					"mode fell back to grep attribution")
+			}
+
+			wsAnswer, clause := soloWS(t, "nav", func() (Emittable, error) {
+				return NavStructured(root, anchor, limit)
+			})
+			if !reflect.DeepEqual(clause.MembersConsulted, []string{soloMemberID}) {
+				t.Errorf("members_consulted = %v, want the sole member %q",
+					clause.MembersConsulted, soloMemberID)
+			}
+			if clearRepoFields(wsAnswer) == 0 {
+				t.Fatalf("the workspace answer carried no repo field; the bar is vacuous here")
+			}
+			if n := clearRepoFields(repoAnswer); n != 0 {
+				t.Errorf("the repo-mode answer carried %d repo field(s); repo mode must set none", n)
+			}
+			if !reflect.DeepEqual(repoAnswer, wsAnswer) {
+				t.Errorf("one-member workspace nav differs from single-repo nav across the "+
+					"truncation boundary — D7's frozen bar\n repo: %+v\n  ws:  %+v",
+					repoAnswer, wsAnswer)
+			}
+
+			repoText, err := query.NavText(root, anchor, limit)
+			if err != nil {
+				t.Fatal(err)
+			}
+			wsText, err := NavText(root, anchor, limit)
+			if err != nil {
+				t.Fatal(err)
+			}
+			got := stripClauseLine(t, wsText, clause)
+			got = strings.ReplaceAll(got, soloMemberID+": ", "")
+			if got != repoText {
+				t.Errorf("one-member workspace nav text differs from single-repo text by more than "+
+					"the repo prefix\n got: %q\nwant: %q", got, repoText)
 			}
 		})
 	}
