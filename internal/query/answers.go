@@ -151,7 +151,13 @@ func (a *CalleesAnswer) Text() string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "callees of %s (%d):\n", a.Anchor, a.Total)
 	for _, c := range a.Callees {
-		target := "unresolved"
+		// The member prefix sits OUTSIDE the resolved/unresolved branch. An
+		// unresolved callee (stdlib or external) is the common case, and on a
+		// bare anchor resolving in several members calleesUnion merges every
+		// member's rows into ONE list — so a bare "unresolved" would say
+		// nothing about which member's code made the call. Repo mode is
+		// unaffected: Repo is always "" there and repoPrefix renders nothing.
+		target := repoPrefix(c.Repo) + "unresolved"
 		if c.DefFile != "" {
 			target = fmt.Sprintf("%s%s:%d", repoPrefix(c.Repo), c.DefFile, c.DefLine)
 		}
@@ -313,7 +319,11 @@ func (a *DepsAnswer) Text() string {
 	for _, s := range a.Sections {
 		fmt.Fprintf(&b, "%s (%d):\n", s.Label, s.Total)
 		for _, d := range s.Deps {
-			target := d.Target
+			// As in CalleesAnswer.Text: the member prefix is outside the
+			// resolved test, so a dependency with no resolved definition still
+			// names the member whose code depends on it. Repo mode is
+			// unaffected (Repo == "", repoPrefix renders nothing).
+			target := repoPrefix(d.Repo) + d.Target
 			if d.DefFile != "" {
 				target = fmt.Sprintf("%s (%s%s:%d)", d.Target, repoPrefix(d.Repo), d.DefFile, d.DefLine)
 			}

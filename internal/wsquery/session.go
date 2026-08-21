@@ -38,6 +38,12 @@ type session struct {
 	// inverted to no symbol (§3.8). Incremented at the re-map site by
 	// remapKey, so a drop and its disclosure cannot come apart.
 	keysUnmapped int
+	// overlaySchemaSkew is set by openUnion when the overlay file exists at a
+	// schema version this binary does not read. The overlay is then read as
+	// EMPTY rather than rebuilt, so this sentence is the only thing standing
+	// between the reader and an answer silently missing every cross-member
+	// edge.
+	overlaySchemaSkew string
 }
 
 // newSession loads the manifest, then runs the whole-workspace freshen, then
@@ -117,11 +123,12 @@ func (s *session) consult(ids ...string) {
 // composed, so members_consulted is complete.
 func (s *session) clause(verb string) Clause {
 	c := Clause{
-		MembersConsulted: s.manifestOrder(s.consulted),
-		MembersStale:     s.staleMembers(),
-		Boundary:         Boundary,
-		Layer:            ClauseLayer(verb),
-		KeysUnmapped:     s.keysUnmapped,
+		MembersConsulted:  s.manifestOrder(s.consulted),
+		MembersStale:      s.staleMembers(),
+		Boundary:          Boundary,
+		Layer:             ClauseLayer(verb),
+		KeysUnmapped:      s.keysUnmapped,
+		OverlayUnreadable: s.overlaySchemaSkew,
 	}
 	if s.freshenErr != nil {
 		c.FreshenFailed = s.freshenErr.Error()

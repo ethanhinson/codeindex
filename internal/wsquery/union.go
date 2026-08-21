@@ -1,7 +1,9 @@
 package wsquery
 
 import (
+	"fmt"
 	"math"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -103,19 +105,54 @@ type unionCtx struct {
 	dropped map[string][]graph.TierOneEdge
 }
 
+// openUnion opens the read context, VERSION-GATING the overlay first.
+//
+// # Why the gate is here and not left to overlay.Open
+//
+// overlay.Open MUTATES: on a schema-version mismatch it DELETES the file and
+// recreates it empty. WorkspaceStatus already refuses to reach that path for
+// exactly that reason (see status.go's file comment), and a read-only QUERY has
+// the same obligation — more so on §4.2's degrade path, where Freshen errored
+// possibly before touching the overlay and the query is supposed to proceed
+// "against the overlay as it stands". Rebuilding it here would destroy the very
+// state the degraded answer is being read from.
+//
+// So a mismatched overlay is read as EMPTY (ov == nil; every cross-edge read
+// below yields nothing) AND DISCLOSED through the coverage clause. The
+// disclosure is not optional: a silently empty overlay is an answer missing
+// every cross-member edge with nothing saying so, which is the silent staleness
+// the D7 gate hard-fails.
+//
+// An ABSENT overlay is left to overlay.Open, which creates it empty. That
+// create is not a rebuild — there is no recorded state to destroy — and it is
+// the state a workspace sits in before its first refresh.
 func openUnion(s *session) (*unionCtx, error) {
 	present, _, err := s.ws.Resolve(s.root)
 	if err != nil {
 		return nil, err
 	}
-	ov, err := overlay.Open(overlay.Path(s.root))
-	if err != nil {
-		return nil, err
-	}
-	sup, err := ov.Suppressions()
-	if err != nil {
-		ov.Close()
-		return nil, err
+	ovPath := overlay.Path(s.root)
+	var (
+		ov  *overlay.Store
+		sup []overlay.Suppression
+	)
+	switch ver, verr := overlay.FileSchemaVersion(ovPath); {
+	case verr != nil && !os.IsNotExist(verr):
+		return nil, verr
+	case verr == nil && ver != overlay.SchemaVersion():
+		s.overlaySchemaSkew = fmt.Sprintf(
+			"overlay schema v%d, this binary uses v%d — cross-member edges unavailable until the next refresh rebuilds it",
+			ver, overlay.SchemaVersion())
+	default:
+		ov, err = overlay.Open(ovPath)
+		if err != nil {
+			return nil, err
+		}
+		sup, err = ov.Suppressions()
+		if err != nil {
+			ov.Close()
+			return nil, err
+		}
 	}
 	u := &unionCtx{
 		s: s, ov: ov, present: present,
@@ -142,7 +179,9 @@ func (u *unionCtx) close() {
 			st.Close()
 		}
 	}
-	u.ov.Close()
+	if u.ov != nil {
+		u.ov.Close()
+	}
 }
 
 // store opens a member's index read-only, memoized.
@@ -324,33 +363,47 @@ type crossRef struct {
 	// idx is member's manifest index: the union's sort key.
 	idx  int
 	edge overlay.CrossEdge
-	// key is the counterpart's stable key, used when the re-map was ambiguous
-	// and there is no single symbol to speak for.
+	// key is the counterpart's stable key. It speaks for the row ONLY when the
+	// re-map produced no symbol to speak for it — see resolved.
 	key   overlay.SymKey
 	sym   graph.Symbol
 	flags Flags
 	// ambiguous marks a key that inverted to several symbols. It is rendered
 	// with the answer surface's existing Ambiguous flag rather than resolved by
 	// picking a row (§3.8, assumption 19).
+	//
+	// An ambiguous re-map is EXPANDED at the gather site: cross emits ONE
+	// crossRef per candidate, each carrying that candidate in sym and
+	// ambiguous set. That is §3.8's "rendered as ambiguous WITH ITS
+	// CANDIDATES" — the reader gets every location the key could mean, each
+	// flagged, and no single row is presented as the answer. Emitting one row
+	// bearing key.File instead would print the path recorded at WRITE time,
+	// which is precisely the datum the stable key exists because it may have
+	// MOVED, at DefLine 0.
 	ambiguous bool
+	// resolved is true when sym holds a symbol read from the counterpart
+	// member's own database — an exact re-map, or one candidate of an
+	// ambiguous one. It is false only in the degenerate ambiguous-with-no-
+	// candidates case, where the recorded key is all there is.
+	resolved bool
 }
 
 func (c crossRef) qname() string {
-	if c.ambiguous {
+	if !c.resolved {
 		return c.key.QName
 	}
 	return c.sym.QName()
 }
 
 func (c crossRef) file() string {
-	if c.ambiguous {
+	if !c.resolved {
 		return c.key.File
 	}
 	return c.sym.File
 }
 
 func (c crossRef) name() string {
-	if c.ambiguous {
+	if !c.resolved {
 		_, n := splitQName(c.key.QName)
 		return n
 	}
@@ -358,7 +411,7 @@ func (c crossRef) name() string {
 }
 
 func (c crossRef) parent() string {
-	if c.ambiguous {
+	if !c.resolved {
 		p, _ := splitQName(c.key.QName)
 		return p
 	}
@@ -366,7 +419,7 @@ func (c crossRef) parent() string {
 }
 
 func (c crossRef) defLine() int {
-	if c.ambiguous {
+	if !c.resolved {
 		return 0
 	}
 	return c.sym.StartLine
@@ -388,6 +441,11 @@ func (c crossRef) defLine() int {
 // SQLite. That tie is exercised: the fixture gives one member three rows.
 func (u *unionCtx) cross(keys []overlay.SymKey, inbound bool, kinds map[string]bool) ([]crossRef, error) {
 	var out []crossRef
+	if u.ov == nil {
+		// A schema-mismatched overlay, read as empty and disclosed by the
+		// clause. See openUnion.
+		return nil, nil
+	}
 	for _, k := range keys {
 		var (
 			edges []overlay.CrossEdge
@@ -435,12 +493,24 @@ func (u *unionCtx) cross(keys []overlay.SymKey, inbound bool, kinds map[string]b
 				// Dropped and counted by remapKey into keys_unmapped.
 				continue
 			case RemapExact:
-				ref.sym = rm.Symbol
+				ref.sym, ref.resolved = rm.Symbol, true
+				out = append(out, ref)
 			default:
 				ref.ambiguous = true
 				ref.flags.Ambiguous = true
+				if len(rm.Candidates) == 0 {
+					// Cannot happen through RemapKey, which only reports
+					// ambiguous over a non-empty set — kept so a future
+					// producer cannot make the reference vanish silently.
+					out = append(out, ref)
+					break
+				}
+				for _, cand := range rm.Candidates {
+					cr := ref
+					cr.sym, cr.resolved = cand, true
+					out = append(out, cr)
+				}
 			}
-			out = append(out, ref)
 		}
 	}
 	sort.SliceStable(out, func(i, j int) bool { return out[i].idx < out[j].idx })
@@ -474,6 +544,14 @@ func truncate[T any](xs []T, limit int) []T {
 func (u *unionCtx) droppedEdges(memberID string) ([]graph.TierOneEdge, error) {
 	if got, ok := u.dropped[memberID]; ok {
 		return got, nil
+	}
+	if u.ov == nil {
+		// No readable overlay, so no suppressions and no cross-edges to
+		// deduplicate an own-member edge against. Implied by u.sup being empty
+		// as well; stated so the MemberEdges read below cannot be reached by a
+		// later edit that fills u.sup from somewhere else.
+		u.dropped[memberID] = nil
+		return nil, nil
 	}
 	consumer := false
 	for _, s := range u.sup {

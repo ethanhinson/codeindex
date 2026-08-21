@@ -28,7 +28,6 @@
 package wsquery
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -37,11 +36,19 @@ import (
 	"codeindex/internal/query"
 )
 
-// ErrWorkspaceNotWired marks a workspace-root answer path that this slice has
-// not implemented yet. Tasks 5-8 replace each of its return sites with real
-// union logic; it exists so a premature workspace query fails loudly and
-// identifiably rather than silently answering from one member.
-var ErrWorkspaceNotWired = errors.New("wsquery: workspace-root queries are not wired yet")
+// There is deliberately NO wsquery.Fresh.
+//
+// query.Fresh BUILDS a repo's index; there is no workspace-root analogue of
+// that here, because the workspace's freshen already runs inside every entry
+// point via workspaceSession, and wsfresh.Freshen — not this package — is the
+// whole-workspace build surface. A wsquery.Fresh that returned a scaffold error
+// on a workspace root would be a build-time placeholder reachable by a user;
+// one that returned a synthesized FreshInfo would be a second, differently
+// shaped freshen result alongside wsfresh.Report. The "mirror internal/query's
+// surface one-for-one" property is about the ANSWER verbs, and it already has
+// a precedent for an omission: there is no EnclosingText either. Callers that
+// need a repo build call query.Fresh directly; callers that need a workspace
+// freshen call wsfresh.Freshen.
 
 // RootKind classifies root as a repo or a workspace. It is the single
 // detection call in the binary (see the package doc): callers that need to
@@ -460,16 +467,4 @@ func SearchText(root, q string, hints []string, errorText string, limit int, fla
 		return query.SearchText(root, q, hints, errorText, limit, flat)
 	}
 	return "", RefuseWorkspaceRoot("search", root)
-}
-
-// Fresh routes to query.Fresh on a repo root.
-func Fresh(root string) (query.FreshInfo, error) {
-	kind, err := RootKind(root)
-	if err != nil {
-		return query.FreshInfo{}, err
-	}
-	if kind == engine.RootRepo {
-		return query.Fresh(root)
-	}
-	return query.FreshInfo{}, ErrWorkspaceNotWired
 }

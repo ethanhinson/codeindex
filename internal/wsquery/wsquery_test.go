@@ -158,26 +158,6 @@ func TestRepoModeIdentity(t *testing.T) {
 	}
 }
 
-// TestRepoModeFreshIdentity is separated from the table because query.Fresh
-// carries process-global build state: the two calls run against two identical
-// but distinct repos, and Duration is wall-clock so it is excluded.
-func TestRepoModeFreshIdentity(t *testing.T) {
-	a := fixtureRepo(t)
-	b := fixtureRepo(t)
-	got, err := Fresh(a)
-	if err != nil {
-		t.Fatal(err)
-	}
-	want, err := query.Fresh(b)
-	if err != nil {
-		t.Fatal(err)
-	}
-	got.Duration, want.Duration = 0, 0
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("wsquery.Fresh = %+v, query.Fresh = %+v", got, want)
-	}
-}
-
 func TestRefuseWorkspaceRootMessageShape(t *testing.T) {
 	root := fixtureWorkspace(t)
 	cases := map[string]string{

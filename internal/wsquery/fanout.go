@@ -73,6 +73,24 @@ func joinBackends(backends []string) string {
 }
 
 // findWorkspace fans find out across the present members and concatenates.
+//
+// # KNOWN LIMITATION: Total is the sum of the per-member CAPPED totals
+//
+// The per-member-limit convention above is forced, and so is its residual. Each
+// member's query.Find sets Total = len(results) AFTER search.Find applied the
+// limit, so Total here is Σ min(n_i, limit) — neither the corpus total nor the
+// printed row count, since `limit` then bounds the CONCATENATION too. On a
+// three-member workspace with limit 20 where every member overflows,
+// FindAnswer.Text prints `find "X" (60)` above TWENTY rows, and FindAnswer has
+// no "... (+N more)" line to reconcile the two.
+//
+// This is CHARACTERIZED, not fixed. Making Total honest would mean either
+// per-member `unlimited` — which moves a one-member workspace's Total off the
+// single-repo answer's and breaks §7.4's byte-equality bar — or recounting the
+// rows, which contradicts §3.2's "sum of the per-member totals". §7.4 and §3.2
+// can only both hold this way.
+// TestBYDESIGNFindTotalIsTheSumOfPerMemberCappedTotals pins the arithmetic so a
+// reader meets the semantics rather than the surprise.
 func findWorkspace(s *session, q, kind, path string, limit int) (*query.FindAnswer, error) {
 	u, err := openUnion(s)
 	if err != nil {

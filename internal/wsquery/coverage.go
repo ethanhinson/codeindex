@@ -112,6 +112,19 @@ type Clause struct {
 	// which is how a disclosure field stops being read at all.
 	KeysUnmapped int `json:"keys_unmapped,omitempty"`
 
+	// OverlayUnreadable discloses that the overlay file exists at a schema
+	// version this binary does not read, so the answer carries NO cross-member
+	// edges at all. The overlay is deliberately not rebuilt on a query path —
+	// overlay.Open would delete and recreate it empty, destroying state a
+	// degraded query is supposed to read as it stands (see openUnion).
+	//
+	// Like KeysUnmapped it is ADDITIVE to D6's three reserved fields, and
+	// omitted when empty: it discloses an anomaly, not the answer's scope.
+	// Without it an unreadable overlay is indistinguishable from a workspace
+	// with no cross-member edges, which is exactly the silent staleness the D7
+	// gate hard-fails.
+	OverlayUnreadable string `json:"overlay_unreadable,omitempty"`
+
 	// Layer is §4.6's per-verb reading policy. Not serialized; see the type
 	// comment.
 	Layer Layer `json:"-"`
@@ -130,6 +143,10 @@ func (c Clause) String() string {
 	b.WriteString(idList(c.MembersStale))
 	if c.KeysUnmapped > 0 {
 		fmt.Fprintf(&b, "; keys_unmapped: %d", c.KeysUnmapped)
+	}
+	if c.OverlayUnreadable != "" {
+		b.WriteString("; overlay_unreadable: ")
+		b.WriteString(singleLine(c.OverlayUnreadable))
 	}
 	if c.FreshenFailed != "" {
 		b.WriteString("; freshen_failed: ")

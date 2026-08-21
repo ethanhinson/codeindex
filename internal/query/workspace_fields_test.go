@@ -45,9 +45,15 @@ referenced in 1 file(s): services/api/u.go
 					{QName: "Ext", CallLine: 43, Repo: "api"},
 				},
 			}).Text(),
+			// The unresolved row carries the prefix too. This test's own name
+			// says EVERY reference line, and an unresolved callee — stdlib or
+			// external, the common case — is the row where the attribution
+			// matters most: on a bare anchor the union merges several members'
+			// callees into ONE list, so without it nothing says whose code made
+			// the call. Repo mode is unaffected (Repo == "" there).
 			`callees of Use (2):
   Run  -> core: core/r.go:3  @call:42
-  Ext  -> unresolved  @call:43
+  Ext  -> api: unresolved  @call:43
 `,
 		},
 		{
@@ -88,12 +94,16 @@ referenced in 1 file(s): services/api/u.go
 			"deps",
 			(&DepsAnswer{
 				Anchor: "Use",
-				Sections: []DepSection{{Label: "calls", Total: 1, Deps: []DepRef{
+				Sections: []DepSection{{Label: "calls", Total: 2, Deps: []DepRef{
 					{Kind: "call", Target: "Run", DefFile: "core/r.go", DefLine: 3, Line: 42, Repo: "core"},
+					// No resolved definition — the prefix still attributes the
+					// row, exactly as in the callees case above.
+					{Kind: "call", Target: "Ext", Line: 43, Repo: "api"},
 				}}},
 			}).Text(),
-			`calls (1):
+			`calls (2):
   call       Run (core: core/r.go:3)  @42
+  call       api: Ext  @43
 `,
 		},
 		{
