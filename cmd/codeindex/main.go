@@ -407,13 +407,51 @@ func refuseWorkspaceRoot(verb, root string) error {
 // remains the pre-dispatch usage code, since a workspace root is a well-formed
 // argument.
 func fanOut(verb, wsRoot string, w io.Writer, per func(m config.ResolvedMember) error) error {
-	ws, err := config.LoadWorkspace(wsRoot)
+	steps, presentCount, err := fanOutSteps(wsRoot)
 	if err != nil {
 		return err
 	}
+	var failed []string
+	for _, st := range steps {
+		if st.Missing {
+			fmt.Fprintf(w, "%s: missing — declared root %q is not on disk; skipping %s\n",
+				st.ID, st.DeclRoot, verb)
+			continue
+		}
+		fmt.Fprintf(w, "%s: %s %s\n", st.ID, verb, st.Member.AbsRoot)
+		if err := per(st.Member); err != nil {
+			fmt.Fprintf(w, "%s: %s failed: %v\n", st.ID, verb, err)
+			failed = append(failed, st.ID)
+		}
+	}
+	return fanOutErr(verb, failed, presentCount)
+}
+
+// fanStep is one member of a fan-out pass: either a declared member missing
+// from disk, or a resolved one to run against.
+type fanStep struct {
+	ID       string
+	DeclRoot string
+	Missing  bool
+	Member   config.ResolvedMember
+}
+
+// fanOutSteps resolves wsRoot's manifest into the pass's steps, in MANIFEST
+// order so present and missing members interleave in the one order the user
+// authored. It also returns the count of present members, which the aggregate
+// error reports against.
+//
+// It is shared by every fan-out renderer — the text pass above and the
+// workspace-root --json document — so the missing-by-id and manifest-order
+// properties above cannot drift between them.
+func fanOutSteps(wsRoot string) ([]fanStep, int, error) {
+	ws, err := config.LoadWorkspace(wsRoot)
+	if err != nil {
+		return nil, 0, err
+	}
 	present, missing, err := ws.Resolve(wsRoot)
 	if err != nil {
-		return err
+		return nil, 0, err
 	}
 	byID := make(map[string]config.ResolvedMember, len(present))
 	for _, m := range present {
@@ -423,31 +461,29 @@ func fanOut(verb, wsRoot string, w io.Writer, per func(m config.ResolvedMember) 
 	for _, id := range missing {
 		missingSet[id] = true
 	}
-
-	var failed []string
-	// Iterate the manifest itself rather than `present`, so present and
-	// missing members interleave in the one order the user authored.
+	steps := make([]fanStep, 0, len(ws.Members))
 	for _, decl := range ws.Members {
 		if missingSet[decl.ID] {
-			fmt.Fprintf(w, "%s: missing — declared root %q is not on disk; skipping %s\n",
-				decl.ID, decl.Root, verb)
+			steps = append(steps, fanStep{ID: decl.ID, DeclRoot: decl.Root, Missing: true})
 			continue
 		}
 		m, ok := byID[decl.ID]
 		if !ok {
 			continue
 		}
-		fmt.Fprintf(w, "%s: %s %s\n", decl.ID, verb, m.AbsRoot)
-		if err := per(m); err != nil {
-			fmt.Fprintf(w, "%s: %s failed: %v\n", decl.ID, verb, err)
-			failed = append(failed, decl.ID)
-		}
+		steps = append(steps, fanStep{ID: decl.ID, DeclRoot: decl.Root, Member: m})
 	}
-	if len(failed) > 0 {
-		return fmt.Errorf("codeindex %s: %d of %d present member(s) failed: %s",
-			verb, len(failed), len(present), strings.Join(failed, ", "))
+	return steps, len(present), nil
+}
+
+// fanOutErr is the one construction site for the aggregate error, so the text
+// and JSON passes exit 1 with the same wording naming EVERY failed member.
+func fanOutErr(verb string, failed []string, presentCount int) error {
+	if len(failed) == 0 {
+		return nil
 	}
-	return nil
+	return fmt.Errorf("codeindex %s: %d of %d present member(s) failed: %s",
+		verb, len(failed), presentCount, strings.Join(failed, ", "))
 }
 
 // dispatchBuild routes build by root kind: the unchanged per-repo build on a
@@ -468,6 +504,9 @@ func dispatchStatus(root string, asJSON bool) error {
 	if !isWorkspaceRoot(root) {
 		return runStatus(root, asJSON)
 	}
+	if asJSON {
+		return statusWorkspaceJSON(root, os.Stdout)
+	}
 	ferr := fanOut("status", root, os.Stdout, func(m config.ResolvedMember) error {
 		return runStatus(m.AbsRoot, asJSON)
 	})
@@ -480,6 +519,90 @@ func dispatchStatus(root string, asJSON bool) error {
 		return err
 	}
 	return ferr
+}
+
+// wsStatusMember is one member's entry in the workspace-root --json document:
+// its per-repo status, or the reason there isn't one.
+type wsStatusMember struct {
+	ID string `json:"id"`
+	// Missing is the JSON form of the text pass's missing-by-id line: a
+	// declared member absent from disk is REPORTED, never silently dropped
+	// from the members array.
+	Missing bool `json:"missing,omitempty"`
+	// Error carries a per-member status failure. Like the text pass, one
+	// member's failure does not abort the document — the remaining members
+	// and the workspace block are still emitted.
+	Error string `json:"error,omitempty"`
+	// Status is the per-repo `status --json` object, EMBEDDED unchanged.
+	Status map[string]any `json:"status,omitempty"`
+}
+
+// wsStatusDoc is the whole `status <workspace-root> --json` surface: exactly
+// ONE top-level JSON value carrying both halves the verb answers (§2.1).
+type wsStatusDoc struct {
+	Members   []wsStatusMember `json:"members"`
+	Workspace wsquery.Status   `json:"workspace"`
+}
+
+// statusWorkspaceJSON writes the single-document form of `status
+// <workspace-root> --json`.
+//
+// WHY A DOCUMENT RATHER THAN A REFUSAL: the point of accepting a workspace root
+// on `status` is that one command answers both halves, and --json is a
+// documented flag — so on a newly accepted input it must produce something a
+// parser can read. The text pass streams a prose header per member; JSON cannot
+// stream that way without emitting N+1 top-level values, which is not JSON by
+// any reading. So the JSON pass COLLECTS instead of streaming, and the prose
+// headers become the `id` fields they were standing in for.
+//
+// The three fan-out properties are preserved verbatim, not re-derived: members
+// come from the shared fanOutSteps (manifest order, missing reported by id), a
+// failing member records its error and the pass continues, and the aggregate
+// error from fanOutErr is returned AFTER the document is written so the exit
+// code still reflects it through the one fatal()/exit-1 mechanism.
+//
+// Repo-mode `status --json` does not come through here at all: dispatchStatus
+// routes a repo root to runStatus before this function is reached, so that
+// output stays byte-identical.
+func statusWorkspaceJSON(wsRoot string, w io.Writer) error {
+	steps, presentCount, err := fanOutSteps(wsRoot)
+	if err != nil {
+		return err
+	}
+	doc := wsStatusDoc{Members: make([]wsStatusMember, 0, len(steps))}
+	var failed []string
+	for _, st := range steps {
+		if st.Missing {
+			doc.Members = append(doc.Members, wsStatusMember{ID: st.ID, Missing: true})
+			continue
+		}
+		rep, err := statusReport(st.Member.AbsRoot)
+		if err != nil {
+			doc.Members = append(doc.Members, wsStatusMember{ID: st.ID, Error: err.Error()})
+			failed = append(failed, st.ID)
+			continue
+		}
+		doc.Members = append(doc.Members, wsStatusMember{ID: st.ID, Status: rep})
+	}
+	// The workspace block is read even when a member failed: it reads overlay
+	// state, not member indexes, so it is exactly the diagnostic an operator
+	// wants when a member just reported a problem.
+	ws, werr := wsquery.WorkspaceStatus(wsRoot)
+	if werr != nil {
+		// Without the block there is no document to write; the fan-out's
+		// own failures still win the error if there were any.
+		if ferr := fanOutErr("status", failed, presentCount); ferr != nil {
+			return ferr
+		}
+		return werr
+	}
+	doc.Workspace = ws
+	b, err := json.MarshalIndent(doc, "", "  ")
+	if err != nil {
+		return err
+	}
+	fmt.Fprintln(w, string(b))
+	return fanOutErr("status", failed, presentCount)
 }
 
 // runWorkspaceStatusBlock prints the workspace-status report block for wsRoot
@@ -601,12 +724,27 @@ func mustAbs(p string) string {
 
 // runStatus reports index state WITHOUT triggering any indexing — the IDE
 // extension's side-effect-free detection primitive.
+//
+// The report is built by statusReport and rendered by printStatus; runStatus is
+// the composition of the two. The split exists so the workspace-root --json
+// surface can EMBED a member's report in a larger document instead of printing
+// a second top-level JSON value (§2.1). Repo-mode output is unchanged: the same
+// map reaches the same printer.
 func runStatus(root string, asJSON bool) error {
+	out, err := statusReport(root)
+	if err != nil {
+		return err
+	}
+	return printStatus(out, asJSON)
+}
+
+// statusReport computes the per-repo status map for root without printing it.
+func statusReport(root string) (map[string]any, error) {
 	out := map[string]any{"schema_required": graph.SchemaVersion()}
 	db := dbPath(root)
 	if _, err := os.Stat(db); os.IsNotExist(err) {
 		out["state"] = "unindexed"
-		return printStatus(out, asJSON)
+		return out, nil
 	}
 	// Sidecar first: a live build owns the state.
 	if b, err := os.ReadFile(filepath.Join(root, ".codeindex", "status.json")); err == nil {
@@ -621,23 +759,23 @@ func runStatus(root string, asJSON bool) error {
 				for k, v := range side {
 					out[k] = v
 				}
-				return printStatus(out, asJSON)
+				return out, nil
 			}
 			out["last_indexed"] = side["indexed_at"]
 		}
 	}
 	ver, err := graph.FileSchemaVersion(db)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	out["schema_version"] = ver
 	if ver != graph.SchemaVersion() {
 		out["state"] = "stale-schema"
-		return printStatus(out, asJSON)
+		return out, nil
 	}
 	files, symbols, edges, err := graph.IndexCounts(db)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	fi, _ := os.Stat(db)
 	out["state"] = "indexed"
@@ -645,7 +783,7 @@ func runStatus(root string, asJSON bool) error {
 	if fi != nil {
 		out["index_bytes"] = fi.Size()
 	}
-	return printStatus(out, asJSON)
+	return out, nil
 }
 
 func printStatus(out map[string]any, asJSON bool) error {

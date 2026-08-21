@@ -175,3 +175,54 @@ func TestUsageBannerNamesWorkspaceStatus(t *testing.T) {
 		t.Errorf("usage banner omits workspace-status:\n%s", usageVerbs)
 	}
 }
+
+// `status <workspace-root> --json` must emit ONE parseable document carrying
+// both halves: the per-member statuses and the §6 workspace block. The broken
+// form — prose headers plus N+1 top-level objects — fails at Unmarshal, which
+// is why this asserts by decoding rather than by grepping for a brace.
+func TestStatusOnWorkspaceRootJSONIsOneDocument(t *testing.T) {
+	ws := statusWS(t)
+	// A declared-but-absent member: the JSON surface must report it by id
+	// too, exactly as the text fan-out does.
+	wsCfg, err := config.LoadWorkspace(ws)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wsCfg.Members = append(wsCfg.Members, config.Member{ID: "gone", Root: "services/gone", Namespaces: []string{}})
+	if err := config.SaveWorkspace(ws, wsCfg); err != nil {
+		t.Fatal(err)
+	}
+
+	out, err := captureStdout(t, func() error { return dispatchStatus(ws, true) })
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got struct {
+		Members []struct {
+			ID      string         `json:"id"`
+			Missing bool           `json:"missing"`
+			Status  map[string]any `json:"status"`
+		} `json:"members"`
+		Workspace map[string]any `json:"workspace"`
+	}
+	dec := json.NewDecoder(strings.NewReader(out))
+	if err := dec.Decode(&got); err != nil {
+		t.Fatalf("status --json on a workspace root is not one JSON document: %v\n%s", err, out)
+	}
+	// Exactly one document: nothing may trail the first value.
+	if _, err := dec.Token(); err != io.EOF {
+		t.Fatalf("trailing content after the first JSON document (err %v):\n%s", err, out)
+	}
+	if len(got.Members) != 2 {
+		t.Fatalf("want both members in the document, got %d:\n%s", len(got.Members), out)
+	}
+	if got.Members[0].ID != "api" || got.Members[0].Status["state"] == nil {
+		t.Errorf("member api missing its per-repo status:\n%s", out)
+	}
+	if got.Members[1].ID != "gone" || !got.Members[1].Missing {
+		t.Errorf("absent member not reported by id as missing:\n%s", out)
+	}
+	if got.Workspace["overlay_schema_version"] == nil || got.Workspace["skew"] == nil {
+		t.Errorf("document omits the §6 workspace block:\n%s", out)
+	}
+}
