@@ -10,9 +10,11 @@
 // signatures and identical return types. Every entry point begins with a
 // root-kind detection, and the RootRepo branch is a verbatim tail-call into
 // internal/query — same arguments, same return, no wrapping, no re-formatting,
-// no error decoration. That tail-call is the mechanical basis of the
-// non-regression bar: repo-mode answers are the same bytes because they are
-// literally the same call.
+// no error decoration. That tail-call guarantees the repo-mode ANSWER VALUE
+// is identical: it is literally the same call. It does not, by itself,
+// guarantee repo-mode BYTES — the nine shared Text() renderers were edited in
+// this change, so byte-identity is a MEASURED non-regression bar, pinned by
+// internal/query/golden_test.go, not a structural property of the tail-call.
 //
 // # One detection site
 //

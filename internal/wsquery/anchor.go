@@ -82,6 +82,19 @@ func (s *session) splitMemberPrefix(anchor string) (memberID, rest string, err e
 	}
 	id := anchor[:i]
 	if !s.declares(id) {
+		// DEVIATION from §3.4's pass-through sentence: §3.4 states both "an
+		// unknown id is an error listing the known ids" AND, in the operative
+		// blockquote, "Otherwise the anchor is passed to SplitAnchor
+		// UNTOUCHED." Those two sentences conflict for exactly this shape
+		// (an undeclared "<text>:" prefix), and this implementation
+		// deliberately takes the error reading, not the pass-through one.
+		// Reason: a lone ":" is not a symbol separator in any of the four
+		// supported languages (Go/TS/Python use ".", PHP/Rust use "::"), so
+		// an undeclared "<text>:" prefix is far more likely a typo'd member
+		// id than a legitimate anchor. Passing it through would hand
+		// SplitAnchor a bogus symbol and surface a confusing "symbol not
+		// found" instead of the member list the user actually needs. Do not
+		// "fix" this back to a pass-through without re-reading §3.4.
 		return "", "", &UnknownMemberError{ID: id, Known: s.declaredIDs()}
 	}
 	return id, anchor[i+1:], nil
