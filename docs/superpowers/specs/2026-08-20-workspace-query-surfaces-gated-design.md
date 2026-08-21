@@ -480,6 +480,28 @@ so they cannot disagree.
 unindexed member is covered by `StaleStamped` when it previously contributed
 rows, and by `boundary` when it never did. Adding it whole would double-count.
 
+> **Amendment 2026-08-21 — SUPERSEDED by [ADR-0013](../../adrs/0013-unindexed-member-named-stale-every-pass.md).**
+> The paragraph above is **wrong and was implemented as written, then corrected
+> at review.** Both halves of its cover argument are false: `StaleStamped` is
+> **one-shot** (`wsfresh.Report.StaleStamped`'s own doc — "non-empty for at most
+> ONE pass per transition"; the `wsresolve.Resolve` the transition triggers
+> prunes the very stamp that fired it), and `boundary` is a **fixed constant
+> string** that says nothing about a declared member *inside* the workspace
+> whose rows were omitted. The steady state was therefore a present, declared,
+> unbuilt member silently missing from every answer with `members_stale:
+> (none)` — the silent staleness D7 hard-fails, reachable on the **first query**
+> against a freshly cloned member.
+>
+> **`members_stale` is a FIVE-way union**: `Dirty` (dropped only when `Resolved`
+> is true), `StaleStamped`, `MembersMissing`, `MembersFreshenFailedIDs`, and the
+> new additive `MembersUnindexedIDs`. The double-counting concern this paragraph
+> raised is answered by set-union de-duplication. **Assumption 6's "four-way"
+> reads five-way** on the same terms; every other clause of §4.3 — especially
+> `Dirty` staying in the union because the `Resolved: false` degrade window is
+> real — stands unchanged. See ADR-0013 for the decision and the general rule
+> (a disclosure built from a one-shot transition signal does not disclose a
+> steady state).
+
 ### 4.4 `members_consulted` — defined
 
 `members_consulted` is **the set of member ids whose graph.db was read to
