@@ -36,21 +36,21 @@ at the C2 fork (ROADMAP-DEBATE.md path C) and are not started before it.
 - [x] 3.3 Cross-repo resolution ladder per design D3 (import-mediated
       exact only; ambiguity with candidate counts; member-over-dep
       suppression with skew recording)
-- [ ] 3.4 Workspace freshen: per-member freshen + stamp-gated
+- [x] 3.4 Workspace freshen: per-member freshen + stamp-gated
       incident-edge re-resolution; `workspace-status` verb
-- [ ] 3.5 Unit tests: ladder order, stable-key survival across member
+- [x] 3.5 Unit tests: ladder order, stable-key survival across member
       rebuild, stamp gating, single-member-workspace ≡ single-repo
 
 ## 4. Query + surfaces (post-GO)
 
-- [ ] 4.1 Union-graph paths for callers/callees/impact/nav; fan-out for
+- [x] 4.1 Union-graph paths for callers/callees/impact/nav; fan-out for
       find/grep; workspace-relative paths + `repo` field;
       `<member-id>:` anchor prefix
-- [ ] 4.2 CLI root-kind detection (workspace manifest vs repo) with
+- [x] 4.2 CLI root-kind detection (workspace manifest vs repo) with
       byte-identical single-repo goldens
-- [ ] 4.3 MCP: workspace root support, `repo` in result schemas, no new
+- [x] 4.3 MCP: workspace root support, `repo` in result schemas, no new
       tools; plugin note untouched
-- [ ] 4.4 Golden tests: workspace answers pinned; freshness scenario as
+- [x] 4.4 Golden tests: workspace answers pinned; freshness scenario as
       an executable property test
 
 ## 5. Gate
