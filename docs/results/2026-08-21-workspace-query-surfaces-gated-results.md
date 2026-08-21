@@ -177,6 +177,119 @@ the recurring shape in this campaign.
 - `wsquery.Fresh` and `ErrWorkspaceNotWired` were **removed** rather than
   completed; no non-test caller existed.
 
+## Owner-attended smoke on the real corpus (2026-08-21)
+
+A smoke run against `bench/repos/oss-ws` (10 members, all indexed) reported three
+suspected gate-blockers. Investigated against the live corpus before any code was
+touched. **One was a genuine and serious defect, one was a misdiagnosis with a
+real residual underneath it, and one is the frozen rule behaving as designed.**
+Recording all three, including the two that did not turn into the fix that was
+asked for.
+
+### 1. Module-scope edges never reached the resolution ladder — REAL, fixed (`604d9a4`)
+
+The reported symptom was `callers <ws> werkzeug:HTTPException` returning 36
+callers, all werkzeug, zero flask, with **no cross-edge and no ambiguity row** —
+the ref falling through all four rungs into silence while 45 other
+flask→werkzeug refs resolved `exact`.
+
+Root cause, in **merged 0013 code**, not this branch's:
+`(*graph.Store).UnresolvedEdges` filtered `AND e.src_symbol_id != 0` and inner-
+joined the source symbol. An **import statement sits at module scope**, so its
+edge carries `src_symbol_id = 0` and was dropped. The discriminator was never the
+name or the kind — it was whether the reference sits inside a symbol:
+
+- `HTTPException` in flask: 5 edges, all `imports`, all `src_symbol_id = 0` →
+  every one dropped → total silence.
+- `InternalServerError`: 4 `calls` edges with non-zero src (plus 2 dropped
+  imports) → survives the filter → resolves exact.
+
+This contradicts frozen D3 verbatim — "candidate cross-edges are exactly today's
+unresolved edges" — and it discarded **the entire import-mediated signal rung 1
+exists to consume**. The dropped population is small but almost purely
+hint-carrying: symfony 1929 of 1931 dropped edges carry a namespace hint, drupal
+3675 of 3675.
+
+Fixed by a `LEFT JOIN` + `COALESCE`, dropping the predicate, with module-scope
+sources keyed `{member, file, ""}`. `TierOneEdges` carried the identical filter
+and was changed on the same terms — the corpus has zero tier-1 symbols so it has
+no live impact today, but `use Vendored\Thing;` at file scope is the canonical
+PHP suppression candidate, and leaving the two readers divergent would reproduce
+this exact silence in the member-over-dep path.
+
+Effect on the overlay: `imports/exact` **6 → 2386**, `imports/inferred`
+**14 → 1322**; every other kind/confidence class unchanged, which is the expected
+signature. The frozen GT for `ws-xcallers-HTTPException-036` now passes — all
+five files (`app.py`, `ctx.py`, `sansio/scaffold.py`, `wrappers.py`,
+`tests/test_user_error_handler.py`) appear, independently re-verified.
+
+> **Operational note that will bite the gate run.** `refresh` freshens on member
+> **merkle stamps**, not on resolver behaviour. With unchanged member content the
+> first post-fix refresh reported "10 members freshened" and re-derived
+> **nothing** — the overlay still held the old binary's edges. Forcing it needed
+> `delete from member_stamps` then `refresh`. **Any bench arm comparing this
+> branch against a pre-existing overlay must clear the stamps or the fix is
+> invisible and arm B will score the old behaviour.**
+
+### 2. "Union fan-out drops non-defining members" — MISDIAGNOSIS; the real gap was disclosure, fixed (`3fbc32a`)
+
+The report concluded per-member results were being lost in the union step. They
+are not: at `--limit 200` **all 23 flask sites appear correctly**. At the default
+limit 30, werkzeug's 68 sites fill the budget in manifest order — which is
+exactly frozen D4 (concatenate complete sets, manifest order, no rank-merge, no
+scoring) plus §3.5 (limit bounds the concatenated list). Interleaving, quotas or
+rank-merge would have been a **frozen non-goal violation**, so the requested fix
+was deliberately not made.
+
+The genuine defect underneath it: **the truncation was completely undisclosed.**
+The answer printed `107 raw hits -> 30 symbols/sites` and a clause affirmatively
+listing all ten members as consulted with `members_stale: (none)` — reading as "I
+looked everywhere and this is everything" while 23 rows, including every flask
+row, were discarded. Same family as the silent-staleness rule this change already
+hard-fails on: content omitted without saying so.
+
+The clause now carries `rows_withheld` and `members_truncated`, following
+`keys_unmapped`'s precedent. Live corpus, default limit:
+
+```
+... members_stale: (none); rows_withheld: 23; members_truncated: flask; boundary: ...
+```
+
+and at `--limit 200` the clause is byte-identical to before the change. Note it
+names **flask only** — the other seven members contributed zero rows, so nothing
+of theirs was withheld; the clause distinguishes "had rows, lost them" from "had
+nothing", which is the actionable fact.
+
+### 3. Rung-2 inferred volume — ASSESSED, NOT CHANGED (gate risk, owner's call)
+
+36k `inferred` edges including cross-language junk (symfony→drupal 8670,
+symfony→nest-microservices 1481 — PHP "calling" TypeScript). Both offered
+hypotheses were tested and **both are disconfirmed**:
+
+- *"the uniqueness test may be per-name-occurrence rather than per-name"* — it is
+  not. Rung 2 counts members with `len(defs) == 1` and requires exactly one such
+  member, which is frozen D3's "resolves in exactly one member other than S".
+- *"hinted refs that failed rung 1 are illegally falling into rung 2"* — this
+  does happen, but **cannot explain the volume**. Only **3,013 of symfony's
+  79,859** unresolved edges carry a hint at all, against ~36k inferred edges. The
+  junk is hintless: symfony's 1,477 `once` edges are all `dst_ns = ''`.
+
+So the volume is genuinely what the frozen rule produces on a **polyglot** corpus
+— "unique bare name" has no language guard, and `once` is a generic method name
+that happens to be defined exactly once in a Nest package. Per the standing
+instruction, recorded rather than changed.
+
+**Two things the owner should weigh at the gate.** First, the frozen D3 text says
+rung 2 requires "**no H**", while the merged implementation fires it on "no
+rung-1 **hit**" — a deliberate, documented reinterpretation (`ladder.go:77-85`,
+0013's assumption 6, argued from monotonicity). That is a **weighed decision, not
+a gap**, so it was left alone; but the corpus now shows its cost, and revisiting
+it is legitimately the owner's call, not an implementer's. Second, the frozen
+bench GT is **all rung-1**, so this inferred volume does not corrupt the GT
+scoring directly — its risk is precision/noise in arm B's answers, and it is
+strictly *reduced* by fix 1, which converts import-mediated refs that previously
+fell to rung 2 (or to silence) into rung-1 exact.
+
 ## Follow-ups
 
 None minted — `auto_capture` is disabled for this repo. Recorded here instead:
@@ -187,3 +300,9 @@ None minted — `auto_capture` is disabled for this repo. Recorded here instead:
    artifact-import path is the sanctioned lever.
 3. Pin the fan-out line format and `refresh` summary text with goldens if they
    are to be treated as a surface.
+4. **Decide whether rung 2 should require a literally-absent hint** (frozen D3's
+   letter) rather than a rung-1 miss (0013's assumption 6). Owner-level, needs
+   D7 evidence, and it would change the merged ladder's semantics.
+5. **Consider a stamp-independent re-resolve trigger.** `refresh` cannot see that
+   the *resolver* changed, only that member content did — so a resolver fix is
+   silently invisible to an existing overlay (see the operational note above).
