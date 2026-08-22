@@ -2,9 +2,9 @@
 slug: one-invariant-many-sites-drifts
 hook: "When one spec'd invariant must be enforced at several sites, check the sites against EACH OTHER — drift shows up as their doc comments arguing."
 topics: [review, invariants, spec-fidelity, data-integrity]
-changes: [12, 13, 14]
+changes: [12, 13, 14, 17]
 created: 2026-08-19
-updated: 2026-08-20
+updated: 2026-08-22
 promotion_state: candidate
 promoted_to:
 ---
@@ -94,3 +94,14 @@ permanent quiet lie.
   the convergence one above: a drift comparison normalizing differently from the writer reports drift
   on every pass, re-resolving the whole workspace forever — which is exactly what that slice's
   `TestFreshenConvergesWithABadVersionMember` exists to forbid.
+- **#0017, PR #15** — Go namespace hints. The shape recurred **at birth**, inside the very commit
+  that created the invariant. A suppression rule ("a hint equal to the name it binds carries no
+  information") was introduced at the `bind`-map site to close a call-resolution collision — and the
+  *dep* site, which feeds the same hint channel from a few lines away in the same adapter, was left
+  unguarded, so the invariant was half-true the moment it existed. Caught at review as an
+  `important` finding citing this file by name, and fixed at both sites in one commit (`9d84218`),
+  which simultaneously closed a second, separately-reported finding — the two were one incoherence
+  seen from two sites, exactly as in 0012. The lesson to carry forward: the check "does anything
+  *else* feed this structure?" belongs in the commit that introduces a rule about the structure, not
+  only in the review of a later commit that adds a second writer. A one-writer invariant is the
+  cheapest moment to enumerate the writers, and it is when nobody thinks to.

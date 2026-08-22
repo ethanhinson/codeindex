@@ -10,8 +10,13 @@ One curated finding per file; this index is the hint surface. Load it, then read
 
 - [gitignore-negation-needs-per-level-reinclude](gitignore-negation-needs-per-level-reinclude.md) — A `dir/` ignore rule makes every nested `!` negation unreachable — re-include per level or the un-ignore is inert. · also: gitignore, verification ⟨needs promotion⟩
 
+## invariants
+
+- [a-new-signal-preempts-the-rung-that-was-deciding](a-new-signal-preempts-the-rung-that-was-deciding.md) — Adding a signal to an ordered resolution ladder is not narrowing — a newly non-empty input preempts every rung below it, including the one that was already deciding correctly. · also: resolution, review, measurement ⟨needs promotion⟩
+
 ## review
 
+- [dialect-specific-remedies-need-a-language-gate](dialect-specific-remedies-need-a-language-gate.md) — A remedy whose correctness argument cites one language's semantics must be gated to that language — in shared multi-language code it silently deletes the other dialects' signal. · also: multi-language, invariants, spec-fidelity ⟨needs promotion⟩
 - [one-invariant-many-sites-drifts](one-invariant-many-sites-drifts.md) — When one spec'd invariant must be enforced at several sites, check the sites against EACH OTHER — drift shows up as their doc comments arguing. · also: invariants, spec-fidelity, data-integrity ⟨needs promotion⟩
 - [ordering-claims-must-survive-the-error-return](ordering-claims-must-survive-the-error-return.md) — An ordering claim defended only by 'nothing clobbers anything' is unproven — the case that decides it is the error return, where the partial pass the ordering exists for actually happens. · also: invariants, crash-safety, spec-fidelity, data-integrity ⟨needs promotion⟩
 
