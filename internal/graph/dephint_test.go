@@ -84,3 +84,85 @@ func TestDepHintPrefersEdgeLocalSource(t *testing.T) {
 		t.Errorf("empty Source must fall back to the import binding: hint = %q, want %q", got, "example.com/file/level")
 	}
 }
+
+// depEdgeHintsByLine reads back the persisted hints (dst_ns) of every edge of
+// kind k emitted from srcFile, ordered by source line. depEdgeHint above
+// insists on a single edge because its fixtures have one; this test's whole
+// subject is two edges that a single-row reader could not tell apart.
+func depEdgeHintsByLine(t *testing.T, st *Store, srcFile, kind string) []string {
+	t.Helper()
+	rows, err := st.db.Query(
+		`SELECT dst_ns FROM edges WHERE src_file=? AND kind=? ORDER BY line`, srcFile, kind)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rows.Close()
+	var hints []string
+	for rows.Next() {
+		var h string
+		if err := rows.Scan(&h); err != nil {
+			t.Fatal(err)
+		}
+		hints = append(hints, h)
+	}
+	if err := rows.Err(); err != nil {
+		t.Fatal(err)
+	}
+	return hints
+}
+
+// TestDepHintPerEdgeBeatsLastWriteWins pins the ONE intended behavior delta of
+// edit 3 for pre-existing edges. The file-level `bind` map is keyed by Target,
+// so two imports in one file that share a Target but come from different
+// Sources collapse: the second Source overwrites the first, and under the old
+// `hint := bind[d.Target]` BOTH import edges were persisted with the second
+// Source. Reading each edge's own Source instead gives each its own hint.
+//
+// This shape is real, not contrived: a TS/JS file re-exporting or importing the
+// same exported name from two modules produces exactly it, and the first edge's
+// hint was simply wrong before.
+//
+// Non-vacuity has two legs. The Sources genuinely differ (asserted, so the
+// fixture cannot rot into a tautology), and the assertion is on the ORDERED
+// pair — under last-write-wins the slice would be {second, second}, which the
+// first element rejects. Both edges keeping their own hint is the only pass.
+func TestDepHintPerEdgeBeatsLastWriteWins(t *testing.T) {
+	st, err := Open(filepath.Join(t.TempDir(), "graph.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer st.Close()
+
+	const (
+		shared = "Chunk" // one imported NAME, two providing modules
+		first  = "example.com/alpha"
+		second = "example.com/beta"
+	)
+	if first == second {
+		t.Fatal("fixture is vacuous: the two import Sources must differ")
+	}
+
+	putFile(t, st, &ParsedFile{
+		Path: "pkg/dual/a.ts",
+		Symbols: []Symbol{
+			{File: "pkg/dual/a.ts", Name: "A", Kind: KindType, StartLine: 3, EndLine: 5},
+		},
+		Deps: []RawDep{
+			{EnclosingIdx: -1, Kind: KindImports, Target: shared, Source: first, Line: 1},
+			{EnclosingIdx: -1, Kind: KindImports, Target: shared, Source: second, Line: 2},
+		},
+	})
+
+	got := depEdgeHintsByLine(t, st, "pkg/dual/a.ts", string(KindImports))
+	want := []string{first, second}
+	if len(got) != len(want) {
+		t.Fatalf("want %d import edges, got %d: %v", len(want), len(got), got)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			// The old behavior lands here with got == {second, second}.
+			t.Errorf("import edge %d (line %d) hint = %q, want its own Source %q",
+				i, i+1, got[i], want[i])
+		}
+	}
+}
