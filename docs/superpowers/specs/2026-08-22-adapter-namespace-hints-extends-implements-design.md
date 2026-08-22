@@ -1,5 +1,5 @@
 <!-- docket:backlink:start (generated — do not hand-edit) -->
-> ↩ **[Change 0017 — Go subtype references carry namespace hints — fix the qualifier discard and KindImports Source](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/active/0017-adapter-namespace-hints-extends-implements.md)**
+> ↩ **[Change 0017 — Go subtype references carry namespace hints — fix the qualifier discard and KindImports Source](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/archive/2026-08-22-0017-adapter-namespace-hints-extends-implements.md)**
 <!-- docket:backlink:end -->
 
 # Go subtype references carry namespace hints — design
