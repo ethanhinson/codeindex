@@ -6,7 +6,7 @@ status: proposed
 priority: medium
 type: chore
 created: 2026-08-18
-updated: 2026-08-18
+updated: 2026-08-22
 depends_on: []
 related: [9]
 discovered_from: [9]
@@ -15,7 +15,7 @@ spec:
 plan:
 results:
 trivial: false
-auto_groomable:
+auto_groomable: true
 branch:
 pr:
 blocked_by:
@@ -52,6 +52,30 @@ measure discovery coverage.
 - Measure and record member-discovery coverage per declaration format
   (which formats are exercised, per-member quota) in
   `bench/workspace/README.md`.
+
+## Owner re-direction (2026-08-22, post-gate pivot)
+
+The D7 gate runs (see `bench/engine/FINDINGS-workspace-graph.md`) showed
+the frozen 65-task corpus is greppable by construction — both arms tie
+on import-mediated shapes at every model tier — while the one structural
+shape (`xsubtypes`, n=7) showed the index lifting haiku +14pp. The
+corpus growth this change owns is therefore re-aimed: **structural,
+grep-hostile cross-repo tasks are the priority**, monorepo declaration
+coverage second.
+
+- Task shapes to mine, with auditable GT: transitive impact chains
+  (A→B→C across members), subtype maps (all implementors/extenders of a
+  cross-repo interface/class — blocked on change 0017's hint fix landing
+  first), cross-repo name collisions (same bare name in ≥2 members,
+  where grep returns the union and the correct answer needs the import
+  binding), and aliased/renamed imports.
+- Grow the subtype set well beyond n=7 so the signal is statistically
+  meaningful.
+- Register a NEW gate (bars registered before any scored run, m5/D7
+  form) on the grown corpus; a pass revives the killed 0016 query
+  surfaces as a fresh change.
+- Original monorepo-format coverage ask (go.work, pnpm, npm/yarn
+  workspaces, composer path repos) stands as the secondary goal.
 
 ## Out of scope
 
