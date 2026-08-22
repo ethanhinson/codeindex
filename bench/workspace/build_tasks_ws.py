@@ -30,6 +30,9 @@ honest without resolving each language's internal-reference idioms
   xalias      — only the files that bind the symbol under a DIFFERENT local
                 name (renamed import). A subset filter: the aliasing statement
                 spells out the original name, so a text search over-returns.
+  xchain      — transitive blast radius A->B->C across three members: a change
+                to a symbol of member A reaches member C only through a
+                member-B symbol whose definition file references A.
 
 xnew/xsubtypes/xalias are emitted only when their answer is a proper subset of the
 xcallers set (a genuinely different answer, not a rephrasing); xcollide the
@@ -372,7 +375,32 @@ PROMPTS = {
         "other than `{BARE}`. A file that imports it under its own name "
         "`{BARE}` does not count, even though it references it."
         + PROMPT_TAIL),
+    "xchain": (
+        "You are working in a multi-repo workspace rooted at {WS_ROOT}. "
+        "Member projects (relative to that root): {MEMBERS}. "
+        "{HOP1} is about to change incompatibly. {SYMDESC} is defined in the "
+        "{LIB} project, in a file that references that changing name, so the "
+        "change propagates into {LIB} and then onward to whatever depends on "
+        "`{BARE}`. Work out that second hop: list every file in the OTHER "
+        "member projects (not {LIB}) that references `{QUAL}`, since those "
+        "are the files the change reaches transitively." + PROMPT_TAIL),
 }
+
+# ------------------------------------------------------------------------- #
+# xchain member selection — EXPLICIT, never derived from the role filter.
+#
+# `libs` in mine() is `"shared lib" in m["role"]`, which by construction
+# excludes every middle member of a chain: nest-core's role is "consumer of
+# nest-common (monorepo member)". Widening that role string in corpus.json
+# would silently change what the PRIMARY pass mines and re-open the frozen
+# baseline, so the chain pass names its members here instead and reuses the
+# `namespaces` each member already declares.
+#
+# nest-only, and that is a recorded corpus fact rather than a gap to fill:
+# the php, py and go clusters are two members deep (lib + consumer), so no
+# A->B->C chain exists in them. Synthesising one would mean adding members.
+# ------------------------------------------------------------------------- #
+CHAIN_PASSES = [("nest-common", "nest-core", "nest-microservices")]
 
 
 def qualified_form(symbol, lang):
@@ -508,6 +536,8 @@ def mine(seed, min_tasks):
                 SYMDESC=describe(c["symbol"], c["lang"]),
                 BARE=bare_name(c["symbol"], c["lang"]),
                 QUAL=qualified_form(c["symbol"], c["lang"]),
+                # hop-1 of an xchain task; unused by every other template
+                HOP1=c.get("hop1_desc", ""),
                 LIB=member_rels[c["lib"]]) .replace(
                     "{WS_ROOT}", "{WS_ROOT}"),
             "gt_files": gt,
@@ -631,6 +661,71 @@ def mine(seed, min_tasks):
         emit("xalias", c, gt, idx)
         idx += 1
 
+    # ---------------------------------------------------------------- #
+    # xchain — transitive A -> B -> C across three members.
+    #
+    # NO NEW MACHINERY: this is the existing extraction run a second time
+    # with the middle member treated as a lib (its own declared
+    # `namespaces`), then joined against hop 1. See CHAIN_PASSES for why the
+    # middle member is selected by name and not by the role filter.
+    #
+    #   hop 1  A -> B : which of B's own definition files reference A
+    #   hop 2  B -> C : which of C's files import a B symbol
+    #   join         : keep the hop-2 symbols whose B definition file is a
+    #                  hop-1 file, i.e. the change in A really does reach C
+    #                  through them. GT is the hop-2 file set.
+    #
+    # Runs last so every already-frozen shape keeps its ids. Totally ordered:
+    # chain passes in declaration order, symbols by sorted key, files sorted.
+    # ---------------------------------------------------------------- #
+    by_id = {m["id"]: m for m in members}
+    chain_stats = []
+    for a_id, b_id, c_id in CHAIN_PASSES:
+        if not {a_id, b_id, c_id} <= by_id.keys():
+            continue
+        a, b, cm = by_id[a_id], by_id[b_id], by_id[c_id]
+        lang = b["lang"][0]
+        b_defs = lib_definitions(b, texts[b["id"]])
+        b_text = texts_by_id[b["id"]]
+        # hop 2: C's references into B, keyed by B's own symbol keys
+        hop2 = {}
+        for rel, text in texts[cm["id"]]:
+            for sym in extract_refs(text, lang, b["namespaces"]):
+                hop2.setdefault(sym, set()).add(rel)
+        n_imported = 0
+        chain = []
+        for sym in sorted(hop2):
+            def_rel = find_def(sym, lang, b_defs)
+            if def_rel is None:
+                continue  # re-export or not declared in B
+            n_imported += 1
+            # hop 1: does B's definition file itself reference A?
+            hop1 = sorted(extract_refs(b_text[def_rel], lang, a["namespaces"]))
+            if not hop1:
+                continue
+            chain.append((sym, def_rel, hop1[0], sorted(hop2[sym])))
+        emitted = 0
+        for sym, def_rel, hop1_sym, files in chain:
+            gt = sorted(ws_rel(ws_root, cm, f) for f in files)
+            if not gt_within_cap(gt):
+                continue
+            emit("xchain", {
+                "symbol": sym, "lang": lang, "lib": b["id"],
+                "def_file": ws_rel(ws_root, b, def_rel),
+                "consumers": [cm["id"]],
+                "hop1_desc": describe(hop1_sym, lang),
+            }, gt, idx)
+            idx += 1
+            emitted += 1
+        chain_stats.append({
+            "chain": [a_id, b_id, c_id],
+            "b_definitions": len(b_defs),
+            "imported_by_c": n_imported,
+            "chain_symbols": len(chain),
+            "chain_files": len({f for _, _, _, fs in chain for f in fs}),
+            "emitted": emitted,
+        })
+
     quota = {}
     lang_quota = {}
     for t in tasks:
@@ -649,6 +744,11 @@ def mine(seed, min_tasks):
         "per_lang_quota": lang_quota,
         "rung_counts": {"rung1": len(tasks), "rung2": 0},
         "rung2_note": "no organic bare-name cross-edges in this OSS corpus",
+        "xchain_passes": chain_stats,
+        "xchain_note": "xchain is nest-only: a recorded corpus fact, not a "
+                       "gap. The php, py and go clusters are two members deep "
+                       "(lib + consumer), so no A->B->C chain exists in them; "
+                       "no chain was synthesised and no member was added.",
         "n_tasks": len(tasks),
     }
     if len(tasks) < min_tasks:
