@@ -1,5 +1,89 @@
 # FINDINGS — workspace-graph D7 evidence gate
 
+## 2026-08-21: pre-registered gate run — control matched the index (frontier model)
+
+**Verdict: GATE FAIL at the frontier model. The grep-across control matched
+the workspace index on recall and the efficiency bar was missed by a wide
+margin.** Per the pre-registration (bench/workspace/README.md, bars verbatim
+from design D7), this is a legitimate answer to the frontier hypothesis.
+
+Setup: frozen 65-task rung-1 corpus (10 OSS members, 4 languages);
+arm A = agent + shell with all member checkouts; arm B = A + workspace MCP
+(branch binary from PR #14, `feat/workspace-query-surfaces-gated` @ 0d71cd2,
+overlay fully re-resolved post-fix with stamps cleared). Model: claude CLI
+default (frontier tier). Leak audit: PASS all four classes
+(template_leakage, control_contamination id-paired 65/65, forced_tool,
+grader_codesign) before grading.
+
+Numbers (grades.jsonl, 132 grades):
+
+| metric | arm A | arm B | bar | result |
+|---|---|---|---|---|
+| med cross-recall | 1.0 | 1.0 | B ≥ A | tie (not a win) |
+| mean cross-recall | 0.940 | 0.924 | — | paired: B wins 2 / loses 2 / ties 61 |
+| rung-1 med cross-recall | 1.0 | 1.0 | ≥ 0.9 absolute | pass |
+| med precision | 1.0 | 1.0 | — | index answers were correct |
+| med tokens | 21,238 | 21,661 | B ≥40% fewer | **fail** (3.4% median paired saving) |
+| med tool calls | 8 | 7 | B ≥40% fewer | **fail** (median paired delta 0) |
+| cost | $23.84 | $23.25 | — | — |
+
+Interpretation: every corpus task is import-mediated — the symbol name is
+literally greppable across checkouts — and a frontier-class agent with grep
+is already at ceiling on that shape. The index was *correct* (precision 1.0,
+the ws-xcallers-HTTPException-036 GT verified exactly) but saved ~nothing.
+This mirrors the m5 finding: the MCP index lifted every model below the
+frontier by +32–68pp while the frontier model was at ceiling.
+
+Residuals (recorded, not excuses):
+- Corpus is 100% rung-1 by construction (no organic rung-2 edges existed in
+  the OSS corpus at freeze); grep-hostile shapes (indirect impact chains,
+  cross-repo name collisions) are unrepresented. Change 0010 (corpus
+  growth) owns widening this.
+- Arm B pays a whole-manifest freshen on every MCP query entry (all 10
+  members) — a fixed latency/token tax the reviewer pre-flagged.
+- The `member:Symbol` anchor prefix works over MCP but is unadvertised in
+  tool descriptions (owner ruling froze the tool surface); arm B agents
+  may not discover the cheapest query form.
+- Rung 2 produced 37,287 inferred edges on this corpus (vs 4,445 exact),
+  including cross-language bare-name junk; it did not hurt measured
+  precision, but it is the frozen rule's cost on a 10-member corpus.
+- Engine-level fix landed mid-campaign, pre-registration intact (fixed
+  before any scored run): merged 0013 `UnresolvedEdges` dropped
+  module-scope (src_symbol_id=0) import edges — the entire import-mediated
+  signal; imports/exact went 6 → 2386 after the fix. Scored runs used the
+  fixed binary only.
+
+Disposition of change 0016 / PR #14: held open by owner decision
+2026-08-21 pending the registered small-model follow-up below — the owner
+judges multi-repo critical to functionality and the m5 floor pattern
+predicts the index pays below the frontier. The frontier-model verdict
+above stands regardless of the follow-up's outcome.
+
+## 2026-08-21: registered follow-up — adoption-floor sweep (small models)
+
+**Registered BEFORE any scored small-model run.** Hypothesis (from the m5
+floor sweep): the workspace index lifts small/cheap models on cross-repo
+tasks even where the frontier model is at ceiling.
+
+Setup: same frozen 65-task corpus, same arms, same harness, same leak-audit
+pre-verdict gate; `--model claude-haiku-4-5-20251001` (floor tier). A
+mid-tier point (sonnet) MAY be added with the same bars; each model is
+judged independently.
+
+Bars (all required, per tested model):
+- Recall lift: B median cross-recall ≥ A + 10pp, OR B meets the original
+  efficiency bar (≥40% fewer tokens or tool calls) with recall B ≥ A.
+- Floor competence: B rung-1 median cross-recall ≥ 0.9 absolute (the index
+  must make the small model *good*, not just better).
+- Leak audit PASS over the new transcripts before grading.
+
+Decision rule: a PASS at any tested small model = evidence the feature
+serves the adoption floor; the owner then re-decides PR #14's merge on
+that evidence (a further dated D7 amendment would record it). A FAIL at
+all tested models closes 0016 per the original kill condition, with this
+entry as the record.
+
+
 ## 2026-08-22: change 0017 — Go subtype namespace hints, rebuild-diff evidence and the acceptance measurement
 
 Plan tasks 9 (rebuild-diff accounting) and 10 (the acceptance bar), measured
