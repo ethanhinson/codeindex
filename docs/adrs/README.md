@@ -17,6 +17,7 @@ Immutable, numbered record of *why*. ADRs are never archived or rewritten; once 
 - [ADR-0011](0011-capability-tests-assert-on-degradation-disclosure.md) — Capability-dependent tests assert against the product's own degradation disclosure (Accepted) ← change #11
 - [ADR-0012](0012-workspace-freshness-re-resolves-whole-workspace.md) — Workspace freshness re-resolves the whole workspace, not the incident edge set (Accepted) ← change #14 · relates to ADR-0005, ADR-0006
 - [ADR-0013](0013-unindexed-member-named-stale-every-pass.md) — An unindexed workspace member is named stale on every pass, not just the transition (Accepted) ← change #16 · relates to ADR-0011, ADR-0012
+- [ADR-0014](0014-go-import-self-bindings-suppressed.md) — Go import self-bindings carry no namespace information and are suppressed at both hint sites (Accepted) ← change #17
 
 ## Superseded / Reversed
 
