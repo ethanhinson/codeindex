@@ -8,14 +8,14 @@ type: chore
 created: 2026-08-18
 updated: 2026-08-22
 depends_on: []
-related: [9, 17]
+related: [9, 17, 18]
 discovered_from: [9]
 adrs: []
 spec:
 plan:
 results:
 trivial: false
-auto_groomable: true
+auto_groomable: false
 branch:
 pr:
 blocked_by:
@@ -195,3 +195,105 @@ surfaces, and the measurement above shows the structural shapes are
 genuinely available on the existing members without adding a single new
 pin. Sequence it after 0017 (in whatever form the owner lands that) so
 the gate measures the feature rather than the adapter gap.
+
+## Auto-groom blocked (2026-08-22)
+
+Abstained on a **process** exit, not a design one. A full spec was drafted and
+survived an adversarial critic round; the bounded re-check leg that would have
+confirmed the revision returned no legible verdict, so the groom cannot certify
+its own fixes and must not emit a build-ready spec. The design work is preserved
+— re-arming is cheap.
+
+### Where the work is
+
+`docs/superpowers/specs/2026-08-22-workspace-bench-corpus-monorepo-growth-design-DRAFT.md`
+
+Deliberately **not** set as `spec:` and suffixed `-DRAFT` so nothing mistakes it
+for a build-ready artifact. To re-arm: read the draft, satisfy yourself on the
+two items below, rename off the `-DRAFT` suffix, set `spec:`, flip
+`auto_groomable: true`, and delete this section.
+
+### What the groom settled (all critic-verified against code and data)
+
+- **Phase 1 needs no new repo pins.** The `xsubtypes` n=7 is a miner artifact;
+  re-mining the unchanged 10 members yields **80** subtype-capable tasks
+  (php 56, ts 24) — reproduced independently by the critic, which ran the
+  modified miner.
+- **Scope split:** phase 1 = structural re-mine (gates the verdict); phase 2 =
+  monorepo declaration-format pins (secondary, non-blocking, now numerically
+  bounded at ≤1 member per format, ≤500 MB per checkout, ≤3 candidates per
+  format, uncovered-and-stop).
+- **Target size**, answering the stub's open question: structural ≥105,
+  control ≥40, **total ≥145** (vs 65 today), with the xalias-exclusion branch
+  arithmetic written down in advance.
+- **Bars B1–B5** including the owner-mandated restoration of floor competence
+  (B rung-1 median ≥ 0.9 absolute on the greppable control subset), appended to
+  `bench/workspace/README.md` as a new dated section leaving the D7 block intact.
+
+### What the critic caught that a naive build would have hit
+
+Recorded because each was expensive to find and would have wrecked the corpus:
+
+1. **`xcollide`, `xalias` and `xchain` do not exist.** `build_tasks_ws.py`
+   implements exactly four kinds (`xcallers`, `ximpact`, `xnew`, `xsubtypes`).
+   The change is one miner fix plus **three new shape implementations**, not
+   "three miner fixes" — a materially larger job than the stub implies.
+2. **Removing the `picked` guard wholesale also unblocks `xnew`** (measured
+   10 → 126, 122 of them PHP), pushing the control subset 58 → 174 and making
+   the corpus 192/256 symfony. The removal must be scoped to `xsubtypes`.
+3. **The 40-file GT cap is inherited transitively via `picked`.** Drop the guard
+   without re-applying `MAX_GT_FILES` in the subtype loop and 2 emitted tasks
+   exceed the cap (max 164 files), violating a registered corpus rule. The 80
+   figure holds only with the cap re-applied.
+4. **The structural/control partition does not exist in any artifact.**
+   `grade_ws.py`'s `rung1_med_cross_recall` is a whole-corpus figure because
+   every task is `rung1`, so the floor-competence bar would be unevaluable. A
+   registered kind→subset map has to be built and emitted into the task header.
+5. **`xcollide ≥ 20` / `xalias ≥ 25` are not measured floors** — they derive from
+   raw pre-guard, pre-GT-cap upper bounds on unimplemented shapes. They are
+   carried as expectations; the real floors get registered after mining.
+
+### The two things a human should confirm before re-arming
+
+1. **Efficiency's status.** The draft keeps efficiency as *reported*, entering
+   the verdict only through B1's OR-clause, on the grounds that the 2026-08-21
+   registered follow-up already placed it there and that the silent-erosion rule
+   is about dropping a bar the previous run **passed** (efficiency **failed**:
+   3.4% at frontier, −5.8%/−12.5% at haiku). The critic examined this
+   specifically and judged it faithful carry-forward rather than a groom
+   re-barring itself — but it is the one place the new gate is weaker than D7,
+   and it is your bar to set.
+2. **The 0017 coupling is near-vacuous.** Measured subtype-edge hint rates:
+   client_golang **0/131** and prometheus 8/128, versus symfony 3126/4834
+   extends and 1553/2844 implements, drupal 5516/8010 and 3357/4303, nest
+   151/194 and 135/136. Go is genuinely unhinted, but Go emits **zero** subtype
+   tasks, and PHP/TS — substantially hinted already via the language-agnostic
+   `internal/graph/store.go:373` — are 100% of the subtype supply. Since 0017
+   also abstained today, the draft retains the ordering constraint but records it
+   as non-blocking. Confirm you are content for the corpus work to proceed ahead
+   of 0017.
+
+`related:` gained **18**: the freeze decision for the `xalias` shape keys on it
+(mining is plain-text and needs no engine, but the index's ability to *answer*
+alias tasks does). Encoded as ordering rather than `depends_on:`, because
+`killed` is terminal but never `done` and a killed dependency would deadlock this
+change permanently.
+
+### Groom process note
+
+The critic returned `wrong but fixable from available context` with a
+per-assumption table and ten mandatory fold-ins; all ten were applied and the
+load-bearing ones re-verified directly against `build_tasks_ws.py` and the member
+databases. The bounded re-check dispatch then completed without surfacing a
+legible verdict on its return channel — the same return-channel failure recorded
+on change 0017 in this run. Per the autonomous-groom protocol that counts as a
+failed dispatch, and an author may not be their own adversarial gate, so the
+groom abstains rather than emitting. **No design defect is known to remain.**
+
+### Recommendation
+
+Re-arm, or groom interactively — it is one confirmation away. Do not kill or
+defer: the re-aimed corpus is the pivot's only path back to the killed 0016 query
+surfaces, and the structural shapes are measurably available on the existing
+members without adding a single new pin. Kill and defer are never autonomous;
+this is a recommendation only.
