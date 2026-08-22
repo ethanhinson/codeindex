@@ -341,9 +341,33 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 	// hint on the call or dep site is more specific and outranks it.
 	bind := map[string]string{}
 	for _, d := range pf.Deps {
-		if d.Kind == KindImports && d.Source != "" && d.Target != "" {
-			bind[d.Target] = normalizeHint(d.Source, d.Target, pf.Path)
+		if d.Kind != KindImports || d.Source == "" || d.Target == "" {
+			continue
 		}
+		h := normalizeHint(d.Source, d.Target, pf.Path)
+		// A self-binding carries no name -> namespace information: it says
+		// only "the name X lives in namespace X". Every Go import dep is
+		// this shape (Target and Source are both the whole import path), so
+		// this drops all of them from bind — the intended effect. Go gains
+		// nothing from bind:
+		// an import's Target is the slash-bearing path and never equals a
+		// bare embedded type name, and the edge-local Source consulted in
+		// the dep loop below is the live channel for subtype hints. What a
+		// self-binding would do instead is capture unrelated calls — Go's
+		// calleeName yields the SELECTOR FIELD, and a lowercase
+		// single-segment stdlib path ("log", "path", "context") is exactly
+		// the shape of an unexported method name, which nsMatch then
+		// suffix-matches onto namespaces like internal/log. See
+		// TestGoImportBindDoesNotCaptureMethodCall.
+		//
+		// The one non-Go dep this also skips is PHP's root-namespace `use
+		// Foo;` (Target and Source both "Foo"); `use A\B\C;` normalizes to
+		// "A\B" and is unaffected. That skip is the same tautology and the
+		// same hazard, not collateral damage.
+		if h == d.Target {
+			continue
+		}
+		bind[d.Target] = h
 	}
 
 	// Insert this file's outgoing call edges, resolved against the current graph.
