@@ -259,3 +259,84 @@ type S struct {
 		}
 	}
 }
+
+// TestEmbedDepMissesHintForUnaliasedOperand pins spec item 4's first miss
+// class: an embed whose package operand has no `aliases` entry at all (a
+// dot-import) still resolves with Target bare and Source empty. This is
+// TODAY'S BEHAVIOR, preserved deliberately — `import_spec` excludes `.` (and
+// `_`) imports from the aliases map on purpose, so there is nothing for
+// embeddedTypeName to look up.
+func TestEmbedDepMissesHintForUnaliasedOperand(t *testing.T) {
+	src := `package p
+
+import (
+	. "codeindex/internal/dotimport"
+)
+
+type S struct {
+	dotimport.Thing
+}
+`
+	pf, err := (Adapter{}).Parse("p.go", []byte(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var found bool
+	for _, d := range pf.Deps {
+		if d.Kind != graph.KindExtends {
+			continue
+		}
+		if d.Target != "Thing" {
+			t.Fatalf("unexpected extends target %q", d.Target)
+		}
+		found = true
+		if d.Source != "" {
+			t.Errorf("Source = %q, want \"\" (dot-import has no aliases entry)", d.Source)
+		}
+	}
+	if !found {
+		t.Fatalf("no extends dep for Thing; got %v", pf.Deps)
+	}
+}
+
+// TestEmbedDepMissesHintForSegmentMismatch pins spec item 4's second miss
+// class — the ACCEPTED MISS CLASS documented in the plan's binding constraint
+// 6: `import_spec` registers `aliases[lastPathSegment] = ipath`, so
+// `import "gopkg.in/yaml.v2"` registers the key "yaml.v2", not "yaml". An
+// embed written as `yaml.MapSlice` looks up "yaml" and misses, yielding
+// Source == "". This is TODAY'S BEHAVIOR, not a regression: resolving the
+// import's real `package` clause (which here really is `yaml`) would require
+// reading the imported package's source, which is cross-file work this
+// change deliberately does not take on.
+func TestEmbedDepMissesHintForSegmentMismatch(t *testing.T) {
+	src := `package p
+
+import (
+	"gopkg.in/yaml.v2"
+)
+
+type S struct {
+	yaml.MapSlice
+}
+`
+	pf, err := (Adapter{}).Parse("p.go", []byte(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var found bool
+	for _, d := range pf.Deps {
+		if d.Kind != graph.KindExtends {
+			continue
+		}
+		if d.Target != "MapSlice" {
+			t.Fatalf("unexpected extends target %q", d.Target)
+		}
+		found = true
+		if d.Source != "" {
+			t.Errorf("Source = %q, want \"\" (aliases holds key %q, not %q)", d.Source, "yaml.v2", "yaml")
+		}
+	}
+	if !found {
+		t.Fatalf("no extends dep for MapSlice; got %v", pf.Deps)
+	}
+}
