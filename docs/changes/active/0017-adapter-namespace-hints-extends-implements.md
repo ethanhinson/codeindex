@@ -11,7 +11,7 @@ depends_on: []
 related: [13, 10, 18]
 discovered_from: [16]
 adrs: []
-spec:
+spec: docs/superpowers/specs/2026-08-22-adapter-namespace-hints-extends-implements-design.md
 plan:
 results:
 trivial: false
@@ -25,6 +25,9 @@ reconciled: false
 ## Artifacts
 
 <!-- docket:artifacts:start (generated — do not hand-edit) -->
+| Artifact | Link |
+|---|---|
+| Spec | [2026-08-22-adapter-namespace-hints-extends-implements-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-22-adapter-namespace-hints-extends-implements-design.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
@@ -76,7 +79,17 @@ split out to change 0018, which carries the schema decision.
 
 ## Out of scope
 
-- Resolver/ladder changes — rung 1 already consumes hints.
+- Resolver/ladder changes — rung 1 already consumes hints. **Carve-out
+  (owner-admitted):** `store.go:373`'s insert-time hint *selection* IS
+  edited here. It is not a ladder change, and without it the two adapter
+  edits are inert.
+- Go **interface** embedding and `implements` edges. Despite this
+  change's title, Go emits no `KindImplements` dep anywhere and
+  interface embedding parses as `type_elem` (not `field_declaration`),
+  so it emits no dep at all today — coverage there is zero and stays
+  zero. The measured 25-edge population is struct embedding only;
+  adding a `type_elem` emit site is a missing-EDGE change and would move
+  the denominator the acceptance bar is stated over.
 - Aliased-import resolution (PHP/Python/TS) — change 0018 (carries the
   rewrite-dst_name vs add-original-name-column decision).
 - The missing-EDGE parse gaps the groom found (Python `class X(mod.Y)`,
