@@ -2,7 +2,7 @@
 id: 17
 slug: adapter-namespace-hints-extends-implements
 title: Go subtype references carry namespace hints — fix the qualifier discard and KindImports Source
-status: proposed
+status: in-progress
 priority: high
 type: fix
 created: 2026-08-22
@@ -16,9 +16,10 @@ plan:
 results:
 trivial: false
 auto_groomable: true
-branch:
+branch: feat/adapter-namespace-hints-extends-implements
 pr:
 blocked_by:
+claimed_at: 2026-08-22T20:06:02Z
 reconciled: false
 ---
 
