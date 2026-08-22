@@ -27,7 +27,12 @@ honest without resolving each language's internal-reference idioms
   xsubtypes   — files in other members that extend/implement it (php/ts/py)
 
 xnew/xsubtypes are emitted only when their answer is a proper subset of the
-xcallers set (a genuinely different answer, not a rephrasing).
+xcallers set (a genuinely different answer, not a rephrasing). xcallers/
+ximpact/xnew are the control (greppable) shapes and stay scoped to the
+per-lib primary picks; xsubtypes is structural and ranges over every mined
+candidate. Every emitted task's ground truth is capped at MAX_GT_FILES by the
+single gt_within_cap() predicate — the cap bounds the answer, so it is applied
+to the emitted GT, not to a candidate-level proxy.
 
 Prompts embed {WS_ROOT}; the runner substitutes the workspace root path.
 
@@ -306,6 +311,20 @@ def bare_name(symbol, lang):
     return symbol.rsplit(".", 1)[-1]
 
 
+def gt_within_cap(gt) -> bool:
+    """The authoritative 40-file cap, evaluated on the GT a task actually emits.
+
+    The cap exists to bound the ANSWER the agent has to list, so it has to be
+    applied to the emitted ground truth — never to a candidate-level proxy such
+    as ``c["cross_files"]``. Those are different rules the moment a sub-kind's
+    GT is not the candidate's whole reference set (a subset can pass while the
+    candidate fails; ``ximpact`` adds the definition file, so it can fail while
+    the candidate passes). Every emit site calls this one predicate, so the
+    sites cannot drift apart and their comments cannot come to disagree.
+    """
+    return len(gt) <= MAX_GT_FILES
+
+
 def ws_rel(ws_root, member, rel):
     import os
     base = os.path.relpath(member["root"], ws_root)
@@ -373,13 +392,18 @@ def mine(seed, min_tasks):
     picked = {}
     for c in candidates:
         if c["cross_files"] > MAX_GT_FILES:
-            continue
+            continue  # cheap pre-filter; gt_within_cap below is the real gate
         if picked.get(c["lib"], 0) >= PER_LIB_PRIMARY_CAP:
             continue
         kind = "xcallers" if idx % 2 == 0 else "ximpact"
         gt = list(c["gt"])
         if kind == "ximpact":
             gt = sorted(set(gt) | {c["def_file"]})
+        if not gt_within_cap(gt):
+            # ximpact adds the definition file, so a candidate sitting exactly
+            # on the cap overflows it. Skip without consuming idx or a per-lib
+            # slot: the next candidate fills this position.
+            continue
         emit(kind, c, gt, idx)
         picked[c["lib"]] = picked.get(c["lib"], 0) + 1
         c["picked"] = True
@@ -388,7 +412,10 @@ def mine(seed, min_tasks):
     texts_by_id = {mid: dict(t) for mid, t in texts.items()}
     for kind in ("xsubtypes", "xnew"):
         for c in candidates:
-            if not c.get("picked"):
+            if kind == "xnew" and not c.get("picked"):
+                # xnew stays scoped to the primary picks: it is a control
+                # (greppable) shape and the registered corpus holds it at 10.
+                # xsubtypes is structural and ranges over EVERY candidate.
                 continue
             pat = sub_pattern(kind, c["lang"], bare_name(c["symbol"], c["lang"]))
             if pat is None:
@@ -404,6 +431,8 @@ def mine(seed, min_tasks):
                 x for x in members if x["id"] == mid), f)
                 for mid, fs in hits.items() for f in fs})
             if gt == c["gt"]:
+                continue
+            if not gt_within_cap(gt):
                 continue
             emit(kind, c, gt, idx)
             idx += 1
