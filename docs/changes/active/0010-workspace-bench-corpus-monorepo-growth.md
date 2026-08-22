@@ -12,12 +12,12 @@ related: [9, 17, 18]
 discovered_from: [9]
 adrs: []
 spec: docs/superpowers/specs/2026-08-22-workspace-bench-corpus-monorepo-growth-design.md
-plan:
+plan: docs/superpowers/plans/2026-08-22-workspace-bench-corpus-monorepo-growth-plan.md
 results:
 trivial: false
 auto_groomable: false
 branch: feat/workspace-bench-corpus-monorepo-growth
-claimed_at: 2026-08-22T23:31:00Z
+claimed_at: 2026-08-22T23:45:00Z
 pr:
 blocked_by:
 reconciled: true
@@ -29,6 +29,7 @@ reconciled: true
 | Artifact | Link |
 |---|---|
 | Spec | [2026-08-22-workspace-bench-corpus-monorepo-growth-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-22-workspace-bench-corpus-monorepo-growth-design.md) |
+| Plan | [2026-08-22-workspace-bench-corpus-monorepo-growth-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-bench-corpus-monorepo-growth/docs/superpowers/plans/2026-08-22-workspace-bench-corpus-monorepo-growth-plan.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
