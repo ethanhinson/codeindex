@@ -197,3 +197,65 @@ func contains(xs []string, v string) bool {
 	}
 	return false
 }
+
+// TestEmbedDepCarriesSource pins spec items 2 and 3: a qualified embed resolves
+// its package operand through the aliases map and carries the import path as
+// the dep's Source, while Target stays the BARE type name. Unqualified and
+// generic embeds keep Target bare with an empty Source.
+//
+// The pointer case is deliberately the QUALIFIED pointer embed `*al.Thing`: a
+// bare `*B` never reaches embeddedTypeName's pointer_type leg (tree-sitter-go
+// gives the field a plain type_identifier `type` with a sibling `*`), so a
+// bare-`*B` pointer test would be vacuous.
+func TestEmbedDepCarriesSource(t *testing.T) {
+	src := `package p
+
+import (
+	"codeindex/internal/tsdb/chunkenc"
+	al "codeindex/internal/alias"
+)
+
+type B struct{ n int }
+
+type G[T any] struct{ v T }
+
+type S struct {
+	chunkenc.Chunk
+	*al.Thing
+	B
+	G[int]
+}
+`
+	pf, err := (Adapter{}).Parse("p.go", []byte(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]string{}
+	for _, d := range pf.Deps {
+		if d.Kind == graph.KindExtends {
+			if _, dup := got[d.Target]; dup {
+				t.Fatalf("duplicate extends target %q", d.Target)
+			}
+			got[d.Target] = d.Source
+		}
+	}
+	want := map[string]string{
+		"Chunk": "codeindex/internal/tsdb/chunkenc", // qualified
+		"Thing": "codeindex/internal/alias",         // qualified pointer, aliased
+		"B":     "",                                 // unqualified
+		"G":     "",                                 // generic
+	}
+	if len(got) != len(want) {
+		t.Fatalf("extends deps = %v, want keys %v", got, want)
+	}
+	for target, wantSrc := range want {
+		src, ok := got[target]
+		if !ok {
+			t.Errorf("no extends dep with bare Target %q; got %v", target, got)
+			continue
+		}
+		if src != wantSrc {
+			t.Errorf("embed %q: Source = %q, want %q", target, src, wantSrc)
+		}
+	}
+}

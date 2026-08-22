@@ -131,9 +131,16 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 			// extends-like edge from the enclosing struct type.
 			if n.ChildByFieldName("name") == nil {
 				if t := n.ChildByFieldName("type"); t != nil {
-					// TODO(0017 task 2): resolve the qualified_type package
-					// operand through aliases and pass it as the source.
-					addDep(n, graph.KindExtends, embeddedTypeName(t, src), "")
+					// pkg.B -> Target stays the bare B; the qualifier is
+					// resolved through aliases into an import path and rides
+					// along as the edge-local hint. aliases is complete here:
+					// import_spec is visited earlier in this same walk and Go
+					// requires imports to precede declarations. An operand with
+					// no aliases entry (dot/blank import, or an import whose
+					// last path segment differs from its package name) yields
+					// an empty source — unchanged behavior for those.
+					name, pkg := embeddedTypeName(t, src)
+					addDep(n, graph.KindExtends, name, aliases[pkg])
 				}
 			}
 		case "type_spec":
@@ -209,9 +216,12 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 	return pf, nil
 }
 
-// embeddedTypeName reduces an embedded field's type to its type name:
-// `B` -> B, `*B` -> B, `pkg.B` -> B, generics stripped.
-func embeddedTypeName(t *sitter.Node, src []byte) string {
+// embeddedTypeName reduces an embedded field's type to its bare type name and
+// the package operand that qualified it (empty when unqualified):
+// `B` -> B, "";  `*B` -> B, "";  `pkg.B` -> B, "pkg";  generics stripped.
+// The name is returned bare on purpose — only the caller's namespace hint
+// carries the qualifier.
+func embeddedTypeName(t *sitter.Node, src []byte) (name, pkg string) {
 	for t != nil {
 		switch t.Type() {
 		case "pointer_type":
@@ -219,14 +229,18 @@ func embeddedTypeName(t *sitter.Node, src []byte) string {
 		case "generic_type":
 			t = t.ChildByFieldName("type")
 		case "qualified_type":
+			// Capture the operand before descending into the name.
+			if p := t.ChildByFieldName("package"); p != nil {
+				pkg = p.Content(src)
+			}
 			t = t.ChildByFieldName("name")
 		case "type_identifier":
-			return t.Content(src)
+			return t.Content(src), pkg
 		default:
-			return ""
+			return "", ""
 		}
 	}
-	return ""
+	return "", ""
 }
 
 // receiver extracts a method's receiver variable name and type name
