@@ -25,12 +25,15 @@ honest without resolving each language's internal-reference idioms
   ximpact     — cross-member direct blast radius (+ definition file)
   xnew        — files in other members that instantiate it (php/ts)
   xsubtypes   — files in other members that extend/implement it (php/ts/py)
+  xcollide    — same bare name declared in >=2 members: only the files bound
+                by import to ONE named declaring member
 
 xnew/xsubtypes are emitted only when their answer is a proper subset of the
-xcallers set (a genuinely different answer, not a rephrasing). xcallers/
+xcallers set (a genuinely different answer, not a rephrasing); xcollide the
+same, against the bare-name union across members. xcallers/
 ximpact/xnew are the control (greppable) shapes and stay scoped to the
-per-lib primary picks; xsubtypes is structural and ranges over every mined
-candidate. Every emitted task's ground truth is capped at MAX_GT_FILES by the
+per-lib primary picks; xsubtypes and xcollide are structural and range over
+every mined candidate. Every emitted task's ground truth is capped at MAX_GT_FILES by the
 single gt_within_cap() predicate — the cap bounds the answer, so it is applied
 to the emitted GT, not to a candidate-level proxy.
 
@@ -280,7 +283,48 @@ PROMPTS = {
         "{SYMDESC} is defined in the {LIB} project. List every file in the "
         "OTHER member projects (not {LIB}) that declares a class extending "
         "or implementing it." + PROMPT_TAIL),
+    "xcollide": (
+        "You are working in a multi-repo workspace rooted at {WS_ROOT}. "
+        "Member projects (relative to that root): {MEMBERS}. "
+        "The name `{BARE}` is declared in more than one member project, so a "
+        "plain text search for it matches files bound to any of those "
+        "declarations. Only one is meant here: {SYMDESC}, declared in the "
+        "{LIB} project and written there as `{QUAL}`. List every file in the "
+        "OTHER member projects (not {LIB}) that references THAT declaration. "
+        "A file that references some other project's `{BARE}` does not "
+        "count." + PROMPT_TAIL),
 }
+
+
+def qualified_form(symbol, lang):
+    """How `symbol` is unambiguously written in ITS OWN language.
+
+    Explicitly gated per language (learning:
+    ``dialect-specific-remedies-need-a-language-gate``). These four forms are
+    not interchangeable and no single format string is justified across them:
+    PHP's leading-backslash absolute FQCN is not legal TS/Py/Go, and Go's
+    ``pkg.Name`` selector — where the import path never appears at the use
+    site — is not a PHP FQCN. A rule argued from one dialect and then applied
+    to all four would mislabel three of them, which for this shape is fatal:
+    the qualified form IS the disambiguator the prompt hands the agent.
+    """
+    if lang == "php":
+        # Absolute FQCN: the leading backslash roots the name at the global
+        # namespace. PHP-only — the other three have no such form.
+        return "\\" + symbol
+    if lang == "ts":
+        # Named export; the binding lives in the import specifier, not in the
+        # use site, so the package has to be named alongside the bare name.
+        pkg, name = symbol.split(":", 1)
+        return f"{name}, imported from '{pkg}'"
+    if lang == "py":
+        # Dotted module path; the import statement carries the full path.
+        mod, name = symbol.rsplit(".", 1)
+        return f"{mod}.{name}"
+    # go: cross-package uses are ALWAYS the selector <pkg>.<Name>; the import
+    # path appears only in the import block, so both are stated.
+    path, name = symbol.rsplit(".", 1)
+    return f"{path.rsplit('/', 1)[-1]}.{name}, from package {path}"
 
 SYMDESC = {
     "php": "The PHP class/interface `{sym}`",
@@ -383,6 +427,8 @@ def mine(seed, min_tasks):
                 WS_ROOT="{WS_ROOT}",
                 MEMBERS=", ".join(sorted(member_rels.values())),
                 SYMDESC=describe(c["symbol"], c["lang"]),
+                BARE=bare_name(c["symbol"], c["lang"]),
+                QUAL=qualified_form(c["symbol"], c["lang"]),
                 LIB=member_rels[c["lib"]]) .replace(
                     "{WS_ROOT}", "{WS_ROOT}"),
             "gt_files": gt,
@@ -435,6 +481,45 @@ def mine(seed, min_tasks):
             if not gt_within_cap(gt):
                 continue
             emit(kind, c, gt, idx)
+            idx += 1
+
+    # ---------------------------------------------------------------- #
+    # xcollide — the same BARE name declared in >= 2 member projects.
+    #
+    # A plain-text search for the bare name returns the union of the
+    # references to every declaration of it; the answer wanted is only the
+    # files whose IMPORT binds them to one named declaring member. The
+    # per-language symbol keys are already fully qualified (PHP FQCN,
+    # `pkg:Name`, `module.Name`, `importpath.Name`), so that binding is
+    # already computed above — the collision is purely on bare_name(), and
+    # each candidate's own `gt` is by construction the import-bound subset.
+    #
+    # Union is taken over the candidates' import-bound reference sets rather
+    # than over a raw text match, which makes it a SUBSET of what a text
+    # search would return; a proper subset of this union is therefore a
+    # proper subset of the text-search result too.
+    # ---------------------------------------------------------------- #
+    by_bare = {}
+    for c in candidates:
+        by_bare.setdefault(bare_name(c["symbol"], c["lang"]), []).append(c)
+    for bare in sorted(by_bare):
+        group = by_bare[bare]
+        if len({c["lib"] for c in group}) < 2:
+            continue  # one declaring member: nothing to disambiguate
+        union = set()
+        for c in group:
+            union |= set(c["gt"])
+        # total order, independent of dict/set iteration: (lib, lang, symbol)
+        for c in sorted(group, key=lambda c: (c["lib"], c["lang"], c["symbol"])):
+            gt = list(c["gt"])
+            if not set(gt) < union:
+                # Equal to the union means the other declarations contribute
+                # no references of their own, so there is nothing a text
+                # search over-returns here and the task is xcallers rephrased.
+                continue
+            if not gt_within_cap(gt):
+                continue
+            emit("xcollide", c, gt, idx)
             idx += 1
 
     quota = {}
