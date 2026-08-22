@@ -15,7 +15,7 @@ spec:
 plan:
 results:
 trivial: false
-auto_groomable: false
+auto_groomable: true
 branch:
 pr:
 blocked_by:
@@ -57,12 +57,18 @@ split out to change 0018, which carries the schema decision.
   `embeddedTypeName` discarding the package qualifier
   (`case "qualified_type"`), so Go interface-embedding / subtype
   references carry the namespace hint like calls and imports do.
-- **Acceptance bar = resolution gain, not hint coverage** (owner ruling):
-  references must move `dst_symbol_id: 0 → non-zero` over the measured
-  Go addressable set (client_golang has 0 hinted subtype edges today);
-  `dst_ns` movement without resolution movement counts for nothing.
-  Verify empirically against the built bench indexes
-  (client_golang/prometheus).
+- **Acceptance bar = disambiguation gain (owner ruling 2026-08-22,
+  amending the earlier resolution-gain wording):** `unresolved →
+  resolved` is provably impossible for a hint-only change (hints narrow
+  candidates; hint-free rungs run last regardless — all 96 unresolved Go
+  subtype edges target names absent from the index). The bar: over the
+  measured 23 addressable qualified-embed edges, resolution moves
+  `ambiguous → unambiguous` with the verified-correct target.
+  Pinned exemplars: `chunkenc.Chunk` (wrong-package pick → correct) and
+  the 4 `refresh.Discovery` embeds (22 candidates → 1 correct);
+  `storage.Appender` is recorded as PARTIAL (right package, still
+  ambiguous — 3 same-name symbols in-package) and must not be claimed as
+  a win. `dst_ns` movement alone counts for nothing.
 - Single-repo goldens byte-identical (measured); note
   `DumpNormalized` does not select `dst_ns`, so snapshot suites are
   structurally blind to hint changes — the resolution-gain check is the
@@ -132,89 +138,13 @@ elsewhere**. Verified against the eight built member indexes under
   `dst_ns`, so the existing snapshot suites are structurally blind to a
   hint-only change.
 
-## Auto-groom blocked (2026-08-22)
+## Owner ruling round 2 (2026-08-22) — disambiguation bar
 
-Abstained. The owner's acceptance bar, **as literally written**, is
-unsatisfiable by this change as scoped — but the change is **not** worthless,
-and the single question below is the only thing standing between this stub and
-a spec.
-
-### The undecidable decision
-
-The bar (binding, owner): references must move `dst_symbol_id: 0 → non-zero`
-over the measured Go addressable set; `dst_ns` movement without resolution
-movement "counts for nothing."
-
-**No hint-only change can ever move `dst_symbol_id` from 0 to non-zero.**
-Established three ways, each verified independently by the critic pass:
-
-1. **Analytic.** In `resolve()` (`internal/graph/store.go:1052`) the `nsHint`
-   rungs (1068–1073) call `boundIDs` (1101), which runs
-   `SELECT id, namespace FROM symbols WHERE name=? AND tier=?` and keeps the
-   rows passing `nsMatch`. The ladder's final two rungs (1081–1083) are those
-   same two queries **unfiltered**, and they run unconditionally. Every hinted
-   rung's candidate set is therefore a strict subset of a rung that runs
-   anyway: a hint can change *which* id is picked and can upgrade
-   `ambiguous → unambiguous`, but it can never turn no-match into a match. The
-   `qualifier` rungs (1064–1066) are strict subsets for the same reason, so an
-   alternate design routing the package operand into `Qualifier` instead of
-   `Source` cannot escape either (and `store.go:378` passes `""` for qualifier
-   on dep edges regardless). The bulk re-resolution pass (`store.go:546`) calls
-   the same `resolve()` with the persisted `dst_ns`, so it inherits this.
-2. **Empirical.** In the two bench indexes the stub names, **every** unresolved
-   subtype edge targets a name that exists as no symbol in the index at all —
-   `client_golang` 66 of 66, `prometheus` 30 of 30. Both indexes have zero
-   `tier=1` symbols. A hint filters candidates; with zero candidates there is
-   nothing to filter.
-3. **The workspace path does not rescue it.** `internal/wsresolve/ladder.go`
-   exists, is tested, and is wired (`internal/wsfresh/freshen.go:371`); its
-   rung 1 (`ladder.go:122–137`, `if e.DstNS != ""` → `memberClaims`) is the one
-   place in the codebase where a hint **gates** attachment rather than
-   narrowing it — so it is genuinely where a Go hint would become load-bearing.
-   But (a) cross edges land in the **overlay**, never in the member's
-   `dst_symbol_id`, so a firing rung 1 still does not satisfy the bar as
-   written; and (b) measured: **zero** of prometheus's unresolved subtype
-   `dst_name`s exist as a tier-0 symbol in `client_golang`, so the bench pair
-   yields nothing on this path anyway.
-
-### What the change *does* buy — measured, and it is real
-
-`prometheus` has **25 `ambiguous` subtype edges, all of them Go**, all with an
-empty `dst_ns` — precisely the qualified-embedded-type population this change
-targets. (`client_golang` has zero ambiguous subtype edges, so the gain is
-prometheus-side.) Verified concretely:
-
-- `tsdb/head_read.go:386,512` embed `chunkenc.Chunk`; three tier-0 `Chunk`
-  symbols exist (`prompb`, `tsdb/chunkenc`, `tsdb/chunks`), so the edge is
-  ambiguous today. A `.../tsdb/chunkenc` hint narrows it to exactly one —
-  `ambiguous → unambiguous`.
-- `scrape/target.go:320,341,360,400` embed `storage.Appender`; 18 tier-0
-  `Appender` symbols exist and the deterministic first pick under
-  `ORDER BY file, start_line` is today `cmd/prometheus/main.go` — **the wrong
-  symbol**. The hint confines the pick to the `storage` package. This is a
-  correctness fix on a currently-wrong `dst_symbol_id`, not merely precision.
-- The 5 `Discovery` edges (`discovery/aws/*`, `discovery/ovhcloud/*`) face 22
-  same-named candidates; the hint collapses them.
-
-### The one question for the owner
-
-**Does your bar admit `ambiguous → unambiguous` and wrong-pick → right-pick as
-"resolution movement," or only literally `dst_symbol_id: 0 → non-zero`?**
-
-The bar's stated contrast is *"`dst_ns` movement without resolution movement
-counts for nothing."* An ambiguous edge already has a non-zero
-`dst_symbol_id`, so re-pointing it is not literally `0 → non-zero` — but it
-changes which symbol the edge resolves to, which is resolution movement and not
-bare `dst_ns` movement. Whether the literal phrasing is the whole bar or a
-named instance of it is a call only the owner can make: the owner set this bar
-explicitly, after a prior abstain, and a groom may not re-bar itself.
-
-**If the answer is "yes, it admits it":** 0017 is buildable today against a
-measured 25-edge Go set in `prometheus`, and the spec follows immediately from
-the design already worked out below — re-arm and this stub grooms in one pass.
-**If the answer is "no, literally 0 → non-zero":** the bar cannot be met by any
-hint-only change, and 0017 should be re-scoped (to the overlay-side workspace
-rung, where hints do gate) or deferred behind that work.
+The second abstain's single question is answered: the acceptance bar
+admits `ambiguous → unambiguous`-with-correct-target as resolution
+movement (see the amended bar in `## What changes`). The abstain's full
+measured record is in git history; its binding design content is kept
+below.
 
 ### Design already established (fold into the spec on re-arm)
 
