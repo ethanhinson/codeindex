@@ -27,8 +27,11 @@ honest without resolving each language's internal-reference idioms
   xsubtypes   — files in other members that extend/implement it (php/ts/py)
   xcollide    — same bare name declared in >=2 members: only the files bound
                 by import to ONE named declaring member
+  xalias      — only the files that bind the symbol under a DIFFERENT local
+                name (renamed import). A subset filter: the aliasing statement
+                spells out the original name, so a text search over-returns.
 
-xnew/xsubtypes are emitted only when their answer is a proper subset of the
+xnew/xsubtypes/xalias are emitted only when their answer is a proper subset of the
 xcallers set (a genuinely different answer, not a rephrasing); xcollide the
 same, against the bare-name union across members. xcallers/
 ximpact/xnew are the control (greppable) shapes and stay scoped to the
@@ -252,6 +255,71 @@ def sub_pattern(kind, lang, bare):
     return None
 
 
+# --------------------------------------------------------------------------- #
+# Alias detection — does THIS file bind the symbol under a DIFFERENT local name?
+#
+# Stated correctly, `xalias` is a SUBSET filter, not a recall extension. The
+# intuitive framing ("a text search for the symbol's own name misses the
+# aliased files") is backwards: the aliasing statement itself spells out the
+# original name, so a plain text search returns a strict SUPERSET of the
+# aliasing files. The wanted answer is the subset that renames it.
+#
+# Language gating (learning: ``dialect-specific-remedies-need-a-language-gate``)
+# is not decoration here — the four dialects put the rename in four structurally
+# different places, and a regex argued from one of them is simply wrong for the
+# other three:
+#   php  `use Some\Ns\Thing as T;`  — rename attaches to the fully qualified
+#        name in the use statement itself.
+#   ts   `import { Thing as T } from 'pkg'` — rename lives INSIDE the specifier
+#        braces, and the package that qualifies it is a separate clause.
+#   py   `from mod import Thing as T` — rename inside the import clause, which
+#        may be parenthesised across lines; the module is a separate clause.
+#   go   `t "mod/path/pkg"` — the rename attaches to the IMPORT PATH and the
+#        symbol's own name never appears in it at all; the default local name
+#        is the path's last segment, so "aliased" means "alias != last segment"
+#        (and `_`/`.` imports are not renames of a usable binding).
+# --------------------------------------------------------------------------- #
+
+def aliased_binding(text, symbol, lang) -> bool:
+    if lang == "php":
+        # FQCN, optionally written absolute at the use site.
+        pat = re.compile(r"^use\s+\\?" + re.escape(symbol) + r"\s+as\s+(\w+)\s*;",
+                         re.M)
+        return any(a != bare_name(symbol, lang) for a in pat.findall(text))
+    if lang == "ts":
+        pkg, name = symbol.split(":", 1)
+        for names, src in TS_IMPORT.findall(text):
+            if src != pkg and not src.startswith(pkg + "/"):
+                continue
+            for raw in names.split(","):
+                parts = raw.strip().removeprefix("type ").split(" as ")
+                if len(parts) == 2 and parts[0].strip() == name:
+                    if parts[1].strip() != name:
+                        return True
+        return False
+    if lang == "py":
+        mod, name = symbol.rsplit(".", 1)
+        pat = re.compile(r"^from\s+" + re.escape(mod) + r"\s+import\s+"
+                         r"(\([^)]*\)|[^\n]+)", re.M)
+        for clause in pat.findall(text):
+            for raw in clause.strip("()").replace("\\\n", ",").split(","):
+                parts = raw.strip().split(" as ")
+                if len(parts) == 2 and parts[0].strip() == name:
+                    if parts[1].strip() != name:
+                        return True
+        return False
+    if lang == "go":
+        path = symbol.rsplit(".", 1)[0]
+        default = path.rsplit("/", 1)[-1]
+        imports = []
+        for block in GO_IMPORT_BLOCK.findall(text):
+            imports += GO_IMPORT_LINE.findall(block)
+        imports += GO_IMPORT_ONE.findall(text)
+        return any(p == path and a and a not in (default, "_", ".")
+                   for a, p in imports)
+    return False
+
+
 PROMPT_TAIL = (
     " Search each project's own source only (ignore any vendor/, "
     "node_modules/, dist/ or build/ directories). Output ONLY the file "
@@ -293,6 +361,17 @@ PROMPTS = {
         "OTHER member projects (not {LIB}) that references THAT declaration. "
         "A file that references some other project's `{BARE}` does not "
         "count." + PROMPT_TAIL),
+    "xalias": (
+        "You are working in a multi-repo workspace rooted at {WS_ROOT}. "
+        "Member projects (relative to that root): {MEMBERS}. "
+        "{SYMDESC} is defined in the {LIB} project and written there as "
+        "`{QUAL}`. Some files in the other member projects import it under a "
+        "DIFFERENT local name (a renamed or aliased import) and then use it "
+        "by that other name. List only those files: every file in the OTHER "
+        "member projects (not {LIB}) whose import binds it to a local name "
+        "other than `{BARE}`. A file that imports it under its own name "
+        "`{BARE}` does not count, even though it references it."
+        + PROMPT_TAIL),
 }
 
 
@@ -521,6 +600,36 @@ def mine(seed, min_tasks):
                 continue
             emit("xcollide", c, gt, idx)
             idx += 1
+
+    # ---------------------------------------------------------------- #
+    # xalias — files that bind the symbol under a DIFFERENT local name.
+    #
+    # A subset filter over each candidate's own reference set (see
+    # aliased_binding() for why this is a subset and not an extension, and for
+    # the four gated dialect forms). Runs after xcollide so the shapes already
+    # frozen keep their ids. Ordering follows the same total order as the
+    # other sub-kind passes: the seeded candidate order, then sorted files.
+    # ---------------------------------------------------------------- #
+    for c in candidates:
+        hits = {}
+        for mid, fs in c["by_member"].items():
+            sel = [f for f in fs
+                   if aliased_binding(texts_by_id[mid][f], c["symbol"], c["lang"])]
+            if sel:
+                hits[mid] = sel
+        if not hits:
+            continue
+        gt = sorted({ws_rel(ws_root, next(
+            x for x in members if x["id"] == mid), f)
+            for mid, fs in hits.items() for f in fs})
+        if gt == c["gt"]:
+            # Every referencing file aliases it: nothing for the filter to
+            # remove, so the task is xcallers rephrased, not structural.
+            continue
+        if not gt_within_cap(gt):
+            continue
+        emit("xalias", c, gt, idx)
+        idx += 1
 
     quota = {}
     lang_quota = {}
