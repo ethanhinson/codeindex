@@ -2,7 +2,7 @@
 id: 17
 slug: adapter-namespace-hints-extends-implements
 title: Go subtype references carry namespace hints — fix the qualifier discard and KindImports Source
-status: in-progress
+status: implemented
 priority: high
 type: fix
 created: 2026-08-22
@@ -13,13 +13,13 @@ discovered_from: [16]
 adrs: [14]
 spec: docs/superpowers/specs/2026-08-22-adapter-namespace-hints-extends-implements-design.md
 plan: docs/superpowers/plans/2026-08-22-adapter-namespace-hints-extends-implements-plan.md
-results:
+results: docs/results/2026-08-22-adapter-namespace-hints-extends-implements-results.md
 trivial: false
 auto_groomable: true
 branch: feat/adapter-namespace-hints-extends-implements
-pr:
+pr: https://github.com/ethanhinson/codeindex/pull/15
 blocked_by:
-claimed_at: 2026-08-22T23:02:43Z
+claimed_at: 2026-08-22T23:05:24Z
 reconciled: true
 ---
 
@@ -30,6 +30,8 @@ reconciled: true
 |---|---|
 | Spec | [2026-08-22-adapter-namespace-hints-extends-implements-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-22-adapter-namespace-hints-extends-implements-design.md) |
 | Plan | [2026-08-22-adapter-namespace-hints-extends-implements-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/adapter-namespace-hints-extends-implements/docs/superpowers/plans/2026-08-22-adapter-namespace-hints-extends-implements-plan.md) |
+| Results | [2026-08-22-adapter-namespace-hints-extends-implements-results.md](https://github.com/ethanhinson/codeindex/blob/feat/adapter-namespace-hints-extends-implements/docs/results/2026-08-22-adapter-namespace-hints-extends-implements-results.md) |
+| PR | [#15](https://github.com/ethanhinson/codeindex/pull/15) |
 | ADRs | [ADR-0014](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0014-go-import-self-bindings-suppressed.md) |
 <!-- docket:artifacts:end -->
 
