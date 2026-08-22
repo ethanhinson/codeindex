@@ -1130,6 +1130,22 @@ func resolve(q queryer, name, qualifier, srcNS, nsHint string) (int64, Confidenc
 
 // boundIDs returns the ids of symbols named `name` in the given tier whose
 // namespace matches the import hint, in deterministic order.
+//
+// KNOWN LIMITATION — a hint narrows to a NAMESPACE and never within one. When
+// several symbols share `name` inside the hinted namespace, boundIDs returns
+// all of them and the caller reports its first pick as `ambiguous`, even though
+// the hint was correct and did move the answer into the right package.
+// `storage.Appender` in prometheus is the recorded instance: three `Appender`
+// symbols live in package `storage`, so the edge lands in the right package and
+// stays ambiguous. Pinned by
+// TestKNOWNLIMITATIONHintedEmbedStaysAmbiguousAmongInPackageSameNameSymbols.
+//
+// PREREQUISITE: closing this requires in-package disambiguation — a real
+// discriminator (for an embed, that the syntactic position selects a type)
+// plumbed to the resolution site — landing FIRST. Doing it without one, by
+// relabelling a >1 result as `unambiguous` or by breaking the tie on ordering,
+// is worse than the gap: it converts an honest "I am not sure" into a confident
+// wrong answer that no consumer can detect. See the test's doc comment.
 func boundIDs(q queryer, name string, tier int, hint string) ([]int64, error) {
 	rows, err := q.Query(
 		`SELECT id, namespace FROM symbols WHERE name=? AND tier=? ORDER BY namespace, file, start_line, id`,
