@@ -2,7 +2,7 @@
 id: 10
 slug: workspace-bench-corpus-monorepo-growth
 title: Grow the workspace bench corpus — monorepo declaration coverage in every supported language
-status: proposed
+status: in-progress
 priority: medium
 type: chore
 created: 2026-08-18
@@ -16,7 +16,8 @@ plan:
 results:
 trivial: false
 auto_groomable: false
-branch:
+branch: feat/workspace-bench-corpus-monorepo-growth
+claimed_at: 2026-08-22T23:19:35Z
 pr:
 blocked_by:
 reconciled: false
