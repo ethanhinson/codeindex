@@ -337,11 +337,18 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 	// import deps. Calls and dep targets bound by an import resolve within
 	// the import's mapped namespace (Stage 2); the hint is persisted on the
 	// edge (dst_ns) so re-resolution reproduces insert-time results exactly.
+	// This is the file-level fallback for both loops below — an edge-local
+	// hint on the call or dep site is more specific and outranks it.
 	bind := map[string]string{}
 	for _, d := range pf.Deps {
-		if d.Kind == KindImports && d.Source != "" && d.Target != "" {
-			bind[d.Target] = normalizeHint(d.Source, d.Target, pf.Path)
+		if d.Kind != KindImports || d.Source == "" || d.Target == "" {
+			continue
 		}
+		h := normalizeHint(d.Source, d.Target, pf.Path)
+		if goImportSelfHint(pf.Path, h, d.Target) {
+			continue // empty in Go, and a hazard — see goImportSelfHint
+		}
+		bind[d.Target] = h
 	}
 
 	// Insert this file's outgoing call edges, resolved against the current graph.
@@ -349,9 +356,9 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 		if c.EnclosingIdx < 0 || c.EnclosingIdx >= len(ids) {
 			continue // top-level calls have no owning symbol in the skeleton
 		}
-		hint := c.NsHint // Go alias hint wins; else the file's import binding
+		hint := c.NsHint // edge-local hint (Go alias) wins: it is more specific
 		if hint == "" {
-			hint = bind[c.Callee]
+			hint = bind[c.Callee] // file-level import binding, as before
 		}
 		dstID, conf, err := resolve(tx, c.Callee, c.Qualifier, ns, hint)
 		if err != nil {
@@ -370,7 +377,21 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 		if d.EnclosingIdx >= 0 && d.EnclosingIdx < len(ids) {
 			srcID = ids[d.EnclosingIdx]
 		}
-		hint := bind[d.Target] // extends/implements/import targets bind too
+		// Same precedence as the call loop above, deliberately: keep the two
+		// sites in step. For an import dep this is by construction the same
+		// expression that populated bind[d.Target] — so it must pass the same
+		// filter, via the same predicate. Without the skip below the two sites
+		// contradict each other: the bind site discards a Go self-binding as
+		// informationless and hazardous while this site hands that very hint
+		// to resolve(), which is how `import "log"` came to resolve
+		// `unambiguous` onto an unrelated repo symbol named log.
+		hint := normalizeHint(d.Source, d.Target, pf.Path) // edge-local source wins
+		if goImportSelfHint(pf.Path, hint, d.Target) {
+			hint = "" // empty in Go, and a hazard — see goImportSelfHint
+		}
+		if hint == "" {
+			hint = bind[d.Target] // file-level import binding, as before
+		}
 		var dstID int64
 		conf := ConfUnresolved
 		if !strings.Contains(d.Target, "/") {
@@ -1098,6 +1119,31 @@ func resolve(q queryer, name, qualifier, srcNS, nsHint string) (int64, Confidenc
 
 // boundIDs returns the ids of symbols named `name` in the given tier whose
 // namespace matches the import hint, in deterministic order.
+//
+// KNOWN LIMITATION — a hint narrows to a NAMESPACE and never within one. When
+// several symbols share `name` inside the hinted namespace, boundIDs returns
+// all of them and the caller reports its first pick as `ambiguous`, even though
+// the hint was correct and did move the answer into the right package.
+// `storage.Appender` in prometheus is the recorded instance: three `Appender`
+// symbols live in package `storage`, so the edge lands in the right package and
+// stays ambiguous. Pinned by
+// TestKNOWNLIMITATIONHintedEmbedStaysAmbiguousAmongInPackageSameNameSymbols.
+//
+// The gap has a second face: a CORRECT hint can move an edge off the `srcNS`
+// rung and INTO this limitation, converting an `unambiguous`-but-wrong answer
+// into an `ambiguous`-but-right-package one. That is a confidence DOWNGRADE, so
+// a future confidence regression may be this documented gap rather than a new
+// bug. The recorded instance, alongside `storage.Appender`, is the
+// `storage.Querier` embed in prometheus's `promql/engine_test.go`
+// `hintRecordingQuerier`: before, `unambiguous` at a same-file method; after,
+// `ambiguous` among the five `Querier` symbols in package `storage`.
+//
+// PREREQUISITE: closing this requires in-package disambiguation — a real
+// discriminator (for an embed, that the syntactic position selects a type)
+// plumbed to the resolution site — landing FIRST. Doing it without one, by
+// relabelling a >1 result as `unambiguous` or by breaking the tie on ordering,
+// is worse than the gap: it converts an honest "I am not sure" into a confident
+// wrong answer that no consumer can detect. See the test's doc comment.
 func boundIDs(q queryer, name string, tier int, hint string) ([]int64, error) {
 	rows, err := q.Query(
 		`SELECT id, namespace FROM symbols WHERE name=? AND tier=? ORDER BY namespace, file, start_line, id`,
@@ -1165,6 +1211,37 @@ func normalizeHint(source, target, fromFile string) string {
 		return source[:i]
 	}
 	return source
+}
+
+// goImportSelfHint reports whether a normalized import hint is the empty
+// self-binding that a Go import dep produces: hint == target, in a Go file. It
+// is the single sanctioned test for "this import contributes nothing usable" —
+// both the file-level bind map and any per-edge hint site must consult THIS
+// predicate rather than re-deriving the rule, so the two never drift.
+//
+// Every Go import dep has this shape: the adapter sets Target and Source both to
+// the whole import path, so the binding says only "the name X lives in
+// namespace X". In Go that tautology is genuinely empty — a package's namespace
+// is its DIRECTORY while the import Target is the slash-bearing path, so the
+// binding can never name a symbol, and the edge-local Source consulted in the
+// dep loop is the live channel for Go subtype hints. Worse than empty, it is a
+// hazard: Go's calleeName yields the SELECTOR FIELD for x.log(), and a
+// lowercase single-segment stdlib path ("log", "path", "context") has exactly
+// the shape of an unexported method name, which nsMatch then suffix-matches
+// onto namespaces like internal/log. See TestGoImportBindDoesNotCaptureMethodCall.
+//
+// The premise is Go-specific, so the predicate is Go-scoped. For Python, TS and
+// PHP the namespace IS the module path, so `from app import app`, `import Foo
+// from "Foo"` and `use Foo;` bind a name to a namespace nsMatch really resolves
+// (via its '.' separator and CutPrefix legs) — and because those three adapters
+// emit extends/implements with an empty Source, the file-level binding is their
+// ONLY hint channel. Skipping them would silently delete real hints, so they
+// are excluded here by the .go test rather than by the shape of the hint: a
+// bare "log" is indistinguishable from a Python module named log, and it is the
+// importing FILE's language, not the target's spelling, that decides.
+// See TestSelfBindingImportStillBindsOutsideGo.
+func goImportSelfHint(fromFile, hint, target string) bool {
+	return hint == target && strings.HasSuffix(fromFile, ".go")
 }
 
 func symbolIDs(q queryer, query string, args ...any) ([]int64, error) {
