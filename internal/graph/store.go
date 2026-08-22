@@ -345,27 +345,8 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 			continue
 		}
 		h := normalizeHint(d.Source, d.Target, pf.Path)
-		// A self-binding carries no name -> namespace information: it says
-		// only "the name X lives in namespace X". Every Go import dep is
-		// this shape (Target and Source are both the whole import path), so
-		// this drops all of them from bind — the intended effect. Go gains
-		// nothing from bind:
-		// an import's Target is the slash-bearing path and never equals a
-		// bare embedded type name, and the edge-local Source consulted in
-		// the dep loop below is the live channel for subtype hints. What a
-		// self-binding would do instead is capture unrelated calls — Go's
-		// calleeName yields the SELECTOR FIELD, and a lowercase
-		// single-segment stdlib path ("log", "path", "context") is exactly
-		// the shape of an unexported method name, which nsMatch then
-		// suffix-matches onto namespaces like internal/log. See
-		// TestGoImportBindDoesNotCaptureMethodCall.
-		//
-		// The one non-Go dep this also skips is PHP's root-namespace `use
-		// Foo;` (Target and Source both "Foo"); `use A\B\C;` normalizes to
-		// "A\B" and is unaffected. That skip is the same tautology and the
-		// same hazard, not collateral damage.
-		if h == d.Target {
-			continue
+		if goImportSelfHint(pf.Path, h, d.Target) {
+			continue // empty in Go, and a hazard — see goImportSelfHint
 		}
 		bind[d.Target] = h
 	}
@@ -1213,6 +1194,37 @@ func normalizeHint(source, target, fromFile string) string {
 		return source[:i]
 	}
 	return source
+}
+
+// goImportSelfHint reports whether a normalized import hint is the empty
+// self-binding that a Go import dep produces: hint == target, in a Go file. It
+// is the single sanctioned test for "this import contributes nothing usable" —
+// both the file-level bind map and any per-edge hint site must consult THIS
+// predicate rather than re-deriving the rule, so the two never drift.
+//
+// Every Go import dep has this shape: the adapter sets Target and Source both to
+// the whole import path, so the binding says only "the name X lives in
+// namespace X". In Go that tautology is genuinely empty — a package's namespace
+// is its DIRECTORY while the import Target is the slash-bearing path, so the
+// binding can never name a symbol, and the edge-local Source consulted in the
+// dep loop is the live channel for Go subtype hints. Worse than empty, it is a
+// hazard: Go's calleeName yields the SELECTOR FIELD for x.log(), and a
+// lowercase single-segment stdlib path ("log", "path", "context") has exactly
+// the shape of an unexported method name, which nsMatch then suffix-matches
+// onto namespaces like internal/log. See TestGoImportBindDoesNotCaptureMethodCall.
+//
+// The premise is Go-specific, so the predicate is Go-scoped. For Python, TS and
+// PHP the namespace IS the module path, so `from app import app`, `import Foo
+// from "Foo"` and `use Foo;` bind a name to a namespace nsMatch really resolves
+// (via its '.' separator and CutPrefix legs) — and because those three adapters
+// emit extends/implements with an empty Source, the file-level binding is their
+// ONLY hint channel. Skipping them would silently delete real hints, so they
+// are excluded here by the .go test rather than by the shape of the hint: a
+// bare "log" is indistinguishable from a Python module named log, and it is the
+// importing FILE's language, not the target's spelling, that decides.
+// See TestSelfBindingImportStillBindsOutsideGo.
+func goImportSelfHint(fromFile, hint, target string) bool {
+	return hint == target && strings.HasSuffix(fromFile, ".go")
 }
 
 func symbolIDs(q queryer, query string, args ...any) ([]int64, error) {
