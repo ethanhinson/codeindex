@@ -8,14 +8,14 @@ type: chore
 created: 2026-08-18
 updated: 2026-08-22
 depends_on: []
-related: [9]
+related: [9, 17]
 discovered_from: [9]
 adrs: []
 spec:
 plan:
 results:
 trivial: false
-auto_groomable: false
+auto_groomable: true
 branch:
 pr:
 blocked_by:
@@ -96,46 +96,22 @@ coverage second.
 
 <!-- Appended by docket-implement-next's reconcile pass: dated entries of what changed. -->
 
-## Auto-groom blocked
+## Groom corrections applied (2026-08-22, re-arm)
 
-**2026-08-22 — `docket-auto-groom` abstained. The design reached
-build-ready quality on re-check (4 of 6 re-checked items sound, and the
-critic found no missing owner context), but two mechanical defects
-survived into the second round and the one permitted revision was spent.
-No spec was emitted. Re-arming this stub is cheap: the two corrections
-below are one-liners.**
-
-### The two corrections a re-groom must apply
-
-1. **`related:` does not link to 0017.** The design's chosen encoding of
-   the 0017 coupling was "`related: [17]` plus the ordering constraint in
-   the registration text", asserting the frontmatter link already
-   existed. It does not — this change carries `related: [9]`, and only
-   0017 carries `related: [13, 10]`. Add `17` to this change's `related:`
-   so the coupling exists in a machine-readable field.
-2. **A registered bar that the prior run PASSED was dropped.** The
-   2026-08-21 registration in `bench/engine/FINDINGS-workspace-graph.md`
-   has three required bars; the draft reproduced the two that FAILED
-   verbatim and silently dropped **"Floor competence: B rung-1 median
-   cross-recall ≥ 0.9 absolute"**. That is the exact failure mode the
-   draft's own D4 was written to correct, recurring one level down.
-   Restore it as an absolute floor on the greppable control subset,
-   alongside the relative `B ≥ A − 5pp` non-inversion bar.
-
-Two cosmetic factual fixes for the same pass: the Go import-alias
-population is **3 distinct packages / 17 files** (alias names
-`versioncollector`, `v1`, `prom_testutil`, `client_testutil`), not
-"2 pkgs / 13 files"; and `promcli.Collector` was an invented identifier —
-no `promcli` alias exists in the corpus.
-
-### Why no spec, given nothing needs an owner
-
-The critic returned **no `needs human context` verdict** in either round.
-The abstain is purely the protocol's: a spec is emitted only when every
-decision in it is safe to auto-commit, because emission means the
-autonomous builder will build it — and two load-bearing items were still
-wrong when the revision budget ran out. A human groom can close this in
-minutes.
+The first groom abstained purely on protocol (revision budget spent);
+both named corrections are applied for the next pass, which must honor
+them: (1) `related:` now carries 17 — the machine-readable 0017
+coupling exists; (2) the new gate registration MUST restore the
+2026-08-21 bar the prior run PASSED — "Floor competence: B rung-1
+median cross-recall ≥ 0.9 absolute" — as an absolute floor on the
+greppable control subset, alongside the relative non-inversion bar;
+dropping a passing bar is the exact silent-erosion failure the draft's
+own D4 guards against. Cosmetic corrections carried: Go import-alias
+population is 3 distinct packages / 17 files (versioncollector, v1,
+prom_testutil, client_testutil); `promcli.Collector` was an invented
+identifier. Note: 0017 is now Go-scoped (owner Option C); the alias
+work lives in change 0018 — subtype-map mining depends on 0017,
+alias-task mining depends on 0018.
 
 ### Measured findings worth keeping (expensive to re-derive)
 

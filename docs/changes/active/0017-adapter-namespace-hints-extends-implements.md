@@ -1,21 +1,21 @@
 ---
 id: 17
 slug: adapter-namespace-hints-extends-implements
-title: Attach namespace hints to extends/implements references in the language adapters
+title: Go subtype references carry namespace hints — fix the qualifier discard and KindImports Source
 status: proposed
 priority: high
 type: fix
 created: 2026-08-22
 updated: 2026-08-22
 depends_on: []
-related: [13, 10]
+related: [13, 10, 18]
 discovered_from: [16]
 adrs: []
 spec:
 plan:
 results:
 trivial: false
-auto_groomable: false
+auto_groomable: true
 branch:
 pr:
 blocked_by:
@@ -48,22 +48,34 @@ not the feature. Record in
 
 ## What changes
 
-- For each language adapter (Go, TS/JS, Python, PHP): where an
-  extends/implements/embeds reference is emitted, attach the same
-  namespace hint (`Source`/`dst_ns`) the adapter already attaches to
-  import and call references, derived from the import binding in scope.
-- Verify per language against the bench corpus members (nest for TS
-  `extends`/`implements`, symfony/drupal for PHP, prometheus/
-  client_golang for Go interface embedding, werkzeug/flask for Python
-  subclassing) — the hint must appear on real unresolved subtype edges
-  in each member's graph.db.
-- Single-repo behavior: hints on unresolved edges are metadata; goldens
-  must stay byte-identical (measured, not assumed).
+Owner ruling 2026-08-22 (Option C from the groom's abstain): **this
+change is the Go half only** — measured sound in both critic rounds and
+self-contained. The aliased-import resolution problem (PHP/Python/TS) is
+split out to change 0018, which carries the schema decision.
+
+- Go adapter: set `Source` on `KindImports` deps, and stop
+  `embeddedTypeName` discarding the package qualifier
+  (`case "qualified_type"`), so Go interface-embedding / subtype
+  references carry the namespace hint like calls and imports do.
+- **Acceptance bar = resolution gain, not hint coverage** (owner ruling):
+  references must move `dst_symbol_id: 0 → non-zero` over the measured
+  Go addressable set (client_golang has 0 hinted subtype edges today);
+  `dst_ns` movement without resolution movement counts for nothing.
+  Verify empirically against the built bench indexes
+  (client_golang/prometheus).
+- Single-repo goldens byte-identical (measured); note
+  `DumpNormalized` does not select `dst_ns`, so snapshot suites are
+  structurally blind to hint changes — the resolution-gain check is the
+  real tooth.
 
 ## Out of scope
 
-- Resolver/ladder changes — rung 1 already consumes hints; this change
-  only makes subtype edges carry them.
+- Resolver/ladder changes — rung 1 already consumes hints.
+- Aliased-import resolution (PHP/Python/TS) — change 0018 (carries the
+  rewrite-dst_name vs add-original-name-column decision).
+- The missing-EDGE parse gaps the groom found (Python `class X(mod.Y)`,
+  TS `extends ns.Foo` emit no subtype edge; PHP group `use` emits no
+  import dep) — recorded on change 0018's territory.
 - Workspace query surfaces (killed 0016; revival is the new gate's
   outcome).
 - Corpus growth (change 0010).
@@ -72,11 +84,14 @@ not the feature. Record in
 
 <!-- Appended by docket-implement-next's reconcile pass: dated entries of what changed. -->
 
-## Auto-groom blocked
+## Groom context (owner rulings 2026-08-22)
 
-**2026-08-22 — `docket-auto-groom` abstained after the adversarial
-critic found a structural defect in the central mechanism on re-check.
-The permitted revision round was spent, so no spec was emitted.**
+The first groom abstained on the alias mechanism (full record in git
+history). Owner rulings: **Option C** — Go half here, alias work split
+to change 0018; **acceptance bar = resolution gain** over the measured
+addressable set, never hint coverage alone. Corrections carried: nest's
+`NO_NS ∧ unresolved` figure is 17 (not 37); nest's addressable alias
+class is 0.
 
 ### What the groom established (keep this — it is measured, not assumed)
 
@@ -117,70 +132,3 @@ elsewhere**. Verified against the eight built member indexes under
   `dst_ns`, so the existing snapshot suites are structurally blind to a
   hint-only change.
 
-### The undecidable decision — why this needs you
-
-**A namespace hint alone cannot fix the aliased case, and the fix that
-would is a design call with real cost.**
-
-The resolver keys candidate lookup on the **name**, not just the
-namespace: `boundIDs` is `SELECT id, namespace FROM symbols WHERE
-name=? AND tier=?` followed by `nsMatch(ns, hint)`, and the name it is
-given is the edge's `dst_name` — which, for an aliased subtype, is the
-**alias**. For laravel's `use Illuminate\Database\Eloquent\Model as
-Eloquent; class X extends Eloquent`, there are zero symbols named
-`Eloquent` and one named `Model`. Attaching `dst_ns` makes the edge
-*look* fixed while `boundIDs` still returns nothing. The cross-repo path
-is the same: rung 1 (`internal/wsresolve/ladder.go:120`) gates on
-`lookupDefs(m, e.DstName, …)` — the alias again. So the whole
-alias branch of this change would ship **`dst_ns` movement with zero
-resolution movement**, which is precisely nothing for the `xsubtypes`
-recall the D7 pivot is chasing.
-
-Making it real means carrying the **original symbol name** to the
-resolve call, and that is the decision the groom could not safely
-default:
-
-- **Option A — rewrite the edge's `dst_name` to the original name.**
-  Resolution works everywhere, including rung 1, with no resolver
-  change. But the edge then no longer says what the source file
-  literally writes; `dst_name` is part of the edge's identity, so this
-  is an add+delete in any before/after delta gate, and every consumer
-  that displays or matches `dst_name` sees the renamed value.
-- **Option B — keep `dst_name` as written and add an "original name"
-  alongside it** (a new column plus resolver and `wsresolve` changes to
-  try it). Faithful to the source, but it widens the change from an
-  adapter fix into a schema + resolver + ladder change, and the stub
-  explicitly fences resolver/ladder work out of scope.
-- **Option C — ship the Go half only** (which is sound and self-
-  contained) and split the alias work into its own change under whichever
-  of A/B you pick.
-
-Choosing among these is a schema/altitude call with downstream reach
-into the killed-0016 revival path — owner territory, not a conservative
-default.
-
-### What a human should supply
-
-1. A ruling between Options A, B and C above (or a fourth).
-2. If A or B: whether the resulting `dst_name`/schema change is
-   acceptable inside change 0017's stated scope, or wants its own change
-   and its own ADR.
-3. Confirmation that the acceptance bar should require **resolution
-   gain** (`dst_symbol_id: 0 → non-zero` over the computed addressable
-   set), not merely `dst_ns` coverage — the groom's draft bar measured
-   only the latter and would have certified an inert change.
-
-### Recommendation
-
-**Do not kill this.** The Go half is real, measured, unambiguous, and
-already blocks change 0010's subtype-map task shape. The strongest
-recommendation this groom may make: **split it** — take Option C, land
-the Go qualifier fix as change 0017 (self-contained, no schema
-question), and file the alias-resolution work as a separate change
-carrying the A-vs-B decision. That unblocks 0010 sooner and keeps the
-schema argument out of a fix that does not need it.
-
-Two smaller corrections for whoever picks this up: any future draft's
-`NO_NS ∧ unresolved` figure for nest is **17**, not 37; and nest's
-addressable alias class is **0**, so TS moves nothing on the current
-corpus regardless of the option chosen.
