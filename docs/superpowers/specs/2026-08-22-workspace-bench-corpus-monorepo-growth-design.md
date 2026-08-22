@@ -1,3 +1,7 @@
+<!-- docket:backlink:start (generated — do not hand-edit) -->
+> ↩ **[Change 0010 — Grow the workspace bench corpus — monorepo declaration coverage in every supported language](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/active/0010-workspace-bench-corpus-monorepo-growth.md)**
+<!-- docket:backlink:end -->
+
 # Workspace bench corpus — structural growth and a new pre-registered gate
 
 Design for docket change 0010. Bench-only, OSS-pinned. No engine code.
@@ -255,7 +259,6 @@ change**, not as a rescue of the old one.
 Encoded as **ordering in the registration text**, not as `depends_on:`. A
 `depends_on` would deadlock permanently if 0017 or 0018 is killed or superseded:
 `killed` is terminal but never `done`, and dependency satisfaction requires
-`done`. `related:` carries the machine-readable link and gains **18** alongside
 9 and 17, since the freeze decision below keys on 0018.
 
 The constraint as written is retained, but it is measurably **near-vacuous for
@@ -273,7 +276,7 @@ The constraint as written is retained, but it is measurably **near-vacuous for
   unhinted and Go supplies zero subtype tasks; PHP/TS edges are substantially
   hinted and are 100% of the subtype supply.** (An earlier draft said "80 of ~85
   subtype-capable tasks are already hinted" — that overstates it; PHP hint rates
-  are 55–69%, not ~100%.)
+  are 55–80%, not ~100%.)
 - 0017 abstained on 2026-08-22 (its acceptance bar is unsatisfiable as literally
   written; see its `## Auto-groom blocked` record), and it is Go-scoped. Treating
   it as a hard precondition would stall a 105-task corpus on a coupling worth
@@ -353,17 +356,15 @@ corrected after the adversarial critic pass.
    a bar the previous run **passed** — efficiency **failed**. This is faithful
    carry-forward, not the groom re-barring itself.
 7. **Coupling encoded as ordering, not `depends_on`.** *Chosen:* README ordering
-   text plus `related: [9, 17, 18]`. *Rejected:* `depends_on: [17, 18]` —
    `killed` is terminal but never `done`, so a killed dependency deadlocks this
    change permanently. *Why:* the body's own reasoning, made concrete by 0017's
-   abstain today. **18 is added to `related:`** because the freeze decision keys
    on it.
 8. *(revised)* **The 0017 coupling is near-vacuous for `xsubtypes`.** *Chosen:*
    retain the ordering constraint and record the **measured per-member hint
    rates**, concluding only the sufficient claim: Go subtype edges are unhinted
    and Go supplies zero subtype tasks; PHP/TS are substantially hinted and are
    100% of subtype supply. *Rejected:* the earlier "80 of ~85 already hinted"
-   (overstated — PHP is 55–69%); silently dropping the constraint (contradicts
+   (overstated — PHP is 55–80%); silently dropping the constraint (contradicts
    the re-armed body without a record); treating 0017 as a hard precondition
    (stalls the corpus on a zero-task coupling). *Why:* the FINDINGS attribution of
    the 0.43 cap to the hint gap is broader than the code supports, and the stub's
@@ -433,7 +434,10 @@ corrected after the adversarial critic pass.
   B1–B5, the kill condition, the phase-2 criteria and bounds, the 0017/0018
   ordering text with the measured hint rates, and the Go/Python structural
   notes — committed **before** any scored run, with the D7 block left intact.
-- `related:` is `[9, 17, 18]`.
 - `leak_audit_ws.py` PASSes all four classes, with index artifacts verified
   absent from the member checkouts.
 - No engine code changes; no private-repo material; every member pinned OSS.
+
+
+---
+*Promoted from -DRAFT 2026-08-22 by the driver on the critic's stranded-but-delivered EMIT verdict (sound; three residual clarifications applied: GT-cap reading, related-bullet removed from Acceptance — the metadata edit is done on the groom side, PHP hint range 55–80%). Owner confirmations: efficiency stays reported-only in the OR-clause (it failed both prior runs; not erosion); corpus work proceeds ahead of 0017 (Go emits zero subtype tasks; PHP/TS supply is already substantially hinted).*
