@@ -19,8 +19,8 @@ auto_groomable: true
 branch: feat/adapter-namespace-hints-extends-implements
 pr:
 blocked_by:
-claimed_at: 2026-08-22T20:06:02Z
-reconciled: false
+claimed_at: 2026-08-22T20:07:11Z
+reconciled: true
 ---
 
 ## Artifacts
@@ -103,6 +103,60 @@ split out to change 0018, which carries the schema decision.
 ## Reconcile log
 
 <!-- Appended by docket-implement-next's reconcile pass: dated entries of what changed. -->
+
+### 2026-08-22 — reconcile (docket-implement-next)
+
+Re-read the change body and the spec
+(`docs/superpowers/specs/2026-08-22-adapter-namespace-hints-extends-implements-design.md`)
+against `origin/main` @ `2c8b9c3`, the `related` changes (13 done, 10 build-ready,
+18 needs-brainstorm), the ADR ledger, and the learnings index.
+
+**Verdict: no scope change. The spec is accurate as written and stays binding.**
+
+Verified against current code — every line reference in the spec still resolves
+exactly, so nothing drifted since the groom measured it:
+
+- `internal/adapter/golang/golang.go:59` — `addDep := func(n, kind, target)`, no
+  source channel (edit 1's precondition holds).
+- `:108` `case "import_spec"` — emits `addDep(n, graph.KindImports, ipath)` with
+  no `Source`; populates `aliases[lastSegment] = ipath`.
+- `:125` `case "field_declaration"` — `addDep(n, graph.KindExtends,
+  embeddedTypeName(t, src))`, the single struct-embedding emit site.
+- `:207` `embeddedTypeName` — `case "qualified_type"` still descends into
+  `name`, discarding the package operand.
+- `internal/graph/store.go:373` — still literally
+  `hint := bind[d.Target] // extends/implements/import targets bind too`; the
+  calls path at 352–354 still has the `c.NsHint`-then-`bind` shape edit 3
+  mirrors. `bind` is still keyed on the import dep's `Target` (line 343), so it
+  remains structurally unable to hint a Go subtype edge.
+
+Cross-change check:
+
+- **13** (`done`) touched workspace resolve stamping, not the adapter or the
+  insert-time hint sites — no overlap, nothing to drop.
+- **10** (build-ready, not built this run) is corpus growth; it does not move the
+  23-edge addressable denominator this change's bar is stated over.
+- **18** (needs-brainstorm) still owns the PHP/Python/TS aliased-import work and
+  the missing-EDGE parse gaps. Both stay out of scope here.
+- No ADR bears on hint selection or adapter dep emission.
+
+Constraints re-affirmed as binding for the build (unchanged, restated because
+they are the failure modes):
+
+- Acceptance is the **disambiguation** bar over the 23 addressable
+  qualified-embed edges — `ambiguous → unambiguous` with a verified-correct
+  target. `unresolved → resolved` is never promised; `dst_ns` movement alone
+  counts for nothing; `storage.Appender` is PARTIAL and is not a win.
+- The repo has **no committed graph goldens** — re-verified this pass
+  (`git ls-files | grep -iE 'golden|snapshot|\.snap'` is empty, and the
+  `DumpNormalized` consumers are rebuild-equivalence checks that move
+  identically on both sides). Verification item 9's every-diff-line-accounted-for
+  rule is the real check; items 6a/6b carry the in-suite no-regression half.
+- Suite is `go test -tags nollama -count=1 ./...` (the pinned
+  `FINALIZE_TEST_COMMAND`), green on `origin/main`.
+
+No follow-up work surfaced that would warrant a stub; `auto_capture` is disabled
+in this repo in any case.
 
 ## Groom context (owner rulings 2026-08-22)
 
