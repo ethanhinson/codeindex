@@ -20,8 +20,14 @@ import re
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-TASKS = {t["id"]: t for t in
-         json.loads((HERE / "tasks" / "tasks_ws.json").read_text())["tasks"]}
+_ap0 = argparse.ArgumentParser(add_help=False)
+_ap0.add_argument("--tasks", default="tasks/tasks_ws.json")
+TASKS_PATH = HERE / _ap0.parse_known_args()[0].tasks
+BUNDLE = json.loads(TASKS_PATH.read_text())
+TASKS = {t["id"]: t for t in BUNDLE["tasks"]}
+# The structural/control partition is READ from the task-file header, never
+# hardcoded here: a hardcoded map rots the moment a shape is added or excluded.
+SUBSETS = BUNDLE["header"].get("subsets") or {}
 WS_ROOT = (HERE.parent.parent
            / json.loads((HERE / "corpus.json").read_text())["workspace_root"]
            ).resolve()
@@ -92,9 +98,58 @@ def median(xs):
     return xs[n // 2] if n % 2 else (xs[n // 2 - 1] + xs[n // 2]) / 2
 
 
+def mean(xs):
+    xs = [x for x in xs if x is not None]
+    return round(sum(xs) / len(xs), 4) if xs else None
+
+
+def subset_report(arm, gs):
+    """Per-arm subset figures, driven entirely by the header's kind -> subset
+    map: control median (B2/B3), scored-structural mean (B1) and median, and
+    per-shape means. Shapes the header marks excluded are kept out of the
+    scored structural subset and reported separately."""
+    if not SUBSETS:
+        print(f"arm {arm}: subsets= (task-file header carries no 'subsets' "
+              f"map; re-run build_tasks_ws.py to emit it)")
+        return
+    kind_subset = SUBSETS["map"]
+    excluded = set(SUBSETS.get("excluded_from_scored") or {})
+    control = [g for g in gs if kind_subset.get(g["kind"]) == "control"]
+    structural = [g for g in gs
+                  if kind_subset.get(g["kind"]) == "structural"
+                  and g["kind"] not in excluded]
+    unmapped = sorted({g["kind"] for g in gs if g["kind"] not in kind_subset})
+    cx = [g["cross_recall"] for g in control]
+    sx = [g["cross_recall"] for g in structural]
+    print(f"arm {arm}: control n={len(control)} "
+          f"med_cross_recall={median(cx)} [B2/B3]")
+    print(f"arm {arm}: structural(scored) n={len(structural)} "
+          f"mean_cross_recall={mean(sx)} [B1] "
+          f"med_cross_recall={median(sx)}")
+    for kind in sorted({g["kind"] for g in gs}):
+        ks = [g for g in gs if g["kind"] == kind]
+        tag = kind_subset.get(kind, "UNMAPPED")
+        if kind in excluded:
+            tag += ",excluded-from-scored"
+        print(f"arm {arm}:   shape {kind} ({tag}) n={len(ks)} "
+              f"mean_cross_recall={mean([g['cross_recall'] for g in ks])} "
+              f"med_cross_recall={median([g['cross_recall'] for g in ks])}")
+    for kind in sorted(excluded):
+        ks = [g for g in gs if g["kind"] == kind]
+        print(f"arm {arm}: excluded {kind} n={len(ks)} "
+              f"mean_cross_recall={mean([g['cross_recall'] for g in ks])} "
+              f"med_cross_recall={median([g['cross_recall'] for g in ks])} "
+              f"(reported, not scored)")
+    if unmapped:
+        print(f"arm {arm}: WARNING kinds absent from header subset map: "
+              f"{unmapped}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", default="results/runs.jsonl")
+    ap.add_argument("--tasks", default="tasks/tasks_ws.json",
+                    help="task file whose header carries the subset map")
     args = ap.parse_args()
 
     runs = [json.loads(l) for l in
@@ -116,6 +171,9 @@ def main():
               f"med_precision={median([g['precision'] for g in gs])} "
               f"med_tokens={median([g['processed_tokens'] for g in gs])} "
               f"med_shell_calls={median([g['shell_calls'] for g in gs])}")
+        subset_report(arm, gs)
+    print(f"subset map read from {TASKS_PATH.name} header: "
+          f"{SUBSETS.get('map') or '(absent)'}")
     print(f"wrote {out} ({len(grades)} grades)")
 
 

@@ -69,6 +69,27 @@ PER_LIB_PRIMARY_CAP = 12
 MIN_PER_LANG = 4
 MAX_GT_FILES = 40  # bigger answers measure listing stamina, not finding
 
+# Registered kind -> subset partition. Emitted into the task-file header; the
+# grader READS it from there and never hardcodes it, so adding or excluding a
+# shape cannot silently rot the reported subsets.
+SUBSET_OF_KIND = {
+    "xcallers": "control",     # greppable: bare name is the answer key
+    "ximpact": "control",
+    "xnew": "control",
+    "xsubtypes": "structural",
+    "xcollide": "structural",
+    "xalias": "structural",
+    "xchain": "structural",
+}
+# Shapes mined and recorded but excluded from the SCORED structural subset.
+# Declared at freeze (bar B5 freeze-discipline), not after mining.
+EXCLUDED_AT_FREEZE = {
+    "xalias": "change 0018 (aliased-import resolution) has not landed, so the "
+              "index cannot answer alias tasks; excluded from the scored "
+              "structural subset at freeze per bar B5, not after mining. "
+              "Mined, counted and reported separately.",
+}
+
 
 def load_members():
     cfg = json.loads(CORPUS.read_text())
@@ -732,6 +753,8 @@ def mine(seed, min_tasks):
         quota[t["defining_member"]] = quota.get(t["defining_member"], 0) + 1
         lang_quota[t["lang"]] = lang_quota.get(t["lang"], 0) + 1
 
+    subsets = build_subsets(tasks)
+
     header = {
         "generator": "build_tasks_ws.py",
         "seed": seed,
@@ -749,12 +772,88 @@ def mine(seed, min_tasks):
                        "gap. The php, py and go clusters are two members deep "
                        "(lib + consumer), so no A->B->C chain exists in them; "
                        "no chain was synthesised and no member was added.",
+        "subsets": subsets,
         "n_tasks": len(tasks),
     }
     if len(tasks) < min_tasks:
         print(f"WARNING: only {len(tasks)} tasks mined (< {min_tasks})",
               file=sys.stderr)
     return {"header": header, "tasks": tasks}, ws_root
+
+
+def build_subsets(tasks):
+    """The structural/control partition artifact, emitted into the header.
+
+    Carries the registered kind -> subset map, per-shape n, per-shape
+    per-language n, the shapes excluded from the SCORED structural subset at
+    freeze, and the exclusion arithmetic against the registered floors. The
+    grader reads all of this; it hardcodes none of it.
+    """
+    per_shape = {}
+    per_shape_lang = {}
+    for t in tasks:
+        k = t["kind"]
+        per_shape[k] = per_shape.get(k, 0) + 1
+        per_shape_lang.setdefault(k, {})
+        per_shape_lang[k][t["lang"]] = per_shape_lang[k].get(t["lang"], 0) + 1
+    per_shape = dict(sorted(per_shape.items()))
+    per_shape_lang = {k: dict(sorted(v.items()))
+                      for k, v in sorted(per_shape_lang.items())}
+
+    kinds = sorted(set(SUBSET_OF_KIND) | set(per_shape))
+    unmapped = [k for k in kinds if k not in SUBSET_OF_KIND]
+    if unmapped:  # a new shape with no registered subset must not be silent
+        raise SystemExit(f"unmapped kinds in subset partition: {unmapped}")
+
+    def members(subset, scored_only=False):
+        return [k for k in kinds
+                if SUBSET_OF_KIND[k] == subset
+                and not (scored_only and k in EXCLUDED_AT_FREEZE)]
+
+    def total(ks):
+        return sum(per_shape.get(k, 0) for k in ks)
+
+    scored_structural = members("structural", scored_only=True)
+    excluded = [k for k in members("structural") if k in EXCLUDED_AT_FREEZE]
+    control = members("control")
+
+    def terms(ks):
+        return " + ".join(f"{k} {per_shape.get(k, 0)}" for k in ks) or "0"
+
+    n_struct = total(scored_structural)
+    n_control = total(control)
+    return {
+        "map": {k: SUBSET_OF_KIND[k] for k in kinds},
+        "control_kinds": control,
+        "structural_kinds": members("structural"),
+        "scored_structural_kinds": scored_structural,
+        "excluded_from_scored": {
+            k: {"n": per_shape.get(k, 0),
+                "per_lang": per_shape_lang.get(k, {}),
+                "reason": EXCLUDED_AT_FREEZE[k]}
+            for k in excluded
+        },
+        "per_shape_n": per_shape,
+        "per_shape_lang_n": per_shape_lang,
+        "n_scored_structural": n_struct,
+        "n_control": n_control,
+        "registered_floors": {"structural": 105, "control": 40, "total": 145},
+        "arithmetic": (
+            f"structural excluding {', '.join(excluded) or 'nothing'} = "
+            f"{terms(scored_structural)} = {n_struct} (>= 105); "
+            f"control = {terms(control)} = {n_control} (>= 40); "
+            f"total = {len(tasks)} (>= 145)"
+        ),
+        "meets_floors": {
+            "structural": n_struct >= 105,
+            "control": n_control >= 40,
+            "total": len(tasks) >= 145,
+        },
+        "note": "control shapes are greppable (the bare name is the answer "
+                "key); structural shapes are not. grade_ws.py reads this map "
+                "from the header so a shape added or excluded here cannot "
+                "leave the reported subsets stale.",
+    }
 
 
 def selftest(bundle, ws_root):
