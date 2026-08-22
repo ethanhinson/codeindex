@@ -84,6 +84,45 @@ all tested models closes 0016 per the original kill condition, with this
 entry as the record.
 
 
+## 2026-08-22: adoption-floor sweep verdict — FAIL at haiku; subtypes signal isolated
+
+**Verdict: registered bars FAIL at claude-haiku-4-5.** Median recall lift
++0.0 (bar: +10pp); efficiency −5.8% tokens / −12.5% calls (bar: ≥40%
+savings); floor competence passed (B rung-1 med 1.0 ≥ 0.9). Paired: B wins
+10 / loses 12 / ties 43. Per the registration, this closes change 0016 and
+PR #14 (unmerged, revivable on new evidence).
+
+Leak-audit note (discipline record): the first two haiku arm-A runs were
+QUARANTINED — class-2 contamination. Cause: `.codeindex/` index artifacts
+(built for arm B) were visible inside the member checkouts; agents noticed
+them (path-exclusion flags; two agents `ls`'d a renamed dir). No agent read
+index contents or executed the binary, but observation itself fails the
+class. Two blinding attempts failed (rename-in-place is visible; a
+depth-limited find missed the three nest package roots). Run 4 with all 16
+index dirs physically stashed outside `bench/repos/` audited PASS
+(attempts=0) and is the scored baseline. The frontier arm-A run (attempts=0)
+also had artifacts on disk — recorded as a residual on that verdict; its
+agents never referenced them, and artifacts could only have helped the
+control, which tied anyway. Lesson filed: renaming isn't hiding; verify
+absence, don't assume it.
+
+**The per-kind breakdown is the finding that matters** (haiku, mean
+cross-recall, A vs B): ximpact 0.95/0.91; xcallers 0.73/0.68; xnew
+0.79/0.80 — all greppable-by-construction, ties. **xsubtypes 0.29/0.43
+(+14pp, n=7)** — the only structural shape in the corpus, the m5-shaped
+lift appears exactly there, AND B's 0.43 is capped by the recorded adapter
+gap: extends/implements references carry no namespace hint (Go `addDep`
+never sets Source; other languages unverified), so rung 1 cannot fire for
+subtype edges and the index is missing many of the links this task shape
+needs.
+
+**Owner decision 2026-08-22 (pivot):** close 0016/PR #14 per registration;
+fix the adapter hint gap as its own change; grow the corpus with
+structural, grep-hostile cross-repo tasks (impact chains, subtype maps,
+name collisions — docket change 0010) mined with auditable GT; register a
+NEW gate on that corpus. Revival of the query surfaces is that gate's
+outcome, not a rescue of this one.
+
 ## 2026-08-22: change 0017 — Go subtype namespace hints, rebuild-diff evidence and the acceptance measurement
 
 Plan tasks 9 (rebuild-diff accounting) and 10 (the acceptance bar), measured
