@@ -10,7 +10,7 @@ updated: 2026-08-22
 depends_on: []
 related: [13, 10, 18]
 discovered_from: [16]
-adrs: []
+adrs: [14]
 spec: docs/superpowers/specs/2026-08-22-adapter-namespace-hints-extends-implements-design.md
 plan: docs/superpowers/plans/2026-08-22-adapter-namespace-hints-extends-implements-plan.md
 results:
@@ -19,7 +19,7 @@ auto_groomable: true
 branch: feat/adapter-namespace-hints-extends-implements
 pr:
 blocked_by:
-claimed_at: 2026-08-22T20:09:56Z
+claimed_at: 2026-08-22T23:02:43Z
 reconciled: true
 ---
 
@@ -30,6 +30,7 @@ reconciled: true
 |---|---|
 | Spec | [2026-08-22-adapter-namespace-hints-extends-implements-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-22-adapter-namespace-hints-extends-implements-design.md) |
 | Plan | [2026-08-22-adapter-namespace-hints-extends-implements-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/adapter-namespace-hints-extends-implements/docs/superpowers/plans/2026-08-22-adapter-namespace-hints-extends-implements-plan.md) |
+| ADRs | [ADR-0014](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0014-go-import-self-bindings-suppressed.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
