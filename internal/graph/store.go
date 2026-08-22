@@ -337,6 +337,8 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 	// import deps. Calls and dep targets bound by an import resolve within
 	// the import's mapped namespace (Stage 2); the hint is persisted on the
 	// edge (dst_ns) so re-resolution reproduces insert-time results exactly.
+	// This is the file-level fallback for both loops below — an edge-local
+	// hint on the call or dep site is more specific and outranks it.
 	bind := map[string]string{}
 	for _, d := range pf.Deps {
 		if d.Kind == KindImports && d.Source != "" && d.Target != "" {
@@ -349,9 +351,9 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 		if c.EnclosingIdx < 0 || c.EnclosingIdx >= len(ids) {
 			continue // top-level calls have no owning symbol in the skeleton
 		}
-		hint := c.NsHint // Go alias hint wins; else the file's import binding
+		hint := c.NsHint // edge-local hint (Go alias) wins: it is more specific
 		if hint == "" {
-			hint = bind[c.Callee]
+			hint = bind[c.Callee] // file-level import binding, as before
 		}
 		dstID, conf, err := resolve(tx, c.Callee, c.Qualifier, ns, hint)
 		if err != nil {
@@ -370,7 +372,13 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 		if d.EnclosingIdx >= 0 && d.EnclosingIdx < len(ids) {
 			srcID = ids[d.EnclosingIdx]
 		}
-		hint := bind[d.Target] // extends/implements/import targets bind too
+		// Same precedence as the call loop above, deliberately: keep the two
+		// sites in step. For an import dep this is by construction the same
+		// expression that populated bind[d.Target].
+		hint := normalizeHint(d.Source, d.Target, pf.Path) // edge-local source wins
+		if hint == "" {
+			hint = bind[d.Target] // file-level import binding, as before
+		}
 		var dstID int64
 		conf := ConfUnresolved
 		if !strings.Contains(d.Target, "/") {
