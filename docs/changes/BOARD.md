@@ -1,8 +1,8 @@
 # Backlog
 
-**16 changes** — 🟡 4 proposed · 🔵 1 implemented · ✅ 11 done
+**17 changes** — 🟡 5 proposed · ✅ 11 done · 🗑️ 1 killed
 
-## 🟡 Proposed (4)
+## 🟡 Proposed (5)
 
 | # | Title | Priority | Type | Readiness |
 |---|-------|----------|------|-----------|
@@ -10,12 +10,7 @@
 | [0007](active/0007-session-stable-query-cache.md) | Session-stable query cache keyed by index version | `medium` | `perf` | needs-brainstorm |
 | [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-brainstorm |
 | [0010](active/0010-workspace-bench-corpus-monorepo-growth.md) | Grow the workspace bench corpus — monorepo declaration coverage in every supported language | `medium` | `chore` | needs-brainstorm |
-
-## 🔵 Implemented — awaiting merge (1)
-
-| # | Title | Priority | Type | PR | Readiness |
-|---|-------|----------|------|----|-----------|
-| [0016](active/0016-workspace-query-surfaces-gated.md) | Workspace query surfaces — union-graph verbs, CLI/MCP wiring, workspace-status; merge gated on the D7 evidence run | `high` | `feat` | [#14](https://github.com/ethanhinson/codeindex/pull/14) |  |
+| [0017](active/0017-adapter-namespace-hints-extends-implements.md) | Attach namespace hints to extends/implements references in the language adapters | `high` | `fix` | needs-brainstorm |
 
 ```mermaid
 graph TD
@@ -23,15 +18,14 @@ graph TD
   0007
   0008
   0010
-  0015 --> 0016
-  0015:::done
-  classDef done fill:#d3f9d8;
+  0017
 ```
 
-<details><summary>✅ Archive — done (11)</summary>
+<details><summary>✅🗑️ Archive — done + killed (12)</summary>
 
 | # | Title | Merged |
 |---|-------|--------|
+| [0016](archive/2026-08-22-0016-workspace-query-surfaces-gated.md) | Workspace query surfaces — union-graph verbs, CLI/MCP wiring, workspace-status; merge gated on the D7 evidence run | 2026-08-22 |
 | [0015](archive/2026-08-20-0015-wsresolve-stamp-pruning.md) | Stamp pruning for unavailable members — close the stale-edges-after-unavailability hole | 2026-08-20 |
 | [0014](archive/2026-08-20-0014-workspace-freshen-internals.md) | Workspace freshen internals — per-member freshen + stamp-gated re-resolution | 2026-08-20 |
 | [0013](archive/2026-08-20-0013-workspace-resolution-ladder.md) | Cross-repo resolution ladder — import-mediated exact, bare-name inferred, ambiguity, suppression | 2026-08-20 |
