@@ -105,7 +105,7 @@ characterisation was wrong.
 - **`refresh.Discovery`: PASS, and the pinned count of 4 is confirmed.**
   Exactly 4 `refresh.Discovery` embeds were ambiguous before (rows 1–4), each
   with **22 candidates**, each now resolving to the single correct
-  `discovery/refresh/refresh.go:37`. (17 further `refresh.Discovery` embeds
+  `discovery/refresh/refresh.go:37`. (21 further `refresh.Discovery` embeds
   exist; they were *unambiguous-but-wrong* before, so they are not in this
   table — see class D1 below.)
 - **`storage.Appender`: PARTIAL, never a win.** Recorded, excluded from the 14.
@@ -207,20 +207,30 @@ correct hint and remain unresolved, because their targets are third-party or
 stdlib names that are simply absent from the index. Hints narrow candidates;
 they never create symbols.
 
-### The named class: Go single-segment import edges — measured size **0** on prometheus
+### The named class: Go single-segment import edges — measured 0, then CLOSED by construction
 
-The plan warned that single-segment Go imports would move: `import "log"` now
+> **SUPERSEDED — corrected after the measurement.** This section as originally
+> written described a live class that merely happened to be empty on
+> prometheus. Two review-driven fixes landed after the measurement was written
+> (`8e9ee63`, `9d84218`) and falsified it. The class is no longer live at all.
+> The corrected account is below; the original reasoning is retained because it
+> is what the fix was a response to.
+
+**What the original measurement said, and what is still true of it.** The plan
+warned that single-segment Go imports would move: `import "log"` now
 carries `Source == "log"`, `store.go` calls `resolve` on it (no `/` in the
 target), and `nsMatch` suffix-matches a candidate namespace like
 `internal/log` against the hint `log` — so an import edge that used to be
 decided by the `srcNS` rung gets decided by the `boundIDs` rung instead.
-Task 6b pins exactly that movement in-suite.
 
-**On the `prometheus` member this class has size 0.** Enumerated, not assumed:
+**On the `prometheus` member this class had size 0 as measured.** Enumerated,
+not assumed:
 
-- 5108 Go `imports` edges exist; **all 5108** gained a non-empty `dst_ns`
-  (before: 0 — Go import deps carried no `Source`; the 2226 pre-existing
-  hinted import edges are all TypeScript, from `web/ui`).
+- 5108 Go `imports` edges exist. **As measured, all 5108 gained a non-empty
+  `dst_ns`** (before: 0 — Go import deps carried no `Source`). *This no longer
+  holds:* after the fixes below the count is **0 of 5108** — Go import edges
+  carry `dst_ns = ""` again. The 2226 pre-existing hinted import edges are all
+  TypeScript, from `web/ui`, and are unaffected by either state.
 - 1991 of the 5108 are single-segment (no `/` in the target) and are therefore
   actually passed to `resolve`. Their confidence split is **identical** before
   and after: 64 `unambiguous`, 93 `ambiguous`, 1834 `unresolved`.
@@ -243,12 +253,39 @@ instructive:
 So the 4 `import "log"` edges stay `ambiguous` on `tsdb/agent/db.go`, exactly
 as before.
 
-**This is a property of prometheus's directory layout, not evidence the class
-is closed.** Prometheus has no `internal/log`-shaped package. Any repo that
-does — and that is a common Go layout — will show the movement task 6b pins.
-The honest statement of size is: *the class is real and reproducible, its
-measured size on the one member measured here is 0 edges, and it remains
-unmeasured on every other member.*
+At the time of measurement the honest statement of size was: *the class is real
+and reproducible, its measured size on the one member measured here is 0 edges,
+and it remains unmeasured on every other member* — a property of prometheus's
+directory layout (it has no `internal/log`-shaped package), not evidence the
+class was closed. Any repo with such a package would have shown the movement.
+
+**That caveat no longer applies: the class was closed structurally.** A
+review-driven fix (`9d84218`) applies the self-binding skip **at the dep site
+as well as** the original site — one predicate, two sites. A Go import dep
+therefore no longer carries a `Source` hint at all, so `resolve` is never
+handed one and the `boundIDs` rung can never take over from `srcNS` for a Go
+import edge. The class is removed **by construction**, not by an argument about
+one repo's layout: it cannot fire on *any* repo, `internal/log`-shaped or not.
+The measured 0 on prometheus is consistent with this, but it is no longer the
+evidence — the evidence is the skip.
+
+The honest, corrected statement is therefore: *the class was real; it was
+measured at 0 edges on prometheus; it was then closed structurally by a
+review-driven fix, and is now guarded in-suite.*
+
+The guard is `TestGoImportEdgeKeepsItsPreChangeResolution` in
+`internal/graph/importcollision_test.go` — a **no-regression** guard asserting
+a Go import edge keeps its pre-change resolution. Plan task 6b asked for
+exactly that guard and, before the fix, could not deliver it: with the class
+live, the pre-change resolution was not something the code preserved. An
+earlier claim in this document that "task 6b pins exactly that movement
+in-suite" was true of the pre-fix test and is **false now** — there is no
+movement left to pin, and the test pins its absence instead.
+
+Note that the import delta was invisible to `DumpNormalized`, which does not
+select `dst_ns`; that is why `imports` reads **0** changed in the task 9 table
+both before and after these fixes, and why that table is unaffected by this
+correction.
 
 ### `dst_ns` movement alone — counted as nothing, as required
 

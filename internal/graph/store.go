@@ -1129,6 +1129,15 @@ func resolve(q queryer, name, qualifier, srcNS, nsHint string) (int64, Confidenc
 // stays ambiguous. Pinned by
 // TestKNOWNLIMITATIONHintedEmbedStaysAmbiguousAmongInPackageSameNameSymbols.
 //
+// The gap has a second face: a CORRECT hint can move an edge off the `srcNS`
+// rung and INTO this limitation, converting an `unambiguous`-but-wrong answer
+// into an `ambiguous`-but-right-package one. That is a confidence DOWNGRADE, so
+// a future confidence regression may be this documented gap rather than a new
+// bug. The recorded instance, alongside `storage.Appender`, is the
+// `storage.Querier` embed in prometheus's `promql/engine_test.go`
+// `hintRecordingQuerier`: before, `unambiguous` at a same-file method; after,
+// `ambiguous` among the five `Querier` symbols in package `storage`.
+//
 // PREREQUISITE: closing this requires in-package disambiguation — a real
 // discriminator (for an embed, that the syntactic position selects a type)
 // plumbed to the resolution site — landing FIRST. Doing it without one, by
