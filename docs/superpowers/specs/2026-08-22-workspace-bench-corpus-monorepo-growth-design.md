@@ -75,6 +75,21 @@ Two coupled edits, and **both are required**:
   "GT size is capped at 40 files." The **80** figure holds only *with* the cap
   re-applied.
 
+  **Reconcile 2026-08-22 — cap semantics disambiguated and re-measured.** The
+  cap must be applied to the **emitted subtype GT** (`len(gt) > MAX_GT_FILES`),
+  *not* by reusing the primary loop's candidate-level predicate
+  (`c["cross_files"] > MAX_GT_FILES`). The two are not equivalent and the
+  difference is large: re-verified on the unchanged 10 members,
+  candidate-level filtering yields **68** (php 45 / ts 23) and would miss the
+  registered floor of 60 by a thin margin, while emitted-GT filtering yields
+  exactly **80** (php 56 / ts 24; symfony 56, nest-common 24) — reproducing
+  this spec's headline number and its `82 emitted − 2 over-cap (max 164)`
+  arithmetic exactly. Emitted-GT is also what the registered corpus rule
+  ("GT size is capped at 40 files") actually states, since the cap exists to
+  bound the *answer* an agent must list. `xnew` under the retained `picked`
+  gate re-measures at **10** and the control subset at **58**, both unchanged
+  as predicted.
+
 ### New shapes 2–4
 
 - **`xcollide`** — same bare name defined in ≥2 members; grep returns the union,
@@ -277,10 +292,17 @@ The constraint as written is retained, but it is measurably **near-vacuous for
   hinted and are 100% of the subtype supply.** (An earlier draft said "80 of ~85
   subtype-capable tasks are already hinted" — that overstates it; PHP hint rates
   are 55–80%, not ~100%.)
-- 0017 abstained on 2026-08-22 (its acceptance bar is unsatisfiable as literally
-  written; see its `## Auto-groom blocked` record), and it is Go-scoped. Treating
-  it as a hard precondition would stall a 105-task corpus on a coupling worth
-  zero emitted tasks.
+- ~~0017 abstained on 2026-08-22 (its acceptance bar is unsatisfiable as
+  literally written; see its `## Auto-groom blocked` record), and it is
+  Go-scoped.~~ **Superseded at reconcile (2026-08-22): 0017 reached `done`**
+  (archived `2026-08-22-0017-adapter-namespace-hints-extends-implements`, merge
+  `ecac858`). The ordering constraint is therefore **satisfied, not bypassed** —
+  a strictly better position than the spec was written against. The conclusion
+  is unchanged and the reasoning for keeping this an *ordering* constraint
+  rather than a `depends_on` still stands (it would have deadlocked had 0017
+  been killed). Because 0017 is Go-scoped and Go supplies **zero** subtype
+  tasks, its landing does not change any count in this spec; the registration
+  text records it as landed rather than as a bypassed coupling.
 
 `xalias` is the shape with a real dependency: mining it is plain-text work
 needing nothing from the engine, but the index's ability to *answer* alias tasks
@@ -288,6 +310,40 @@ depends on 0018, which has no spec. Per B5 this resolves **at freeze, not after*
 if 0018 has not landed when the corpus is frozen, `xalias` is declared
 **excluded at freeze** with its `n` recorded, and the exclusion-branch arithmetic
 above governs.
+
+**Reconcile determination (2026-08-22): 0018 has NOT landed** — it is `proposed`
+with **no `spec:`** (needs-brainstorm), so it cannot land before this corpus is
+frozen. Per B5 and assumption 9 the branch is therefore **taken now, not left
+open**: `xalias` is **mined, its `n` recorded, and declared excluded from the
+scored structural subset at freeze**. Deciding this at reconcile rather than
+after mining is the point of the rule — it removes any post-hoc discretion over
+the one shape whose inclusion could otherwise be chosen to suit the result. The
+exclusion-branch arithmetic governs: the per-shape floor sum falls to **80**
+while the **aggregate ≥105 still governs** and stays reachable on measured
+`xsubtypes` 80 + `xchain` ≤22 + `xcollide`. If mining shows it is not, the
+aggregate is lowered **at freeze** with the arithmetic recorded.
+
+## Reconcile addendum — branch base lacks `bench/workspace` (2026-08-22)
+
+A repo fact with no bearing on the design but a direct bearing on how this
+change merges. The entire `bench/workspace/` harness — `build_tasks_ws.py`,
+`run_ws.py`, `grade_ws.py`, `leak_audit_ws.py`, `README.md`, `corpus.json`,
+`tasks/` — plus the `bench/repos/` member checkouts live **only in unpushed
+commits on the owner's local `main`** (8 commits ahead of `origin/main` at
+reconcile). Docket cuts feature branches from `origin/<integration_branch>`
+unconditionally, so this change's branch does **not** inherit them.
+
+Resolution, recorded so the merge is not a surprise: the feature branch carries
+the `bench/workspace/` files as **additions**, seeded byte-identical to the
+owner's local-main versions and then modified. The branch's `bench/workspace/`
+is therefore a **strict superset** of local main's — same base bytes plus this
+change's delta — so when the owner pushes their local bench line, the overlap
+resolves by **taking the feature branch's side for `bench/workspace/`**, with no
+content loss and no history rewriting. The owner's local bench line stays
+authoritative and is never rewritten by this change; coordination is recorded in
+the results file rather than by force-pushing anything. `bench/repos/` checkouts
+and `bench/repos/btt-ws-private/` are **not** added to the branch (large,
+gitignored, and private-derived respectively — owner rule).
 
 ## Out of scope
 

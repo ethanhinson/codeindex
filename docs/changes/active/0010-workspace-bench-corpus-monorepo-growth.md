@@ -17,10 +17,10 @@ results:
 trivial: false
 auto_groomable: false
 branch: feat/workspace-bench-corpus-monorepo-growth
-claimed_at: 2026-08-22T23:19:35Z
+claimed_at: 2026-08-22T23:31:00Z
 pr:
 blocked_by:
-reconciled: false
+reconciled: true
 ---
 
 ## Artifacts
@@ -99,6 +99,57 @@ coverage second.
 ## Reconcile log
 
 <!-- Appended by docket-implement-next's reconcile pass: dated entries of what changed. -->
+
+### 2026-08-22 — reconciled against current reality
+
+Scope is **unchanged and confirmed**; the spec's central premise was
+re-measured rather than taken on trust. Five deltas, all folded into the
+spec:
+
+1. **0017 is now `done`** (archived `2026-08-22-0017-…`, merge `ecac858`).
+   The spec was written against "0017 abstained" and argued for proceeding
+   *despite* it; the ordering coupling is now **satisfied**, a strictly
+   better position. No count changes — 0017 is Go-scoped and Go supplies
+   zero subtype tasks — so the registration records it as landed rather
+   than as a bypassed coupling.
+2. **0018 has not landed** (`proposed`, no `spec:`, needs-brainstorm), so
+   per B5 the `xalias` branch is **taken now**: mine it, record its `n`,
+   declare it **excluded from the scored structural subset at freeze**.
+   Taking this at reconcile removes the post-hoc discretion B5 exists to
+   forbid. Aggregate ≥105 governs; exclusion arithmetic recorded.
+3. **GT-cap semantics disambiguated — and it mattered.** The spec said
+   "re-apply `MAX_GT_FILES` in the subtype loop" without fixing whether the
+   predicate is the candidate's `cross_files` or the emitted subtype GT.
+   Re-measured on the unchanged 10 members: candidate-level gives **68**
+   (below the registered floor of 60 only by a thin margin, and wrong);
+   **emitted-GT gives exactly 80** (php 56 / ts 24; symfony 56,
+   nest-common 24), reproducing the spec's `82 emitted − 2 over-cap
+   (max 164)` arithmetic exactly. Emitted-GT is also what the registered
+   corpus rule states. Pinned in the spec.
+4. **The scoped fix verified:** with `picked` retained for `xnew`, `xnew`
+   re-measures at **10** and the control subset at **58** — both unchanged,
+   exactly as the spec predicted, confirming the wholesale-removal hazard
+   (xnew → 126, symfony-dominated corpus) is genuinely avoided.
+5. **Branch base lacks `bench/workspace`.** The whole harness lives only in
+   8 unpushed commits on the owner's local `main`; docket cuts branches from
+   `origin/main`. The branch carries the files as additions seeded
+   byte-identical to local main, making it a strict superset that merges by
+   taking the branch's side — no history rewriting, owner's bench line stays
+   authoritative. Recorded in the spec and to be restated in the results
+   file.
+
+Also confirmed still-live: **B4's precondition is unmet on disk** — 13
+`.codeindex/` directories (7+ `graph.db`) sit under `bench/repos/*/` right
+now, so "verify absence, do not assume it" remains a real check, not a
+formality. Four leak classes confirmed runnable here; class 2 (control
+contamination) reads transcripts and stays the owner's scored-run
+responsibility. Noted for the build: `leak_audit_ws.py`'s `FORCING` list
+bans the substrings `grep`, `mcp`, `codeindex`, `must use`, `call the` in
+prompts — a hard constraint on the three new prompt templates.
+
+No obsolescence, no invalidation. Auto-capture is disabled for this repo,
+so adjacent work is reported in prose only; nothing adjacent surfaced that
+was not already tracked by 0018.
 
 ## Groom corrections applied (2026-08-22, re-arm)
 
