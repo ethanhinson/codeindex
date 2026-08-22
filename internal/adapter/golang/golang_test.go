@@ -103,6 +103,92 @@ type Widget struct {
 	}
 }
 
+// TestImportDepCarriesSource pins spec item 1: an import dep's Source is the
+// verbatim import path, for both an implicit import and an explicit alias. The
+// hint channel for subtype edges is the edge-local Source, so an empty Source
+// here silently disables the import-mediated resolution rung.
+func TestImportDepCarriesSource(t *testing.T) {
+	src := `package p
+
+import (
+	"fmt"
+	al "codeindex/internal/graph"
+)
+`
+	pf, err := (Adapter{}).Parse("p.go", []byte(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]string{}
+	for _, d := range pf.Deps {
+		if d.Kind == graph.KindImports {
+			got[d.Target] = d.Source
+		}
+	}
+	for _, ipath := range []string{"fmt", "codeindex/internal/graph"} {
+		if _, ok := got[ipath]; !ok {
+			t.Fatalf("import dep for %q missing; got %v", ipath, got)
+		}
+		if got[ipath] != ipath {
+			t.Errorf("import %q: Source = %q, want %q", ipath, got[ipath], ipath)
+		}
+	}
+}
+
+// TestImportAliasExclusions pins that `_` and `.` imports stay out of the
+// aliases map (unchanged behavior). aliases has no direct seam, so this asserts
+// through the call path it feeds: a call qualified by a name that was never
+// registered carries no namespace hint.
+func TestImportAliasExclusions(t *testing.T) {
+	src := `package p
+
+import (
+	"fmt"
+	_ "codeindex/internal/blank"
+	. "codeindex/internal/dot"
+)
+
+func use() {
+	fmt.Println()
+	blank.F()
+	dot.F()
+}
+`
+	pf, err := (Adapter{}).Parse("p.go", []byte(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	nF := 0
+	for _, c := range pf.Calls {
+		switch c.Callee {
+		case "Println":
+			if c.NsHint != "fmt" {
+				t.Errorf("plain import should register an alias: NsHint = %q, want %q",
+					c.NsHint, "fmt")
+			}
+		case "F":
+			nF++
+			if c.NsHint != "" {
+				t.Errorf("`_`/`.` imports must not register aliases: NsHint = %q, want %q",
+					c.NsHint, "")
+			}
+		}
+	}
+	if nF != 2 {
+		t.Fatalf("expected both blank.F() and dot.F() calls; got %d", nF)
+	}
+	// Both `_` and `.` imports still emit their import dep.
+	var paths []string
+	for _, d := range pf.Deps {
+		if d.Kind == graph.KindImports {
+			paths = append(paths, d.Target)
+		}
+	}
+	if !contains(paths, "codeindex/internal/blank") || !contains(paths, "codeindex/internal/dot") {
+		t.Errorf("`_`/`.` imports should still emit deps; got %v", paths)
+	}
+}
+
 func contains(xs []string, v string) bool {
 	for _, x := range xs {
 		if x == v {

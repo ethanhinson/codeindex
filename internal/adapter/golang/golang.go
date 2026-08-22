@@ -53,17 +53,21 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 	var rawDeps []struct {
 		kind   graph.EdgeKind
 		target string
+		source string
 		line   int
 		at     uint32
 	}
-	addDep := func(n *sitter.Node, kind graph.EdgeKind, target string) {
+	// source is the edge-local namespace hint (an import path); "" when the
+	// site has none. Target always stays the bare name.
+	addDep := func(n *sitter.Node, kind graph.EdgeKind, target, source string) {
 		if target != "" {
 			rawDeps = append(rawDeps, struct {
 				kind   graph.EdgeKind
 				target string
+				source string
 				line   int
 				at     uint32
-			}{kind, target, int(n.StartPoint().Row) + 1, n.StartByte()})
+			}{kind, target, source, int(n.StartPoint().Row) + 1, n.StartByte()})
 		}
 	}
 
@@ -109,7 +113,7 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 			// import "path/to/pkg" — verbatim path, file-level, unresolved
 			if pth := n.ChildByFieldName("path"); pth != nil {
 				ipath := strings.Trim(pth.Content(src), "\"`")
-				addDep(n, graph.KindImports, ipath)
+				addDep(n, graph.KindImports, ipath, ipath)
 				alias := ""
 				if nm := n.ChildByFieldName("name"); nm != nil {
 					alias = nm.Content(src) // explicit alias (incl. _ and .)
@@ -127,7 +131,9 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 			// extends-like edge from the enclosing struct type.
 			if n.ChildByFieldName("name") == nil {
 				if t := n.ChildByFieldName("type"); t != nil {
-					addDep(n, graph.KindExtends, embeddedTypeName(t, src))
+					// TODO(0017 task 2): resolve the qualified_type package
+					// operand through aliases and pass it as the source.
+					addDep(n, graph.KindExtends, embeddedTypeName(t, src), "")
 				}
 			}
 		case "type_spec":
@@ -196,6 +202,7 @@ func (Adapter) Parse(path string, src []byte) (*graph.ParsedFile, error) {
 			EnclosingIdx: enclosing(spans, d.at),
 			Kind:         d.kind,
 			Target:       d.target,
+			Source:       d.source,
 			Line:         d.line,
 		})
 	}
