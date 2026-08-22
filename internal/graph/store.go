@@ -379,8 +379,16 @@ func (s *Store) PutFile(tx *sql.Tx, pf *ParsedFile, meta FileMeta) (before, afte
 		}
 		// Same precedence as the call loop above, deliberately: keep the two
 		// sites in step. For an import dep this is by construction the same
-		// expression that populated bind[d.Target].
+		// expression that populated bind[d.Target] — so it must pass the same
+		// filter, via the same predicate. Without the skip below the two sites
+		// contradict each other: the bind site discards a Go self-binding as
+		// informationless and hazardous while this site hands that very hint
+		// to resolve(), which is how `import "log"` came to resolve
+		// `unambiguous` onto an unrelated repo symbol named log.
 		hint := normalizeHint(d.Source, d.Target, pf.Path) // edge-local source wins
+		if goImportSelfHint(pf.Path, hint, d.Target) {
+			hint = "" // empty in Go, and a hazard — see goImportSelfHint
+		}
 		if hint == "" {
 			hint = bind[d.Target] // file-level import binding, as before
 		}
