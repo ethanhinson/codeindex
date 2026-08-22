@@ -1,8 +1,14 @@
 # Backlog
 
-**18 changes** — 🟡 6 proposed · ✅ 11 done · 🗑️ 1 killed
+**18 changes** — 🟢 1 in progress · 🟡 5 proposed · ✅ 11 done · 🗑️ 1 killed
 
-## 🟡 Proposed (6)
+## 🟢 In progress (1)
+
+| # | Title | Priority | Type | Spec | Branch |
+|---|-------|----------|------|------|--------|
+| [0017](active/0017-adapter-namespace-hints-extends-implements.md) | Go subtype references carry namespace hints — fix the qualifier discard and KindImports Source | `high` | `fix` | [spec](../superpowers/specs/2026-08-22-adapter-namespace-hints-extends-implements-design.md) | `feat/adapter-namespace-hints-extends-implements` |
+
+## 🟡 Proposed (5)
 
 | # | Title | Priority | Type | Readiness |
 |---|-------|----------|------|-----------|
@@ -10,7 +16,6 @@
 | [0007](active/0007-session-stable-query-cache.md) | Session-stable query cache keyed by index version | `medium` | `perf` | needs-brainstorm |
 | [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-brainstorm |
 | [0010](active/0010-workspace-bench-corpus-monorepo-growth.md) | Grow the workspace bench corpus — monorepo declaration coverage in every supported language | `medium` | `chore` | build-ready |
-| [0017](active/0017-adapter-namespace-hints-extends-implements.md) | Go subtype references carry namespace hints — fix the qualifier discard and KindImports Source | `high` | `fix` | build-ready |
 | [0018](active/0018-aliased-import-resolution.md) | Resolve references made through import aliases — the name-vs-alias schema decision | `medium` | `fix` | needs-brainstorm |
 
 ```mermaid
