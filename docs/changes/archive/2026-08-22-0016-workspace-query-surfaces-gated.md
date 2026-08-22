@@ -2,7 +2,7 @@
 id: 16
 slug: workspace-query-surfaces-gated
 title: Workspace query surfaces — union-graph verbs, CLI/MCP wiring, workspace-status; merge gated on the D7 evidence run
-status: implemented
+status: killed
 priority: high
 type: feat
 created: 2026-08-20
@@ -29,8 +29,8 @@ reconciled: true
 | Artifact | Link |
 |---|---|
 | Spec | [2026-08-20-workspace-query-surfaces-gated-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-20-workspace-query-surfaces-gated-design.md) |
-| Plan | [2026-08-20-workspace-query-surfaces-gated-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-query-surfaces-gated/docs/superpowers/plans/2026-08-20-workspace-query-surfaces-gated-plan.md) |
-| Results | [2026-08-21-workspace-query-surfaces-gated-results.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-query-surfaces-gated/docs/results/2026-08-21-workspace-query-surfaces-gated-results.md) |
+| Plan | [2026-08-20-workspace-query-surfaces-gated-plan.md](https://github.com/ethanhinson/codeindex/pull/14) |
+| Results | [2026-08-21-workspace-query-surfaces-gated-results.md](https://github.com/ethanhinson/codeindex/pull/14) |
 | PR | [#14](https://github.com/ethanhinson/codeindex/pull/14) |
 | ADRs | [ADR-0012](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0012-workspace-freshness-re-resolves-whole-workspace.md), [ADR-0013](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0013-unindexed-member-named-stale-every-pass.md) |
 <!-- docket:artifacts:end -->
@@ -212,6 +212,27 @@ discarded draft, recorded so they are not re-derived:
 **Recommendation: neither kill nor defer.** The change is well-formed, its
 dependency is satisfied, and the campaign's engine work is merged and waiting on
 exactly this wiring. The two open questions are narrow rulings, not a redesign.
+
+## Why killed
+
+Killed 2026-08-22 by the pre-registered D7 kill condition, on two scored
+runs (full record: `bench/engine/FINDINGS-workspace-graph.md` on the
+integration branch's local bench line):
+
+- Frontier model: control matched the index on recall (paired 2/2/61);
+  efficiency saving 3.4% vs the ≥40% bar.
+- Registered adoption-floor sweep (haiku): recall lift +0.0 vs the +10pp
+  bar; B used more tokens and calls; leak audit PASS after two
+  contaminated control runs were quarantined and re-run blind.
+
+The build itself was sound (all bars it controlled passed: byte-identical
+single-repo goldens, freshness property, review clean) — the corpus was
+greppable by construction, so the feature's advantage never got measured.
+The xsubtypes slice (+14pp for the index, capped by the adapter hint gap)
+is the recorded revival signal. Owner pivot: adapter hint-gap fix (change
+0017) + structural corpus (change 0010) + a NEW registered gate; a pass
+there revives the query surfaces as a fresh change over the archived
+branch (final tip 0d71cd2, PR #14 closed unmerged).
 
 ## Reconcile log
 
