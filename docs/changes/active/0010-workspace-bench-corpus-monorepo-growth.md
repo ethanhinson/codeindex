@@ -10,14 +10,14 @@ updated: 2026-08-22
 depends_on: []
 related: [9, 17, 18]
 discovered_from: [9]
-adrs: []
+adrs: [15, 16]
 spec: docs/superpowers/specs/2026-08-22-workspace-bench-corpus-monorepo-growth-design.md
 plan: docs/superpowers/plans/2026-08-22-workspace-bench-corpus-monorepo-growth-plan.md
 results:
 trivial: false
 auto_groomable: false
 branch: feat/workspace-bench-corpus-monorepo-growth
-claimed_at: 2026-08-22T23:45:00Z
+claimed_at: 2026-08-23T01:55:00Z
 pr:
 blocked_by:
 reconciled: true
