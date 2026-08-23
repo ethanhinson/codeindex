@@ -1,5 +1,5 @@
 <!-- docket:backlink:start (generated — do not hand-edit) -->
-> ↩ **[Change 0010 — Grow the workspace bench corpus — monorepo declaration coverage in every supported language](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/active/0010-workspace-bench-corpus-monorepo-growth.md)**
+> ↩ **[Change 0010 — Grow the workspace bench corpus — monorepo declaration coverage in every supported language](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/archive/2026-08-23-0010-workspace-bench-corpus-monorepo-growth.md)**
 <!-- docket:backlink:end -->
 
 # Workspace bench corpus — structural growth and a new pre-registered gate
