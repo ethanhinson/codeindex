@@ -1,0 +1,75 @@
+{
+  "_comment": "DISCOVERY-ONLY manifest for phase 2 of the workspace-graph bench. These pins exercise `init-workspace --scan` member DISCOVERY across declaration formats. They are NOT part of the mined task corpus: build_tasks_ws.py reads corpus.json and does not read this file. Adding any of these to corpus.json would change what the miner mines and would invalidate the frozen 215-task set in tasks/tasks_ws.json and the 0010 gate bars. Per-member task quota for every entry here is 0 by construction.",
+  "_bounds": "Registered in README.md 'Phase 2': <=1 member per format, checkout <=500 MB, <=3 candidate repos evaluated per format, OSS + permissive licence + exact tag/commit pin, declaration format present ORGANICALLY (never synthesised). No qualifying candidate => format recorded UNCOVERED and the search STOPS.",
+  "_not_vendored": "vite and babel are not checked out under bench/repos/ — they were shallow-cloned at the pinned tag, probed with internal/workspace.Members, and discarded. The pin is the record; re-fetch with `git clone --depth 1 --branch <pin>`. symfony and nest are already on disk under bench/repos/.",
+  "formats": [
+    {
+      "format": "lerna.json",
+      "status": "covered",
+      "repo": "nestjs/nest",
+      "pin": "v10.4.15",
+      "commit": "d0fb875e23e3e6baae8537efd41d54709acade0c",
+      "licence": "MIT",
+      "on_disk": "bench/repos/nest",
+      "members_discovered": 9,
+      "task_quota": 0,
+      "note": "Pre-existing coverage; also a mined corpus member (nest-common / nest-core) via corpus.json, which is unchanged by this file."
+    },
+    {
+      "format": "composer path repositories",
+      "status": "covered",
+      "repo": "symfony/symfony",
+      "pin": "v7.2.2",
+      "commit": "fca27be5c0bf49f5ab5d274c42d8235ec1d3ae02",
+      "licence": "MIT",
+      "on_disk": "bench/repos/symfony",
+      "members_discovered": 2,
+      "member_roots": ["src/Symfony/Contracts", "src/Symfony/Component/Runtime"],
+      "task_quota": 0,
+      "candidates_evaluated": ["symfony/symfony", "drupal/drupal", "laravel/framework"],
+      "note": "Organic: composer.json declares two `type: path` repositories. Discovery of the root itself is separate from symfony's role as a mined corpus member."
+    },
+    {
+      "format": "pnpm-workspace.yaml",
+      "status": "covered",
+      "repo": "vitejs/vite",
+      "pin": "v6.0.7",
+      "commit": "a671e58af40191300dbbafd643316bb72c960d84",
+      "licence": "MIT",
+      "on_disk": null,
+      "checkout_mb": 33,
+      "members_discovered": 73,
+      "task_quota": 0,
+      "candidates_evaluated": ["vitejs/vite"],
+      "note": "Organic pnpm-workspace.yaml declaring packages/*, playground/**, packages/**/__tests__/** and docs. Exercises the recorded `**` limitation in internal/workspace/members.go: the ** patterns degrade to single-level globs, so playground/** matches one level and packages/**/__tests__/** matches nothing."
+    },
+    {
+      "format": "npm/yarn workspaces",
+      "status": "covered",
+      "repo": "babel/babel",
+      "pin": "v7.26.0",
+      "commit": "63d30381c169780460e01bdb6669c5e01af1dfbe",
+      "licence": "MIT",
+      "on_disk": null,
+      "checkout_mb": 164,
+      "members_discovered": 173,
+      "task_quota": 0,
+      "candidates_evaluated": ["babel/babel"],
+      "note": "Organic package.json `workspaces` array: codemods/*, eslint/*, packages/*, test/esm, test/runtime-integration/*, benchmark."
+    },
+    {
+      "format": "go.work",
+      "status": "uncovered",
+      "reason": "Three candidates evaluated (the registered bound) and none declares a root go.work: grafana/loki, open-telemetry/opentelemetry-collector, tailscale/tailscale — all 404 for go.work at HEAD. The on-disk Go repos (gin v1.10.0, prometheus v3.1.0, client_golang v1.20.5) have no go.work either and discover 0 members. Bound reached; search STOPPED rather than widened.",
+      "candidates_evaluated": ["grafana/loki", "open-telemetry/opentelemetry-collector", "tailscale/tailscale"],
+      "task_quota": 0
+    },
+    {
+      "format": "Python multi-member",
+      "status": "uncovered",
+      "reason": "Structural, not a search failure: Python has no declaration source in member discovery. internal/workspace/members.go reads exactly five sources — go.work, pnpm-workspace.yaml, composer.json path repositories, lerna.json, package.json workspaces — and none is Python. pyproject.toml/setup.py/setup.cfg appear only in memberMarkers, i.e. as evidence that an already-declared candidate is a real member, never as a declaration of members. So no Python repo, organic or otherwise, can be discovered. Candidates evaluated on disk: flask 3.1.0 (single root package; the examples/ subprojects are not declared anywhere) and werkzeug 3.1.3 (single package); both discover 0 members. Covering this format requires an engine change, not a corpus change.",
+      "candidates_evaluated": ["pallets/flask", "pallets/werkzeug"],
+      "task_quota": 0
+    }
+  ]
+}
