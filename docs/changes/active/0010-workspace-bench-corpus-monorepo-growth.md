@@ -30,6 +30,7 @@ reconciled: true
 |---|---|
 | Spec | [2026-08-22-workspace-bench-corpus-monorepo-growth-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-22-workspace-bench-corpus-monorepo-growth-design.md) |
 | Plan | [2026-08-22-workspace-bench-corpus-monorepo-growth-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-bench-corpus-monorepo-growth/docs/superpowers/plans/2026-08-22-workspace-bench-corpus-monorepo-growth-plan.md) |
+| ADRs | [ADR-0015](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0015-corpus-caps-evaluated-on-emitted-ground-truth.md), [ADR-0016](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0016-discovery-pins-separate-manifest-from-mined-corpus.md) |
 <!-- docket:artifacts:end -->
 
 ## Why
