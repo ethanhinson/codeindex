@@ -48,6 +48,20 @@ def norm(p: str) -> str | None:
         return None
 
 
+def _display(p: str) -> str:
+    """Shorten a resolved path for the diagnostic `missed` field.
+
+    Purely cosmetic: `missed` is a diagnostic, never an input to any metric.
+    A path can legitimately resolve outside the workspace root's parent (a
+    git worktree reaches members through symlinks into the primary tree), so
+    fall back to the absolute path rather than raising.
+    """
+    try:
+        return str(Path(p).relative_to(WS_ROOT.parent))
+    except ValueError:
+        return p
+
+
 def extract_paths(answer: str) -> set[str]:
     out = set()
     for line in answer.splitlines():
@@ -81,8 +95,7 @@ def grade_run(r: dict) -> dict | None:
         "cross_recall": (round(len(got & gt_cross) / len(gt_cross), 4)
                          if gt_cross else None),
         "n_gt": len(gt), "n_got": len(got),
-        "missed": sorted(str(Path(f).relative_to(WS_ROOT.parent))
-                         for f in (gt - got) if f),
+        "missed": sorted(_display(f) for f in (gt - got) if f),
         "spurious_count": len(got - gt),
         "shell_calls": shell_calls, "mcp_calls": mcp_calls,
         "processed_tokens": r.get("processed_tokens"),
