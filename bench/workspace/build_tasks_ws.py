@@ -25,8 +25,11 @@ honest without resolving each language's internal-reference idioms
   ximpact     — cross-member direct blast radius (+ definition file)
   xnew        — files in other members that instantiate it (php/ts)
   xsubtypes   — files in other members that extend/implement it (php/ts/py)
-  xcollide    — same bare name declared in >=2 members: only the files bound
-                by import to ONE named declaring member
+  xcollide    — same bare name declared in >=2 members OF THE SAME LANGUAGE:
+                only the files bound by import to ONE named declaring member.
+                The key is language-gated (xcollide_key): across languages the
+                file extension disambiguates completely and nothing is left
+                but xcallers.
   xalias      — only the files that bind the symbol under a DIFFERENT local
                 name (renamed import). A subset filter: the aliasing statement
                 spells out the original name, so a text search over-returns.
@@ -38,7 +41,8 @@ honest without resolving each language's internal-reference idioms
 
 xnew/xsubtypes/xalias are emitted only when their answer is a proper subset of the
 xcallers set (a genuinely different answer, not a rephrasing); xcollide the
-same, against the bare-name union across members; xchain when its answer is
+same, against the LANGUAGE-GATED bare-name union across members; xchain when
+its answer is
 DISJOINT from the named symbol's own cross-member reference set (see
 xchain_is_structural). xcallers/
 ximpact/xnew are the control (greppable) shapes and stay scoped to the
@@ -49,7 +53,7 @@ to the emitted GT, not to a candidate-level proxy.
 
 Prompts embed {WS_ROOT}; the runner substitutes the workspace root path.
 
-KNOWN LIMITATIONS (three, deliberate). These are what the miner does TODAY, and
+KNOWN LIMITATIONS (four, deliberate). These are what the miner does TODAY, and
 each is asserted by known_limitations() under --selftest so it cannot be quietly
 "fixed" into a regression:
 
@@ -60,6 +64,10 @@ each is asserted by known_limitations() under --selftest so it cannot be quietly
     nest-core/nest-microservices imports a mined nest-common symbol renamed.
   * xchain is NEST-ONLY            — the other clusters are only two members
     deep; closing it needs new corpus pins, not a miner change.
+  * xcollide emits ZERO            — corpus.json declares exactly one shared
+    lib per language, so no bare name is declared by two members of the SAME
+    language. Closing it needs new corpus pins; ungating the key is not the
+    fix (that is the finding this zero came from).
 
 See the block above known_limitations() for the prerequisite each number waits
 on. Read it before you change one.
@@ -816,6 +824,45 @@ def xchain_is_structural(gt, direct_refs, hop2_symbols, prompt, lang) -> bool:
     return not any(spells(bare_name(s, lang), prompt) for s in hop2_symbols)
 
 
+def xcollide_key(c):
+    """The xcollide COLLISION KEY — `(language, bare name)`, gated on purpose.
+
+    Keying on the bare name ALONE groups declarations across languages, and a
+    cross-language "collision" is not one: the prompt asks the agent to pick
+    out the files bound to ONE declaration of `{BARE}`, and when the rival
+    declaration is in another language the FILE EXTENSION already separates
+    them completely. What is left of the task after the extension has done the
+    work is `xcallers` verbatim — the same degeneracy `xchain_is_structural`
+    answers for the chain shape, reached here through the grouping instead of
+    through a regex. `xcollide` is registered STRUCTURAL, and structural is
+    defined in the registration as "the bare name is not the answer key"; a
+    trivially extension-separable group does not meet that.
+
+    This is the learning `dialect-specific-remedies-need-a-language-gate`
+    applied to the GROUPING rather than to a pattern: language is part of the
+    identity of a name, so it belongs in the key, not in a later filter.
+    """
+    return (c["lang"], bare_name(c["symbol"], c["lang"]))
+
+
+def xcollide_is_structural(gt, union) -> bool:
+    """The xcollide PROPER-SUBSET guard.
+
+    `union` is the union of the import-bound reference sets of every candidate
+    in the collision group, so it is a SUBSET of what a plain text search for
+    the bare name returns. An answer that is a PROPER subset of it is therefore
+    a proper subset of the text-search result too: the search over-returns, and
+    the disambiguation the prompt asks for is real work.
+
+    Equality is the degenerate case and is refused: it means the rival
+    declarations contribute no references of their own, so nothing is
+    over-returned and the task is `xcallers` rephrased. (Nothing can exceed the
+    union by construction, but `<` states the invariant rather than assuming
+    it.) See xcollide_guard_cases() for the RED cases.
+    """
+    return set(gt) < set(union)
+
+
 def ws_rel(ws_root, member, rel):
     import os
     base = os.path.relpath(member["root"], ws_root)
@@ -946,42 +993,79 @@ def mine(seed, min_tasks):
             idx += 1
 
     # ---------------------------------------------------------------- #
-    # xcollide — the same BARE name declared in >= 2 member projects.
+    # xcollide — the same bare name declared, IN ONE LANGUAGE, by >= 2
+    # member projects.
     #
     # A plain-text search for the bare name returns the union of the
     # references to every declaration of it; the answer wanted is only the
     # files whose IMPORT binds them to one named declaring member. The
     # per-language symbol keys are already fully qualified (PHP FQCN,
     # `pkg:Name`, `module.Name`, `importpath.Name`), so that binding is
-    # already computed above — the collision is purely on bare_name(), and
-    # each candidate's own `gt` is by construction the import-bound subset.
+    # already computed above, and each candidate's own `gt` is by
+    # construction the import-bound subset.
+    #
+    # The key is `xcollide_key()` — `(lang, bare)`, NOT `bare` alone. Read its
+    # docstring before widening it: an ungated key manufactures cross-language
+    # "collisions" whose disambiguation the file EXTENSION performs completely,
+    # leaving `xcallers` behind in a shape registered as structural.
     #
     # Union is taken over the candidates' import-bound reference sets rather
     # than over a raw text match, which makes it a SUBSET of what a text
-    # search would return; a proper subset of this union is therefore a
-    # proper subset of the text-search result too.
+    # search would return; a proper subset of this union (xcollide_is_
+    # structural) is therefore a proper subset of the text-search result too.
+    #
+    # On THIS corpus the gate empties the shape, and that is the honest
+    # outcome rather than a shortfall to be engineered around: corpus.json
+    # declares exactly one shared lib per language, so no bare name is
+    # declared by two members of the same language and the >= 2 declaring
+    # members test can never be met. The pass is recorded below and asserted
+    # by known_limitations() (4) so the zero cannot go unnoticed, and the
+    # guards keep their RED cases in xcollide_guard_cases().
     # ---------------------------------------------------------------- #
-    by_bare = {}
+    by_key = {}
     for c in candidates:
-        by_bare.setdefault(bare_name(c["symbol"], c["lang"]), []).append(c)
-    for bare in sorted(by_bare):
-        group = by_bare[bare]
+        by_key.setdefault(xcollide_key(c), []).append(c)
+    langs_of_bare = {}
+    for lang, bare in by_key:
+        langs_of_bare.setdefault(bare, set()).add(lang)
+    xcollide_pass = {
+        "key": "(lang, bare_name) — LANGUAGE-GATED; see xcollide_key()",
+        "declaring_members_per_lang": {
+            lang: len({c["lib"] for c in candidates if c["lang"] == lang})
+            for lang in sorted({c["lang"] for c in candidates})},
+        "groups_considered": len(by_key),
+        "groups_spanning_two_languages": sum(
+            1 for g in by_key.values() if len({c["lang"] for c in g}) > 1),
+        "cross_language_bare_names_separated": sorted(
+            b for b, ls in langs_of_bare.items() if len(ls) > 1),
+        "multi_member_groups": [],
+        "emitted": 0,
+        "rejected_not_proper_subset": 0,
+        "rejected_over_cap": 0,
+        "guard": "xcollide_is_structural: GT a PROPER subset of the "
+                 "language-gated bare-name union across declaring members",
+    }
+    for key in sorted(by_key):
+        group = by_key[key]
         if len({c["lib"] for c in group}) < 2:
             continue  # one declaring member: nothing to disambiguate
+        xcollide_pass["multi_member_groups"].append(
+            {"lang": key[0], "bare": key[1],
+             "libs": sorted({c["lib"] for c in group})})
         union = set()
         for c in group:
             union |= set(c["gt"])
         # total order, independent of dict/set iteration: (lib, lang, symbol)
         for c in sorted(group, key=lambda c: (c["lib"], c["lang"], c["symbol"])):
             gt = list(c["gt"])
-            if not set(gt) < union:
-                # Equal to the union means the other declarations contribute
-                # no references of their own, so there is nothing a text
-                # search over-returns here and the task is xcallers rephrased.
+            if not xcollide_is_structural(gt, union):
+                xcollide_pass["rejected_not_proper_subset"] += 1
                 continue
             if not gt_within_cap(gt):
+                xcollide_pass["rejected_over_cap"] += 1
                 continue
             emit("xcollide", c, gt, idx)
+            xcollide_pass["emitted"] += 1
             idx += 1
 
     # ---------------------------------------------------------------- #
@@ -1149,6 +1233,17 @@ def mine(seed, min_tasks):
         "per_lang_quota": lang_quota,
         "rung_counts": {"rung1": len(tasks), "rung2": 0},
         "rung2_note": "no organic bare-name cross-edges in this OSS corpus",
+        "xcollide_pass": xcollide_pass,
+        "xcollide_note": "xcollide emits ZERO on this corpus, and that is a "
+                         "CORPUS FACT, not a shortfall: corpus.json declares "
+                         "exactly one shared lib per language, so no bare "
+                         "name is declared by two members of the same "
+                         "language. The collision key is language-gated on "
+                         "purpose — a cross-language pair is separated "
+                         "COMPLETELY by file extension, leaving xcallers "
+                         "behind in a shape registered structural. Closing "
+                         "this needs new corpus pins (a second declaring "
+                         "member in some language), never an ungated key.",
         "xchain_passes": chain_stats,
         "xchain_note": "xchain is nest-only: a recorded corpus fact, not a "
                        "gap. The php, py and go clusters are two members deep "
@@ -1188,6 +1283,13 @@ def build_subsets(tasks):
         per_shape[k] = per_shape.get(k, 0) + 1
         per_shape_lang.setdefault(k, {})
         per_shape_lang[k][t["lang"]] = per_shape_lang[k].get(t["lang"], 0) + 1
+    # A REGISTERED shape that emitted nothing must be visible as an explicit
+    # zero, not absent: this header is what the README's per-shape table and
+    # the exclusion arithmetic are reconciled against, and a silently missing
+    # row reads as an oversight rather than as a recorded corpus fact.
+    for k in SUBSET_OF_KIND:
+        per_shape.setdefault(k, 0)
+        per_shape_lang.setdefault(k, {})
     per_shape = dict(sorted(per_shape.items()))
     per_shape_lang = {k: dict(sorted(v.items()))
                       for k, v in sorted(per_shape_lang.items())}
@@ -1272,6 +1374,7 @@ def known_limitations(bundle):
     land before the number is allowed to move.
     """
     per_shape_lang = bundle["header"]["subsets"]["per_shape_lang_n"]
+    per_shape = bundle["header"]["subsets"]["per_shape_n"]
     out = []
 
     def n(kind, lang):
@@ -1343,6 +1446,37 @@ def known_limitations(bundle):
         f"expected chains=[{nest}] members={nest} langs=['ts'], "
         f"got chains={emitting} members={touched} langs={langs}",
     ))
+
+    # (4) xcollide emits ZERO. This asserts today's behaviour on purpose.
+    #   PREREQUISITE: NEW CORPUS PINS — a SECOND declaring member in some one
+    #   language — not a miner change. corpus.json declares exactly one shared
+    #   lib per language (symfony/php, nest-common/ts, werkzeug/py,
+    #   client_golang/go), so a same-language cross-member bare-name clash
+    #   cannot exist here and the >= 2 declaring members test can never be
+    #   met. The number moved 20 -> 0 when the collision key was language-
+    #   gated: the 20 were 9 cross-language groups (php vs ts/py/go) whose
+    #   "disambiguation" the FILE EXTENSION performs completely, plus a py
+    #   group whose two declarations sit in the SAME member (werkzeug.sansio
+    #   vs werkzeug.wrappers) and so pose no cross-member question at all.
+    #   Two things are explicitly NOT the fix: ungating the key, and dropping
+    #   the >= 2 declaring members test to admit within-member clashes. Both
+    #   buy the count back by weakening what the shape asserts.
+    #   The assertion is stated over the recorded pass, not over the emitted
+    #   count alone, so it stays load-bearing at n = 0 and fails the moment a
+    #   second same-language declaring member appears.
+    xc = bundle["header"].get("xcollide_pass") or {}
+    per_lang_libs = xc.get("declaring_members_per_lang") or {}
+    got = per_shape.get("xcollide", 0)
+    out.append((
+        "KNOWN LIMITATION: xcollide emits zero — one declaring member per "
+        "language (needs new corpus pins to change)",
+        got == 0 and bool(per_lang_libs)
+        and all(v == 1 for v in per_lang_libs.values())
+        and xc.get("multi_member_groups") == [],
+        f"expected 0 tasks and 1 declaring member per language, got "
+        f"{got} tasks, per_lang={per_lang_libs}, "
+        f"multi_member_groups={xc.get('multi_member_groups')!r}",
+    ))
     return out
 
 
@@ -1396,6 +1530,38 @@ def xchain_guard_cases():
     return out
 
 
+def xcollide_guard_cases():
+    """The collision key and the proper-subset guard, each with its RED case.
+
+    Stated as unit cases because the frozen corpus emits ZERO xcollide tasks
+    (see known_limitations (4)): a guard exercised only by live tasks would go
+    unexercised here, and an unexercised guard is decoration. These cases hold
+    whatever the corpus does, and the first two are the finding this shape's
+    re-freeze answers — with `bare` alone as the key they both fail.
+    """
+    php = {"lang": "php", "symbol": "Symfony\\Component\\Mime\\Header\\Headers"}
+    py = {"lang": "py", "symbol": "werkzeug.datastructures.Headers"}
+    php2 = {"lang": "php",
+            "symbol": "Symfony\\Component\\HttpFoundation\\HeaderBag\\Headers"}
+    union = ["../a/one.php", "../a/two.php", "../b/three.php"]
+    cases = [
+        ("key separates two languages sharing a bare name "
+         "(the extension already disambiguates those)",
+         xcollide_key(php) != xcollide_key(py), True),
+        ("key groups a genuine same-language clash",
+         xcollide_key(php) == xcollide_key(php2), True),
+        ("proper-subset accepts an answer the bare-name union over-returns",
+         xcollide_is_structural(["../a/one.php"], union), True),
+        ("proper-subset rejects an answer EQUAL to the union "
+         "(nothing over-returned: the task is xcallers rephrased)",
+         xcollide_is_structural(union, union), False),
+        ("proper-subset rejects an answer outside the union",
+         xcollide_is_structural(union + ["../c/four.php"], union), False),
+    ]
+    return [(f"xcollide guard: {label}", got == want,
+             f"expected {want}, got {got}") for label, got, want in cases]
+
+
 def _ref_namespace(symbol, lang):
     """The namespace argument extract_refs() expects for `symbol`'s language.
 
@@ -1444,6 +1610,47 @@ def xchain_nondegeneracy(bundle, ws_root):
     ]
 
 
+def xcollide_nondegeneracy(bundle):
+    """Assert every emitted xcollide collision is SAME-LANGUAGE.
+
+    The prompt's whole demand is "disambiguate two declarations of `{BARE}`".
+    If the colliding declarations sit in different languages, the file
+    EXTENSION disambiguates them completely and the residue of the task is
+    `xcallers` verbatim — the same degeneracy `xchain_is_structural` answers
+    for the chain shape, arriving this time through the GROUPING rather than
+    through a regex (learning: `dialect-specific-remedies-need-a-language-gate`
+    applies to the collision key too).
+
+    Two clauses, one over the emitted tasks and one over the miner's recorded
+    audit trail, because at n = 0 the first clause alone would be vacuous:
+
+      1. emitted xcollide tasks sharing a bare name all share a language;
+      2. no group the miner CONSIDERED spans more than one language — i.e.
+         the key really is language-gated, whatever it emitted.
+    """
+    by_bare = {}
+    for t in bundle["tasks"]:
+        if t["kind"] == "xcollide":
+            by_bare.setdefault(bare_name(t["symbol"], t["lang"]), set()).add(
+                t["lang"])
+    mixed = sorted(f"{b}:{sorted(ls)}" for b, ls in by_bare.items()
+                   if len(ls) > 1)
+    audit = bundle["header"].get("xcollide_pass") or {}
+    audit_mixed = audit.get("cross_language_bare_names_separated")
+    return [
+        ("xcollide non-degeneracy: every emitted collision is same-language "
+         "(file extension is not the disambiguator)", not mixed,
+         f"{len(mixed)} cross-language collisions: {mixed[:5]}"),
+        ("xcollide non-degeneracy: the collision key is language-gated "
+         "(no considered group spans two languages)",
+         audit.get("groups_spanning_two_languages") == 0
+         and isinstance(audit_mixed, list) and len(audit_mixed) > 0,
+         f"audit says groups_spanning_two_languages="
+         f"{audit.get('groups_spanning_two_languages')!r}, "
+         f"separated={audit_mixed!r}"),
+    ]
+
+
 def selftest(bundle, ws_root):
     ok = True
     h = bundle["header"]
@@ -1455,7 +1662,9 @@ def selftest(bundle, ws_root):
     print(f"  [{'ok' if all(c[1] for c in cases) else 'FAIL'}] xsubtypes "
           f"declaration cases: {sum(c[1] for c in cases)}/{len(cases)}")
     for label, passed, detail in (xchain_guard_cases()
-                                  + xchain_nondegeneracy(bundle, ws_root)):
+                                  + xchain_nondegeneracy(bundle, ws_root)
+                                  + xcollide_guard_cases()
+                                  + xcollide_nondegeneracy(bundle)):
         print(f"  [{'ok' if passed else 'FAIL'}] {label}"
               + ("" if passed else f" -- {detail}"))
         if not passed:

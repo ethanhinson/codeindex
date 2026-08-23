@@ -93,7 +93,7 @@ script must read them from this file, never from its own source.
 ### The frozen corpus these bars are stated over
 
 Frozen 2026-08-22 in `tasks/tasks_ws.json` (header `subsets`), seed 1729.
-**227 tasks.**
+**207 tasks.**
 
 | shape | subset | n | php | ts | go | py |
 |---|---|---:|---:|---:|---:|---:|
@@ -101,16 +101,20 @@ Frozen 2026-08-22 in `tasks/tasks_ws.json` (header `subsets`), seed 1729.
 | `ximpact` | control (greppable) | 24 | 5 | 7 | 6 | 6 |
 | `xnew` | control (greppable) | 10 | 9 | 1 | 0 | 0 |
 | `xsubtypes` | structural (scored) | 68 | 55 | 13 | 0 | 0 |
-| `xcollide` | structural (scored) | 20 | 9 | 6 | 1 | 4 |
+| `xcollide` | structural (scored) | **0** | 0 | 0 | 0 | 0 |
 | `xchain` | structural (scored) | 46 | 0 | 46 | 0 | 0 |
 | `xalias` | structural (**excluded at freeze**) | 35 | 33 | 0 | 1 | 1 |
-| **total** | | **227** | **118** | **78** | **14** | **17** |
+| **total** | | **207** | **109** | **72** | **13** | **13** |
+
+`xcollide` stays a **registered** shape at n = 0 — the row is an explicit zero
+in the task header (`subsets.per_shape_n`), not an omission. Its zero is a
+corpus fact with a stated prerequisite; see the structural facts below.
 
 Subset arithmetic, pinned at freeze:
 
-- scored structural (excludes `xalias`) = 68 + 20 + 46 = **134** ≥ registered 105
+- scored structural (excludes `xalias`) = 68 + 0 + 46 = **114** ≥ registered 105
 - control (greppable) = 24 + 24 + 10 = **58** ≥ registered 40
-- total = **227** ≥ registered 145
+- total = **207** ≥ registered 145
 
 **Re-freeze 2026-08-22, before any scored run on this corpus** (`xsubtypes`
 80 → 68; 215 → 203 total). The first freeze's `xsubtypes` ground truth was
@@ -183,12 +187,56 @@ Two things changed, and nothing else did — the other six shapes' 181 tasks are
   is re-checked **from disk** (`xchain_nondegeneracy` re-reads every ground-truth
   file rather than trusting a miner-written number).
 
-**No floor was lowered and nothing was padded** — the aggregate moved **up**,
-as the arithmetic above records: scored structural 110 → **134** (≥ 105),
-control **58** unchanged (≥ 40), total 203 → **227** (≥ 145). `xchain` is now
-**34%** of the scored structural subset (46/134), which is exactly why B1's
-standing requirement to report **per-shape means** alongside the subset mean
-is load-bearing rather than decorative.
+**No floor was lowered and nothing was padded** — the aggregate moved **up** at
+that freeze: scored structural 110 → **134** (≥ 105), control **58** unchanged
+(≥ 40), total 203 → **227** (≥ 145). `xchain` was then **34%** of the scored
+structural subset (46/134) and is **40%** after the third re-freeze below
+(46/114), which is exactly why B1's standing requirement to report **per-shape
+means** alongside the subset mean is load-bearing rather than decorative.
+
+**Re-freeze 2026-08-22 (third), before any scored run on this corpus**
+(`xcollide` 20 → 0; 227 → 207 total). `xcollide` groups a bare name across
+**languages**, and a cross-language "collision" is not one. The prompt asks the
+agent to pick out the files bound to one declaration of `{BARE}`; when the rival
+declaration is in another language the **file extension separates them
+completely**, and what is left of the task is `xcallers` verbatim — the same
+degeneracy the second re-freeze removed from `xchain`, arriving this time
+through the GROUPING rather than through a prompt template. **All 10** emitted
+collision groups spanned two languages — `ArgumentMetadata`,
+`BadRequestException`, `ConsoleLogger`, `Headers`, `HttpException`, `Optional`,
+`Range`, `Request`, `Response`, `Type` — and **18 of the 20** tasks had no
+same-language rival at all: the only other declaration of the name was in
+another language, so the extension did the whole job. Since `xcollide` is
+registered **structural**, and this section defines structural as "the bare name
+is not the answer key", those 18 were inside the subset B1 is measured on
+without meeting its definition.
+
+The **collision key is now language-gated** — `(lang, bare)`, not `bare`
+(`xcollide_key`) — so only a genuine same-language clash can group. That is the
+`dialect-specific-remedies-need-a-language-gate` rule applied to the key rather
+than to a regex: language is part of the identity of a name.
+
+**The gate empties the shape, and the zero is reported rather than engineered
+around.** `corpus.json` declares exactly **one** shared lib per language
+(`symfony`/php, `nest-common`/ts, `werkzeug`/py, `client_golang`/go), so no bare
+name is declared by two members of the **same** language and the shape's ">= 2
+declaring members" test can never be met here. The remaining 2 tasks were the py
+`Response` pair, whose two declarations (`werkzeug.sansio.response.Response`,
+`werkzeug.wrappers.Response`) sit in the **same member** and so pose no
+cross-member disambiguation question at all; admitting them would have meant
+dropping that test, which is buying a count back by weakening what the shape
+asserts. Neither that nor ungating the key was done.
+
+Nothing else changed: the other six shapes' **207** tasks are byte-identical to
+the previous freeze field for field, the only difference being the `id` ordinal
+of `xalias` and `xchain`, which shift down by 20 because a single counter
+numbers every shape in emit order. **No floor was lowered and nothing was
+padded** — the aggregate was re-evaluated at freeze and scored structural still
+clears the registered 105 at **114** (68 + 0 + 46); control **58** unchanged;
+total 203 → 227 → **207** (≥ 145). Both `xcollide` guards keep RED cases under
+`--selftest` (`xcollide_guard_cases`) even though no task exercises them, and
+the zero itself is asserted (`known_limitations` (4)) so it cannot pass
+unnoticed.
 
 The kind→subset partition — control = {`xcallers`, `ximpact`, `xnew`};
 structural = {`xsubtypes`, `xcollide`, `xalias`, `xchain`} — is emitted into the
@@ -222,16 +270,30 @@ the grader and not restated as prose anywhere that could drift from the header.
   same missing capability as python's, and closing it is change **0018**'s
   aliased-import resolution — not a looser pattern in the miner, which is what
   produced the contaminated first freeze.
-- **`xcollide` collisions are cross-language by construction**, because
-  `corpus.json` declares exactly **one** shared lib per language, so two
-  same-named declarations almost always sit in different languages (9 of the 10
-  emitted collision groups). A text search is language-blind, so the shape stays
-  legitimate — but recorded honestly: **file extension is a partial
-  disambiguator** for those 9. The `Response` group is the exception and is
-  genuinely same-language: it carries a within-`werkzeug` clash
-  (`werkzeug.sansio.response.Response` vs `werkzeug.wrappers.Response`) and, in
-  the bare-name union, the within-PHP clash `Symfony\Component\BrowserKit\Response`
-  vs `Symfony\Component\HttpFoundation\Response`.
+- **`xcollide` supplies ZERO tasks on this corpus, permanently until the pins
+  change.** `corpus.json` declares exactly **one** shared lib per language, so
+  no bare name is declared by two members of the **same** language, and the
+  language-gated collision key therefore finds no group with two declaring
+  members (task header: `xcollide_pass.declaring_members_per_lang` = 1 for all
+  four languages, `multi_member_groups` = `[]`). The 10 bare names that do
+  occur in more than one language are recorded there too
+  (`cross_language_bare_names_separated`) — they are separated, not lost. The
+  **prerequisite is new corpus pins** (a second declaring member in some one
+  language), not a miner change; the two things that are explicitly **not** the
+  fix are ungating the key and dropping the ">= 2 declaring members" test to
+  admit within-member clashes such as `werkzeug.sansio.response.Response` vs
+  `werkzeug.wrappers.Response`.
+- **The scored structural verdict is a PHP + TS verdict — there are no Go or
+  Python structural tasks at all.** Stated here rather than left to be inferred
+  from the table: `xcollide` was the only shape supplying Go and Py structural
+  tasks, so its zero makes the scored subset **php 55 + ts 59 = 114**
+  (`xsubtypes` php 55 / ts 13, `xchain` ts 46). This is consistent with what the
+  spec already says the structural verdict would be, and with the 0017
+  sufficiency claim below ("PHP and TS are 100% of the subtype supply") — it is
+  now true of the whole scored structural subset, not just of `xsubtypes`. Go
+  and Py remain represented in the **control** subset (`xcallers` 6 + 6,
+  `ximpact` 6 + 6) and in the excluded `xalias`, so B2/B3 still range over all
+  four languages.
 - **`xchain` is nest-only.** The php, py and go clusters are two members deep
   (lib + consumer), so no A→B→C chain exists in them. Recorded as a corpus fact;
   no chain was synthesised and no member was added to manufacture one.
@@ -243,7 +305,7 @@ the grader and not restated as prose anywhere that could drift from the header.
 
 **B1 — structural lift (PRIMARY).** At **haiku**
 (`claude-haiku-4-5-20251001`), arm B's **mean** cross-recall on the **scored
-structural subset** (134 tasks) ≥ arm A's mean **+ 10pp**; **OR** B meets the
+structural subset** (114 tasks) ≥ arm A's mean **+ 10pp**; **OR** B meets the
 efficiency bar (≥40% fewer exploration tokens **or** ≥40% fewer tool/shell
 calls, measured over the cross-repo tasks) with recall B ≥ A.
 
@@ -253,11 +315,14 @@ calls, measured over the cross-repo tasks) with recall B ≥ A.
   a structural subset is likely **degenerate** (0.0 vs 0.0, both arms failing
   most tasks) and therefore *less informative*, not *less gameable*. The mean is
   the quantity in which the observed effect exists.
-- Because a mean over 134 tasks **can be carried by a single shape**, this
+- Because a mean over 114 tasks **can be carried by a single shape**, this
   registration **also requires**, reported alongside the bar and before any
-  verdict: **per-shape means** (`xsubtypes`, `xcollide`, `xchain` separately) and
-  the **structural-subset median**. A lift that lives entirely in one shape must
-  be visible as such, not hidden inside the subset mean.
+  verdict: **per-shape means** (each scored structural shape separately — on
+  this corpus `xsubtypes` and `xchain`; `xcollide` is registered but emits 0, so
+  it is reported as `n=0`, never dropped) and the **structural-subset median**.
+  A lift that lives entirely in one shape must be visible as such, not hidden
+  inside the subset mean. With `xchain` at 40% of the subset (46/114) this is
+  the operative safeguard, not a formality.
 - Anchor for both the quantity and the tier: the `xsubtypes` **0.29 / 0.43
   (+14pp, n=7)** observation in the 2026-08-22 adoption-floor verdict is a
   **mean** at **haiku**. The bar is stated in that quantity, at that tier,
@@ -318,8 +383,10 @@ run.
   reported separately — the exclusion is a registration fact, not a reason to
   skip the work.
 - The **aggregate floor GOVERNS over the per-shape sum**: the registered
-  structural floor of **105** was **MET without `xalias`** (134 ≥ 105), so **no
-  floor was lowered** and no shape was reinstated to reach it.
+  structural floor of **105** was **MET without `xalias`** (114 ≥ 105), so **no
+  floor was lowered** and no shape was reinstated to reach it — including at the
+  third re-freeze, where `xcollide` fell to 0 and the aggregate was re-evaluated
+  rather than the shape or a guard adjusted to hold a number.
 
 **EFFICIENCY — reported, not an independent bar.** Exploration tokens and
 tool/shell calls are **reported per run**, and enter the verdict **only** through
@@ -410,7 +477,7 @@ fabricated coverage is not.
 
 Pins live in `discovery_corpus.json`, which is **discovery-only**:
 `build_tasks_ws.py` does not read it, `corpus.json` is unmodified, and
-`tasks/tasks_ws.json` stays frozen at 227 tasks (24/24/10/68/20/35/46). Every
+`tasks/tasks_ws.json` stays frozen at 207 tasks (24/24/10/68/0/35/46). Every
 member below therefore carries a **task quota of 0** by construction — phase 2
 changes discovery coverage, not the task corpus.
 

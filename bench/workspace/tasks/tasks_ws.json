@@ -131,22 +131,51 @@
   "bars": "bench/workspace/README.md (registered 2026-08-17; the gate script reads bars from there, never from its own source)",
   "gt_discipline": "import-mediated plain-text extraction across member checkouts; cross-member scoped; arm-neutral",
   "per_member_quota": {
-   "symfony": 118,
-   "client_golang": 14,
-   "nest-common": 78,
-   "werkzeug": 17
+   "symfony": 109,
+   "client_golang": 13,
+   "nest-common": 72,
+   "werkzeug": 13
   },
   "per_lang_quota": {
-   "php": 118,
-   "go": 14,
-   "ts": 78,
-   "py": 17
+   "php": 109,
+   "go": 13,
+   "ts": 72,
+   "py": 13
   },
   "rung_counts": {
-   "rung1": 227,
+   "rung1": 207,
    "rung2": 0
   },
   "rung2_note": "no organic bare-name cross-edges in this OSS corpus",
+  "xcollide_pass": {
+   "key": "(lang, bare_name) \u2014 LANGUAGE-GATED; see xcollide_key()",
+   "declaring_members_per_lang": {
+    "go": 1,
+    "php": 1,
+    "py": 1,
+    "ts": 1
+   },
+   "groups_considered": 572,
+   "groups_spanning_two_languages": 0,
+   "cross_language_bare_names_separated": [
+    "ArgumentMetadata",
+    "BadRequestException",
+    "ConsoleLogger",
+    "Headers",
+    "HttpException",
+    "Optional",
+    "Range",
+    "Request",
+    "Response",
+    "Type"
+   ],
+   "multi_member_groups": [],
+   "emitted": 0,
+   "rejected_not_proper_subset": 0,
+   "rejected_over_cap": 0,
+   "guard": "xcollide_is_structural: GT a PROPER subset of the language-gated bare-name union across declaring members"
+  },
+  "xcollide_note": "xcollide emits ZERO on this corpus, and that is a CORPUS FACT, not a shortfall: corpus.json declares exactly one shared lib per language, so no bare name is declared by two members of the same language. The collision key is language-gated on purpose \u2014 a cross-language pair is separated COMPLETELY by file extension, leaving xcallers behind in a shape registered structural. Closing this needs new corpus pins (a second declaring member in some language), never an ungated key.",
   "xchain_passes": [
    {
     "chain": [
@@ -206,7 +235,7 @@
     "xalias": 35,
     "xcallers": 24,
     "xchain": 46,
-    "xcollide": 20,
+    "xcollide": 0,
     "ximpact": 24,
     "xnew": 10,
     "xsubtypes": 68
@@ -226,12 +255,7 @@
     "xchain": {
      "ts": 46
     },
-    "xcollide": {
-     "go": 1,
-     "php": 9,
-     "py": 4,
-     "ts": 6
-    },
+    "xcollide": {},
     "ximpact": {
      "go": 6,
      "php": 5,
@@ -247,14 +271,14 @@
      "ts": 13
     }
    },
-   "n_scored_structural": 134,
+   "n_scored_structural": 114,
    "n_control": 58,
    "registered_floors": {
     "structural": 105,
     "control": 40,
     "total": 145
    },
-   "arithmetic": "structural excluding xalias = xchain 46 + xcollide 20 + xsubtypes 68 = 134 (>= 105); control = xcallers 24 + ximpact 24 + xnew 10 = 58 (>= 40); total = 227 (>= 145)",
+   "arithmetic": "structural excluding xalias = xchain 46 + xcollide 0 + xsubtypes 68 = 114 (>= 105); control = xcallers 24 + ximpact 24 + xnew 10 = 58 (>= 40); total = 207 (>= 145)",
    "meets_floors": {
     "structural": true,
     "control": true,
@@ -262,7 +286,7 @@
    },
    "note": "control shapes are greppable (the bare name is the answer key); structural shapes are not. grade_ws.py reads this map from the header so a shape added or excluded here cannot leave the reported subsets stale."
   },
-  "n_tasks": 227
+  "n_tasks": 207
  },
  "tasks": [
   {
@@ -3493,383 +3517,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-ArgumentMetadata-126",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/common:ArgumentMetadata",
-   "defining_member": "nest-common",
-   "def_file": "../nest/packages/common/interfaces/features/pipe-transform.interface.ts",
-   "consumers": [
-    "nest-core"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `ArgumentMetadata` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The TypeScript export `ArgumentMetadata` from `@nestjs/common`, declared in the ../nest/packages/common project and written there as `ArgumentMetadata, imported from '@nestjs/common'`. List every file in the OTHER member projects (not ../nest/packages/common) that references THAT declaration. A file that references some other project's `ArgumentMetadata` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/core/pipes/pipes-consumer.ts"
-   ]
-  },
-  {
-   "id": "ws-xcollide-ArgumentMetadata-127",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "php",
-   "symbol": "Symfony\\Component\\HttpKernel\\ControllerMetadata\\ArgumentMetadata",
-   "defining_member": "symfony",
-   "def_file": "../symfony/src/Symfony/Component/HttpKernel/ControllerMetadata/ArgumentMetadata.php",
-   "consumers": [
-    "drupal"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `ArgumentMetadata` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The PHP class/interface `Symfony\\Component\\HttpKernel\\ControllerMetadata\\ArgumentMetadata`, declared in the ../symfony project and written there as `\\Symfony\\Component\\HttpKernel\\ControllerMetadata\\ArgumentMetadata`. List every file in the OTHER member projects (not ../symfony) that references THAT declaration. A file that references some other project's `ArgumentMetadata` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../drupal/lib/Drupal/Core/Controller/ArgumentResolver/Psr7RequestValueResolver.php",
-    "../drupal/lib/Drupal/Core/Controller/ArgumentResolver/RouteMatchValueResolver.php"
-   ]
-  },
-  {
-   "id": "ws-xcollide-BadRequestException-128",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/common:BadRequestException",
-   "defining_member": "nest-common",
-   "def_file": "../nest/packages/common/exceptions/bad-request.exception.ts",
-   "consumers": [
-    "nest-core"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `BadRequestException` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The TypeScript export `BadRequestException` from `@nestjs/common`, declared in the ../nest/packages/common project and written there as `BadRequestException, imported from '@nestjs/common'`. List every file in the OTHER member projects (not ../nest/packages/common) that references THAT declaration. A file that references some other project's `BadRequestException` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/core/router/routes-resolver.ts",
-    "../nest/packages/core/test/router/routes-resolver.spec.ts"
-   ]
-  },
-  {
-   "id": "ws-xcollide-BadRequestException-129",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "php",
-   "symbol": "Symfony\\Component\\HttpFoundation\\Exception\\BadRequestException",
-   "defining_member": "symfony",
-   "def_file": "../symfony/src/Symfony/Component/HttpFoundation/Exception/BadRequestException.php",
-   "consumers": [
-    "drupal"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `BadRequestException` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The PHP class/interface `Symfony\\Component\\HttpFoundation\\Exception\\BadRequestException`, declared in the ../symfony project and written there as `\\Symfony\\Component\\HttpFoundation\\Exception\\BadRequestException`. List every file in the OTHER member projects (not ../symfony) that references THAT declaration. A file that references some other project's `BadRequestException` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../drupal/lib/Drupal/Core/Path/PathValidator.php",
-    "../drupal/modules/system/src/PathBasedBreadcrumbBuilder.php",
-    "../drupal/modules/views_ui/src/ViewEditForm.php",
-    "../drupal/modules/views_ui/src/ViewListBuilder.php"
-   ]
-  },
-  {
-   "id": "ws-xcollide-ConsoleLogger-130",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/common:ConsoleLogger",
-   "defining_member": "nest-common",
-   "def_file": "../nest/packages/common/services/console-logger.service.ts",
-   "consumers": [
-    "nest-core"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `ConsoleLogger` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The TypeScript export `ConsoleLogger` from `@nestjs/common`, declared in the ../nest/packages/common project and written there as `ConsoleLogger, imported from '@nestjs/common'`. List every file in the OTHER member projects (not ../nest/packages/common) that references THAT declaration. A file that references some other project's `ConsoleLogger` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/core/repl/repl-logger.ts"
-   ]
-  },
-  {
-   "id": "ws-xcollide-ConsoleLogger-131",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "php",
-   "symbol": "Symfony\\Component\\Console\\Logger\\ConsoleLogger",
-   "defining_member": "symfony",
-   "def_file": "../symfony/src/Symfony/Component/Console/Logger/ConsoleLogger.php",
-   "consumers": [
-    "drupal"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `ConsoleLogger` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The PHP class/interface `Symfony\\Component\\Console\\Logger\\ConsoleLogger`, declared in the ../symfony project and written there as `\\Symfony\\Component\\Console\\Logger\\ConsoleLogger`. List every file in the OTHER member projects (not ../symfony) that references THAT declaration. A file that references some other project's `ConsoleLogger` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../drupal/lib/Drupal/Core/Recipe/RecipeCommand.php"
-   ]
-  },
-  {
-   "id": "ws-xcollide-Headers-132",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "php",
-   "symbol": "Symfony\\Component\\Mime\\Header\\Headers",
-   "defining_member": "symfony",
-   "def_file": "../symfony/src/Symfony/Component/Mime/Header/Headers.php",
-   "consumers": [
-    "drupal"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `Headers` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The PHP class/interface `Symfony\\Component\\Mime\\Header\\Headers`, declared in the ../symfony project and written there as `\\Symfony\\Component\\Mime\\Header\\Headers`. List every file in the OTHER member projects (not ../symfony) that references THAT declaration. A file that references some other project's `Headers` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../drupal/lib/Drupal/Core/Mail/Plugin/Mail/PhpMail.php",
-    "../drupal/lib/Drupal/Core/Mail/Plugin/Mail/SymfonyMailer.php"
-   ]
-  },
-  {
-   "id": "ws-xcollide-Headers-133",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "py",
-   "symbol": "werkzeug.datastructures.Headers",
-   "defining_member": "werkzeug",
-   "def_file": "../werkzeug/src/werkzeug/datastructures/headers.py",
-   "consumers": [
-    "flask"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `Headers` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The Python name `Headers` (importable as `werkzeug.datastructures.Headers`), declared in the ../werkzeug project and written there as `werkzeug.datastructures.Headers`. List every file in the OTHER member projects (not ../werkzeug) that references THAT declaration. A file that references some other project's `Headers` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../flask/src/flask/app.py"
-   ]
-  },
-  {
-   "id": "ws-xcollide-HttpException-134",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/common:HttpException",
-   "defining_member": "nest-common",
-   "def_file": "../nest/packages/common/exceptions/http.exception.ts",
-   "consumers": [
-    "nest-core"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `HttpException` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The TypeScript export `HttpException` from `@nestjs/common`, declared in the ../nest/packages/common project and written there as `HttpException, imported from '@nestjs/common'`. List every file in the OTHER member projects (not ../nest/packages/common) that references THAT declaration. A file that references some other project's `HttpException` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/core/exceptions/base-exception-filter.ts",
-    "../nest/packages/core/exceptions/exceptions-handler.ts",
-    "../nest/packages/core/exceptions/external-exception-filter.ts",
-    "../nest/packages/core/test/exceptions/exceptions-handler.spec.ts"
-   ]
-  },
-  {
-   "id": "ws-xcollide-HttpException-135",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "php",
-   "symbol": "Symfony\\Component\\HttpKernel\\Exception\\HttpException",
-   "defining_member": "symfony",
-   "def_file": "../symfony/src/Symfony/Component/HttpKernel/Exception/HttpException.php",
-   "consumers": [
-    "drupal",
-    "laravel"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `HttpException` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The PHP class/interface `Symfony\\Component\\HttpKernel\\Exception\\HttpException`, declared in the ../symfony project and written there as `\\Symfony\\Component\\HttpKernel\\Exception\\HttpException`. List every file in the OTHER member projects (not ../symfony) that references THAT declaration. A file that references some other project's `HttpException` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../drupal/lib/Drupal/Core/Form/FormAjaxResponseBuilder.php",
-    "../drupal/lib/Drupal/Core/Form/FormAjaxResponseBuilderInterface.php",
-    "../drupal/lib/Drupal/Core/Http/Exception/CacheableHttpException.php",
-    "../drupal/modules/big_pipe/src/Controller/BigPipeController.php",
-    "../drupal/modules/ckeditor5/src/Controller/CKEditor5ImageController.php",
-    "../drupal/modules/file/src/Plugin/rest/resource/FileUploadResource.php",
-    "../drupal/modules/jsonapi/src/Controller/FileUpload.php",
-    "../drupal/modules/jsonapi/src/EventSubscriber/DefaultExceptionSubscriber.php",
-    "../drupal/modules/jsonapi/src/EventSubscriber/JsonapiMaintenanceModeSubscriber.php",
-    "../drupal/modules/jsonapi/src/Exception/UnprocessableHttpEntityException.php",
-    "../drupal/modules/jsonapi/src/Normalizer/EntityAccessDeniedHttpExceptionNormalizer.php",
-    "../drupal/modules/jsonapi/src/Normalizer/HttpExceptionNormalizer.php",
-    "../drupal/modules/jsonapi/src/Normalizer/UnprocessableHttpEntityExceptionNormalizer.php",
-    "../drupal/modules/rest/src/Plugin/rest/resource/EntityResource.php",
-    "../drupal/modules/system/tests/modules/router_test_directory/src/RouterTestEarlyExceptionSubscriber.php",
-    "../drupal/modules/system/tests/modules/test_page_test/src/Controller/Test.php",
-    "../drupal/modules/user/src/Plugin/LanguageNegotiation/LanguageNegotiationUserAdmin.php",
-    "../drupal/tests/Drupal/KernelTests/Core/EventSubscriber/ExceptionLoggingSubscriberTest.php",
-    "../drupal/tests/Drupal/KernelTests/Core/Plugin/Condition/ResponseStatusTest.php",
-    "../drupal/tests/Drupal/Tests/Core/Form/EventSubscriber/FormAjaxSubscriberTest.php",
-    "../drupal/tests/Drupal/Tests/Core/Form/FormAjaxResponseBuilderTest.php",
-    "../laravel-framework/src/Illuminate/Foundation/Application.php",
-    "../laravel-framework/src/Illuminate/Foundation/Exceptions/Handler.php",
-    "../laravel-framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php",
-    "../laravel-framework/src/Illuminate/Foundation/helpers.php",
-    "../laravel-framework/src/Illuminate/Http/Exceptions/PostTooLargeException.php",
-    "../laravel-framework/src/Illuminate/Http/Middleware/TrustProxies.php",
-    "../laravel-framework/src/Illuminate/Routing/Exceptions/InvalidSignatureException.php",
-    "../laravel-framework/src/Illuminate/View/Engines/CompilerEngine.php",
-    "../laravel-framework/tests/Broadcasting/BroadcasterTest.php",
-    "../laravel-framework/tests/Foundation/Configuration/ExceptionsTest.php",
-    "../laravel-framework/tests/Foundation/FoundationApplicationTest.php",
-    "../laravel-framework/tests/Foundation/FoundationExceptionsHandlerTest.php",
-    "../laravel-framework/tests/View/ViewCompilerEngineTest.php",
-    "../laravel-framework/types/Foundation/Configuration/Exceptions.php"
-   ]
-  },
-  {
-   "id": "ws-xcollide-Optional-136",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/common:Optional",
-   "defining_member": "nest-common",
-   "def_file": "../nest/packages/common/decorators/core/optional.decorator.ts",
-   "consumers": [
-    "nest-core"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `Optional` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The TypeScript export `Optional` from `@nestjs/common`, declared in the ../nest/packages/common project and written there as `Optional, imported from '@nestjs/common'`. List every file in the OTHER member projects (not ../nest/packages/common) that references THAT declaration. A file that references some other project's `Optional` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/core/exceptions/base-exception-filter.ts",
-    "../nest/packages/core/test/injector/injector.spec.ts"
-   ]
-  },
-  {
-   "id": "ws-xcollide-Optional-137",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "php",
-   "symbol": "Symfony\\Component\\Validator\\Constraints\\Optional",
-   "defining_member": "symfony",
-   "def_file": "../symfony/src/Symfony/Component/Validator/Constraints/Optional.php",
-   "consumers": [
-    "drupal"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `Optional` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The PHP class/interface `Symfony\\Component\\Validator\\Constraints\\Optional`, declared in the ../symfony project and written there as `\\Symfony\\Component\\Validator\\Constraints\\Optional`. List every file in the OTHER member projects (not ../symfony) that references THAT declaration. A file that references some other project's `Optional` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../drupal/lib/Drupal/Core/Recipe/Recipe.php",
-    "../drupal/modules/update/src/ProjectRelease.php"
-   ]
-  },
-  {
-   "id": "ws-xcollide-Range-138",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "go",
-   "symbol": "github.com/prometheus/client_golang/api/prometheus/v1.Range",
-   "defining_member": "client_golang",
-   "def_file": "../client_golang/api/prometheus/v1/api.go",
-   "consumers": [
-    "prometheus"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `Range` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The Go identifier `Range` from package `github.com/prometheus/client_golang/api/prometheus/v1`, declared in the ../client_golang project and written there as `v1.Range, from package github.com/prometheus/client_golang/api/prometheus/v1`. List every file in the OTHER member projects (not ../client_golang) that references THAT declaration. A file that references some other project's `Range` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../prometheus/cmd/promtool/query.go",
-    "../prometheus/cmd/promtool/rules.go",
-    "../prometheus/cmd/promtool/rules_test.go"
-   ]
-  },
-  {
-   "id": "ws-xcollide-Range-139",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "php",
-   "symbol": "Symfony\\Component\\Validator\\Constraints\\Range",
-   "defining_member": "symfony",
-   "def_file": "../symfony/src/Symfony/Component/Validator/Constraints/Range.php",
-   "consumers": [
-    "drupal"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `Range` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The PHP class/interface `Symfony\\Component\\Validator\\Constraints\\Range`, declared in the ../symfony project and written there as `\\Symfony\\Component\\Validator\\Constraints\\Range`. List every file in the OTHER member projects (not ../symfony) that references THAT declaration. A file that references some other project's `Range` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../drupal/lib/Drupal/Core/Validation/Plugin/Validation/Constraint/RangeConstraint.php",
-    "../drupal/lib/Drupal/Core/Validation/Plugin/Validation/Constraint/RangeConstraintValidator.php"
-   ]
-  },
-  {
-   "id": "ws-xcollide-Request-140",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/common:Request",
-   "defining_member": "nest-common",
-   "def_file": "../nest/packages/common/decorators/http/route-params.decorator.ts",
-   "consumers": [
-    "nest-core"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `Request` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The TypeScript export `Request` from `@nestjs/common`, declared in the ../nest/packages/common project and written there as `Request, imported from '@nestjs/common'`. List every file in the OTHER member projects (not ../nest/packages/common) that references THAT declaration. A file that references some other project's `Request` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/core/test/helpers/context-utils.spec.ts"
-   ]
-  },
-  {
-   "id": "ws-xcollide-Request-141",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "py",
-   "symbol": "werkzeug.wrappers.Request",
-   "defining_member": "werkzeug",
-   "def_file": "../werkzeug/examples/coolmagic/utils.py",
-   "consumers": [
-    "flask"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `Request` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The Python name `Request` (importable as `werkzeug.wrappers.Request`), declared in the ../werkzeug project and written there as `werkzeug.wrappers.Request`. List every file in the OTHER member projects (not ../werkzeug) that references THAT declaration. A file that references some other project's `Request` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../flask/src/flask/testing.py",
-    "../flask/src/flask/wrappers.py"
-   ]
-  },
-  {
-   "id": "ws-xcollide-Response-142",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "php",
-   "symbol": "Symfony\\Component\\BrowserKit\\Response",
-   "defining_member": "symfony",
-   "def_file": "../symfony/src/Symfony/Component/BrowserKit/Response.php",
-   "consumers": [
-    "drupal"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `Response` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The PHP class/interface `Symfony\\Component\\BrowserKit\\Response`, declared in the ../symfony project and written there as `\\Symfony\\Component\\BrowserKit\\Response`. List every file in the OTHER member projects (not ../symfony) that references THAT declaration. A file that references some other project's `Response` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../drupal/tests/Drupal/Tests/Core/Test/WebAssertTest.php",
-    "../drupal/tests/Drupal/Tests/DrupalTestBrowser.php"
-   ]
-  },
-  {
-   "id": "ws-xcollide-Response-143",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "py",
-   "symbol": "werkzeug.sansio.response.Response",
-   "defining_member": "werkzeug",
-   "def_file": "../werkzeug/examples/coolmagic/utils.py",
-   "consumers": [
-    "flask"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `Response` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The Python name `Response` (importable as `werkzeug.sansio.response.Response`), declared in the ../werkzeug project and written there as `werkzeug.sansio.response.Response`. List every file in the OTHER member projects (not ../werkzeug) that references THAT declaration. A file that references some other project's `Response` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../flask/src/flask/sansio/app.py"
-   ]
-  },
-  {
-   "id": "ws-xcollide-Response-144",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "py",
-   "symbol": "werkzeug.wrappers.Response",
-   "defining_member": "werkzeug",
-   "def_file": "../werkzeug/examples/coolmagic/utils.py",
-   "consumers": [
-    "flask"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `Response` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The Python name `Response` (importable as `werkzeug.wrappers.Response`), declared in the ../werkzeug project and written there as `werkzeug.wrappers.Response`. List every file in the OTHER member projects (not ../werkzeug) that references THAT declaration. A file that references some other project's `Response` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../flask/src/flask/app.py",
-    "../flask/src/flask/helpers.py",
-    "../flask/src/flask/wrappers.py"
-   ]
-  },
-  {
-   "id": "ws-xcollide-Type-145",
-   "kind": "xcollide",
-   "rung": "rung1",
-   "lang": "php",
-   "symbol": "Symfony\\Component\\Validator\\Constraints\\Type",
-   "defining_member": "symfony",
-   "def_file": "../symfony/src/Symfony/Component/Validator/Constraints/Type.php",
-   "consumers": [
-    "drupal"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The name `Type` is declared in more than one member project, so a plain text search for it matches files bound to any of those declarations. Only one is meant here: The PHP class/interface `Symfony\\Component\\Validator\\Constraints\\Type`, declared in the ../symfony project and written there as `\\Symfony\\Component\\Validator\\Constraints\\Type`. List every file in the OTHER member projects (not ../symfony) that references THAT declaration. A file that references some other project's `Type` does not count. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../drupal/lib/Drupal/Component/Plugin/Context/Context.php",
-    "../drupal/lib/Drupal/Core/Recipe/Recipe.php",
-    "../drupal/modules/system/src/SecurityAdvisories/SecurityAdvisory.php",
-    "../drupal/modules/update/src/ProjectRelease.php"
-   ]
-  },
-  {
-   "id": "ws-xalias-ContainerInterface-146",
+   "id": "ws-xalias-ContainerInterface-126",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -3886,7 +3534,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Request-147",
+   "id": "ws-xalias-Request-127",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -3911,7 +3559,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Route-148",
+   "id": "ws-xalias-Route-128",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -3929,7 +3577,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Response-149",
+   "id": "ws-xalias-Response-129",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -3952,7 +3600,7 @@
    ]
   },
   {
-   "id": "ws-xalias-RouteCollection-150",
+   "id": "ws-xalias-RouteCollection-130",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -3969,7 +3617,7 @@
    ]
   },
   {
-   "id": "ws-xalias-ContainerBuilder-151",
+   "id": "ws-xalias-ContainerBuilder-131",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -3985,7 +3633,7 @@
    ]
   },
   {
-   "id": "ws-xalias-RedirectResponse-152",
+   "id": "ws-xalias-RedirectResponse-132",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4003,7 +3651,7 @@
    ]
   },
   {
-   "id": "ws-xalias-JsonResponse-153",
+   "id": "ws-xalias-JsonResponse-133",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4020,7 +3668,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Command-154",
+   "id": "ws-xalias-Command-134",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4039,7 +3687,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Finder-155",
+   "id": "ws-xalias-Finder-135",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4056,7 +3704,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Serializer-156",
+   "id": "ws-xalias-Serializer-136",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4072,7 +3720,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Filesystem-157",
+   "id": "ws-xalias-Filesystem-137",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4091,7 +3739,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Yaml-158",
+   "id": "ws-xalias-Yaml-138",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4109,7 +3757,7 @@
    ]
   },
   {
-   "id": "ws-xalias-UploadedFile-159",
+   "id": "ws-xalias-UploadedFile-139",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4130,7 +3778,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Container-160",
+   "id": "ws-xalias-Container-140",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4147,7 +3795,7 @@
    ]
   },
   {
-   "id": "ws-xalias-ToFloat64-161",
+   "id": "ws-xalias-ToFloat64-141",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "go",
@@ -4174,7 +3822,7 @@
    ]
   },
   {
-   "id": "ws-xalias-PhpExecutableFinder-162",
+   "id": "ws-xalias-PhpExecutableFinder-142",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4191,7 +3839,7 @@
    ]
   },
   {
-   "id": "ws-xalias-RequestContext-163",
+   "id": "ws-xalias-RequestContext-143",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4211,7 +3859,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Application-164",
+   "id": "ws-xalias-Application-144",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4231,7 +3879,7 @@
    ]
   },
   {
-   "id": "ws-xalias-SentMessage-165",
+   "id": "ws-xalias-SentMessage-145",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4247,7 +3895,7 @@
    ]
   },
   {
-   "id": "ws-xalias-XmlEncoder-166",
+   "id": "ws-xalias-XmlEncoder-146",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4264,7 +3912,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Event-167",
+   "id": "ws-xalias-Event-147",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4280,7 +3928,7 @@
    ]
   },
   {
-   "id": "ws-xalias-File-168",
+   "id": "ws-xalias-File-148",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4296,7 +3944,7 @@
    ]
   },
   {
-   "id": "ws-xalias-UrlMatcher-169",
+   "id": "ws-xalias-UrlMatcher-149",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4312,7 +3960,7 @@
    ]
   },
   {
-   "id": "ws-xalias-JsonEncoder-170",
+   "id": "ws-xalias-JsonEncoder-150",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4328,7 +3976,7 @@
    ]
   },
   {
-   "id": "ws-xalias-UrlGeneratorInterface-171",
+   "id": "ws-xalias-UrlGeneratorInterface-151",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4345,7 +3993,7 @@
    ]
   },
   {
-   "id": "ws-xalias-ControllerResolverInterface-172",
+   "id": "ws-xalias-ControllerResolverInterface-152",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4361,7 +4009,7 @@
    ]
   },
   {
-   "id": "ws-xalias-CompiledRoute-173",
+   "id": "ws-xalias-CompiledRoute-153",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4378,7 +4026,7 @@
    ]
   },
   {
-   "id": "ws-xalias-abort-174",
+   "id": "ws-xalias-abort-154",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "py",
@@ -4394,7 +4042,7 @@
    ]
   },
   {
-   "id": "ws-xalias-ContextualValidatorInterface-175",
+   "id": "ws-xalias-ContextualValidatorInterface-155",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4410,7 +4058,7 @@
    ]
   },
   {
-   "id": "ws-xalias-MetadataBag-176",
+   "id": "ws-xalias-MetadataBag-156",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4427,7 +4075,7 @@
    ]
   },
   {
-   "id": "ws-xalias-RouteCompiler-177",
+   "id": "ws-xalias-RouteCompiler-157",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4443,7 +4091,7 @@
    ]
   },
   {
-   "id": "ws-xalias-ConstraintValidatorFactory-178",
+   "id": "ws-xalias-ConstraintValidatorFactory-158",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4459,7 +4107,7 @@
    ]
   },
   {
-   "id": "ws-xalias-HtmlDumper-179",
+   "id": "ws-xalias-HtmlDumper-159",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4476,7 +4124,7 @@
    ]
   },
   {
-   "id": "ws-xalias-CliDumper-180",
+   "id": "ws-xalias-CliDumper-160",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4493,7 +4141,7 @@
    ]
   },
   {
-   "id": "ws-xchain-Abstract-181",
+   "id": "ws-xchain-Abstract-161",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4516,7 +4164,7 @@
    ]
   },
   {
-   "id": "ws-xchain-ArgumentMetadata-182",
+   "id": "ws-xchain-ArgumentMetadata-162",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4540,7 +4188,7 @@
    ]
   },
   {
-   "id": "ws-xchain-CallHandler-183",
+   "id": "ws-xchain-CallHandler-163",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4564,7 +4212,7 @@
    ]
   },
   {
-   "id": "ws-xchain-ClassProvider-184",
+   "id": "ws-xchain-ClassProvider-164",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4587,7 +4235,7 @@
    ]
   },
   {
-   "id": "ws-xchain-DynamicModule-185",
+   "id": "ws-xchain-DynamicModule-165",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4619,7 +4267,7 @@
    ]
   },
   {
-   "id": "ws-xchain-ENTRY_PROVIDER_WATERMARK-186",
+   "id": "ws-xchain-ENTRY_PROVIDER_WATERMARK-166",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4642,7 +4290,7 @@
    ]
   },
   {
-   "id": "ws-xchain-EnhancerSubtype-187",
+   "id": "ws-xchain-EnhancerSubtype-167",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4678,7 +4326,7 @@
    ]
   },
   {
-   "id": "ws-xchain-ExecutionContext-188",
+   "id": "ws-xchain-ExecutionContext-168",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4705,7 +4353,7 @@
    ]
   },
   {
-   "id": "ws-xchain-ExistingProvider-189",
+   "id": "ws-xchain-ExistingProvider-169",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4728,7 +4376,7 @@
    ]
   },
   {
-   "id": "ws-xchain-FILTER_CATCH_EXCEPTIONS-190",
+   "id": "ws-xchain-FILTER_CATCH_EXCEPTIONS-170",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4751,7 +4399,7 @@
    ]
   },
   {
-   "id": "ws-xchain-FactoryProvider-191",
+   "id": "ws-xchain-FactoryProvider-171",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4780,7 +4428,7 @@
    ]
   },
   {
-   "id": "ws-xchain-GLOBAL_MODULE_METADATA-192",
+   "id": "ws-xchain-GLOBAL_MODULE_METADATA-172",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4808,7 +4456,7 @@
    ]
   },
   {
-   "id": "ws-xchain-GUARDS_METADATA-193",
+   "id": "ws-xchain-GUARDS_METADATA-173",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4832,7 +4480,7 @@
    ]
   },
   {
-   "id": "ws-xchain-GetOrResolveOptions-194",
+   "id": "ws-xchain-GetOrResolveOptions-174",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4855,7 +4503,7 @@
    ]
   },
   {
-   "id": "ws-xchain-GlobalPrefixOptions-195",
+   "id": "ws-xchain-GlobalPrefixOptions-175",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4881,7 +4529,7 @@
    ]
   },
   {
-   "id": "ws-xchain-HttpArgumentsHost-196",
+   "id": "ws-xchain-HttpArgumentsHost-176",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4908,7 +4556,7 @@
    ]
   },
   {
-   "id": "ws-xchain-INTERCEPTORS_METADATA-197",
+   "id": "ws-xchain-INTERCEPTORS_METADATA-177",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4932,7 +4580,7 @@
    ]
   },
   {
-   "id": "ws-xchain-INestApplicationContext-198",
+   "id": "ws-xchain-INestApplicationContext-178",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4955,7 +4603,7 @@
    ]
   },
   {
-   "id": "ws-xchain-InjectionToken-199",
+   "id": "ws-xchain-InjectionToken-179",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4987,7 +4635,7 @@
    ]
   },
   {
-   "id": "ws-xchain-LogLevel-200",
+   "id": "ws-xchain-LogLevel-180",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5010,7 +4658,7 @@
    ]
   },
   {
-   "id": "ws-xchain-LoggerService-201",
+   "id": "ws-xchain-LoggerService-181",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5042,7 +4690,7 @@
    ]
   },
   {
-   "id": "ws-xchain-NestApplicationContextOptions-202",
+   "id": "ws-xchain-NestApplicationContextOptions-182",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5065,7 +4713,7 @@
    ]
   },
   {
-   "id": "ws-xchain-NestModule-203",
+   "id": "ws-xchain-NestModule-183",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5088,7 +4736,7 @@
    ]
   },
   {
-   "id": "ws-xchain-OPTIONAL_DEPS_METADATA-204",
+   "id": "ws-xchain-OPTIONAL_DEPS_METADATA-184",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5114,7 +4762,7 @@
    ]
   },
   {
-   "id": "ws-xchain-OPTIONAL_PROPERTY_DEPS_METADATA-205",
+   "id": "ws-xchain-OPTIONAL_PROPERTY_DEPS_METADATA-185",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5140,7 +4788,7 @@
    ]
   },
   {
-   "id": "ws-xchain-OptionalFactoryDependency-206",
+   "id": "ws-xchain-OptionalFactoryDependency-186",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5166,7 +4814,7 @@
    ]
   },
   {
-   "id": "ws-xchain-PIPES_METADATA-207",
+   "id": "ws-xchain-PIPES_METADATA-187",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5190,7 +4838,7 @@
    ]
   },
   {
-   "id": "ws-xchain-PROPERTY_DEPS_METADATA-208",
+   "id": "ws-xchain-PROPERTY_DEPS_METADATA-188",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5216,7 +4864,7 @@
    ]
   },
   {
-   "id": "ws-xchain-ParamData-209",
+   "id": "ws-xchain-ParamData-189",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5242,7 +4890,7 @@
    ]
   },
   {
-   "id": "ws-xchain-Provider-210",
+   "id": "ws-xchain-Provider-190",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5275,7 +4923,7 @@
    ]
   },
   {
-   "id": "ws-xchain-RESPONSE_PASSTHROUGH_METADATA-211",
+   "id": "ws-xchain-RESPONSE_PASSTHROUGH_METADATA-191",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5299,7 +4947,7 @@
    ]
   },
   {
-   "id": "ws-xchain-RouteParamtypes-212",
+   "id": "ws-xchain-RouteParamtypes-192",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5323,7 +4971,7 @@
    ]
   },
   {
-   "id": "ws-xchain-RpcArgumentsHost-213",
+   "id": "ws-xchain-RpcArgumentsHost-193",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5350,7 +4998,7 @@
    ]
   },
   {
-   "id": "ws-xchain-SELF_DECLARED_DEPS_METADATA-214",
+   "id": "ws-xchain-SELF_DECLARED_DEPS_METADATA-194",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5376,7 +5024,7 @@
    ]
   },
   {
-   "id": "ws-xchain-ShutdownSignal-215",
+   "id": "ws-xchain-ShutdownSignal-195",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5399,7 +5047,7 @@
    ]
   },
   {
-   "id": "ws-xchain-Type-216",
+   "id": "ws-xchain-Type-196",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5456,7 +5104,7 @@
    ]
   },
   {
-   "id": "ws-xchain-ValueProvider-217",
+   "id": "ws-xchain-ValueProvider-197",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5479,7 +5127,7 @@
    ]
   },
   {
-   "id": "ws-xchain-VersioningOptions-218",
+   "id": "ws-xchain-VersioningOptions-198",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5505,7 +5153,7 @@
    ]
   },
   {
-   "id": "ws-xchain-WsArgumentsHost-219",
+   "id": "ws-xchain-WsArgumentsHost-199",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5532,7 +5180,7 @@
    ]
   },
   {
-   "id": "ws-xchain-clc-220",
+   "id": "ws-xchain-clc-200",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5562,7 +5210,7 @@
    ]
   },
   {
-   "id": "ws-xchain-isConstructor-221",
+   "id": "ws-xchain-isConstructor-201",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5586,7 +5234,7 @@
    ]
   },
   {
-   "id": "ws-xchain-isNil-222",
+   "id": "ws-xchain-isNil-202",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5621,7 +5269,7 @@
    ]
   },
   {
-   "id": "ws-xchain-isObject-223",
+   "id": "ws-xchain-isObject-203",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5651,7 +5299,7 @@
    ]
   },
   {
-   "id": "ws-xchain-isString-224",
+   "id": "ws-xchain-isString-204",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5683,7 +5331,7 @@
    ]
   },
   {
-   "id": "ws-xchain-isSymbol-225",
+   "id": "ws-xchain-isSymbol-205",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5711,7 +5359,7 @@
    ]
   },
   {
-   "id": "ws-xchain-randomStringGenerator-226",
+   "id": "ws-xchain-randomStringGenerator-206",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
