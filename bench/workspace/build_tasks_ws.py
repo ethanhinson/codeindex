@@ -45,6 +45,21 @@ to the emitted GT, not to a candidate-level proxy.
 
 Prompts embed {WS_ROOT}; the runner substitutes the workspace root path.
 
+KNOWN LIMITATIONS (three, deliberate). These are what the miner does TODAY, and
+each is asserted by known_limitations() under --selftest so it cannot be quietly
+"fixed" into a regression:
+
+  * go and py emit ZERO xsubtypes  — go's real subtyping is implicit interface
+    satisfaction and is NOT textually computable (a Go sub_pattern branch would
+    be false coverage); py needs an alias-aware pattern (+ a re-freeze).
+  * ts emits ZERO xalias           — a corpus fact, not a gating bug: nothing in
+    nest-core/nest-microservices imports a mined nest-common symbol renamed.
+  * xchain is NEST-ONLY            — the other clusters are only two members
+    deep; closing it needs new corpus pins, not a miner change.
+
+See the block above known_limitations() for the prerequisite each number waits
+on. Read it before you change one.
+
 Usage:
   python3 build_tasks_ws.py [--seed 1729] [--min-tasks 30] [--out tasks/tasks_ws.json]
   python3 build_tasks_ws.py --selftest
@@ -856,9 +871,101 @@ def build_subsets(tasks):
     }
 
 
+# --------------------------------------------------------------------------- #
+# KNOWN LIMITATIONS — characterization assertions
+#
+# Learning: ``known-limitations-need-a-characterization-test``. Each of the
+# three shape gaps below is DELIBERATE and is recorded here as an assertion of
+# what this miner DOES TODAY, not as a target. The detection signal for each is
+# sitting right there in the corpus, so "closing" one looks like a small win —
+# and each of these three would be WRONG, or would need a prerequisite that has
+# not landed. Anyone who changes the behaviour must break one of these
+# assertions on the way, read the prerequisite recorded next to it, and update
+# the number deliberately. Do not "fix" the assertion to match new output
+# without satisfying the stated prerequisite first.
+#
+# Run: python3 build_tasks_ws.py --selftest   (exits non-zero on failure)
+# --------------------------------------------------------------------------- #
+
+def known_limitations(bundle):
+    """Assert TODAY's recorded gaps. Returns [(label, ok, detail)].
+
+    Every label is spelled ``KNOWN LIMITATION`` on purpose: these are the
+    current numbers, deliberately frozen, each with the prerequisite that must
+    land before the number is allowed to move.
+    """
+    per_shape_lang = bundle["header"]["subsets"]["per_shape_lang_n"]
+    out = []
+
+    def n(kind, lang):
+        return per_shape_lang.get(kind, {}).get(lang, 0)
+
+    # (1) Go and Python emit ZERO xsubtypes. This asserts today's behaviour on
+    # purpose.
+    #   PREREQUISITE (go): NOT a Go branch in sub_pattern(). Go's real
+    #   subtyping is IMPLICIT INTERFACE SATISFACTION — three corpus files
+    #   define `Collect(ch chan<- prometheus.Metric)` and satisfy
+    #   prometheus.Collector without ever naming it. A textual cross-member
+    #   miner cannot compute that, and a textual `extends|implements`-shaped
+    #   Go branch would emit FALSE COVERAGE. Closing this needs a real type
+    #   checker (or type information from the index), not a regex.
+    #   PREREQUISITE (py): an ALIAS-AWARE subtype pattern. Python's zero is
+    #   real but small (~+4-5): flask subclasses werkzeug under renamed
+    #   imports (`from werkzeug.wrappers import Request as RequestBase`), and
+    #   the current pattern matches the original name only; the proper-subset
+    #   guard then drops ~2 more. Moving this number requires teaching
+    #   sub_pattern() the local alias binding, and re-freezing the corpus.
+    for lang in ("go", "py"):
+        got = n("xsubtypes", lang)
+        out.append((
+            f"KNOWN LIMITATION: {lang} emits zero xsubtypes (recorded, not a goal)",
+            got == 0,
+            f"expected 0, got {got}",
+        ))
+
+    # (2) TS emits ZERO xalias. This asserts today's behaviour on purpose.
+    #   PREREQUISITE: NEW CORPUS PINS, not a miner change. This is a corpus
+    #   FACT, not a gating bug: no mined nest-common symbol is imported under
+    #   an alias anywhere in nest-core or nest-microservices. All four alias
+    #   dialect branches in aliased_binding() work, TS included. Loosening the
+    #   TS branch to make this non-zero would emit non-aliasing files.
+    got = n("xalias", "ts")
+    out.append((
+        "KNOWN LIMITATION: ts emits zero xalias (corpus fact, not a gating bug)",
+        got == 0,
+        f"expected 0, got {got}",
+    ))
+
+    # (3) xchain is NEST-ONLY. This asserts today's behaviour on purpose.
+    #   PREREQUISITE: a THIRD member in another cluster, i.e. new corpus pins
+    #   — not a miner change. The php, py and go clusters are two members deep
+    #   (lib + consumer), so no A->B->C chain exists in them to mine. (php has
+    #   three members but two are sibling consumers of symfony, not a chain.)
+    #   Synthesising a chain, or relaxing the hop-1 join to manufacture one,
+    #   is explicitly not the fix.
+    nest = ["nest-common", "nest-core", "nest-microservices"]
+    emitting = [p["chain"] for p in bundle["header"]["xchain_passes"]
+                if p["emitted"] > 0]
+    libs = sorted({t["defining_member"]
+                   for t in bundle["tasks"] if t["kind"] == "xchain"})
+    langs = sorted({t["lang"] for t in bundle["tasks"] if t["kind"] == "xchain"})
+    out.append((
+        "KNOWN LIMITATION: xchain is nest-only (needs new corpus pins to change)",
+        emitting == [nest] and libs == ["nest-core"] and langs == ["ts"],
+        f"expected chains=[{nest}] libs=['nest-core'] langs=['ts'], "
+        f"got chains={emitting} libs={libs} langs={langs}",
+    ))
+    return out
+
+
 def selftest(bundle, ws_root):
     ok = True
     h = bundle["header"]
+    for label, passed, detail in known_limitations(bundle):
+        print(f"  [{'ok' if passed else 'CHANGED'}] {label}"
+              + ("" if passed else f" -- {detail}"))
+        if not passed:
+            ok = False
     for t in bundle["tasks"]:
         for f in t["gt_files"]:
             if not (ws_root / f).is_file():
