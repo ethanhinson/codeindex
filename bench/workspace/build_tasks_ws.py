@@ -143,8 +143,19 @@ def load_members():
     return ws_root, members
 
 
+_MEMBER_TEXTS = {}  # member id -> [(rel, text)]; the tree is read ONCE
+
+
 def member_files(member):
-    """[(member-relative path, text)] for the member's own sources."""
+    """[(member-relative path, text)] for the member's own sources.
+
+    Memoised on the member id: mine() reads every member once, and the
+    shape_invariants() sweep re-derives each shape's predicate over the same
+    texts. Without the memo the sweep would double `--selftest`'s disk work
+    for no new information.
+    """
+    if member["id"] in _MEMBER_TEXTS:
+        return _MEMBER_TEXTS[member["id"]]
     exts = {e for lang in member["lang"] for e in EXT[lang]}
     out = []
     for p in member["root"].rglob("*"):
@@ -160,6 +171,7 @@ def member_files(member):
         except OSError:
             continue
     out.sort()
+    _MEMBER_TEXTS[member["id"]] = out
     return out
 
 
@@ -1664,6 +1676,149 @@ def xcollide_nondegeneracy(bundle):
     ]
 
 
+# --------------------------------------------------------------------------- #
+# shape_invariants — the PER-TASK, CORPUS-WIDE sweep.
+#
+# THE FINDING THIS ANSWERS: the original per-task check over `gt_files` was
+# existence, non-emptiness and arm-leak. Nothing re-derived the predicate the
+# task's OWN SHAPE claims about its ground truth, so three mining passes could
+# be added and the only thing standing behind their answers was "the path is on
+# disk". That is exactly how the xsubtypes blocker got in: 35 of 187 GT entries
+# were not subtype declarations and 13 tasks were wholly wrong.
+#
+# So for EVERY emitted task this sweep re-applies the shape's own predicate to
+# the GT file's text and fails NAMING THE TASK ID. It is deliberately written
+# against the same helpers the miner uses (`sub_matcher`, `aliased_binding`,
+# `extract_refs`) rather than against a private re-implementation: the claim
+# under test is "the emitted GT is what this shape says it is", not "two
+# regexes agree". A predicate bug therefore still needs the unit cases
+# (subtype_cases) — the two layers catch different faults, and neither
+# subsumes the other.
+#
+#   xsubtypes  every GT file genuinely DECLARES a subtype of the symbol.
+#   xalias     every GT file binds the symbol under a different local name,
+#              AND GT is a PROPER SUBSET of the symbol's reference set — the
+#              shape is a subset filter, so an equal set is xcallers rephrased.
+#   xnew       every GT file instantiates the symbol, same proper-subset rule.
+#   xcallers   every GT file really references the symbol.
+#   ximpact    same, plus the def_file is present and is the ONLY entry from
+#              the defining member (the shape adds the definition, not the
+#              lib's other files).
+#
+# xchain and xcollide are already swept per-task by xchain_nondegeneracy() and
+# xcollide_nondegeneracy() and are skipped here rather than duplicated.
+# --------------------------------------------------------------------------- #
+
+def _reference_index(ws_root):
+    """(lib id, symbol) -> {ws-relative consumer file} — the xcallers set.
+
+    Re-derived from the tree with the miner's own extractor so the sweep's
+    "does this file reference the symbol" is the same question the miner
+    answered, asked again from the emitted task. Member texts are memoised
+    (see member_files), so this costs no extra disk reads.
+    """
+    _, members = load_members()
+    idx = {}
+    for lib in (m for m in members if "shared lib" in m["role"]):
+        lang = lib["lang"][0]
+        for m in members:
+            if m["id"] == lib["id"] or lang not in m["lang"]:
+                continue
+            for rel, text in member_files(m):
+                for sym in extract_refs(text, lang, lib["namespaces"]):
+                    idx.setdefault((lib["id"], sym), set()).add(
+                        ws_rel(ws_root, m, rel))
+    return idx
+
+
+def shape_invariants(bundle, ws_root):
+    """Re-derive every task's own shape predicate over its GT files."""
+    refs = _reference_index(ws_root)
+    _, members = load_members()
+    prefixes = {m["id"]: ws_rel(ws_root, m, "").rstrip("/") for m in members}
+    cache = {}
+
+    def text(rel):
+        if rel not in cache:
+            p = ws_root / rel
+            cache[rel] = p.read_text(errors="replace") if p.is_file() else ""
+        return cache[rel]
+
+    swept = {"xsubtypes": 0, "xalias": 0, "xnew": 0, "xcallers": 0,
+             "ximpact": 0}
+    bad = {k: [] for k in ("declaration", "alias", "new", "reference",
+                           "subset", "impact_def")}
+    for t in bundle["tasks"]:
+        kind = t["kind"]
+        if kind not in swept:
+            continue  # xchain / xcollide: swept by their own non-degeneracy
+        swept[kind] += 1
+        lang, sym = t["lang"], t["symbol"]
+        gt = set(t["gt_files"])
+        refset = refs.get((t["defining_member"], sym), set())
+
+        if kind in ("xsubtypes", "xnew"):
+            match = sub_matcher(kind, lang, bare_name(sym, lang))
+            slot = "declaration" if kind == "xsubtypes" else "new"
+            if match is None:
+                bad[slot].append(f"{t['id']}: no {kind} matcher for {lang}")
+            else:
+                for g in sorted(gt):
+                    if not match(text(g)):
+                        bad[slot].append(f"{t['id']}:{g}")
+        if kind == "xalias":
+            for g in sorted(gt):
+                if not aliased_binding(text(g), sym, lang):
+                    bad["alias"].append(f"{t['id']}:{g}")
+        if kind in ("xalias", "xnew"):
+            if not gt < refset:
+                bad["subset"].append(
+                    f"{t['id']}: |gt|={len(gt)} |refs|={len(refset)} "
+                    f"extra={sorted(gt - refset)[:3]}")
+        if kind in ("xcallers", "ximpact"):
+            # ximpact alone adds the definition file, which lives in the lib
+            # and is not a reference to itself.
+            for g in sorted(gt - ({t["def_file"]} if kind == "ximpact"
+                                  else set())):
+                if g not in refset:
+                    bad["reference"].append(f"{t['id']}:{g}")
+        if kind == "ximpact":
+            own = sorted(g for g in gt
+                         if g.startswith(prefixes[t["defining_member"]] + "/"))
+            if own != [t["def_file"]]:
+                bad["impact_def"].append(f"{t['id']}: {own}")
+
+    empty = sorted(k for k, n in swept.items() if n == 0)
+    return [
+        (f"shape invariant: every xsubtypes GT file DECLARES a subtype "
+         f"({swept['xsubtypes']} tasks swept)", not bad["declaration"],
+         f"{len(bad['declaration'])} non-declarations: "
+         f"{bad['declaration'][:5]}"),
+        (f"shape invariant: every xalias GT file binds the symbol under "
+         f"another name ({swept['xalias']} tasks swept)", not bad["alias"],
+         f"{len(bad['alias'])} non-aliasing: {bad['alias'][:5]}"),
+        (f"shape invariant: every xnew GT file instantiates the symbol "
+         f"({swept['xnew']} tasks swept)", not bad["new"],
+         f"{len(bad['new'])} non-instantiating: {bad['new'][:5]}"),
+        ("shape invariant: xalias/xnew GT is a PROPER SUBSET of the symbol's "
+         "reference set (the shape is a filter, not xcallers)",
+         not bad["subset"],
+         f"{len(bad['subset'])} not proper subsets: {bad['subset'][:5]}"),
+        (f"shape invariant: every xcallers/ximpact GT file references the "
+         f"symbol ({swept['xcallers'] + swept['ximpact']} tasks swept)",
+         not bad["reference"],
+         f"{len(bad['reference'])} non-referencing: {bad['reference'][:5]}"),
+        ("shape invariant: every ximpact GT holds the def_file as its only "
+         "entry from the defining member", not bad["impact_def"],
+         f"{len(bad['impact_def'])} wrong: {bad['impact_def'][:5]}"),
+        # A sweep over zero tasks passes for the wrong reason; the registered
+        # shapes must actually have been visited.
+        ("shape invariant: every registered non-chain shape was actually "
+         "swept (no vacuous pass)", not empty,
+         f"shapes with zero tasks swept: {empty}"),
+    ]
+
+
 def floor_cases(bundle):
     """BINDING check of the pre-registered freeze floors (bar B5).
 
@@ -1735,6 +1890,7 @@ def selftest(bundle, ws_root):
                                   + xchain_nondegeneracy(bundle, ws_root)
                                   + xcollide_guard_cases()
                                   + xcollide_nondegeneracy(bundle)
+                                  + shape_invariants(bundle, ws_root)
                                   + floor_cases(bundle)):
         print(f"  [{'ok' if passed else 'FAIL'}] {label}"
               + ("" if passed else f" -- {detail}"))
