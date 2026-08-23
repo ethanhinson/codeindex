@@ -269,7 +269,11 @@ Coupling to changes 0017 and 0018 is encoded as **ordering**, not as
   | flask | 25 / 74 | — |
   | werkzeug | 27 / 135 | — |
   | client_golang | 0 / 131 | — |
-  | prometheus | 8 / 128 | — |
+  | prometheus | 8 / 128 | 4 / 6 |
+
+  A `—` means the member's index holds **no** edges of that kind at all
+  (measured: `flask`, `werkzeug` and `client_golang` each have 0 `implements`
+  edges) — not that the rate was unmeasured.
 
 - **The sufficient claim**, stated exactly as measured: Go subtype edges are
   **unhinted** (client_golang 0/131) **and Go supplies zero subtype tasks**, so
