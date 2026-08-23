@@ -2,23 +2,23 @@
 id: 10
 slug: workspace-bench-corpus-monorepo-growth
 title: Grow the workspace bench corpus — monorepo declaration coverage in every supported language
-status: in-progress
+status: implemented
 priority: medium
 type: chore
 created: 2026-08-18
-updated: 2026-08-22
+updated: 2026-08-23
 depends_on: []
 related: [9, 17, 18]
 discovered_from: [9]
 adrs: [15, 16]
 spec: docs/superpowers/specs/2026-08-22-workspace-bench-corpus-monorepo-growth-design.md
 plan: docs/superpowers/plans/2026-08-22-workspace-bench-corpus-monorepo-growth-plan.md
-results:
+results: docs/results/2026-08-23-workspace-bench-corpus-monorepo-growth-results.md
 trivial: false
 auto_groomable: false
 branch: feat/workspace-bench-corpus-monorepo-growth
-claimed_at: 2026-08-23T01:55:00Z
-pr:
+claimed_at: 2026-08-23T02:05:00Z
+pr: https://github.com/ethanhinson/codeindex/pull/16
 blocked_by:
 reconciled: true
 ---
@@ -30,6 +30,8 @@ reconciled: true
 |---|---|
 | Spec | [2026-08-22-workspace-bench-corpus-monorepo-growth-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-22-workspace-bench-corpus-monorepo-growth-design.md) |
 | Plan | [2026-08-22-workspace-bench-corpus-monorepo-growth-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-bench-corpus-monorepo-growth/docs/superpowers/plans/2026-08-22-workspace-bench-corpus-monorepo-growth-plan.md) |
+| Results | [2026-08-23-workspace-bench-corpus-monorepo-growth-results.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-bench-corpus-monorepo-growth/docs/results/2026-08-23-workspace-bench-corpus-monorepo-growth-results.md) |
+| PR | [#16](https://github.com/ethanhinson/codeindex/pull/16) |
 | ADRs | [ADR-0015](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0015-corpus-caps-evaluated-on-emitted-ground-truth.md), [ADR-0016](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0016-discovery-pins-separate-manifest-from-mined-corpus.md) |
 <!-- docket:artifacts:end -->
 
