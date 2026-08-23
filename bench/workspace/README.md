@@ -314,3 +314,47 @@ fabricated coverage is not.
 | composer path repositories | needs coverage |
 | Python multi-member | needs coverage |
 | `lerna.json` | already covered by `nest` |
+
+#### Phase 2 result — per-format coverage (recorded)
+
+Pins live in `discovery_corpus.json`, which is **discovery-only**:
+`build_tasks_ws.py` does not read it, `corpus.json` is unmodified, and
+`tasks/tasks_ws.json` stays frozen at 215 tasks (24/24/10/80/20/35/22). Every
+member below therefore carries a **task quota of 0** by construction — phase 2
+changes discovery coverage, not the task corpus.
+
+Member counts are measured, not asserted: each root was passed to
+`internal/workspace.Members` (the code `init-workspace --scan` uses) via a
+throwaway probe. `vite` and `babel` were shallow-cloned at the pinned tag,
+probed, and discarded — they are **not** vendored under `bench/repos/`; the pin
+is the record.
+
+| declaration format | status | member | pin (commit) | licence | members found | task quota |
+|---|---|---|---|---|---|---|
+| `lerna.json` | **covered** (pre-existing) | `nestjs/nest` | `v10.4.15` (`d0fb875`) | MIT | 9 | 0 |
+| composer path repositories | **covered** | `symfony/symfony` | `v7.2.2` (`fca27be`) | MIT | 2 | 0 |
+| `pnpm-workspace.yaml` | **covered** | `vitejs/vite` | `v6.0.7` (`a671e58`) | MIT | 73 | 0 |
+| npm/yarn `workspaces` | **covered** | `babel/babel` | `v7.26.0` (`63d3038`) | MIT | 173 | 0 |
+| `go.work` | **UNCOVERED** | — | — | — | — | 0 |
+| Python multi-member | **UNCOVERED** | — | — | — | — | 0 |
+
+Uncovered reasons, recorded rather than rounded away:
+
+- **`go.work`** — the three-candidate bound was spent on `grafana/loki`,
+  `open-telemetry/opentelemetry-collector` and `tailscale/tailscale`; none
+  declares a root `go.work`. The on-disk Go repos (`gin` v1.10.0, `prometheus`
+  v3.1.0, `client_golang` v1.20.5) have none either and discover 0 members.
+  Bound reached, search **STOPPED**.
+- **Python multi-member** — structural, not a search failure. `members.go` reads
+  exactly five declaration sources and **none is Python**; `pyproject.toml`,
+  `setup.py` and `setup.cfg` appear only in `memberMarkers`, i.e. as evidence
+  that an already-declared candidate is a real member, never as a declaration of
+  members. No Python repo can be discovered, so no pin would help — covering
+  this format is an **engine** change, not a corpus change. (`flask` 3.1.0 and
+  `werkzeug` 3.1.3 were checked and discover 0 members; `flask`'s `examples/`
+  subprojects are declared nowhere.)
+
+One incidental finding: `vite`'s organic `pnpm-workspace.yaml` exercises the
+recorded `**` limitation — `playground/**` degrades to a single-level glob and
+`packages/**/__tests__/**` matches nothing, so 73 members is the truncated
+count, not the full declaration.
