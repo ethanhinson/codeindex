@@ -516,3 +516,26 @@ One incidental finding: `vite`'s organic `pnpm-workspace.yaml` exercises the
 recorded `**` limitation — `playground/**` degrades to a single-level glob and
 `packages/**/__tests__/**` matches nothing, so 73 members is the truncated
 count, not the full declaration.
+
+## Amendment 2026-08-23: model ladder for the 0010-corpus scored runs (registered before any scored run)
+
+Owner direction: the B1–B5 gate runs on the OSS/fuse model ladder rather
+than the claude CLI — the m5 floor finding (index lifts sub-frontier
+models) is the hypothesis under test, on the structural corpus.
+
+- Harness: `fuse` (m5 mechanics — per-treatment HOME configs; arm A =
+  shell tools + failing shim + CODEINDEX_DISABLED + indexes physically
+  absent per B4; arm B = codeindex MCP server `mcp <oss-ws-root>` using
+  the ws-surfaces-revival binary = killed-0016 surfaces rebased onto
+  merged main incl. 0017, suite-green, GT-smoked).
+- Registered ladder, judged independently per model against B1–B5:
+  1. `local/qwen3-coder-30b` (m5's adoption-floor star; local, free)
+  2. `cloud/glm-5.2` (m5's ceiling model)
+  Optional extensions, same bars, only after both above complete:
+  `cloud/deepseek-v4-flash`, `cloud/qwen3-8b`.
+- Scored set: the frozen 172 scored tasks (207 minus the 35 excluded
+  xalias). Smoke runs (≤2 tasks) are unscored and permitted for
+  plumbing.
+- Member indexes are REBUILT with the revival binary before arm B
+  (picking up 0017's Go hints); the same rebuilt indexes' absence is
+  verified for arm A (`find -L`, zero tolerance).
