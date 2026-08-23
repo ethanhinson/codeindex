@@ -97,6 +97,16 @@ PER_LIB_PRIMARY_CAP = 12
 MIN_PER_LANG = 4
 MAX_GT_FILES = 40  # bigger answers measure listing stamina, not finding
 
+# The pre-registered freeze floors (design D7 bar B5). SINGLE SOURCE: the
+# header's ``registered_floors``, its ``arithmetic`` string and its
+# ``meets_floors`` verdict are all DERIVED from this dict, and ``--selftest``
+# FAILS when any entry is unmet -- the freeze arithmetic is binding, not
+# decorative. README.md's prose copy is checked against this dict too.
+# NOTE: ``control`` being 40 is a COINCIDENCE with MAX_GT_FILES above. They are
+# different invariants (a subset-size floor vs. a per-task ground-truth cap);
+# do not "deduplicate" them into one constant.
+REGISTERED_FLOORS = {"structural": 105, "control": 40, "total": 145}
+
 # Registered kind -> subset partition. Emitted into the task-file header; the
 # grader READS it from there and never hardcodes it, so adding or excluding a
 # shape cannot silently rot the reported subsets.
@@ -1331,17 +1341,20 @@ def build_subsets(tasks):
         "per_shape_lang_n": per_shape_lang,
         "n_scored_structural": n_struct,
         "n_control": n_control,
-        "registered_floors": {"structural": 105, "control": 40, "total": 145},
+        "registered_floors": dict(REGISTERED_FLOORS),
         "arithmetic": (
             f"structural excluding {', '.join(excluded) or 'nothing'} = "
-            f"{terms(scored_structural)} = {n_struct} (>= 105); "
-            f"control = {terms(control)} = {n_control} (>= 40); "
-            f"total = {len(tasks)} (>= 145)"
+            f"{terms(scored_structural)} = {n_struct} "
+            f"(>= {REGISTERED_FLOORS['structural']}); "
+            f"control = {terms(control)} = {n_control} "
+            f"(>= {REGISTERED_FLOORS['control']}); "
+            f"total = {len(tasks)} (>= {REGISTERED_FLOORS['total']})"
         ),
         "meets_floors": {
-            "structural": n_struct >= 105,
-            "control": n_control >= 40,
-            "total": len(tasks) >= 145,
+            name: actual >= REGISTERED_FLOORS[name]
+            for name, actual in (("structural", n_struct),
+                                 ("control", n_control),
+                                 ("total", len(tasks)))
         },
         "note": "control shapes are greppable (the bare name is the answer "
                 "key); structural shapes are not. grade_ws.py reads this map "
@@ -1651,6 +1664,63 @@ def xcollide_nondegeneracy(bundle):
     ]
 
 
+def floor_cases(bundle):
+    """BINDING check of the pre-registered freeze floors (bar B5).
+
+    ``meets_floors`` used to be advisory: nothing read it, so the corpus could
+    fall under a registered floor and ``--selftest`` still printed PASS. These
+    cases make every entry a hard failure, and additionally pin README.md's
+    prose copy of the same three numbers against REGISTERED_FLOORS so the
+    registration document cannot drift away from the code.
+    """
+    subsets = bundle["header"]["subsets"]
+    actuals = {"structural": subsets["n_scored_structural"],
+               "control": subsets["n_control"],
+               "total": bundle["header"]["n_tasks"]}
+    cases = []
+    for name, passed in subsets["meets_floors"].items():
+        floor = REGISTERED_FLOORS[name]
+        cases.append((
+            f"registered floor {name} >= {floor} (actual {actuals[name]})",
+            bool(passed),
+            f"SHORTFALL: {name} = {actuals[name]}, {floor - actuals[name]} "
+            f"under the registered floor of {floor}",
+        ))
+
+    # README.md's "Subset arithmetic, pinned at freeze" block states the same
+    # three floors in prose. It is a registration document, so it stays
+    # hand-written -- but it may not disagree with the code.
+    labels = {"scored structural": "structural", "control": "control",
+              "total": "total"}
+    text = (HERE / "README.md").read_text()
+    block = text.split("Subset arithmetic, pinned at freeze:", 1)
+    if len(block) != 2:
+        cases.append(("README floors pinned", False,
+                      "README.md: 'Subset arithmetic, pinned at freeze:' "
+                      "heading not found"))
+        return cases
+    stated = {}
+    for line in block[1].splitlines():
+        if not line.startswith("- "):
+            if stated:
+                break
+            continue
+        m = re.search(r"≥ registered (\d+)", line)
+        if not m:
+            continue
+        for prose, name in labels.items():
+            if line.startswith(f"- {prose}"):
+                stated[name] = int(m.group(1))
+                break
+    passed = stated == REGISTERED_FLOORS
+    cases.append((
+        "README floors match REGISTERED_FLOORS",
+        passed,
+        f"README.md states {stated}, code says {dict(REGISTERED_FLOORS)}",
+    ))
+    return cases
+
+
 def selftest(bundle, ws_root):
     ok = True
     h = bundle["header"]
@@ -1664,7 +1734,8 @@ def selftest(bundle, ws_root):
     for label, passed, detail in (xchain_guard_cases()
                                   + xchain_nondegeneracy(bundle, ws_root)
                                   + xcollide_guard_cases()
-                                  + xcollide_nondegeneracy(bundle)):
+                                  + xcollide_nondegeneracy(bundle)
+                                  + floor_cases(bundle)):
         print(f"  [{'ok' if passed else 'FAIL'}] {label}"
               + ("" if passed else f" -- {detail}"))
         if not passed:
