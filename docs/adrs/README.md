@@ -18,6 +18,7 @@ Immutable, numbered record of *why*. ADRs are never archived or rewritten; once 
 - [ADR-0012](0012-workspace-freshness-re-resolves-whole-workspace.md) — Workspace freshness re-resolves the whole workspace, not the incident edge set (Accepted) ← change #14 · relates to ADR-0005, ADR-0006
 - [ADR-0013](0013-unindexed-member-named-stale-every-pass.md) — An unindexed workspace member is named stale on every pass, not just the transition (Accepted) ← change #16 · relates to ADR-0011, ADR-0012
 - [ADR-0014](0014-go-import-self-bindings-suppressed.md) — Go import self-bindings carry no namespace information and are suppressed at both hint sites (Accepted) ← change #17
+- [ADR-0015](0015-corpus-caps-evaluated-on-emitted-ground-truth.md) — Corpus size caps and shape guards are evaluated on emitted ground truth, not on a candidate-level proxy (Accepted) ← change #10
 
 ## Superseded / Reversed
 
