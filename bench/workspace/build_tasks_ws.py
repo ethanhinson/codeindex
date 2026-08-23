@@ -81,6 +81,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from functools import lru_cache
@@ -784,7 +785,7 @@ def describe(symbol, lang):
         pkg, name = symbol.split(":", 1)
         return SYMDESC["ts"].format(name=name, pkg=pkg)
     if lang == "py":
-        mod, name = symbol.rsplit(".", 1)
+        _, name = symbol.rsplit(".", 1)
         return SYMDESC["py"].format(name=name, sym=symbol)
     pkg, name = symbol.rsplit(".", 1)
     return SYMDESC["go"].format(name=name, pkg=pkg)
@@ -902,7 +903,6 @@ def xcollide_is_structural(gt, union) -> bool:
 
 
 def ws_rel(ws_root, member, rel):
-    import os
     base = os.path.relpath(member["root"], ws_root)
     return f"{base}/{rel}"
 
