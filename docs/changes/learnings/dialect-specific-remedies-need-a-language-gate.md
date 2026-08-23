@@ -2,9 +2,9 @@
 slug: dialect-specific-remedies-need-a-language-gate
 hook: "A remedy whose correctness argument cites one language's semantics must be gated to that language — in shared multi-language code it silently deletes the other dialects' signal."
 topics: [review, multi-language, invariants, spec-fidelity]
-changes: [17]
+changes: [17, 10]
 created: 2026-08-22
-updated: 2026-08-22
+updated: 2026-08-23
 promotion_state: candidate
 promoted_to:
 ---
@@ -55,3 +55,13 @@ the fixed language.
   the skip deleted it outright. Caught at whole-branch review as the run's single `blocker`, fixed
   in-branch as `8e9ee63` by scoping the predicate to Go (`goImportSelfHint`). Suite green
   throughout; no test in tree covered it.
+- **#0010, PR #16** — the same shape one layer out, in a *bench ground-truth miner* rather than the
+  engine. One shared regex extracted subtype declarations across PHP and TypeScript; TS generic
+  constraints (`<T extends Foo>`) and PHP docblock text both matched it, contaminating 35 GT entries
+  and making 13 tasks wholly wrong. Caught at whole-branch review as a `blocker`. Two details worth
+  carrying: the reviewer's proposed remedy (`[^{;\n]*` — forbid newlines) was itself an ungated
+  dialect claim and was **rejected by the implementing worker** as over-broad, since both languages
+  have legitimate multi-line declarations; the fix that landed was dialect-gated bracket-depth
+  tracking (`9fd9d62`). And the damage was *larger* than the review reported (13 tasks / 35 GT
+  entries vs 10) — an ungated dialect predicate's blast radius is routinely under-counted on first
+  read, so re-measure it rather than trusting the finding's own number.
