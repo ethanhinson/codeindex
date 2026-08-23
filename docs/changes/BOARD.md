@@ -1,6 +1,6 @@
 # Backlog
 
-**18 changes** — 🟡 4 proposed · 🔵 1 implemented · ✅ 12 done · 🗑️ 1 killed
+**18 changes** — 🟡 4 proposed · ✅ 13 done · 🗑️ 1 killed
 
 ## 🟡 Proposed (4)
 
@@ -11,25 +11,19 @@
 | [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-brainstorm |
 | [0018](active/0018-aliased-import-resolution.md) | Resolve references made through import aliases — the name-vs-alias schema decision | `medium` | `fix` | needs-brainstorm |
 
-## 🔵 Implemented — awaiting merge (1)
-
-| # | Title | Priority | Type | PR | Readiness |
-|---|-------|----------|------|----|-----------|
-| [0010](active/0010-workspace-bench-corpus-monorepo-growth.md) | Grow the workspace bench corpus — monorepo declaration coverage in every supported language | `medium` | `chore` | [#16](https://github.com/ethanhinson/codeindex/pull/16) |  |
-
 ```mermaid
 graph TD
   0006
   0007
   0008
-  0010
   0018
 ```
 
-<details><summary>✅🗑️ Archive — done + killed (13)</summary>
+<details><summary>✅🗑️ Archive — done + killed (14)</summary>
 
 | # | Title | Merged |
 |---|-------|--------|
+| [0010](archive/2026-08-23-0010-workspace-bench-corpus-monorepo-growth.md) | Grow the workspace bench corpus — monorepo declaration coverage in every supported language | 2026-08-23 |
 | [0017](archive/2026-08-22-0017-adapter-namespace-hints-extends-implements.md) | Go subtype references carry namespace hints — fix the qualifier discard and KindImports Source | 2026-08-22 |
 | [0016](archive/2026-08-22-0016-workspace-query-surfaces-gated.md) | Workspace query surfaces — union-graph verbs, CLI/MCP wiring, workspace-status; merge gated on the D7 evidence run | 2026-08-22 |
 | [0015](archive/2026-08-20-0015-wsresolve-stamp-pruning.md) | Stamp pruning for unavailable members — close the stale-edges-after-unavailability hole | 2026-08-20 |
