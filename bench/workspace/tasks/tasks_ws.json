@@ -133,18 +133,17 @@
   "per_member_quota": {
    "symfony": 118,
    "client_golang": 14,
-   "nest-common": 32,
-   "werkzeug": 17,
-   "nest-core": 22
+   "nest-common": 78,
+   "werkzeug": 17
   },
   "per_lang_quota": {
    "php": 118,
    "go": 14,
-   "ts": 54,
+   "ts": 78,
    "py": 17
   },
   "rung_counts": {
-   "rung1": 203,
+   "rung1": 227,
    "rung2": 0
   },
   "rung2_note": "no organic bare-name cross-edges in this OSS corpus",
@@ -157,12 +156,15 @@
     ],
     "b_definitions": 232,
     "imported_by_c": 30,
-    "chain_symbols": 22,
+    "hop1_symbols": 60,
     "chain_files": 11,
-    "emitted": 22
+    "emitted": 46,
+    "rejected_greppable": 14,
+    "guard": "xchain_is_structural: GT disjoint from C's direct references to the named hop-1 symbol, and the rendered prompt spells no intermediary's name"
    }
   ],
   "xchain_note": "xchain is nest-only: a recorded corpus fact, not a gap. The php, py and go clusters are two members deep (lib + consumer), so no A->B->C chain exists in them; no chain was synthesised and no member was added.",
+  "xchain_shape": "keyed on the HOP-1 (member-A) symbol; only that symbol is named in the prompt and the member-B intermediaries are the agent's to discover. GT is the union, over every intermediary carrying that symbol onward, of the member-C files importing it, and is required to be DISJOINT from member-C's own direct references to the named symbol (xchain_is_structural) \u2014 so the name in the prompt is never the answer key, which is what this header's subset note requires of a structural shape.",
   "subsets": {
    "map": {
     "xalias": "structural",
@@ -203,7 +205,7 @@
    "per_shape_n": {
     "xalias": 35,
     "xcallers": 24,
-    "xchain": 22,
+    "xchain": 46,
     "xcollide": 20,
     "ximpact": 24,
     "xnew": 10,
@@ -222,7 +224,7 @@
      "ts": 5
     },
     "xchain": {
-     "ts": 22
+     "ts": 46
     },
     "xcollide": {
      "go": 1,
@@ -245,14 +247,14 @@
      "ts": 13
     }
    },
-   "n_scored_structural": 110,
+   "n_scored_structural": 134,
    "n_control": 58,
    "registered_floors": {
     "structural": 105,
     "control": 40,
     "total": 145
    },
-   "arithmetic": "structural excluding xalias = xchain 22 + xcollide 20 + xsubtypes 68 = 110 (>= 105); control = xcallers 24 + ximpact 24 + xnew 10 = 58 (>= 40); total = 203 (>= 145)",
+   "arithmetic": "structural excluding xalias = xchain 46 + xcollide 20 + xsubtypes 68 = 134 (>= 105); control = xcallers 24 + ximpact 24 + xnew 10 = 58 (>= 40); total = 227 (>= 145)",
    "meets_floors": {
     "structural": true,
     "control": true,
@@ -260,7 +262,7 @@
    },
    "note": "control shapes are greppable (the bare name is the answer key); structural shapes are not. grade_ws.py reads this map from the header so a shape added or excluded here cannot leave the reported subsets stale."
   },
-  "n_tasks": 203
+  "n_tasks": 227
  },
  "tasks": [
   {
@@ -4491,308 +4493,111 @@
    ]
   },
   {
-   "id": "ws-xchain-ApplicationConfig-181",
+   "id": "ws-xchain-Abstract-181",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
-   "symbol": "@nestjs/core:ApplicationConfig",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/application-config.ts",
+   "symbol": "@nestjs/common:Abstract",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/abstract.interface.ts",
    "consumers": [
     "nest-microservices"
    ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `CanActivate` from `@nestjs/common` is about to change incompatibly. The TypeScript export `ApplicationConfig` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `ApplicationConfig`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `ApplicationConfig, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/microservices/context/exception-filters-context.ts",
-    "../nest/packages/microservices/microservices-module.ts",
-    "../nest/packages/microservices/nest-microservice.ts",
-    "../nest/packages/microservices/test/listeners-controller.spec.ts"
-   ]
-  },
-  {
-   "id": "ws-xchain-BaseExceptionFilterContext-182",
-   "kind": "xchain",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/core:BaseExceptionFilterContext",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/exceptions/base-exception-filter-context.ts",
-   "consumers": [
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `ExceptionFilter` from `@nestjs/common` is about to change incompatibly. The TypeScript export `BaseExceptionFilterContext` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `BaseExceptionFilterContext`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `BaseExceptionFilterContext, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/microservices/context/exception-filters-context.ts"
-   ]
-  },
-  {
-   "id": "ws-xchain-ContextId-183",
-   "kind": "xchain",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/core:ContextId",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/injector/instance-wrapper.ts",
-   "consumers": [
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `EnhancerSubtype` from `@nestjs/common` is about to change incompatibly. The TypeScript export `ContextId` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `ContextId`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `ContextId, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/microservices/listeners-controller.ts"
-   ]
-  },
-  {
-   "id": "ws-xchain-ContextIdFactory-184",
-   "kind": "xchain",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/core:ContextIdFactory",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/helpers/context-id-factory.ts",
-   "consumers": [
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `isObject` from `@nestjs/common` is about to change incompatibly. The TypeScript export `ContextIdFactory` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `ContextIdFactory`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `ContextIdFactory, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/microservices/listeners-controller.ts"
-   ]
-  },
-  {
-   "id": "ws-xchain-ContextUtils-185",
-   "kind": "xchain",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/core:ContextUtils",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/helpers/context-utils.ts",
-   "consumers": [
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `ContextType` from `@nestjs/common` is about to change incompatibly. The TypeScript export `ContextUtils` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `ContextUtils`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `ContextUtils, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/microservices/context/rpc-context-creator.ts"
-   ]
-  },
-  {
-   "id": "ws-xchain-ExecutionContextHost-186",
-   "kind": "xchain",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/core:ExecutionContextHost",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/helpers/execution-context-host.ts",
-   "consumers": [
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `ContextType` from `@nestjs/common` is about to change incompatibly. The TypeScript export `ExecutionContextHost` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `ExecutionContextHost`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `ExecutionContextHost, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/microservices/context/rpc-context-creator.ts",
-    "../nest/packages/microservices/context/rpc-proxy.ts",
-    "../nest/packages/microservices/listeners-controller.ts",
-    "../nest/packages/microservices/test/context/rpc-context-creator.spec.ts",
-    "../nest/packages/microservices/test/listeners-controller.spec.ts"
-   ]
-  },
-  {
-   "id": "ws-xchain-GuardsConsumer-187",
-   "kind": "xchain",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/core:GuardsConsumer",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/guards/guards-consumer.ts",
-   "consumers": [
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `CanActivate` from `@nestjs/common` is about to change incompatibly. The TypeScript export `GuardsConsumer` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `GuardsConsumer`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `GuardsConsumer, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/microservices/context/rpc-context-creator.ts",
-    "../nest/packages/microservices/microservices-module.ts"
-   ]
-  },
-  {
-   "id": "ws-xchain-GuardsContextCreator-188",
-   "kind": "xchain",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/core:GuardsContextCreator",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/guards/guards-context-creator.ts",
-   "consumers": [
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `CanActivate` from `@nestjs/common` is about to change incompatibly. The TypeScript export `GuardsContextCreator` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `GuardsContextCreator`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `GuardsContextCreator, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/microservices/context/rpc-context-creator.ts",
-    "../nest/packages/microservices/microservices-module.ts"
-   ]
-  },
-  {
-   "id": "ws-xchain-HandlerMetadataStorage-189",
-   "kind": "xchain",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/core:HandlerMetadataStorage",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/helpers/handler-metadata-storage.ts",
-   "consumers": [
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `Controller` from `@nestjs/common` is about to change incompatibly. The TypeScript export `HandlerMetadataStorage` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `HandlerMetadataStorage`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `HandlerMetadataStorage, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/microservices/context/rpc-context-creator.ts"
-   ]
-  },
-  {
-   "id": "ws-xchain-Injector-190",
-   "kind": "xchain",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/core:Injector",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/injector/injector.ts",
-   "consumers": [
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `Controller` from `@nestjs/common` is about to change incompatibly. The TypeScript export `Injector` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `Injector`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `Injector, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/microservices/listeners-controller.ts",
-    "../nest/packages/microservices/microservices-module.ts",
-    "../nest/packages/microservices/nest-microservice.ts",
-    "../nest/packages/microservices/test/listeners-controller.spec.ts"
-   ]
-  },
-  {
-   "id": "ws-xchain-InstanceWrapper-191",
-   "kind": "xchain",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/core:InstanceWrapper",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/injector/instance-wrapper.ts",
-   "consumers": [
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `EnhancerSubtype` from `@nestjs/common` is about to change incompatibly. The TypeScript export `InstanceWrapper` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `InstanceWrapper`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `InstanceWrapper, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/microservices/context/exception-filters-context.ts",
-    "../nest/packages/microservices/listeners-controller.ts",
-    "../nest/packages/microservices/microservices-module.ts",
-    "../nest/packages/microservices/test/listeners-controller.spec.ts"
-   ]
-  },
-  {
-   "id": "ws-xchain-InterceptorsConsumer-192",
-   "kind": "xchain",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/core:InterceptorsConsumer",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/interceptors/interceptors-consumer.ts",
-   "consumers": [
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `CallHandler` from `@nestjs/common` is about to change incompatibly. The TypeScript export `InterceptorsConsumer` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `InterceptorsConsumer`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `InterceptorsConsumer, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/microservices/context/rpc-context-creator.ts",
-    "../nest/packages/microservices/microservices-module.ts"
-   ]
-  },
-  {
-   "id": "ws-xchain-InterceptorsContextCreator-193",
-   "kind": "xchain",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/core:InterceptorsContextCreator",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/interceptors/interceptors-context-creator.ts",
-   "consumers": [
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `Controller` from `@nestjs/common` is about to change incompatibly. The TypeScript export `InterceptorsContextCreator` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `InterceptorsContextCreator`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `InterceptorsContextCreator, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/microservices/context/rpc-context-creator.ts",
-    "../nest/packages/microservices/microservices-module.ts"
-   ]
-  },
-  {
-   "id": "ws-xchain-MESSAGES-194",
-   "kind": "xchain",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/core:MESSAGES",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/constants.ts",
-   "consumers": [
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `EnhancerSubtype` from `@nestjs/common` is about to change incompatibly. The TypeScript export `MESSAGES` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `MESSAGES`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `MESSAGES, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/microservices/exceptions/base-rpc-exception-filter.ts",
-    "../nest/packages/microservices/nest-microservice.ts"
-   ]
-  },
-  {
-   "id": "ws-xchain-MetadataScanner-195",
-   "kind": "xchain",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/core:MetadataScanner",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/metadata-scanner.ts",
-   "consumers": [
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `Injectable` from `@nestjs/common` is about to change incompatibly. The TypeScript export `MetadataScanner` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `MetadataScanner`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `MetadataScanner, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/microservices/listener-metadata-explorer.ts",
-    "../nest/packages/microservices/listeners-controller.ts"
-   ]
-  },
-  {
-   "id": "ws-xchain-Module-196",
-   "kind": "xchain",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/core:Module",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/injector/module.ts",
-   "consumers": [
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `ClassProvider` from `@nestjs/common` is about to change incompatibly. The TypeScript export `Module` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `Module`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `Module, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/microservices/listeners-controller.ts"
-   ]
-  },
-  {
-   "id": "ws-xchain-NestApplicationContext-197",
-   "kind": "xchain",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/core:NestApplicationContext",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/nest-application-context.ts",
-   "consumers": [
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `Abstract` from `@nestjs/common` is about to change incompatibly. The TypeScript export `NestApplicationContext` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `NestApplicationContext`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `NestApplicationContext, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `Abstract` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
    "gt_files": [
     "../nest/packages/microservices/nest-microservice.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:NestApplicationContext"
+   ],
+   "via_files": [
+    "../nest/packages/core/nest-application-context.ts"
    ]
   },
   {
-   "id": "ws-xchain-NestContainer-198",
+   "id": "ws-xchain-ArgumentMetadata-182",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
-   "symbol": "@nestjs/core:NestContainer",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/injector/container.ts",
+   "symbol": "@nestjs/common:ArgumentMetadata",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/features/pipe-transform.interface.ts",
    "consumers": [
     "nest-microservices"
    ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `DynamicModule` from `@nestjs/common` is about to change incompatibly. The TypeScript export `NestContainer` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `NestContainer`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `NestContainer, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `ArgumentMetadata` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/rpc-context-creator.ts",
+    "../nest/packages/microservices/microservices-module.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:PipesConsumer"
+   ],
+   "via_files": [
+    "../nest/packages/core/pipes/pipes-consumer.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-CallHandler-183",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:CallHandler",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/features/nest-interceptor.interface.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `CallHandler` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/rpc-context-creator.ts",
+    "../nest/packages/microservices/microservices-module.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:InterceptorsConsumer"
+   ],
+   "via_files": [
+    "../nest/packages/core/interceptors/interceptors-consumer.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-ClassProvider-184",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:ClassProvider",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/modules/provider.interface.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `ClassProvider` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/listeners-controller.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:Module"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/module.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-DynamicModule-185",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:DynamicModule",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/modules/dynamic-module.interface.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `DynamicModule` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
    "gt_files": [
     "../nest/packages/microservices/context/exception-filters-context.ts",
     "../nest/packages/microservices/listeners-controller.ts",
@@ -4800,72 +4605,1138 @@
     "../nest/packages/microservices/nest-microservice.ts",
     "../nest/packages/microservices/test/context/exception-filters-context.spec.ts",
     "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:Module",
+    "@nestjs/core:NestApplicationContext",
+    "@nestjs/core:NestContainer"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/container.ts",
+    "../nest/packages/core/injector/module.ts",
+    "../nest/packages/core/nest-application-context.ts"
    ]
   },
   {
-   "id": "ws-xchain-ParamProperties-199",
+   "id": "ws-xchain-ENTRY_PROVIDER_WATERMARK-186",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
-   "symbol": "@nestjs/core:ParamProperties",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/helpers/context-utils.ts",
+   "symbol": "@nestjs/common:ENTRY_PROVIDER_WATERMARK",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/constants.ts",
    "consumers": [
     "nest-microservices"
    ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `ContextType` from `@nestjs/common` is about to change incompatibly. The TypeScript export `ParamProperties` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `ParamProperties`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `ParamProperties, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `ENTRY_PROVIDER_WATERMARK` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
    "gt_files": [
-    "../nest/packages/microservices/context/rpc-context-creator.ts"
+    "../nest/packages/microservices/listeners-controller.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:Module"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/module.ts"
    ]
   },
   {
-   "id": "ws-xchain-ParamsMetadata-200",
+   "id": "ws-xchain-EnhancerSubtype-187",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
-   "symbol": "@nestjs/core:ParamsMetadata",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/helpers/interfaces/params-metadata.interface.ts",
+   "symbol": "@nestjs/common:EnhancerSubtype",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/constants.ts",
    "consumers": [
     "nest-microservices"
    ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `ParamData` from `@nestjs/common` is about to change incompatibly. The TypeScript export `ParamsMetadata` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `ParamsMetadata`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `ParamsMetadata, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `EnhancerSubtype` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
    "gt_files": [
-    "../nest/packages/microservices/context/rpc-context-creator.ts"
+    "../nest/packages/microservices/context/exception-filters-context.ts",
+    "../nest/packages/microservices/exceptions/base-rpc-exception-filter.ts",
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/nest-microservice.ts",
+    "../nest/packages/microservices/test/context/exception-filters-context.spec.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:ContextId",
+    "@nestjs/core:InstanceWrapper",
+    "@nestjs/core:MESSAGES",
+    "@nestjs/core:Module",
+    "@nestjs/core:NestContainer"
+   ],
+   "via_files": [
+    "../nest/packages/core/constants.ts",
+    "../nest/packages/core/injector/container.ts",
+    "../nest/packages/core/injector/instance-wrapper.ts",
+    "../nest/packages/core/injector/module.ts"
    ]
   },
   {
-   "id": "ws-xchain-PipesConsumer-201",
+   "id": "ws-xchain-ExecutionContext-188",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
-   "symbol": "@nestjs/core:PipesConsumer",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/pipes/pipes-consumer.ts",
+   "symbol": "@nestjs/common:ExecutionContext",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/features/execution-context.interface.ts",
    "consumers": [
     "nest-microservices"
    ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `ArgumentMetadata` from `@nestjs/common` is about to change incompatibly. The TypeScript export `PipesConsumer` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `PipesConsumer`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `PipesConsumer, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `ExecutionContext` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/rpc-context-creator.ts",
+    "../nest/packages/microservices/context/rpc-proxy.ts",
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/test/context/rpc-context-creator.spec.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:ExecutionContextHost"
+   ],
+   "via_files": [
+    "../nest/packages/core/helpers/execution-context-host.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-ExistingProvider-189",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:ExistingProvider",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/modules/provider.interface.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `ExistingProvider` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/listeners-controller.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:Module"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/module.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-FILTER_CATCH_EXCEPTIONS-190",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:FILTER_CATCH_EXCEPTIONS",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/constants.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `FILTER_CATCH_EXCEPTIONS` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/exception-filters-context.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:BaseExceptionFilterContext"
+   ],
+   "via_files": [
+    "../nest/packages/core/exceptions/base-exception-filter-context.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-FactoryProvider-191",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:FactoryProvider",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/modules/provider.interface.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `FactoryProvider` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/exception-filters-context.ts",
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:ContextId",
+    "@nestjs/core:InstanceWrapper",
+    "@nestjs/core:Module"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/instance-wrapper.ts",
+    "../nest/packages/core/injector/module.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-GLOBAL_MODULE_METADATA-192",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:GLOBAL_MODULE_METADATA",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/constants.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `GLOBAL_MODULE_METADATA` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/exception-filters-context.ts",
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/nest-microservice.ts",
+    "../nest/packages/microservices/test/context/exception-filters-context.spec.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:NestContainer"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/container.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-GUARDS_METADATA-193",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:GUARDS_METADATA",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/constants.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `GUARDS_METADATA` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
    "gt_files": [
     "../nest/packages/microservices/context/rpc-context-creator.ts",
     "../nest/packages/microservices/microservices-module.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:GuardsContextCreator"
+   ],
+   "via_files": [
+    "../nest/packages/core/guards/guards-context-creator.ts"
    ]
   },
   {
-   "id": "ws-xchain-PipesContextCreator-202",
+   "id": "ws-xchain-GetOrResolveOptions-194",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
-   "symbol": "@nestjs/core:PipesContextCreator",
-   "defining_member": "nest-core",
-   "def_file": "../nest/packages/core/pipes/pipes-context-creator.ts",
+   "symbol": "@nestjs/common:GetOrResolveOptions",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/nest-application-context.interface.ts",
    "consumers": [
     "nest-microservices"
    ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `Controller` from `@nestjs/common` is about to change incompatibly. The TypeScript export `PipesContextCreator` from `@nestjs/core` is defined in the ../nest/packages/core project, in a file that references that changing name, so the change propagates into ../nest/packages/core and then onward to whatever depends on `PipesContextCreator`. Work out that second hop: list every file in the OTHER member projects (not ../nest/packages/core) that references `PipesContextCreator, imported from '@nestjs/core'`, since those are the files the change reaches transitively. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `GetOrResolveOptions` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/nest-microservice.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:NestApplicationContext"
+   ],
+   "via_files": [
+    "../nest/packages/core/nest-application-context.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-GlobalPrefixOptions-195",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:GlobalPrefixOptions",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/global-prefix-options.interface.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `GlobalPrefixOptions` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/exception-filters-context.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/nest-microservice.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:ApplicationConfig"
+   ],
+   "via_files": [
+    "../nest/packages/core/application-config.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-HttpArgumentsHost-196",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:HttpArgumentsHost",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/features/arguments-host.interface.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `HttpArgumentsHost` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/rpc-context-creator.ts",
+    "../nest/packages/microservices/context/rpc-proxy.ts",
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/test/context/rpc-context-creator.spec.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:ExecutionContextHost"
+   ],
+   "via_files": [
+    "../nest/packages/core/helpers/execution-context-host.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-INTERCEPTORS_METADATA-197",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:INTERCEPTORS_METADATA",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/constants.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `INTERCEPTORS_METADATA` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
    "gt_files": [
     "../nest/packages/microservices/context/rpc-context-creator.ts",
     "../nest/packages/microservices/microservices-module.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:InterceptorsContextCreator"
+   ],
+   "via_files": [
+    "../nest/packages/core/interceptors/interceptors-context-creator.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-INestApplicationContext-198",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:INestApplicationContext",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/nest-application-context.interface.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `INestApplicationContext` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/nest-microservice.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:NestApplicationContext"
+   ],
+   "via_files": [
+    "../nest/packages/core/nest-application-context.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-InjectionToken-199",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:InjectionToken",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/modules/injection-token.interface.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `InjectionToken` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/exception-filters-context.ts",
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/nest-microservice.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:ContextId",
+    "@nestjs/core:Injector",
+    "@nestjs/core:InstanceWrapper",
+    "@nestjs/core:Module"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/injector.ts",
+    "../nest/packages/core/injector/instance-wrapper.ts",
+    "../nest/packages/core/injector/module.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-LogLevel-200",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:LogLevel",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/services/logger.service.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `LogLevel` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/nest-microservice.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:NestApplicationContext"
+   ],
+   "via_files": [
+    "../nest/packages/core/nest-application-context.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-LoggerService-201",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:LoggerService",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/services/logger.service.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `LoggerService` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/exception-filters-context.ts",
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/nest-microservice.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:ContextId",
+    "@nestjs/core:Injector",
+    "@nestjs/core:InstanceWrapper",
+    "@nestjs/core:NestApplicationContext"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/injector.ts",
+    "../nest/packages/core/injector/instance-wrapper.ts",
+    "../nest/packages/core/nest-application-context.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-NestApplicationContextOptions-202",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:NestApplicationContextOptions",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/nest-application-context-options.interface.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `NestApplicationContextOptions` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/nest-microservice.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:NestApplicationContext"
+   ],
+   "via_files": [
+    "../nest/packages/core/nest-application-context.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-NestModule-203",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:NestModule",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/modules/nest-module.interface.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `NestModule` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/listeners-controller.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:Module"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/module.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-OPTIONAL_DEPS_METADATA-204",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:OPTIONAL_DEPS_METADATA",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/constants.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `OPTIONAL_DEPS_METADATA` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/nest-microservice.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:Injector"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/injector.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-OPTIONAL_PROPERTY_DEPS_METADATA-205",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:OPTIONAL_PROPERTY_DEPS_METADATA",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/constants.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `OPTIONAL_PROPERTY_DEPS_METADATA` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/nest-microservice.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:Injector"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/injector.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-OptionalFactoryDependency-206",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:OptionalFactoryDependency",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/modules/optional-factory-dependency.interface.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `OptionalFactoryDependency` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/nest-microservice.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:Injector"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/injector.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-PIPES_METADATA-207",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:PIPES_METADATA",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/constants.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `PIPES_METADATA` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/rpc-context-creator.ts",
+    "../nest/packages/microservices/microservices-module.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:PipesContextCreator"
+   ],
+   "via_files": [
+    "../nest/packages/core/pipes/pipes-context-creator.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-PROPERTY_DEPS_METADATA-208",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:PROPERTY_DEPS_METADATA",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/constants.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `PROPERTY_DEPS_METADATA` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/nest-microservice.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:Injector"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/injector.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-ParamData-209",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:ParamData",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/decorators/http/route-params.decorator.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `ParamData` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/rpc-context-creator.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:ContextUtils",
+    "@nestjs/core:ParamProperties",
+    "@nestjs/core:ParamsMetadata"
+   ],
+   "via_files": [
+    "../nest/packages/core/helpers/context-utils.ts",
+    "../nest/packages/core/helpers/interfaces/params-metadata.interface.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-Provider-210",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:Provider",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/modules/provider.interface.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `Provider` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/exception-filters-context.ts",
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/nest-microservice.ts",
+    "../nest/packages/microservices/test/context/exception-filters-context.spec.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:ContextId",
+    "@nestjs/core:InstanceWrapper",
+    "@nestjs/core:Module",
+    "@nestjs/core:NestContainer"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/container.ts",
+    "../nest/packages/core/injector/instance-wrapper.ts",
+    "../nest/packages/core/injector/module.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-RESPONSE_PASSTHROUGH_METADATA-211",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:RESPONSE_PASSTHROUGH_METADATA",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/constants.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `RESPONSE_PASSTHROUGH_METADATA` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/rpc-context-creator.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:ContextUtils",
+    "@nestjs/core:ParamProperties"
+   ],
+   "via_files": [
+    "../nest/packages/core/helpers/context-utils.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-RouteParamtypes-212",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:RouteParamtypes",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/enums/route-paramtypes.enum.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `RouteParamtypes` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/rpc-context-creator.ts",
+    "../nest/packages/microservices/microservices-module.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:PipesConsumer"
+   ],
+   "via_files": [
+    "../nest/packages/core/pipes/pipes-consumer.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-RpcArgumentsHost-213",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:RpcArgumentsHost",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/features/arguments-host.interface.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `RpcArgumentsHost` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/rpc-context-creator.ts",
+    "../nest/packages/microservices/context/rpc-proxy.ts",
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/test/context/rpc-context-creator.spec.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:ExecutionContextHost"
+   ],
+   "via_files": [
+    "../nest/packages/core/helpers/execution-context-host.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-SELF_DECLARED_DEPS_METADATA-214",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:SELF_DECLARED_DEPS_METADATA",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/constants.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `SELF_DECLARED_DEPS_METADATA` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/nest-microservice.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:Injector"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/injector.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-ShutdownSignal-215",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:ShutdownSignal",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/enums/shutdown-signal.enum.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `ShutdownSignal` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/nest-microservice.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:NestApplicationContext"
+   ],
+   "via_files": [
+    "../nest/packages/core/nest-application-context.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-Type-216",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:Type",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/type.interface.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `Type` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/exception-filters-context.ts",
+    "../nest/packages/microservices/context/rpc-context-creator.ts",
+    "../nest/packages/microservices/context/rpc-proxy.ts",
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/nest-microservice.ts",
+    "../nest/packages/microservices/test/context/exception-filters-context.spec.ts",
+    "../nest/packages/microservices/test/context/rpc-context-creator.spec.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:BaseExceptionFilterContext",
+    "@nestjs/core:ContextId",
+    "@nestjs/core:ContextUtils",
+    "@nestjs/core:ExecutionContextHost",
+    "@nestjs/core:GuardsContextCreator",
+    "@nestjs/core:HandlerMetadataStorage",
+    "@nestjs/core:Injector",
+    "@nestjs/core:InstanceWrapper",
+    "@nestjs/core:InterceptorsConsumer",
+    "@nestjs/core:InterceptorsContextCreator",
+    "@nestjs/core:Module",
+    "@nestjs/core:NestApplicationContext",
+    "@nestjs/core:NestContainer",
+    "@nestjs/core:ParamProperties",
+    "@nestjs/core:PipesContextCreator"
+   ],
+   "via_files": [
+    "../nest/packages/core/exceptions/base-exception-filter-context.ts",
+    "../nest/packages/core/guards/guards-context-creator.ts",
+    "../nest/packages/core/helpers/context-utils.ts",
+    "../nest/packages/core/helpers/execution-context-host.ts",
+    "../nest/packages/core/helpers/handler-metadata-storage.ts",
+    "../nest/packages/core/injector/container.ts",
+    "../nest/packages/core/injector/injector.ts",
+    "../nest/packages/core/injector/instance-wrapper.ts",
+    "../nest/packages/core/injector/module.ts",
+    "../nest/packages/core/interceptors/interceptors-consumer.ts",
+    "../nest/packages/core/interceptors/interceptors-context-creator.ts",
+    "../nest/packages/core/nest-application-context.ts",
+    "../nest/packages/core/pipes/pipes-context-creator.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-ValueProvider-217",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:ValueProvider",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/modules/provider.interface.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `ValueProvider` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/listeners-controller.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:Module"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/module.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-VersioningOptions-218",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:VersioningOptions",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/version-options.interface.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `VersioningOptions` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/exception-filters-context.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/nest-microservice.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:ApplicationConfig"
+   ],
+   "via_files": [
+    "../nest/packages/core/application-config.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-WsArgumentsHost-219",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:WsArgumentsHost",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/features/arguments-host.interface.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `WsArgumentsHost` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/rpc-context-creator.ts",
+    "../nest/packages/microservices/context/rpc-proxy.ts",
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/test/context/rpc-context-creator.spec.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:ExecutionContextHost"
+   ],
+   "via_files": [
+    "../nest/packages/core/helpers/execution-context-host.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-clc-220",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:clc",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/utils/cli-colors.util.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `clc` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/exception-filters-context.ts",
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/nest-microservice.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:ContextId",
+    "@nestjs/core:Injector",
+    "@nestjs/core:InstanceWrapper"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/injector.ts",
+    "../nest/packages/core/injector/instance-wrapper.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-isConstructor-221",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:isConstructor",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/utils/shared.utils.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `isConstructor` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/listener-metadata-explorer.ts",
+    "../nest/packages/microservices/listeners-controller.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:MetadataScanner"
+   ],
+   "via_files": [
+    "../nest/packages/core/metadata-scanner.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-isNil-222",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:isNil",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/utils/shared.utils.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `isNil` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/exception-filters-context.ts",
+    "../nest/packages/microservices/listener-metadata-explorer.ts",
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/nest-microservice.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:ContextId",
+    "@nestjs/core:Injector",
+    "@nestjs/core:InstanceWrapper",
+    "@nestjs/core:MetadataScanner",
+    "@nestjs/core:Module"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/injector.ts",
+    "../nest/packages/core/injector/instance-wrapper.ts",
+    "../nest/packages/core/injector/module.ts",
+    "../nest/packages/core/metadata-scanner.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-isObject-223",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:isObject",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/utils/shared.utils.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `isObject` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/nest-microservice.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:ContextIdFactory",
+    "@nestjs/core:Injector",
+    "@nestjs/core:Module"
+   ],
+   "via_files": [
+    "../nest/packages/core/helpers/context-id-factory.ts",
+    "../nest/packages/core/injector/injector.ts",
+    "../nest/packages/core/injector/module.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-isString-224",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:isString",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/utils/shared.utils.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `isString` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/exception-filters-context.ts",
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/nest-microservice.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:ContextId",
+    "@nestjs/core:Injector",
+    "@nestjs/core:InstanceWrapper",
+    "@nestjs/core:Module"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/injector.ts",
+    "../nest/packages/core/injector/instance-wrapper.ts",
+    "../nest/packages/core/injector/module.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-isSymbol-225",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:isSymbol",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/utils/shared.utils.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `isSymbol` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/nest-microservice.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:Injector",
+    "@nestjs/core:Module"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/injector.ts",
+    "../nest/packages/core/injector/module.ts"
+   ]
+  },
+  {
+   "id": "ws-xchain-randomStringGenerator-226",
+   "kind": "xchain",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:randomStringGenerator",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/utils/random-string-generator.util.ts",
+   "consumers": [
+    "nest-microservices"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `randomStringGenerator` from `@nestjs/common` is defined in the ../nest/packages/common project and is about to change incompatibly. The ../nest/packages/core project references it, and the remaining member projects depend in turn on what ../nest/packages/core declares \u2014 so the change reaches them at one remove, through ../nest/packages/core, in files that never name it themselves. Work out that second hop. First: which files inside ../nest/packages/core reference it. Then: which names those particular files declare and export. List every file in the REMAINING member projects (neither ../nest/packages/common nor ../nest/packages/core) that imports one of THOSE names from ../nest/packages/core. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/microservices/context/exception-filters-context.ts",
+    "../nest/packages/microservices/listeners-controller.ts",
+    "../nest/packages/microservices/microservices-module.ts",
+    "../nest/packages/microservices/test/listeners-controller.spec.ts"
+   ],
+   "via_member": "nest-core",
+   "via_symbols": [
+    "@nestjs/core:ContextId",
+    "@nestjs/core:InstanceWrapper",
+    "@nestjs/core:Module"
+   ],
+   "via_files": [
+    "../nest/packages/core/injector/instance-wrapper.ts",
+    "../nest/packages/core/injector/module.ts"
    ]
   }
  ]

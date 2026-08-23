@@ -30,13 +30,17 @@ honest without resolving each language's internal-reference idioms
   xalias      — only the files that bind the symbol under a DIFFERENT local
                 name (renamed import). A subset filter: the aliasing statement
                 spells out the original name, so a text search over-returns.
-  xchain      — transitive blast radius A->B->C across three members: a change
-                to a symbol of member A reaches member C only through a
-                member-B symbol whose definition file references A.
+  xchain      — transitive blast radius A->B->C across three members. ONLY the
+                member-A symbol is named; the member-B intermediaries are the
+                agent's to discover. GT is the member-C files that import a
+                B-declared name whose declaring B file references the named A
+                symbol — and, by the emit guard, that never name it themselves.
 
 xnew/xsubtypes/xalias are emitted only when their answer is a proper subset of the
 xcallers set (a genuinely different answer, not a rephrasing); xcollide the
-same, against the bare-name union across members. xcallers/
+same, against the bare-name union across members; xchain when its answer is
+DISJOINT from the named symbol's own cross-member reference set (see
+xchain_is_structural). xcallers/
 ximpact/xnew are the control (greppable) shapes and stay scoped to the
 per-lib primary picks; xsubtypes and xcollide are structural and range over
 every mined candidate. Every emitted task's ground truth is capped at MAX_GT_FILES by the
@@ -653,15 +657,23 @@ PROMPTS = {
         "other than `{BARE}`. A file that imports it under its own name "
         "`{BARE}` does not count, even though it references it."
         + PROMPT_TAIL),
+    # NOTE: this template names the HOP-1 symbol ONLY. It must never spell a
+    # hop-2 (intermediary) name — doing so turns the task into `xcallers`
+    # verbatim and voids its registration as a structural (non-greppable)
+    # shape. `{QUAL}`/`{BARE}` of a hop-2 symbol are deliberately absent, and
+    # xchain_is_structural() enforces the same invariant on the emitted GT.
     "xchain": (
         "You are working in a multi-repo workspace rooted at {WS_ROOT}. "
         "Member projects (relative to that root): {MEMBERS}. "
-        "{HOP1} is about to change incompatibly. {SYMDESC} is defined in the "
-        "{LIB} project, in a file that references that changing name, so the "
-        "change propagates into {LIB} and then onward to whatever depends on "
-        "`{BARE}`. Work out that second hop: list every file in the OTHER "
-        "member projects (not {LIB}) that references `{QUAL}`, since those "
-        "are the files the change reaches transitively." + PROMPT_TAIL),
+        "{SYMDESC} is defined in the {LIB} project and is about to change "
+        "incompatibly. The {VIA} project references it, and the remaining "
+        "member projects depend in turn on what {VIA} declares — so the "
+        "change reaches them at one remove, through {VIA}, in files that "
+        "never name it themselves. Work out that second hop. First: which "
+        "files inside {VIA} reference it. Then: which names those particular "
+        "files declare and export. List every file in the REMAINING member "
+        "projects (neither {LIB} nor {VIA}) that imports one of THOSE names "
+        "from {VIA}." + PROMPT_TAIL),
 }
 
 # ------------------------------------------------------------------------- #
@@ -754,6 +766,56 @@ def gt_within_cap(gt) -> bool:
     return len(gt) <= MAX_GT_FILES
 
 
+def spells(name, text) -> bool:
+    """Does `text` spell `name` as a WHOLE WORD?
+
+    Substring containment is the wrong test and would reject honest tasks:
+    the prompt for `NestModule` contains the letters of the intermediary
+    `Module`, but no search for `Module` finds them — there is no word
+    boundary inside an identifier. What must not happen is the prompt handing
+    over an intermediary's name as a name.
+    """
+    return re.search(r"\b" + re.escape(name) + r"\b", text) is not None
+
+
+def xchain_is_structural(gt, direct_refs, hop2_symbols, prompt, lang) -> bool:
+    """The xchain NON-DEGENERACY guard — the shape's proper-subset equivalent.
+
+    Every other shape refuses to emit an answer that a plain search for the
+    name in the prompt already returns: xnew/xsubtypes/xalias require a PROPER
+    SUBSET of the xcallers set, xcollide a proper subset of the bare-name
+    union. xchain had no such guard, and without one it degenerated into
+    `xcallers` verbatim — the finding this function answers.
+
+    A proper-subset test is the wrong instrument HERE, because an xchain answer
+    is not drawn from the named symbol's reference set at all: it is the set of
+    member-C files that reach the symbol only through a member-B declaration.
+    The distinguishing property is therefore DISJOINTNESS, which is strictly
+    stronger: not one ground-truth file may itself reference the one name the
+    prompt hands over. That is exactly "the bare name is not the answer key",
+    which is how the header note partitions control from structural.
+
+    Two clauses, both necessary:
+
+      1. `gt` is disjoint from `direct_refs` — the member-C files that
+         reference the named symbol directly. A file in both is reachable by
+         searching for the named symbol, so the task would be partly
+         greppable. The whole task is REJECTED rather than the file trimmed
+         out: trimming would falsify the prompt, which asks for every file
+         reached through the intermediary, and that file is one of them.
+      2. the RENDERED prompt does not spell any intermediary's name as a whole
+         word — otherwise it hands over the second hop it is asking the agent
+         to find, which is the finding this guard answers. Checked against the
+         rendered text, not against the template, because the leak the finding
+         caught was a substitution (`{QUAL}`), not a literal.
+         (Rejects nothing in the frozen corpus; it is the invariant, not a
+         filter tuned to it — see xchain_guard_cases() for its RED case.)
+    """
+    if not gt or set(gt) & set(direct_refs):
+        return False
+    return not any(spells(bare_name(s, lang), prompt) for s in hop2_symbols)
+
+
 def ws_rel(ws_root, member, rel):
     import os
     base = os.path.relpath(member["root"], ws_root)
@@ -802,24 +864,37 @@ def mine(seed, min_tasks):
 
     tasks = []
 
+    def render(kind, c):
+        """The task prompt EXACTLY as it is emitted.
+
+        One rendering path, so the xchain guard inspects the same text the
+        agent will read — the finding it answers was a template substitution,
+        invisible in the template itself.
+        """
+        return PROMPTS[kind].format(
+            WS_ROOT="{WS_ROOT}",
+            MEMBERS=", ".join(sorted(member_rels.values())),
+            SYMDESC=describe(c["symbol"], c["lang"]),
+            BARE=bare_name(c["symbol"], c["lang"]),
+            QUAL=qualified_form(c["symbol"], c["lang"]),
+            # the intermediary MEMBER of an xchain task (never a hop-2
+            # symbol); unused by every other template
+            VIA=member_rels.get(c.get("via_member"), ""),
+            LIB=member_rels[c["lib"]])
+
     def emit(kind, c, gt, idx):
-        tasks.append({
+        task = {
             "id": f"ws-{kind}-{bare_name(c['symbol'], c['lang'])}-{idx:03d}",
             "kind": kind, "rung": "rung1", "lang": c["lang"],
             "symbol": c["symbol"], "defining_member": c["lib"],
             "def_file": c["def_file"], "consumers": c["consumers"],
-            "prompt": PROMPTS[kind].format(
-                WS_ROOT="{WS_ROOT}",
-                MEMBERS=", ".join(sorted(member_rels.values())),
-                SYMDESC=describe(c["symbol"], c["lang"]),
-                BARE=bare_name(c["symbol"], c["lang"]),
-                QUAL=qualified_form(c["symbol"], c["lang"]),
-                # hop-1 of an xchain task; unused by every other template
-                HOP1=c.get("hop1_desc", ""),
-                LIB=member_rels[c["lib"]]) .replace(
-                    "{WS_ROOT}", "{WS_ROOT}"),
+            "prompt": render(kind, c),
             "gt_files": gt,
-        })
+        }
+        # xchain records its intermediary in the task file (audit trail for the
+        # guard); no other shape carries extras.
+        task.update(c.get("extra") or {})
+        tasks.append(task)
 
     idx = 0
     picked = {}
@@ -951,10 +1026,23 @@ def mine(seed, min_tasks):
     #   hop 2  B -> C : which of C's files import a B symbol
     #   join         : keep the hop-2 symbols whose B definition file is a
     #                  hop-1 file, i.e. the change in A really does reach C
-    #                  through them. GT is the hop-2 file set.
+    #                  through them.
+    #
+    # THE TASK IS KEYED ON THE HOP-1 (member-A) SYMBOL, and only that symbol is
+    # named in the prompt. Keying on the hop-2 symbol instead — what this pass
+    # did before — forced the prompt to spell the intermediary out, at which
+    # point the operative sentence was `xcallers` word for word and the shape
+    # was greppable despite its structural registration. Keying on hop 1 is
+    # also the only WELL-POSED unit: several B symbols can carry the same A
+    # symbol onward, so naming A alone has a single answer only if GT is the
+    # UNION over all of them. Hence the grouping below.
+    #
+    # GT is that union, and xchain_is_structural() then requires it to be
+    # disjoint from C's own direct references to A — the non-degeneracy guard.
     #
     # Runs last so every already-frozen shape keeps its ids. Totally ordered:
-    # chain passes in declaration order, symbols by sorted key, files sorted.
+    # chain passes in declaration order, hop-1 symbols by sorted key, files
+    # sorted.
     # ---------------------------------------------------------------- #
     by_id = {m["id"]: m for m in members}
     chain_stats = []
@@ -963,45 +1051,82 @@ def mine(seed, min_tasks):
             continue
         a, b, cm = by_id[a_id], by_id[b_id], by_id[c_id]
         lang = b["lang"][0]
+        a_defs = lib_definitions(a, texts[a["id"]])
         b_defs = lib_definitions(b, texts[b["id"]])
         b_text = texts_by_id[b["id"]]
         # hop 2: C's references into B, keyed by B's own symbol keys
         hop2 = {}
+        # C's DIRECT references into A — what a search for the named symbol
+        # returns on its own, and what the guard requires GT to avoid.
+        direct = {}
         for rel, text in texts[cm["id"]]:
             for sym in extract_refs(text, lang, b["namespaces"]):
                 hop2.setdefault(sym, set()).add(rel)
+            for sym in extract_refs(text, lang, a["namespaces"]):
+                direct.setdefault(sym, set()).add(rel)
         n_imported = 0
-        chain = []
+        # hop-1 symbol -> the intermediaries carrying it and the C files they
+        # reach. dict preserves insertion order; emission sorts explicitly.
+        chain = {}
         for sym in sorted(hop2):
             def_rel = find_def(sym, lang, b_defs)
             if def_rel is None:
                 continue  # re-export or not declared in B
             n_imported += 1
-            # hop 1: does B's definition file itself reference A?
-            hop1 = sorted(extract_refs(b_text[def_rel], lang, a["namespaces"]))
-            if not hop1:
-                continue
-            chain.append((sym, def_rel, hop1[0], sorted(hop2[sym])))
+            # hop 1: does B's definition file itself reference A? EVERY hop-1
+            # symbol it names is a task key (the old code kept hop1[0] only,
+            # which silently dropped the rest).
+            for hop1_sym in sorted(extract_refs(b_text[def_rel], lang,
+                                                a["namespaces"])):
+                g = chain.setdefault(hop1_sym, {"syms": set(), "bfiles": set(),
+                                                "files": set()})
+                g["syms"].add(sym)
+                g["bfiles"].add(def_rel)
+                g["files"] |= hop2[sym]
         emitted = 0
-        for sym, def_rel, hop1_sym, files in chain:
-            gt = sorted(ws_rel(ws_root, cm, f) for f in files)
+        rejected_greppable = 0
+        for hop1_sym in sorted(chain):
+            g = chain[hop1_sym]
+            a_def = find_def(hop1_sym, lang, a_defs)
+            if a_def is None:
+                continue  # A re-exports it; not A's own declaration
+            gt = sorted(ws_rel(ws_root, cm, f) for f in g["files"])
+            direct_gt = sorted(ws_rel(ws_root, cm, f)
+                               for f in direct.get(hop1_sym, ()))
             if not gt_within_cap(gt):
                 continue
-            emit("xchain", {
-                "symbol": sym, "lang": lang, "lib": b["id"],
-                "def_file": ws_rel(ws_root, b, def_rel),
+            cand = {
+                "symbol": hop1_sym, "lang": lang, "lib": a["id"],
+                "def_file": ws_rel(ws_root, a, a_def),
                 "consumers": [cm["id"]],
-                "hop1_desc": describe(hop1_sym, lang),
-            }, gt, idx)
+                "via_member": b["id"],
+                "extra": {
+                    "via_member": b["id"],
+                    # the intermediaries the agent must DISCOVER. Recorded for
+                    # audit; deliberately never rendered into the prompt.
+                    "via_symbols": sorted(g["syms"]),
+                    "via_files": sorted(ws_rel(ws_root, b, f)
+                                        for f in g["bfiles"]),
+                },
+            }
+            if not xchain_is_structural(gt, direct_gt, g["syms"],
+                                        render("xchain", cand), lang):
+                rejected_greppable += 1
+                continue
+            emit("xchain", cand, gt, idx)
             idx += 1
             emitted += 1
         chain_stats.append({
             "chain": [a_id, b_id, c_id],
             "b_definitions": len(b_defs),
             "imported_by_c": n_imported,
-            "chain_symbols": len(chain),
-            "chain_files": len({f for _, _, _, fs in chain for f in fs}),
+            "hop1_symbols": len(chain),
+            "chain_files": len({f for g in chain.values() for f in g["files"]}),
             "emitted": emitted,
+            "rejected_greppable": rejected_greppable,
+            "guard": "xchain_is_structural: GT disjoint from C's direct "
+                     "references to the named hop-1 symbol, and the rendered "
+                     "prompt spells no intermediary's name",
         })
 
     quota = {}
@@ -1029,6 +1154,16 @@ def mine(seed, min_tasks):
                        "gap. The php, py and go clusters are two members deep "
                        "(lib + consumer), so no A->B->C chain exists in them; "
                        "no chain was synthesised and no member was added.",
+        "xchain_shape": "keyed on the HOP-1 (member-A) symbol; only that "
+                        "symbol is named in the prompt and the member-B "
+                        "intermediaries are the agent's to discover. GT is "
+                        "the union, over every intermediary carrying that "
+                        "symbol onward, of the member-C files importing it, "
+                        "and is required to be DISJOINT from member-C's own "
+                        "direct references to the named symbol "
+                        "(xchain_is_structural) — so the name in the prompt "
+                        "is never the answer key, which is what this "
+                        "header's subset note requires of a structural shape.",
         "subsets": subsets,
         "n_tasks": len(tasks),
     }
@@ -1185,19 +1320,128 @@ def known_limitations(bundle):
     #   three members but two are sibling consumers of symfony, not a chain.)
     #   Synthesising a chain, or relaxing the hop-1 join to manufacture one,
     #   is explicitly not the fix.
+    #   The membership check is stated over EVERY member a chain task touches
+    #   (the named symbol's own member and the intermediary), not over
+    #   `defining_member` alone. `defining_member` moved from `nest-core` to
+    #   `nest-common` when the prompt was rewritten to name the hop-1 symbol —
+    #   the task now asks about a symbol nest-common declares. That is a change
+    #   of WHICH SYMBOL IS NAMED, not of the limitation: the chain is still
+    #   nest-only, and its prerequisite (new corpus pins) is untouched. Phrased
+    #   over the touched members, the assertion is stable against that move and
+    #   still fails the moment a non-nest chain appears.
     nest = ["nest-common", "nest-core", "nest-microservices"]
+    xchain = [t for t in bundle["tasks"] if t["kind"] == "xchain"]
     emitting = [p["chain"] for p in bundle["header"]["xchain_passes"]
                 if p["emitted"] > 0]
-    libs = sorted({t["defining_member"]
-                   for t in bundle["tasks"] if t["kind"] == "xchain"})
-    langs = sorted({t["lang"] for t in bundle["tasks"] if t["kind"] == "xchain"})
+    touched = sorted({t["defining_member"] for t in xchain}
+                     | {t["via_member"] for t in xchain}
+                     | {m for t in xchain for m in t["consumers"]})
+    langs = sorted({t["lang"] for t in xchain})
     out.append((
         "KNOWN LIMITATION: xchain is nest-only (needs new corpus pins to change)",
-        emitting == [nest] and libs == ["nest-core"] and langs == ["ts"],
-        f"expected chains=[{nest}] libs=['nest-core'] langs=['ts'], "
-        f"got chains={emitting} libs={libs} langs={langs}",
+        emitting == [nest] and touched == nest and langs == ["ts"],
+        f"expected chains=[{nest}] members={nest} langs=['ts'], "
+        f"got chains={emitting} members={touched} langs={langs}",
     ))
     return out
+
+
+# --------------------------------------------------------------------------- #
+# xchain NON-DEGENERACY cases — asserted under --selftest, from disk.
+#
+# The registration partitions the corpus as "control shapes are greppable (the
+# bare name is the answer key); structural shapes are not", and grade_ws reads
+# that partition out of the task header. xchain is registered structural, so
+# the claim has to hold task by task, and this check re-derives it INDEPENDENTLY
+# of the miner: it re-reads every ground-truth file off disk and re-runs the
+# reference extractor over it, rather than trusting a number the miner wrote.
+#
+# Two properties, one per clause of xchain_is_structural():
+#   * no ground-truth file references the named symbol — the name in the prompt
+#     is not the answer key;
+#   * the prompt does not spell any intermediary's name — the second hop is not
+#     pre-solved in the prompt text (this is the finding that produced the
+#     guard: the old template rendered the hop-2 symbol outright).
+# --------------------------------------------------------------------------- #
+
+def xchain_guard_cases():
+    """Both clauses of xchain_is_structural(), each with its rejection case.
+
+    Clause 1 rejects real corpus tasks (the count is in the task header's
+    `xchain_passes[].rejected_greppable`); clause 2 rejects none today, so its
+    RED case is stated here rather than left unexercised.
+    """
+    gt = ["../c/one.ts", "../c/two.ts"]
+    clean = "The TypeScript export `Widget` from `@nestjs/common` ..."
+    cases = [
+        ("accepts a disjoint answer with unnamed intermediaries",
+         (gt, ["../c/other.ts"], {"@nestjs/core:Gadget"}, clean, "ts"), True),
+        ("clause 1 rejects a GT file that references the named symbol",
+         (gt, ["../c/two.ts"], {"@nestjs/core:Gadget"}, clean, "ts"), False),
+        ("clause 1 rejects an empty answer",
+         ([], [], {"@nestjs/core:Gadget"}, clean, "ts"), False),
+        ("clause 2 rejects a prompt spelling an intermediary",
+         (gt, [], {"@nestjs/core:Gadget"},
+          clean + " list files referencing `Gadget`", "ts"), False),
+        ("clause 2 ignores an intermediary name merely embedded in a word",
+         (gt, [], {"@nestjs/core:Module"},
+          "The TypeScript export `NestModule` from `@nestjs/common` ...",
+          "ts"), True),
+    ]
+    out = []
+    for label, args, want in cases:
+        got = xchain_is_structural(*args)
+        out.append((f"xchain guard: {label}", got == want,
+                    f"expected {want}, got {got}"))
+    return out
+
+
+def _ref_namespace(symbol, lang):
+    """The namespace argument extract_refs() expects for `symbol`'s language.
+
+    Gated per language for the usual reason (learning
+    ``dialect-specific-remedies-need-a-language-gate``): php_refs wants a
+    backslash-terminated FQCN prefix, ts_refs a package, py_refs the TOP-LEVEL
+    package (it compares ``mod.split(".")[0]``), go_refs an import path. One
+    form applied to all four would silently match nothing in three of them —
+    and a check that matches nothing passes for the wrong reason.
+    """
+    if lang == "php":
+        return symbol.rsplit("\\", 1)[0] + "\\" if "\\" in symbol else symbol
+    if lang == "ts":
+        return symbol.split(":", 1)[0]
+    if lang == "py":
+        return symbol.split(".", 1)[0]
+    return symbol.rsplit(".", 1)[0]  # go: import path
+
+
+def xchain_nondegeneracy(bundle, ws_root):
+    """Assert xchain tasks are non-greppable. Returns [(label, ok, detail)]."""
+    tasks = [t for t in bundle["tasks"] if t["kind"] == "xchain"]
+    if not tasks:
+        return [("xchain non-degeneracy: no xchain tasks emitted", False,
+                 "expected at least one")]
+    greppable, spelled = [], []
+    for t in tasks:
+        ns = [_ref_namespace(t["symbol"], t["lang"])]
+        for g in t["gt_files"]:
+            p = ws_root / g
+            if not p.is_file():
+                continue
+            if t["symbol"] in extract_refs(p.read_text(errors="replace"),
+                                           t["lang"], ns):
+                greppable.append(f"{t['id']}:{g}")
+        for via in t.get("via_symbols", []):
+            if spells(bare_name(via, t["lang"]), t["prompt"]):
+                spelled.append(f"{t['id']}:{via}")
+    return [
+        ("xchain non-degeneracy: no GT file references the named symbol "
+         "(the shape is not xcallers)", not greppable,
+         f"{len(greppable)} greppable GT entries: {greppable[:5]}"),
+        ("xchain non-degeneracy: the prompt never spells an intermediary "
+         "(the second hop is not pre-solved)", not spelled,
+         f"{len(spelled)} intermediaries named: {spelled[:5]}"),
+    ]
 
 
 def selftest(bundle, ws_root):
@@ -1210,6 +1454,12 @@ def selftest(bundle, ws_root):
             ok = False
     print(f"  [{'ok' if all(c[1] for c in cases) else 'FAIL'}] xsubtypes "
           f"declaration cases: {sum(c[1] for c in cases)}/{len(cases)}")
+    for label, passed, detail in (xchain_guard_cases()
+                                  + xchain_nondegeneracy(bundle, ws_root)):
+        print(f"  [{'ok' if passed else 'FAIL'}] {label}"
+              + ("" if passed else f" -- {detail}"))
+        if not passed:
+            ok = False
     for label, passed, detail in known_limitations(bundle):
         print(f"  [{'ok' if passed else 'CHANGED'}] {label}"
               + ("" if passed else f" -- {detail}"))

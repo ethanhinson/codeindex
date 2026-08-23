@@ -93,7 +93,7 @@ script must read them from this file, never from its own source.
 ### The frozen corpus these bars are stated over
 
 Frozen 2026-08-22 in `tasks/tasks_ws.json` (header `subsets`), seed 1729.
-**203 tasks.**
+**227 tasks.**
 
 | shape | subset | n | php | ts | go | py |
 |---|---|---:|---:|---:|---:|---:|
@@ -102,15 +102,15 @@ Frozen 2026-08-22 in `tasks/tasks_ws.json` (header `subsets`), seed 1729.
 | `xnew` | control (greppable) | 10 | 9 | 1 | 0 | 0 |
 | `xsubtypes` | structural (scored) | 68 | 55 | 13 | 0 | 0 |
 | `xcollide` | structural (scored) | 20 | 9 | 6 | 1 | 4 |
-| `xchain` | structural (scored) | 22 | 0 | 22 | 0 | 0 |
+| `xchain` | structural (scored) | 46 | 0 | 46 | 0 | 0 |
 | `xalias` | structural (**excluded at freeze**) | 35 | 33 | 0 | 1 | 1 |
-| **total** | | **203** | **118** | **54** | **14** | **17** |
+| **total** | | **227** | **118** | **78** | **14** | **17** |
 
 Subset arithmetic, pinned at freeze:
 
-- scored structural (excludes `xalias`) = 68 + 20 + 22 = **110** ≥ registered 105
+- scored structural (excludes `xalias`) = 68 + 20 + 46 = **134** ≥ registered 105
 - control (greppable) = 24 + 24 + 10 = **58** ≥ registered 40
-- total = **203** ≥ registered 145
+- total = **227** ≥ registered 145
 
 **Re-freeze 2026-08-22, before any scored run on this corpus** (`xsubtypes`
 80 → 68; 215 → 203 total). The first freeze's `xsubtypes` ground truth was
@@ -138,6 +138,57 @@ class/interface/trait/enum declaration. Only `xsubtypes` moved — the other six
 shapes' ground truth is byte-identical to the first freeze. **No floor was
 lowered**: the aggregate rule was re-evaluated at freeze and scored structural
 still clears the registered 105 at 110.
+
+**Re-freeze 2026-08-22 (second), before any scored run on this corpus**
+(`xchain` 22 → 46; 203 → 227 total). `xchain` is registered **structural**, and
+this section defines structural as *not* greppable — "the bare name is the
+answer key" is what makes a shape control. The first two freezes' `xchain`
+prompt broke that: it named **both** hops, so its operative sentence
+("…list every file in the OTHER member projects (not `../nest/packages/core`)
+that references `ApplicationConfig, imported from '@nestjs/core'`…") was
+`xcallers` character for character, and every one of its **48** ground-truth
+entries was reachable by searching the name the prompt handed over. That put
+22 greppable tasks — **20%** of the then-110 scored structural tasks — inside
+the subset B1 is measured on. It was also the only shape with **no**
+non-degeneracy emit guard (`xnew`/`xsubtypes`/`xalias` require a proper subset
+of the `xcallers` set, `xcollide` a proper subset of the bare-name union;
+`xchain` checked only the 40-file cap).
+
+Two things changed, and nothing else did — the other six shapes' 181 tasks are
+**byte-identical** to the previous freeze:
+
+- **The prompt names the hop-1 symbol only.** The task is now keyed on the
+  member-A (`nest-common`) symbol; the member-B (`nest-core`) intermediaries
+  are the agent's to find. Keying on hop 1 is also the only **well-posed** unit,
+  which is why the count moved: several `nest-core` symbols can carry the same
+  `nest-common` symbol onward, so naming A alone has a single answer only if
+  ground truth is the **union** over all of them. 60 hop-1 symbols qualify. The
+  intermediaries are recorded per task (`via_member`, `via_symbols`,
+  `via_files`) for audit and are **never rendered into the prompt**.
+- **A non-degeneracy guard** (`xchain_is_structural`), the shape's equivalent of
+  the proper-subset tests the other shapes carry. A proper-subset test is the
+  wrong instrument here — an `xchain` answer is not drawn from the named
+  symbol's reference set at all — so the guard requires the strictly stronger
+  **disjointness**: not one ground-truth file may itself reference the named
+  symbol, and the rendered prompt may not spell an intermediary's name as a
+  whole word. It **rejects 14** of the 60 — `CanActivate`, `ContextType`,
+  `Controller`, `ExceptionFilter`, `Injectable`, `Logger`, `NestInterceptor`,
+  `PARAMTYPES_METADATA`, `PipeTransform`, `Scope`, `WebSocketAdapter`,
+  `isEmpty`, `isFunction`, `isUndefined` — each one a symbol some
+  `nest-microservices` file both imports directly and reaches through
+  `nest-core`. The whole task is rejected, not
+  the offending file trimmed: trimming would falsify the prompt, which asks for
+  every file reached through the intermediary, and that file is one of them.
+  46 emit. Both clauses are asserted under `--selftest`, and the emitted corpus
+  is re-checked **from disk** (`xchain_nondegeneracy` re-reads every ground-truth
+  file rather than trusting a miner-written number).
+
+**No floor was lowered and nothing was padded** — the aggregate moved **up**,
+as the arithmetic above records: scored structural 110 → **134** (≥ 105),
+control **58** unchanged (≥ 40), total 203 → **227** (≥ 145). `xchain` is now
+**34%** of the scored structural subset (46/134), which is exactly why B1's
+standing requirement to report **per-shape means** alongside the subset mean
+is load-bearing rather than decorative.
 
 The kind→subset partition — control = {`xcallers`, `ximpact`, `xnew`};
 structural = {`xsubtypes`, `xcollide`, `xalias`, `xchain`} — is emitted into the
@@ -184,12 +235,15 @@ the grader and not restated as prose anywhere that could drift from the header.
 - **`xchain` is nest-only.** The php, py and go clusters are two members deep
   (lib + consumer), so no A→B→C chain exists in them. Recorded as a corpus fact;
   no chain was synthesised and no member was added to manufacture one.
+  (`defining_member` for these tasks is `nest-common`, not `nest-core`, since
+  the second re-freeze: the named symbol is the hop-1 one. The limitation is
+  unchanged and its prerequisite — new corpus pins — is untouched.)
 
 ### The bars (all required)
 
 **B1 — structural lift (PRIMARY).** At **haiku**
 (`claude-haiku-4-5-20251001`), arm B's **mean** cross-recall on the **scored
-structural subset** (110 tasks) ≥ arm A's mean **+ 10pp**; **OR** B meets the
+structural subset** (134 tasks) ≥ arm A's mean **+ 10pp**; **OR** B meets the
 efficiency bar (≥40% fewer exploration tokens **or** ≥40% fewer tool/shell
 calls, measured over the cross-repo tasks) with recall B ≥ A.
 
@@ -199,7 +253,7 @@ calls, measured over the cross-repo tasks) with recall B ≥ A.
   a structural subset is likely **degenerate** (0.0 vs 0.0, both arms failing
   most tasks) and therefore *less informative*, not *less gameable*. The mean is
   the quantity in which the observed effect exists.
-- Because a mean over 110 tasks **can be carried by a single shape**, this
+- Because a mean over 134 tasks **can be carried by a single shape**, this
   registration **also requires**, reported alongside the bar and before any
   verdict: **per-shape means** (`xsubtypes`, `xcollide`, `xchain` separately) and
   the **structural-subset median**. A lift that lives entirely in one shape must
@@ -264,7 +318,7 @@ run.
   reported separately — the exclusion is a registration fact, not a reason to
   skip the work.
 - The **aggregate floor GOVERNS over the per-shape sum**: the registered
-  structural floor of **105** was **MET without `xalias`** (110 ≥ 105), so **no
+  structural floor of **105** was **MET without `xalias`** (134 ≥ 105), so **no
   floor was lowered** and no shape was reinstated to reach it.
 
 **EFFICIENCY — reported, not an independent bar.** Exploration tokens and
@@ -356,7 +410,7 @@ fabricated coverage is not.
 
 Pins live in `discovery_corpus.json`, which is **discovery-only**:
 `build_tasks_ws.py` does not read it, `corpus.json` is unmodified, and
-`tasks/tasks_ws.json` stays frozen at 203 tasks (24/24/10/68/20/35/22). Every
+`tasks/tasks_ws.json` stays frozen at 227 tasks (24/24/10/68/20/35/46). Every
 member below therefore carries a **task quota of 0** by construction — phase 2
 changes discovery coverage, not the task corpus.
 
