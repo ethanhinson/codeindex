@@ -719,8 +719,24 @@ PROMPTS = {
 # nest-only, and that is a recorded corpus fact rather than a gap to fill:
 # the php, py and go clusters are two members deep (lib + consumer), so no
 # A->B->C chain exists in them. Synthesising one would mean adding members.
+#
+# A PASS IS A (LIB, VIA) PAIR, NOT A TRIPLE. The prompt asks for "every file
+# in the REMAINING member projects (neither {LIB} nor {VIA})" and {MEMBERS}
+# lists ALL ten members, so the ground truth has to be mined over exactly that
+# set — every member except A and B — rather than over one nominated member C.
+# Naming C in the pass instead was correct only by coincidence (today
+# `nest/packages/common` holds no reference to `@nestjs/core`, and no non-TS
+# member can import it), and an unrecorded coincidence is not a scope: a
+# correct answer citing a file outside the nominated C would have been scored
+# spurious the moment one appeared. The alternative — narrowing the prompt to
+# name C's root — was REJECTED: pointing the agent at the one directory that
+# can contain the answer shrinks the discovery the shape exists to measure.
+# The scan is deliberately NOT language-gated either, for the same reason:
+# "no PHP file can import a TS module" is another coincidence of the pins.
+# The member C reached by a pass is therefore DERIVED (see `chain_stats`),
+# which is also what keeps the nest-only selftest honest.
 # ------------------------------------------------------------------------- #
-CHAIN_PASSES = [("nest-common", "nest-core", "nest-microservices")]
+CHAIN_PASSES = [("nest-common", "nest-core")]
 
 
 def qualified_form(symbol, lang):
@@ -1152,24 +1168,29 @@ def mine(seed, min_tasks):
     # ---------------------------------------------------------------- #
     by_id = {m["id"]: m for m in members}
     chain_stats = []
-    for a_id, b_id, c_id in CHAIN_PASSES:
-        if not {a_id, b_id, c_id} <= by_id.keys():
+    for a_id, b_id in CHAIN_PASSES:
+        if not {a_id, b_id} <= by_id.keys():
             continue
-        a, b, cm = by_id[a_id], by_id[b_id], by_id[c_id]
+        a, b = by_id[a_id], by_id[b_id]
         lang = b["lang"][0]
         a_defs = lib_definitions(a, texts[a["id"]])
         b_defs = lib_definitions(b, texts[b["id"]])
         b_text = texts_by_id[b["id"]]
-        # hop 2: C's references into B, keyed by B's own symbol keys
+        # The answer scope IS the prompt's scope: every member except A and B.
+        # See CHAIN_PASSES for why this is a scan and not a nominated member.
+        c_members = [m for m in members if m["id"] not in (a_id, b_id)]
+        # hop 2: the remaining members' references into B, keyed by B's own
+        # symbol keys. Entries are (member, rel) so GT can span members.
         hop2 = {}
-        # C's DIRECT references into A — what a search for the named symbol
+        # Their DIRECT references into A — what a search for the named symbol
         # returns on its own, and what the guard requires GT to avoid.
         direct = {}
-        for rel, text in texts[cm["id"]]:
-            for sym in extract_refs(text, lang, b["namespaces"]):
-                hop2.setdefault(sym, set()).add(rel)
-            for sym in extract_refs(text, lang, a["namespaces"]):
-                direct.setdefault(sym, set()).add(rel)
+        for cm in c_members:
+            for rel, text in texts[cm["id"]]:
+                for sym in extract_refs(text, lang, b["namespaces"]):
+                    hop2.setdefault(sym, set()).add((cm["id"], rel))
+                for sym in extract_refs(text, lang, a["namespaces"]):
+                    direct.setdefault(sym, set()).add((cm["id"], rel))
         n_imported = 0
         # hop-1 symbol -> the intermediaries carrying it and the C files they
         # reach. dict preserves insertion order; emission sorts explicitly.
@@ -1191,20 +1212,23 @@ def mine(seed, min_tasks):
                 g["files"] |= hop2[sym]
         emitted = 0
         rejected_greppable = 0
+        reached = set()
         for hop1_sym in sorted(chain):
             g = chain[hop1_sym]
             a_def = find_def(hop1_sym, lang, a_defs)
             if a_def is None:
                 continue  # A re-exports it; not A's own declaration
-            gt = sorted(ws_rel(ws_root, cm, f) for f in g["files"])
-            direct_gt = sorted(ws_rel(ws_root, cm, f)
-                               for f in direct.get(hop1_sym, ()))
+            gt = sorted(ws_rel(ws_root, by_id[mid], f) for mid, f in g["files"])
+            direct_gt = sorted(ws_rel(ws_root, by_id[mid], f)
+                               for mid, f in direct.get(hop1_sym, ()))
             if not gt_within_cap(gt):
                 continue
             cand = {
                 "symbol": hop1_sym, "lang": lang, "lib": a["id"],
                 "def_file": ws_rel(ws_root, a, a_def),
-                "consumers": [cm["id"]],
+                # DERIVED: the members the chain actually reaches, not a
+                # nominated C.
+                "consumers": sorted({mid for mid, _ in g["files"]}),
                 "via_member": b["id"],
                 "extra": {
                     "via_member": b["id"],
@@ -1222,8 +1246,13 @@ def mine(seed, min_tasks):
             emit("xchain", cand, gt, idx)
             idx += 1
             emitted += 1
+            reached |= set(cand["consumers"])
         chain_stats.append({
-            "chain": [a_id, b_id, c_id],
+            # A, B, then the members the pass ACTUALLY reached — derived from
+            # the emitted GT, so the nest-only selftest reads a measurement
+            # rather than the declaration it is supposed to be checking.
+            "chain": [a_id, b_id] + sorted(reached),
+            "scanned": sorted(m["id"] for m in c_members),
             "b_definitions": len(b_defs),
             "imported_by_c": n_imported,
             "hop1_symbols": len(chain),
@@ -1625,6 +1654,21 @@ def xchain_nondegeneracy(bundle, ws_root):
         for via in t.get("via_symbols", []):
             if spells(bare_name(via, t["lang"]), t["prompt"]):
                 spelled.append(f"{t['id']}:{via}")
+    # GT SCOPE == PROMPT SCOPE. The prompt demands "every file in the
+    # REMAINING member projects (neither {LIB} nor {VIA})" over a {MEMBERS}
+    # list naming all ten, so each pass must have SCANNED all ten minus its
+    # two. Mining one nominated member C instead happens to give the same
+    # answer on today's pins; this asserts the scope rather than relying on
+    # that. A correct answer citing a file outside the mined scope would be
+    # scored spurious, so the mismatch is a grading bug, not a cosmetic one.
+    all_ids = {m["id"] for m in bundle["header"]["corpus"]["members"]}
+    scope_bad = []
+    for p in bundle["header"]["xchain_passes"]:
+        a_id, b_id = p["chain"][0], p["chain"][1]
+        want = sorted(all_ids - {a_id, b_id})
+        if p.get("scanned") != want:
+            scope_bad.append(f"{a_id}->{b_id}: scanned={p.get('scanned')} "
+                             f"want={want}")
     return [
         ("xchain non-degeneracy: no GT file references the named symbol "
          "(the shape is not xcallers)", not greppable,
@@ -1632,6 +1676,9 @@ def xchain_nondegeneracy(bundle, ws_root):
         ("xchain non-degeneracy: the prompt never spells an intermediary "
          "(the second hop is not pre-solved)", not spelled,
          f"{len(spelled)} intermediaries named: {spelled[:5]}"),
+        ("xchain scope: every pass mined the prompt's whole scope "
+         "(all members but LIB and VIA)", not scope_bad,
+         f"{len(scope_bad)} passes mis-scoped: {scope_bad[:3]}"),
     ]
 
 

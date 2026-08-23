@@ -183,6 +183,16 @@
      "nest-core",
      "nest-microservices"
     ],
+    "scanned": [
+     "client_golang",
+     "drupal",
+     "flask",
+     "laravel",
+     "nest-microservices",
+     "prometheus",
+     "symfony",
+     "werkzeug"
+    ],
     "b_definitions": 232,
     "imported_by_c": 30,
     "hop1_symbols": 60,
