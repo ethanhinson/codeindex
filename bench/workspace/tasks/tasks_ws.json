@@ -131,20 +131,20 @@
   "bars": "bench/workspace/README.md (registered 2026-08-17; the gate script reads bars from there, never from its own source)",
   "gt_discipline": "import-mediated plain-text extraction across member checkouts; cross-member scoped; arm-neutral",
   "per_member_quota": {
-   "symfony": 119,
+   "symfony": 118,
    "client_golang": 14,
-   "nest-common": 43,
+   "nest-common": 32,
    "werkzeug": 17,
    "nest-core": 22
   },
   "per_lang_quota": {
-   "php": 119,
+   "php": 118,
    "go": 14,
-   "ts": 65,
+   "ts": 54,
    "py": 17
   },
   "rung_counts": {
-   "rung1": 215,
+   "rung1": 203,
    "rung2": 0
   },
   "rung2_note": "no organic bare-name cross-edges in this OSS corpus",
@@ -207,7 +207,7 @@
     "xcollide": 20,
     "ximpact": 24,
     "xnew": 10,
-    "xsubtypes": 80
+    "xsubtypes": 68
    },
    "per_shape_lang_n": {
     "xalias": {
@@ -241,18 +241,18 @@
      "ts": 1
     },
     "xsubtypes": {
-     "php": 56,
-     "ts": 24
+     "php": 55,
+     "ts": 13
     }
    },
-   "n_scored_structural": 122,
+   "n_scored_structural": 110,
    "n_control": 58,
    "registered_floors": {
     "structural": 105,
     "control": 40,
     "total": 145
    },
-   "arithmetic": "structural excluding xalias = xchain 22 + xcollide 20 + xsubtypes 80 = 122 (>= 105); control = xcallers 24 + ximpact 24 + xnew 10 = 58 (>= 40); total = 215 (>= 145)",
+   "arithmetic": "structural excluding xalias = xchain 22 + xcollide 20 + xsubtypes 68 = 110 (>= 105); control = xcallers 24 + ximpact 24 + xnew 10 = 58 (>= 40); total = 203 (>= 145)",
    "meets_floors": {
     "structural": true,
     "control": true,
@@ -260,7 +260,7 @@
    },
    "note": "control shapes are greppable (the bare name is the answer key); structural shapes are not. grade_ws.py reads this map from the header so a shape added or excluded here cannot leave the reported subsets stale."
   },
-  "n_tasks": 215
+  "n_tasks": 203
  },
  "tasks": [
   {
@@ -1944,23 +1944,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-ContainerInterface-048",
-   "kind": "xsubtypes",
-   "rung": "rung1",
-   "lang": "php",
-   "symbol": "Symfony\\Component\\DependencyInjection\\ContainerInterface",
-   "defining_member": "symfony",
-   "def_file": "../symfony/src/Symfony/Component/DependencyInjection/ContainerInterface.php",
-   "consumers": [
-    "drupal"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The PHP class/interface `Symfony\\Component\\DependencyInjection\\ContainerInterface` is defined in the ../symfony project. List every file in the OTHER member projects (not ../symfony) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../drupal/lib/Drupal/Core/Entity/EntityTypeManager.php"
-   ]
-  },
-  {
-   "id": "ws-xsubtypes-Request-049",
+   "id": "ws-xsubtypes-Request-048",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -1977,7 +1961,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-Route-050",
+   "id": "ws-xsubtypes-Route-049",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -1994,7 +1978,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-Response-051",
+   "id": "ws-xsubtypes-Response-050",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2019,7 +2003,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-Constraint-052",
+   "id": "ws-xsubtypes-Constraint-051",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2032,13 +2016,12 @@
    "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The PHP class/interface `Symfony\\Component\\Validator\\Constraint` is defined in the ../symfony project. List every file in the OTHER member projects (not ../symfony) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
    "gt_files": [
     "../drupal/lib/Drupal/Core/Entity/Plugin/Validation/Constraint/CompositeConstraintBase.php",
-    "../drupal/lib/Drupal/Core/Plugin/Plugin/Validation/Constraint/PluginExistsConstraint.php",
     "../drupal/modules/file/src/Validation/Constraint/UploadedFileConstraint.php",
     "../drupal/modules/media/src/Plugin/Validation/Constraint/MediaMappingsConstraint.php"
    ]
   },
   {
-   "id": "ws-xsubtypes-RouteCollection-053",
+   "id": "ws-xsubtypes-RouteCollection-052",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2055,7 +2038,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-HttpKernelInterface-054",
+   "id": "ws-xsubtypes-HttpKernelInterface-053",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2092,7 +2075,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-NotFoundHttpException-055",
+   "id": "ws-xsubtypes-NotFoundHttpException-054",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2109,7 +2092,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-RedirectResponse-056",
+   "id": "ws-xsubtypes-RedirectResponse-055",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2123,33 +2106,11 @@
    "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The PHP class/interface `Symfony\\Component\\HttpFoundation\\RedirectResponse` is defined in the ../symfony project. List every file in the OTHER member projects (not ../symfony) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
    "gt_files": [
     "../drupal/lib/Drupal/Component/HttpFoundation/SecuredRedirectResponse.php",
-    "../drupal/lib/Drupal/Core/Cache/CacheableRedirectResponse.php",
-    "../drupal/lib/Drupal/Core/Form/FormBuilderInterface.php"
+    "../drupal/lib/Drupal/Core/Cache/CacheableRedirectResponse.php"
    ]
   },
   {
-   "id": "ws-xsubtypes-Type-057",
-   "kind": "xsubtypes",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/common:Type",
-   "defining_member": "nest-common",
-   "def_file": "../nest/packages/common/interfaces/type.interface.ts",
-   "consumers": [
-    "nest-core",
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `Type` from `@nestjs/common` is defined in the ../nest/packages/common project. List every file in the OTHER member projects (not ../nest/packages/common) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/core/helpers/handler-metadata-storage.ts",
-    "../nest/packages/core/injector/module.ts",
-    "../nest/packages/core/middleware/container.ts",
-    "../nest/packages/core/middleware/utils.ts",
-    "../nest/packages/core/services/reflector.service.ts"
-   ]
-  },
-  {
-   "id": "ws-xsubtypes-AccessDeniedHttpException-058",
+   "id": "ws-xsubtypes-AccessDeniedHttpException-056",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2166,7 +2127,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-JsonResponse-059",
+   "id": "ws-xsubtypes-JsonResponse-057",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2184,7 +2145,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-Logger-060",
+   "id": "ws-xsubtypes-Logger-058",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "ts",
@@ -2204,7 +2165,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-HttpException-061",
+   "id": "ws-xsubtypes-HttpException-059",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2224,7 +2185,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-BadRequestHttpException-062",
+   "id": "ws-xsubtypes-BadRequestHttpException-060",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2242,29 +2203,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-Controller-063",
-   "kind": "xsubtypes",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/common:Controller",
-   "defining_member": "nest-common",
-   "def_file": "../nest/packages/common/decorators/core/controller.decorator.ts",
-   "consumers": [
-    "nest-core",
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `Controller` from `@nestjs/common` is defined in the ../nest/packages/common project. List every file in the OTHER member projects (not ../nest/packages/common) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/core/guards/guards-consumer.ts",
-    "../nest/packages/core/helpers/context-creator.ts",
-    "../nest/packages/core/helpers/external-context-creator.ts",
-    "../nest/packages/core/interceptors/interceptors-consumer.ts",
-    "../nest/packages/core/router/router-execution-context.ts",
-    "../nest/packages/microservices/context/rpc-context-creator.ts"
-   ]
-  },
-  {
-   "id": "ws-xsubtypes-ConstraintViolationListInterface-064",
+   "id": "ws-xsubtypes-ConstraintViolationListInterface-061",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2280,7 +2219,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-Command-065",
+   "id": "ws-xsubtypes-Command-062",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2309,7 +2248,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-ExecutionContextInterface-066",
+   "id": "ws-xsubtypes-ExecutionContextInterface-063",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2325,23 +2264,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-RequestMethod-067",
-   "kind": "xsubtypes",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/common:RequestMethod",
-   "defining_member": "nest-common",
-   "def_file": "../nest/packages/common/enums/request-method.enum.ts",
-   "consumers": [
-    "nest-core"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `RequestMethod` from `@nestjs/common` is defined in the ../nest/packages/common project. List every file in the OTHER member projects (not ../nest/packages/common) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/core/router/router-execution-context.ts"
-   ]
-  },
-  {
-   "id": "ws-xsubtypes-ConstraintViolationList-068",
+   "id": "ws-xsubtypes-ConstraintViolationList-064",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2357,7 +2280,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-DenormalizerInterface-069",
+   "id": "ws-xsubtypes-DenormalizerInterface-065",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2385,7 +2308,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-SessionInterface-070",
+   "id": "ws-xsubtypes-SessionInterface-066",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2402,7 +2325,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-ResourceNotFoundException-071",
+   "id": "ws-xsubtypes-ResourceNotFoundException-067",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2419,24 +2342,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-DynamicModule-072",
-   "kind": "xsubtypes",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/common:DynamicModule",
-   "defining_member": "nest-common",
-   "def_file": "../nest/packages/common/interfaces/modules/dynamic-module.interface.ts",
-   "consumers": [
-    "nest-core",
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `DynamicModule` from `@nestjs/common` is defined in the ../nest/packages/common project. List every file in the OTHER member projects (not ../nest/packages/common) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/core/injector/container.ts"
-   ]
-  },
-  {
-   "id": "ws-xsubtypes-HttpServer-073",
+   "id": "ws-xsubtypes-HttpServer-068",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "ts",
@@ -2448,14 +2354,11 @@
    ],
    "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `HttpServer` from `@nestjs/common` is defined in the ../nest/packages/common project. List every file in the OTHER member projects (not ../nest/packages/common) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
    "gt_files": [
-    "../nest/packages/core/adapters/http-adapter.ts",
-    "../nest/packages/core/middleware/utils.ts",
-    "../nest/packages/core/router/router-explorer.ts",
-    "../nest/packages/core/router/routes-resolver.ts"
+    "../nest/packages/core/adapters/http-adapter.ts"
    ]
   },
   {
-   "id": "ws-xsubtypes-MethodNotAllowedHttpException-074",
+   "id": "ws-xsubtypes-MethodNotAllowedHttpException-069",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2472,7 +2375,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-UnprocessableEntityHttpException-075",
+   "id": "ws-xsubtypes-UnprocessableEntityHttpException-070",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2488,7 +2391,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-NormalizerInterface-076",
+   "id": "ws-xsubtypes-NormalizerInterface-071",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2507,7 +2410,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-ValidatorInterface-077",
+   "id": "ws-xsubtypes-ValidatorInterface-072",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2523,42 +2426,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-Injectable-078",
-   "kind": "xsubtypes",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/common:Injectable",
-   "defining_member": "nest-common",
-   "def_file": "../nest/packages/common/decorators/core/injectable.decorator.ts",
-   "consumers": [
-    "nest-core",
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `Injectable` from `@nestjs/common` is defined in the ../nest/packages/common project. List every file in the OTHER member projects (not ../nest/packages/common) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/core/injector/module.ts",
-    "../nest/packages/core/metadata-scanner.ts"
-   ]
-  },
-  {
-   "id": "ws-xsubtypes-Provider-079",
-   "kind": "xsubtypes",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/common:Provider",
-   "defining_member": "nest-common",
-   "def_file": "../nest/packages/common/interfaces/modules/provider.interface.ts",
-   "consumers": [
-    "nest-core",
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `Provider` from `@nestjs/common` is defined in the ../nest/packages/common project. List every file in the OTHER member projects (not ../nest/packages/common) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/core/injector/module.ts"
-   ]
-  },
-  {
-   "id": "ws-xsubtypes-ConsoleOutput-080",
+   "id": "ws-xsubtypes-ConsoleOutput-073",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2575,7 +2443,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-Application-081",
+   "id": "ws-xsubtypes-Application-074",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2596,7 +2464,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-ParameterBag-082",
+   "id": "ws-xsubtypes-ParameterBag-075",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2613,7 +2481,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-SymfonyStyle-083",
+   "id": "ws-xsubtypes-SymfonyStyle-076",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2630,7 +2498,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-NotAcceptableHttpException-084",
+   "id": "ws-xsubtypes-NotAcceptableHttpException-077",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2646,41 +2514,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-EnhancerSubtype-085",
-   "kind": "xsubtypes",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/common:EnhancerSubtype",
-   "defining_member": "nest-common",
-   "def_file": "../nest/packages/common/constants.ts",
-   "consumers": [
-    "nest-core"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `EnhancerSubtype` from `@nestjs/common` is defined in the ../nest/packages/common project. List every file in the OTHER member projects (not ../nest/packages/common) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/core/injector/module.ts"
-   ]
-  },
-  {
-   "id": "ws-xsubtypes-RouteParamtypes-086",
-   "kind": "xsubtypes",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/common:RouteParamtypes",
-   "defining_member": "nest-common",
-   "def_file": "../nest/packages/common/enums/route-paramtypes.enum.ts",
-   "consumers": [
-    "nest-core",
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `RouteParamtypes` from `@nestjs/common` is defined in the ../nest/packages/common project. List every file in the OTHER member projects (not ../nest/packages/common) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/core/router/interfaces/route-params-factory.interface.ts",
-    "../nest/packages/core/router/route-params-factory.ts"
-   ]
-  },
-  {
-   "id": "ws-xsubtypes-Choice-087",
+   "id": "ws-xsubtypes-Choice-078",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2696,7 +2530,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-RouterInterface-088",
+   "id": "ws-xsubtypes-RouterInterface-079",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2715,7 +2549,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-MimeTypeGuesserInterface-089",
+   "id": "ws-xsubtypes-MimeTypeGuesserInterface-080",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2734,7 +2568,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-RequestMatcherInterface-090",
+   "id": "ws-xsubtypes-RequestMatcherInterface-081",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2753,7 +2587,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-NestInterceptor-091",
+   "id": "ws-xsubtypes-NestInterceptor-082",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "ts",
@@ -2766,30 +2600,11 @@
    ],
    "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `NestInterceptor` from `@nestjs/common` is defined in the ../nest/packages/common project. List every file in the OTHER member projects (not ../nest/packages/common) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
    "gt_files": [
-    "../nest/packages/core/interceptors/interceptors-consumer.ts",
     "../nest/packages/core/test/interceptors/interceptors-consumer.spec.ts"
    ]
   },
   {
-   "id": "ws-xsubtypes-CanActivate-092",
-   "kind": "xsubtypes",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/common:CanActivate",
-   "defining_member": "nest-common",
-   "def_file": "../nest/packages/common/interfaces/features/can-activate.interface.ts",
-   "consumers": [
-    "nest-core",
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `CanActivate` from `@nestjs/common` is defined in the ../nest/packages/common project. List every file in the OTHER member projects (not ../nest/packages/common) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/core/guards/guards-consumer.ts",
-    "../nest/packages/core/router/router-execution-context.ts"
-   ]
-  },
-  {
-   "id": "ws-xsubtypes-TransportInterface-093",
+   "id": "ws-xsubtypes-TransportInterface-083",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2806,7 +2621,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-ChoiceQuestion-094",
+   "id": "ws-xsubtypes-ChoiceQuestion-084",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2822,7 +2637,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-ExceptionFilter-095",
+   "id": "ws-xsubtypes-ExceptionFilter-085",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "ts",
@@ -2839,7 +2654,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-UnauthorizedHttpException-096",
+   "id": "ws-xsubtypes-UnauthorizedHttpException-086",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2856,7 +2671,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-Event-097",
+   "id": "ws-xsubtypes-Event-087",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2874,23 +2689,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-RouteInfo-098",
-   "kind": "xsubtypes",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/common:RouteInfo",
-   "defining_member": "nest-common",
-   "def_file": "../nest/packages/common/interfaces/middleware/middleware-configuration.interface.ts",
-   "consumers": [
-    "nest-core"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `RouteInfo` from `@nestjs/common` is defined in the ../nest/packages/common project. List every file in the OTHER member projects (not ../nest/packages/common) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/core/middleware/utils.ts"
-   ]
-  },
-  {
-   "id": "ws-xsubtypes-INestApplicationContext-099",
+   "id": "ws-xsubtypes-INestApplicationContext-088",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "ts",
@@ -2906,26 +2705,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-NestApplicationContextOptions-100",
-   "kind": "xsubtypes",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/common:NestApplicationContextOptions",
-   "defining_member": "nest-common",
-   "def_file": "../nest/packages/common/interfaces/nest-application-context-options.interface.ts",
-   "consumers": [
-    "nest-core",
-    "nest-microservices"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `NestApplicationContextOptions` from `@nestjs/common` is defined in the ../nest/packages/common project. List every file in the OTHER member projects (not ../nest/packages/common) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/core/middleware/middleware-module.ts",
-    "../nest/packages/core/nest-application-context.ts",
-    "../nest/packages/microservices/microservices-module.ts"
-   ]
-  },
-  {
-   "id": "ws-xsubtypes-UrlMatcher-101",
+   "id": "ws-xsubtypes-UrlMatcher-089",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2941,7 +2721,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-TerminableInterface-102",
+   "id": "ws-xsubtypes-TerminableInterface-090",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2959,7 +2739,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-NotNull-103",
+   "id": "ws-xsubtypes-NotNull-091",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2975,7 +2755,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-PreconditionFailedHttpException-104",
+   "id": "ws-xsubtypes-PreconditionFailedHttpException-092",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -2991,24 +2771,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-NestApplicationOptions-105",
-   "kind": "xsubtypes",
-   "rung": "rung1",
-   "lang": "ts",
-   "symbol": "@nestjs/common:NestApplicationOptions",
-   "defining_member": "nest-common",
-   "def_file": "../nest/packages/common/interfaces/nest-application-options.interface.ts",
-   "consumers": [
-    "nest-core"
-   ],
-   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `NestApplicationOptions` from `@nestjs/common` is defined in the ../nest/packages/common project. List every file in the OTHER member projects (not ../nest/packages/common) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
-   "gt_files": [
-    "../nest/packages/core/nest-application.ts",
-    "../nest/packages/core/nest-factory.ts"
-   ]
-  },
-  {
-   "id": "ws-xsubtypes-DecoderInterface-106",
+   "id": "ws-xsubtypes-DecoderInterface-093",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -3024,7 +2787,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-UnsupportedMediaTypeHttpException-107",
+   "id": "ws-xsubtypes-UnsupportedMediaTypeHttpException-094",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -3040,7 +2803,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-OnApplicationShutdown-108",
+   "id": "ws-xsubtypes-OnApplicationShutdown-095",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "ts",
@@ -3057,7 +2820,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-SessionBagInterface-109",
+   "id": "ws-xsubtypes-SessionBagInterface-096",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -3074,7 +2837,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-UrlGeneratorInterface-110",
+   "id": "ws-xsubtypes-UrlGeneratorInterface-097",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -3090,7 +2853,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-INestMicroservice-111",
+   "id": "ws-xsubtypes-INestMicroservice-098",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "ts",
@@ -3103,12 +2866,11 @@
    ],
    "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `INestMicroservice` from `@nestjs/common` is defined in the ../nest/packages/common project. List every file in the OTHER member projects (not ../nest/packages/common) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
    "gt_files": [
-    "../nest/packages/core/nest-factory.ts",
     "../nest/packages/microservices/nest-microservice.ts"
    ]
   },
   {
-   "id": "ws-xsubtypes-NativeSessionStorage-112",
+   "id": "ws-xsubtypes-NativeSessionStorage-099",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -3124,7 +2886,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-MetadataInterface-113",
+   "id": "ws-xsubtypes-MetadataInterface-100",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -3140,7 +2902,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-Count-114",
+   "id": "ws-xsubtypes-Count-101",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -3156,7 +2918,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-ExecutionContextFactoryInterface-115",
+   "id": "ws-xsubtypes-ExecutionContextFactoryInterface-102",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -3172,7 +2934,23 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-ServiceUnavailableHttpException-116",
+   "id": "ws-xsubtypes-INestApplication-103",
+   "kind": "xsubtypes",
+   "rung": "rung1",
+   "lang": "ts",
+   "symbol": "@nestjs/common:INestApplication",
+   "defining_member": "nest-common",
+   "def_file": "../nest/packages/common/interfaces/nest-application.interface.ts",
+   "consumers": [
+    "nest-core"
+   ],
+   "prompt": "You are working in a multi-repo workspace rooted at {WS_ROOT}. Member projects (relative to that root): ../client_golang, ../drupal, ../flask, ../laravel-framework, ../nest/packages/common, ../nest/packages/core, ../nest/packages/microservices, ../prometheus, ../symfony, ../werkzeug. The TypeScript export `INestApplication` from `@nestjs/common` is defined in the ../nest/packages/common project. List every file in the OTHER member projects (not ../nest/packages/common) that declares a class extending or implementing it. Search each project's own source only (ignore any vendor/, node_modules/, dist/ or build/ directories). Output ONLY the file paths relative to {WS_ROOT}, one per line, nothing else.",
+   "gt_files": [
+    "../nest/packages/core/nest-application.ts"
+   ]
+  },
+  {
+   "id": "ws-xsubtypes-ServiceUnavailableHttpException-104",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -3188,7 +2966,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-AbstractProxy-117",
+   "id": "ws-xsubtypes-AbstractProxy-105",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -3204,7 +2982,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-SymfonyQuestionHelper-118",
+   "id": "ws-xsubtypes-SymfonyQuestionHelper-106",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -3220,7 +2998,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-BeforeApplicationShutdown-119",
+   "id": "ws-xsubtypes-BeforeApplicationShutdown-107",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "ts",
@@ -3236,7 +3014,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-OnApplicationBootstrap-120",
+   "id": "ws-xsubtypes-OnApplicationBootstrap-108",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "ts",
@@ -3252,7 +3030,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-Range-121",
+   "id": "ws-xsubtypes-Range-109",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -3268,7 +3046,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-ConstraintViolationBuilderInterface-122",
+   "id": "ws-xsubtypes-ConstraintViolationBuilderInterface-110",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -3284,7 +3062,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-OnModuleInit-123",
+   "id": "ws-xsubtypes-OnModuleInit-111",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "ts",
@@ -3300,7 +3078,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-ConflictHttpException-124",
+   "id": "ws-xsubtypes-ConflictHttpException-112",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -3316,7 +3094,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-Regex-125",
+   "id": "ws-xsubtypes-Regex-113",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "php",
@@ -3332,7 +3110,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-OnModuleDestroy-126",
+   "id": "ws-xsubtypes-OnModuleDestroy-114",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "ts",
@@ -3348,7 +3126,7 @@
    ]
   },
   {
-   "id": "ws-xsubtypes-ExecutionContext-127",
+   "id": "ws-xsubtypes-ExecutionContext-115",
    "kind": "xsubtypes",
    "rung": "rung1",
    "lang": "ts",
@@ -3364,7 +3142,7 @@
    ]
   },
   {
-   "id": "ws-xnew-Session-128",
+   "id": "ws-xnew-Session-116",
    "kind": "xnew",
    "rung": "rung1",
    "lang": "php",
@@ -3415,7 +3193,7 @@
    ]
   },
   {
-   "id": "ws-xnew-Process-129",
+   "id": "ws-xnew-Process-117",
    "kind": "xnew",
    "rung": "rung1",
    "lang": "php",
@@ -3450,7 +3228,7 @@
    ]
   },
   {
-   "id": "ws-xnew-Logger-130",
+   "id": "ws-xnew-Logger-118",
    "kind": "xnew",
    "rung": "rung1",
    "lang": "ts",
@@ -3494,7 +3272,7 @@
    ]
   },
   {
-   "id": "ws-xnew-HttpException-131",
+   "id": "ws-xnew-HttpException-119",
    "kind": "xnew",
    "rung": "rung1",
    "lang": "php",
@@ -3526,7 +3304,7 @@
    ]
   },
   {
-   "id": "ws-xnew-ResponseEvent-132",
+   "id": "ws-xnew-ResponseEvent-120",
    "kind": "xnew",
    "rung": "rung1",
    "lang": "php",
@@ -3551,7 +3329,7 @@
    ]
   },
   {
-   "id": "ws-xnew-BadRequestHttpException-133",
+   "id": "ws-xnew-BadRequestHttpException-121",
    "kind": "xnew",
    "rung": "rung1",
    "lang": "php",
@@ -3588,7 +3366,7 @@
    ]
   },
   {
-   "id": "ws-xnew-UnexpectedTypeException-134",
+   "id": "ws-xnew-UnexpectedTypeException-122",
    "kind": "xnew",
    "rung": "rung1",
    "lang": "php",
@@ -3630,7 +3408,7 @@
    ]
   },
   {
-   "id": "ws-xnew-RouteNotFoundException-135",
+   "id": "ws-xnew-RouteNotFoundException-123",
    "kind": "xnew",
    "rung": "rung1",
    "lang": "php",
@@ -3653,7 +3431,7 @@
    ]
   },
   {
-   "id": "ws-xnew-InputBag-136",
+   "id": "ws-xnew-InputBag-124",
    "kind": "xnew",
    "rung": "rung1",
    "lang": "php",
@@ -3693,7 +3471,7 @@
    ]
   },
   {
-   "id": "ws-xnew-ExceptionEvent-137",
+   "id": "ws-xnew-ExceptionEvent-125",
    "kind": "xnew",
    "rung": "rung1",
    "lang": "php",
@@ -3713,7 +3491,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-ArgumentMetadata-138",
+   "id": "ws-xcollide-ArgumentMetadata-126",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "ts",
@@ -3729,7 +3507,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-ArgumentMetadata-139",
+   "id": "ws-xcollide-ArgumentMetadata-127",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "php",
@@ -3746,7 +3524,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-BadRequestException-140",
+   "id": "ws-xcollide-BadRequestException-128",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "ts",
@@ -3763,7 +3541,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-BadRequestException-141",
+   "id": "ws-xcollide-BadRequestException-129",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "php",
@@ -3782,7 +3560,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-ConsoleLogger-142",
+   "id": "ws-xcollide-ConsoleLogger-130",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "ts",
@@ -3798,7 +3576,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-ConsoleLogger-143",
+   "id": "ws-xcollide-ConsoleLogger-131",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "php",
@@ -3814,7 +3592,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-Headers-144",
+   "id": "ws-xcollide-Headers-132",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "php",
@@ -3831,7 +3609,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-Headers-145",
+   "id": "ws-xcollide-Headers-133",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "py",
@@ -3847,7 +3625,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-HttpException-146",
+   "id": "ws-xcollide-HttpException-134",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "ts",
@@ -3866,7 +3644,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-HttpException-147",
+   "id": "ws-xcollide-HttpException-135",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "php",
@@ -3917,7 +3695,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-Optional-148",
+   "id": "ws-xcollide-Optional-136",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "ts",
@@ -3934,7 +3712,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-Optional-149",
+   "id": "ws-xcollide-Optional-137",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "php",
@@ -3951,7 +3729,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-Range-150",
+   "id": "ws-xcollide-Range-138",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "go",
@@ -3969,7 +3747,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-Range-151",
+   "id": "ws-xcollide-Range-139",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "php",
@@ -3986,7 +3764,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-Request-152",
+   "id": "ws-xcollide-Request-140",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "ts",
@@ -4002,7 +3780,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-Request-153",
+   "id": "ws-xcollide-Request-141",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "py",
@@ -4019,7 +3797,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-Response-154",
+   "id": "ws-xcollide-Response-142",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "php",
@@ -4036,7 +3814,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-Response-155",
+   "id": "ws-xcollide-Response-143",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "py",
@@ -4052,7 +3830,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-Response-156",
+   "id": "ws-xcollide-Response-144",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "py",
@@ -4070,7 +3848,7 @@
    ]
   },
   {
-   "id": "ws-xcollide-Type-157",
+   "id": "ws-xcollide-Type-145",
    "kind": "xcollide",
    "rung": "rung1",
    "lang": "php",
@@ -4089,7 +3867,7 @@
    ]
   },
   {
-   "id": "ws-xalias-ContainerInterface-158",
+   "id": "ws-xalias-ContainerInterface-146",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4106,7 +3884,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Request-159",
+   "id": "ws-xalias-Request-147",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4131,7 +3909,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Route-160",
+   "id": "ws-xalias-Route-148",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4149,7 +3927,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Response-161",
+   "id": "ws-xalias-Response-149",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4172,7 +3950,7 @@
    ]
   },
   {
-   "id": "ws-xalias-RouteCollection-162",
+   "id": "ws-xalias-RouteCollection-150",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4189,7 +3967,7 @@
    ]
   },
   {
-   "id": "ws-xalias-ContainerBuilder-163",
+   "id": "ws-xalias-ContainerBuilder-151",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4205,7 +3983,7 @@
    ]
   },
   {
-   "id": "ws-xalias-RedirectResponse-164",
+   "id": "ws-xalias-RedirectResponse-152",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4223,7 +4001,7 @@
    ]
   },
   {
-   "id": "ws-xalias-JsonResponse-165",
+   "id": "ws-xalias-JsonResponse-153",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4240,7 +4018,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Command-166",
+   "id": "ws-xalias-Command-154",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4259,7 +4037,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Finder-167",
+   "id": "ws-xalias-Finder-155",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4276,7 +4054,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Serializer-168",
+   "id": "ws-xalias-Serializer-156",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4292,7 +4070,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Filesystem-169",
+   "id": "ws-xalias-Filesystem-157",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4311,7 +4089,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Yaml-170",
+   "id": "ws-xalias-Yaml-158",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4329,7 +4107,7 @@
    ]
   },
   {
-   "id": "ws-xalias-UploadedFile-171",
+   "id": "ws-xalias-UploadedFile-159",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4350,7 +4128,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Container-172",
+   "id": "ws-xalias-Container-160",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4367,7 +4145,7 @@
    ]
   },
   {
-   "id": "ws-xalias-ToFloat64-173",
+   "id": "ws-xalias-ToFloat64-161",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "go",
@@ -4394,7 +4172,7 @@
    ]
   },
   {
-   "id": "ws-xalias-PhpExecutableFinder-174",
+   "id": "ws-xalias-PhpExecutableFinder-162",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4411,7 +4189,7 @@
    ]
   },
   {
-   "id": "ws-xalias-RequestContext-175",
+   "id": "ws-xalias-RequestContext-163",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4431,7 +4209,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Application-176",
+   "id": "ws-xalias-Application-164",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4451,7 +4229,7 @@
    ]
   },
   {
-   "id": "ws-xalias-SentMessage-177",
+   "id": "ws-xalias-SentMessage-165",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4467,7 +4245,7 @@
    ]
   },
   {
-   "id": "ws-xalias-XmlEncoder-178",
+   "id": "ws-xalias-XmlEncoder-166",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4484,7 +4262,7 @@
    ]
   },
   {
-   "id": "ws-xalias-Event-179",
+   "id": "ws-xalias-Event-167",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4500,7 +4278,7 @@
    ]
   },
   {
-   "id": "ws-xalias-File-180",
+   "id": "ws-xalias-File-168",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4516,7 +4294,7 @@
    ]
   },
   {
-   "id": "ws-xalias-UrlMatcher-181",
+   "id": "ws-xalias-UrlMatcher-169",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4532,7 +4310,7 @@
    ]
   },
   {
-   "id": "ws-xalias-JsonEncoder-182",
+   "id": "ws-xalias-JsonEncoder-170",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4548,7 +4326,7 @@
    ]
   },
   {
-   "id": "ws-xalias-UrlGeneratorInterface-183",
+   "id": "ws-xalias-UrlGeneratorInterface-171",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4565,7 +4343,7 @@
    ]
   },
   {
-   "id": "ws-xalias-ControllerResolverInterface-184",
+   "id": "ws-xalias-ControllerResolverInterface-172",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4581,7 +4359,7 @@
    ]
   },
   {
-   "id": "ws-xalias-CompiledRoute-185",
+   "id": "ws-xalias-CompiledRoute-173",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4598,7 +4376,7 @@
    ]
   },
   {
-   "id": "ws-xalias-abort-186",
+   "id": "ws-xalias-abort-174",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "py",
@@ -4614,7 +4392,7 @@
    ]
   },
   {
-   "id": "ws-xalias-ContextualValidatorInterface-187",
+   "id": "ws-xalias-ContextualValidatorInterface-175",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4630,7 +4408,7 @@
    ]
   },
   {
-   "id": "ws-xalias-MetadataBag-188",
+   "id": "ws-xalias-MetadataBag-176",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4647,7 +4425,7 @@
    ]
   },
   {
-   "id": "ws-xalias-RouteCompiler-189",
+   "id": "ws-xalias-RouteCompiler-177",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4663,7 +4441,7 @@
    ]
   },
   {
-   "id": "ws-xalias-ConstraintValidatorFactory-190",
+   "id": "ws-xalias-ConstraintValidatorFactory-178",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4679,7 +4457,7 @@
    ]
   },
   {
-   "id": "ws-xalias-HtmlDumper-191",
+   "id": "ws-xalias-HtmlDumper-179",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4696,7 +4474,7 @@
    ]
   },
   {
-   "id": "ws-xalias-CliDumper-192",
+   "id": "ws-xalias-CliDumper-180",
    "kind": "xalias",
    "rung": "rung1",
    "lang": "php",
@@ -4713,7 +4491,7 @@
    ]
   },
   {
-   "id": "ws-xchain-ApplicationConfig-193",
+   "id": "ws-xchain-ApplicationConfig-181",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4732,7 +4510,7 @@
    ]
   },
   {
-   "id": "ws-xchain-BaseExceptionFilterContext-194",
+   "id": "ws-xchain-BaseExceptionFilterContext-182",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4748,7 +4526,7 @@
    ]
   },
   {
-   "id": "ws-xchain-ContextId-195",
+   "id": "ws-xchain-ContextId-183",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4764,7 +4542,7 @@
    ]
   },
   {
-   "id": "ws-xchain-ContextIdFactory-196",
+   "id": "ws-xchain-ContextIdFactory-184",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4780,7 +4558,7 @@
    ]
   },
   {
-   "id": "ws-xchain-ContextUtils-197",
+   "id": "ws-xchain-ContextUtils-185",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4796,7 +4574,7 @@
    ]
   },
   {
-   "id": "ws-xchain-ExecutionContextHost-198",
+   "id": "ws-xchain-ExecutionContextHost-186",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4816,7 +4594,7 @@
    ]
   },
   {
-   "id": "ws-xchain-GuardsConsumer-199",
+   "id": "ws-xchain-GuardsConsumer-187",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4833,7 +4611,7 @@
    ]
   },
   {
-   "id": "ws-xchain-GuardsContextCreator-200",
+   "id": "ws-xchain-GuardsContextCreator-188",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4850,7 +4628,7 @@
    ]
   },
   {
-   "id": "ws-xchain-HandlerMetadataStorage-201",
+   "id": "ws-xchain-HandlerMetadataStorage-189",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4866,7 +4644,7 @@
    ]
   },
   {
-   "id": "ws-xchain-Injector-202",
+   "id": "ws-xchain-Injector-190",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4885,7 +4663,7 @@
    ]
   },
   {
-   "id": "ws-xchain-InstanceWrapper-203",
+   "id": "ws-xchain-InstanceWrapper-191",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4904,7 +4682,7 @@
    ]
   },
   {
-   "id": "ws-xchain-InterceptorsConsumer-204",
+   "id": "ws-xchain-InterceptorsConsumer-192",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4921,7 +4699,7 @@
    ]
   },
   {
-   "id": "ws-xchain-InterceptorsContextCreator-205",
+   "id": "ws-xchain-InterceptorsContextCreator-193",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4938,7 +4716,7 @@
    ]
   },
   {
-   "id": "ws-xchain-MESSAGES-206",
+   "id": "ws-xchain-MESSAGES-194",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4955,7 +4733,7 @@
    ]
   },
   {
-   "id": "ws-xchain-MetadataScanner-207",
+   "id": "ws-xchain-MetadataScanner-195",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4972,7 +4750,7 @@
    ]
   },
   {
-   "id": "ws-xchain-Module-208",
+   "id": "ws-xchain-Module-196",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -4988,7 +4766,7 @@
    ]
   },
   {
-   "id": "ws-xchain-NestApplicationContext-209",
+   "id": "ws-xchain-NestApplicationContext-197",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5004,7 +4782,7 @@
    ]
   },
   {
-   "id": "ws-xchain-NestContainer-210",
+   "id": "ws-xchain-NestContainer-198",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5025,7 +4803,7 @@
    ]
   },
   {
-   "id": "ws-xchain-ParamProperties-211",
+   "id": "ws-xchain-ParamProperties-199",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5041,7 +4819,7 @@
    ]
   },
   {
-   "id": "ws-xchain-ParamsMetadata-212",
+   "id": "ws-xchain-ParamsMetadata-200",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5057,7 +4835,7 @@
    ]
   },
   {
-   "id": "ws-xchain-PipesConsumer-213",
+   "id": "ws-xchain-PipesConsumer-201",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",
@@ -5074,7 +4852,7 @@
    ]
   },
   {
-   "id": "ws-xchain-PipesContextCreator-214",
+   "id": "ws-xchain-PipesContextCreator-202",
    "kind": "xchain",
    "rung": "rung1",
    "lang": "ts",

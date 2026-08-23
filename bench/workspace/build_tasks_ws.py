@@ -50,7 +50,7 @@ each is asserted by known_limitations() under --selftest so it cannot be quietly
 "fixed" into a regression:
 
   * go and py emit ZERO xsubtypes  — go's real subtyping is implicit interface
-    satisfaction and is NOT textually computable (a Go sub_pattern branch would
+    satisfaction and is NOT textually computable (a Go sub_matcher branch would
     be false coverage); py needs an alias-aware pattern (+ a re-freeze).
   * ts emits ZERO xalias           — a corpus fact, not a gating bug: nothing in
     nest-core/nest-microservices imports a mined nest-common symbol renamed.
@@ -71,6 +71,7 @@ import argparse
 import json
 import re
 import sys
+from functools import lru_cache
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -280,18 +281,259 @@ def find_def(symbol, lang, defs):
 # Sub-kind criteria (within an already-referencing file)
 # --------------------------------------------------------------------------- #
 
-def sub_pattern(kind, lang, bare):
+# The heritage clause of a declaration is scanned STRUCTURALLY, not matched as
+# a regex. `(?:extends|implements)[^{;]*?\bNAME\b` — the pattern this replaced —
+# fired on TS type-parameter lists and on PHP docblock prose (see SUBTYPE_CASES
+# for the corpus snippets). Measured against the first freeze: 35 of its 187
+# xsubtypes GT entries were not declarations, and 13 tasks were WHOLLY wrong —
+# answers a correct agent could only score 0.0 against while a search-everything
+# agent scored 1.0.
+#
+# Each dialect is gated explicitly (learning
+# ``dialect-specific-remedies-need-a-language-gate``): the only shared rule is
+# "the name has to head a base-type entry between a declaration keyword and its
+# opening brace". TS additionally has generics, so it tracks angle depth and
+# everything inside `<...>` is excluded; PHP has none, so angle brackets are
+# ordinary characters there (`<` is a comparison operator, and tracking it would
+# corrupt the scan) but PHP has heredocs and `#` comments, which TS does not.
+# Newlines are NOT a discriminator in either dialect — both spell genuine
+# heritage clauses across lines.
+
+_DECL_HEAD = {
+    # php: `(` admits the anonymous `new class (...) implements X` form.
+    "php": re.compile(r"\b(?:class|interface|trait|enum)\b(?=\s*[\w(])"),
+    "ts": re.compile(r"\b(?:class|interface)\b(?=\s*[\w<])"),
+}
+_HERITAGE_SPLIT = re.compile(r"\b(?:extends|implements)\b")
+_BASE_HEAD = re.compile(r"\s*\\?([\w\\.]+)")
+_PHP_HEREDOC = re.compile(r"<<<[ \t]*(?P<q>['\"]?)(?P<id>\w+)(?P=q)\r?\n")
+_HERITAGE_SCAN_LIMIT = 4000  # a heritage clause is never longer than this
+
+
+def _close_quote(text, i, quote):
+    """End offset of the string literal opened at `i`, or None if unterminated.
+
+    Single/double quotes are bounded to their own LINE on purpose. An unpaired
+    quote — a TS regex literal such as ``/['"]/``, an apostrophe in prose the
+    comment pass did not catch — would otherwise blank an arbitrarily long span
+    of real code and silently drop genuine declarations. Failing to mask is the
+    safe direction here; over-masking is not.
+    """
+    j = i + 1
+    n = len(text)
+    while j < n:
+        c = text[j]
+        if c == "\\":
+            j += 2
+            continue
+        if c == quote:
+            return j + 1
+        if c == "\n" and quote != "`":
+            return None
+        j += 1
+    return None
+
+
+def _mask_noncode(text, lang):
+    """Blank comment and string spans, preserving offsets and line structure."""
+    out = list(text)
+    n = len(text)
+
+    def blank(a, b):
+        for k in range(a, min(b, n)):
+            if out[k] != "\n":
+                out[k] = " "
+
+    i = 0
+    while i < n:
+        ch = text[i]
+        nxt = text[i + 1] if i + 1 < n else ""
+        if ch == "/" and nxt == "*":
+            end = text.find("*/", i + 2)
+            end = n if end < 0 else end + 2
+            blank(i, end); i = end; continue
+        if (ch == "/" and nxt == "/") or (
+                lang == "php" and ch == "#" and nxt != "["):  # #[Attr] is not one
+            end = text.find("\n", i)
+            end = n if end < 0 else end
+            blank(i, end); i = end; continue
+        if lang == "php" and text.startswith("<<<", i):
+            m = _PHP_HEREDOC.match(text, i)
+            if m:
+                close = re.compile(r"^[ \t]*" + re.escape(m.group("id")) + r"\b",
+                                   re.M).search(text, m.end())
+                end = close.end() if close else n
+                blank(i, end); i = end; continue
+        if ch in "'\"" or (lang == "ts" and ch == "`"):
+            end = _close_quote(text, i, ch)
+            if end is not None:
+                blank(i, end); i = end; continue
+        i += 1
+    return "".join(out)
+
+
+def _heritage_region(masked, start, generics):
+    """The declaration header from `start` to its `{`/`;`, nested spans blanked.
+
+    Blanking everything at bracket depth > 0 is what excludes a TS type-
+    parameter list: `class Foo<T extends Base> implements Bar {` yields
+    `` Foo          implements Bar ``, so `Base` is not a base type and `Bar`
+    is. Commas inside `<...>` disappear with it, so the base list splits
+    correctly.
+    """
+    chars = []
+    depth = 0
+    prev = ""
+    for i in range(start, min(len(masked), start + _HERITAGE_SCAN_LIMIT)):
+        ch = masked[i]
+        if depth == 0 and ch in "{;":
+            break
+        if ch in "([" or (generics and ch == "<"):
+            depth += 1
+            chars.append(" ")
+        elif ch in ")]" or (generics and ch == ">" and prev != "="):
+            depth = max(0, depth - 1)  # `=>` guarded above; be total anyway
+            chars.append(" ")
+        else:
+            chars.append(ch if depth == 0 else " ")
+        prev = ch
+    return "".join(chars)
+
+
+@lru_cache(maxsize=None)
+def declared_supertypes(text, lang):
+    """Bare names this file declares a class/interface/trait/enum subtype OF.
+
+    Alias-blind, like the py subtype pattern and for the same reason: PHP's
+    ``use X as Y; class Z extends Y`` spells the supertype under the local
+    name only, so `X` is not reported. Recorded in the README beside the
+    equivalent python fact; closing it is change 0018's alias resolution, not a
+    looser pattern here.
+    """
+    head = _DECL_HEAD.get(lang)
+    if head is None:
+        return frozenset()
+    masked = _mask_noncode(text, lang)
+    generics = lang == "ts"  # dialect gate: PHP has no type-parameter lists
+    names = set()
+    for m in head.finditer(masked):
+        region = _heritage_region(masked, m.end(), generics)
+        for clause in _HERITAGE_SPLIT.split(region)[1:]:
+            for entry in clause.split(","):
+                base = _BASE_HEAD.match(entry)
+                if base:
+                    names.add(re.split(r"[\\.]", base.group(1))[-1])
+    return frozenset(names)
+
+
+def declares_subtype(text, lang, bare) -> bool:
+    """Does this file DECLARE a class/interface/trait/enum subtype of `bare`?"""
+    return bare in declared_supertypes(text, lang)
+
+
+def sub_matcher(kind, lang, bare):
+    """Predicate ``f(text) -> bool`` for a sub-kind, or None if inapplicable."""
     if kind == "xnew" and lang in ("php", "ts"):
-        return re.compile(r"new\s+\\?(?:[\w\\.]+[\\.])?" + re.escape(bare)
-                          + r"\s*[(<]")
+        pat = re.compile(r"new\s+\\?(?:[\w\\.]+[\\.])?" + re.escape(bare)
+                         + r"\s*[(<]")
+        return lambda text: bool(pat.search(text))
     if kind == "xsubtypes":
         if lang in ("php", "ts"):
-            return re.compile(
-                r"(?:extends|implements)[^{;]*?\b" + re.escape(bare) + r"\b")
+            return lambda text: declares_subtype(text, lang, bare)
         if lang == "py":
-            return re.compile(r"^class\s+\w+\([^)]*\b" + re.escape(bare)
-                              + r"\b[^)]*\)", re.M)
+            pat = re.compile(r"^class\s+\w+\([^)]*\b" + re.escape(bare)
+                             + r"\b[^)]*\)", re.M)
+            return lambda text: bool(pat.search(text))
     return None
+
+
+# --------------------------------------------------------------------------- #
+# xsubtypes DECLARATION cases — characterization, asserted under --selftest.
+#
+# The prompt this shape emits asks for files that "declare a class extending or
+# implementing it", so ground truth must hold DECLARATIONS, which is a fact
+# about a declaration header and not about the words `extends`/`implements`
+# appearing somewhere in the file. Every snippet below is taken verbatim (or
+# minimally trimmed) from the frozen corpus, and the two dialects fail in
+# structurally different ways — learning
+# ``dialect-specific-remedies-need-a-language-gate``:
+#
+#   ts   type-parameter lists. `explore<T extends HttpServer = any>(` and
+#        `tryActivate<TContext extends string = ContextType>(... instance:
+#        Controller,` are METHOD generics inside a class body; neither declares
+#        anything. But a genuine TS heritage clause routinely spans newlines
+#        (`class AbstractHttpAdapter<\n TServer = any,\n> implements
+#        HttpServer<...>`), so "forbid newlines" alone is wrong for TS: the
+#        discriminator is angle-bracket depth, not line breaks.
+#   php  no generics at all, so angle depth is meaningless; the contamination is
+#        DOCBLOCK PROSE ("An object that implements \Traversable which ...").
+#        PHP heritage lists also span newlines legitimately, and PHP has the
+#        anonymous form `new class (...) implements X`, which TS lacks.
+#
+# A single regex argued from either dialect mislabels the other.
+# --------------------------------------------------------------------------- #
+
+SUBTYPE_CASES = [
+    # (label, lang, bare, snippet, expected)
+    ("ts multi-line heritage clause is a declaration", "ts", "HttpServer",
+     "export abstract class AbstractHttpAdapter<\n  TServer = any,\n"
+     "  TRequest = any,\n  TResponse = any,\n> implements HttpServer<TRequest,"
+     " TResponse>\n{\n  protected httpServer: TServer;\n", True),
+    ("ts method type-parameter constraint is not", "ts", "HttpServer",
+     "export class RouterExplorer {\n  public explore<T extends HttpServer ="
+     " any>(\n    applicationRef: T,\n  ) {}\n}\n", False),
+    ("ts param type after a generic method head is not", "ts", "Controller",
+     "export class GuardsConsumer {\n  public async tryActivate<TContext"
+     " extends string = ContextType>(\n    guards: CanActivate[],\n"
+     "    instance: Controller,\n  ): Promise<boolean> {}\n}\n", False),
+    ("ts class type-parameter constraint is not", "ts", "Injectable",
+     "export class Module {\n  public addInjectable<T extends Injectable>(\n"
+     "    injectable: Provider,\n  ) {}\n}\n", False),
+    ("ts interface extends is a declaration", "ts", "INestApplicationContext",
+     "export interface INestApplication\n  extends INestApplicationContext"
+     " {\n  use(): this;\n}\n", True),
+    ("php docblock prose is not a declaration", "php", "Traversable",
+     "<?php\n/**\n * @param \\Traversable $namespaces\n *   An object that"
+     " implements \\Traversable which contains the root paths\n *   keyed by"
+     " the namespace.\n */\nclass EntityTypeManager extends"
+     " DefaultPluginManager {\n}\n", False),
+    ("php multi-line implements list is a declaration", "php", "CacheableInt",
+     "<?php\nclass Foo extends Bar implements\n  CacheableInt,\n"
+     "  OtherInt {\n}\n", True),
+    ("php anonymous class implements is a declaration", "php",
+     "InputCollectorInterface",
+     "<?php\n$collector = new class () implements InputCollectorInterface {\n"
+     "};\n", True),
+    ("php # line comment prose is not a declaration", "php", "Countable",
+     "<?php\n# a helper that implements Countable for callers\nclass Foo"
+     " extends Bar {\n}\n", False),
+    ("php attribute before the declaration is not a supertype", "php",
+     "Constraint",
+     "<?php\n#[Constraint(\n  id: 'PluginExists',\n)]\nclass"
+     " PluginExistsConstraint extends SymfonyConstraint implements"
+     " ContainerFactoryPluginInterface {\n}\n", False),
+    ("php string literal holding code is not a declaration", "php", "Ghost",
+     "<?php\n$src = 'class Spooky extends Ghost {}';\nclass Foo extends Bar"
+     " {\n}\n", False),
+    # py is NOT implicated by the finding and must not regress.
+    ("py class base list is a declaration", "py", "RequestBase",
+     "from werkzeug.wrappers import Request as RequestBase\n\n\n"
+     "class Request(RequestBase):\n    pass\n", True),
+    ("py annotation mentioning the name is not", "py", "RequestBase",
+     "from werkzeug.wrappers import Request as RequestBase\n\n\n"
+     "def handle(req: RequestBase) -> None:\n    pass\n", False),
+]
+
+
+def subtype_cases():
+    """Assert the declaration cases above. Returns [(label, ok, detail)]."""
+    out = []
+    for label, lang, bare, snippet, want in SUBTYPE_CASES:
+        match = sub_matcher("xsubtypes", lang, bare)
+        got = bool(match(snippet)) if match else False
+        out.append((f"xsubtypes declaration: {label}", got == want,
+                    f"expected {want}, got {got}"))
+    return out
 
 
 # --------------------------------------------------------------------------- #
@@ -608,12 +850,12 @@ def mine(seed, min_tasks):
                 # (greppable) shape and the registered corpus holds it at 10.
                 # xsubtypes is structural and ranges over EVERY candidate.
                 continue
-            pat = sub_pattern(kind, c["lang"], bare_name(c["symbol"], c["lang"]))
-            if pat is None:
+            match = sub_matcher(kind, c["lang"], bare_name(c["symbol"], c["lang"]))
+            if match is None:
                 continue
             hits = {}
             for mid, fs in c["by_member"].items():
-                sel = [f for f in fs if pat.search(texts_by_id[mid][f])]
+                sel = [f for f in fs if match(texts_by_id[mid][f])]
                 if sel:
                     hits[mid] = sel
             if not hits:
@@ -902,7 +1144,7 @@ def known_limitations(bundle):
 
     # (1) Go and Python emit ZERO xsubtypes. This asserts today's behaviour on
     # purpose.
-    #   PREREQUISITE (go): NOT a Go branch in sub_pattern(). Go's real
+    #   PREREQUISITE (go): NOT a Go branch in sub_matcher(). Go's real
     #   subtyping is IMPLICIT INTERFACE SATISFACTION — three corpus files
     #   define `Collect(ch chan<- prometheus.Metric)` and satisfy
     #   prometheus.Collector without ever naming it. A textual cross-member
@@ -914,7 +1156,7 @@ def known_limitations(bundle):
     #   imports (`from werkzeug.wrappers import Request as RequestBase`), and
     #   the current pattern matches the original name only; the proper-subset
     #   guard then drops ~2 more. Moving this number requires teaching
-    #   sub_pattern() the local alias binding, and re-freezing the corpus.
+    #   sub_matcher() the local alias binding, and re-freezing the corpus.
     for lang in ("go", "py"):
         got = n("xsubtypes", lang)
         out.append((
@@ -961,6 +1203,13 @@ def known_limitations(bundle):
 def selftest(bundle, ws_root):
     ok = True
     h = bundle["header"]
+    cases = subtype_cases()
+    for label, passed, detail in cases:
+        if not passed:
+            print(f"  [FAIL] {label} -- {detail}")
+            ok = False
+    print(f"  [{'ok' if all(c[1] for c in cases) else 'FAIL'}] xsubtypes "
+          f"declaration cases: {sum(c[1] for c in cases)}/{len(cases)}")
     for label, passed, detail in known_limitations(bundle):
         print(f"  [{'ok' if passed else 'CHANGED'}] {label}"
               + ("" if passed else f" -- {detail}"))

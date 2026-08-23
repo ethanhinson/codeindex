@@ -93,24 +93,51 @@ script must read them from this file, never from its own source.
 ### The frozen corpus these bars are stated over
 
 Frozen 2026-08-22 in `tasks/tasks_ws.json` (header `subsets`), seed 1729.
-**215 tasks.**
+**203 tasks.**
 
 | shape | subset | n | php | ts | go | py |
 |---|---|---:|---:|---:|---:|---:|
 | `xcallers` | control (greppable) | 24 | 7 | 5 | 6 | 6 |
 | `ximpact` | control (greppable) | 24 | 5 | 7 | 6 | 6 |
 | `xnew` | control (greppable) | 10 | 9 | 1 | 0 | 0 |
-| `xsubtypes` | structural (scored) | 80 | 56 | 24 | 0 | 0 |
+| `xsubtypes` | structural (scored) | 68 | 55 | 13 | 0 | 0 |
 | `xcollide` | structural (scored) | 20 | 9 | 6 | 1 | 4 |
 | `xchain` | structural (scored) | 22 | 0 | 22 | 0 | 0 |
 | `xalias` | structural (**excluded at freeze**) | 35 | 33 | 0 | 1 | 1 |
-| **total** | | **215** | **119** | **65** | **14** | **17** |
+| **total** | | **203** | **118** | **54** | **14** | **17** |
 
 Subset arithmetic, pinned at freeze:
 
-- scored structural (excludes `xalias`) = 80 + 20 + 22 = **122** ≥ registered 105
+- scored structural (excludes `xalias`) = 68 + 20 + 22 = **110** ≥ registered 105
 - control (greppable) = 24 + 24 + 10 = **58** ≥ registered 40
-- total = **215** ≥ registered 145
+- total = **203** ≥ registered 145
+
+**Re-freeze 2026-08-22, before any scored run on this corpus** (`xsubtypes`
+80 → 68; 215 → 203 total). The first freeze's `xsubtypes` ground truth was
+mined with a textual `(?:extends|implements)[^{;]*?\bNAME\b`, which matched
+across newlines and required no declaration: it fired on TS **type-parameter
+lists** (`explore<T extends HttpServer = any>`, `tryActivate<TContext extends
+string = ContextType>(… instance: Controller,`) and on multi-line **PHP
+docblock prose** (`An object that implements \Traversable which …`). Measured
+against the first freeze: **35 of its 187** `xsubtypes` ground-truth entries
+were not declarations, and **13 tasks were wholly wrong** (review named 10; two
+more TS tasks and `Type` fell to the same defect and are listed below). On a
+wholly-wrong task a correct agent scores 0.0 and a search-everything agent
+scores 1.0, which **inverts B1** — the primary bar — on ~11% of its tasks.
+The 13, all of which now mine an empty answer and are therefore not emitted:
+`Controller`, `Type`, `CanActivate`, `Injectable`, `RouteParamtypes`,
+`NestApplicationContextOptions`, `NestApplicationOptions`, `RequestMethod`,
+`DynamicModule`, `Provider`, `EnhancerSubtype`, `RouteInfo` (ts) and
+`ContainerInterface` (php). One task is **added** — `INestApplication`, whose
+corrected answer is now a proper subset of its `xcallers` set instead of equal
+to it.
+The miner now scans the declaration header structurally (`declared_supertypes`,
+dialect-gated: angle-bracket depth for TS, comments/heredocs for PHP), so the
+`extends`/`implements` must head a base type of a real
+class/interface/trait/enum declaration. Only `xsubtypes` moved — the other six
+shapes' ground truth is byte-identical to the first freeze. **No floor was
+lowered**: the aggregate rule was re-evaluated at freeze and scored structural
+still clears the registered 105 at 110.
 
 The kind→subset partition — control = {`xcallers`, `ximpact`, `xnew`};
 structural = {`xsubtypes`, `xcollide`, `xalias`, `xchain`} — is emitted into the
@@ -119,13 +146,13 @@ the grader and not restated as prose anywhere that could drift from the header.
 
 ### Structural facts recorded beside the corpus table
 
-- **Go's zero `xsubtypes` cannot be fixed by adding a Go branch to `sub_pattern`.**
+- **Go's zero `xsubtypes` cannot be fixed by adding a Go branch to `sub_matcher`.**
   The entire embedded-`client_golang`-type population in the consumer is one
   line: `bench/repos/prometheus/storage/remote/max_timestamp.go:25`,
   `prometheus.Gauge`. Go's real subtyping is **implicit interface satisfaction**
   — 3 files in `prometheus` define `Collect(ch chan<- prometheus.Metric)` and so
   satisfy `prometheus.Collector` **without naming it at all**. A textual
-  cross-member miner cannot compute that relation, and a Go `sub_pattern` branch
+  cross-member miner cannot compute that relation, and a Go `sub_matcher` branch
   would not close the gap. Go supplies **zero** `xsubtypes`, permanently, by
   construction.
 - **Python's zero is real but small** (~+4–5 tasks if closed). `flask`
@@ -134,6 +161,16 @@ the grader and not restated as prose anywhere that could drift from the header.
   line 8 the same for `Response as ResponseBase`, then
   `class Request(RequestBase)` / `class Response(ResponseBase)` — which the
   alias-blind subtype pattern misses; the proper-subset guard drops 2 more.
+- **PHP subtype mining is alias-blind for the same reason** — recorded here
+  because the 2026-08-22 re-freeze made it visible. `declared_supertypes` reads
+  the supertype as it is written in the declaration header, so
+  `use Symfony\Component\Validator\Constraint as SymfonyConstraint;` followed by
+  `class PluginExistsConstraint extends SymfonyConstraint` is **not** counted as
+  a `Constraint` subtype (`drupal`'s `PluginExistsConstraint.php` left the
+  `Constraint` ground truth at the re-freeze on exactly this rule). This is the
+  same missing capability as python's, and closing it is change **0018**'s
+  aliased-import resolution — not a looser pattern in the miner, which is what
+  produced the contaminated first freeze.
 - **`xcollide` collisions are cross-language by construction**, because
   `corpus.json` declares exactly **one** shared lib per language, so two
   same-named declarations almost always sit in different languages (9 of the 10
@@ -152,7 +189,7 @@ the grader and not restated as prose anywhere that could drift from the header.
 
 **B1 — structural lift (PRIMARY).** At **haiku**
 (`claude-haiku-4-5-20251001`), arm B's **mean** cross-recall on the **scored
-structural subset** (122 tasks) ≥ arm A's mean **+ 10pp**; **OR** B meets the
+structural subset** (110 tasks) ≥ arm A's mean **+ 10pp**; **OR** B meets the
 efficiency bar (≥40% fewer exploration tokens **or** ≥40% fewer tool/shell
 calls, measured over the cross-repo tasks) with recall B ≥ A.
 
@@ -162,7 +199,7 @@ calls, measured over the cross-repo tasks) with recall B ≥ A.
   a structural subset is likely **degenerate** (0.0 vs 0.0, both arms failing
   most tasks) and therefore *less informative*, not *less gameable*. The mean is
   the quantity in which the observed effect exists.
-- Because a mean over 122 tasks **can be carried by a single shape**, this
+- Because a mean over 110 tasks **can be carried by a single shape**, this
   registration **also requires**, reported alongside the bar and before any
   verdict: **per-shape means** (`xsubtypes`, `xcollide`, `xchain` separately) and
   the **structural-subset median**. A lift that lives entirely in one shape must
@@ -227,7 +264,7 @@ run.
   reported separately — the exclusion is a registration fact, not a reason to
   skip the work.
 - The **aggregate floor GOVERNS over the per-shape sum**: the registered
-  structural floor of **105** was **MET without `xalias`** (122 ≥ 105), so **no
+  structural floor of **105** was **MET without `xalias`** (110 ≥ 105), so **no
   floor was lowered** and no shape was reinstated to reach it.
 
 **EFFICIENCY — reported, not an independent bar.** Exploration tokens and
@@ -319,7 +356,7 @@ fabricated coverage is not.
 
 Pins live in `discovery_corpus.json`, which is **discovery-only**:
 `build_tasks_ws.py` does not read it, `corpus.json` is unmodified, and
-`tasks/tasks_ws.json` stays frozen at 215 tasks (24/24/10/80/20/35/22). Every
+`tasks/tasks_ws.json` stays frozen at 203 tasks (24/24/10/68/20/35/22). Every
 member below therefore carries a **task quota of 0** by construction — phase 2
 changes discovery coverage, not the task corpus.
 
