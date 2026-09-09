@@ -71,6 +71,10 @@ bench/agent_ab/results/transcripts_noteab/
 
 # bench transcripts capture whatever the agent sees (env paths, dir listings) — never commit
 bench/workspace/results/transcripts/
+bench/workspace/results/tainted_armA/ws-*.jsonl
+bench/workspace/results/tainted_armA_2/
+bench/workspace/results/tainted_armA_3/
+bench/workspace/results_frontier_*/transcripts/
 bench/workspace/results/fuse_traces_ws/
 # fuse agent homes: tool-output mirrors transcripts; config.yml embeds absolute $HOME paths
 bench/workspace/.fusehomes/
