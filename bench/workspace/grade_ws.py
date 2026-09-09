@@ -193,6 +193,26 @@ def subset_report(arm, gs, bundle: dict | None = None):
               f"{unmapped}")
 
 
+def merge_grades(out, grades):
+    """Merge new grades into the archive, keyed by "key".
+
+    grades.jsonl is the curated cross-campaign archive: a run scores only
+    the tasks it covers, so a plain overwrite would drop every row from
+    every other campaign. Rows carry a unique "key" (task_id + arm + rep),
+    so re-grading a run replaces exactly its own rows and leaves the rest.
+    """
+    existing = {}
+    if out.exists():
+        for line in out.read_text().splitlines():
+            if line:
+                row = json.loads(line)
+                existing[row["key"]] = row
+    for g in grades:
+        existing[g["key"]] = g
+    out.write_text("".join(json.dumps(r) + "\n" for r in existing.values()))
+    return existing
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", default="results/runs.jsonl")
@@ -205,7 +225,7 @@ def main():
             (HERE / args.runs).read_text().splitlines() if l]
     grades = [g for g in (grade_run(r, bundle) for r in runs) if g]
     out = HERE / "results" / "grades.jsonl"
-    out.write_text("".join(json.dumps(g) + "\n" for g in grades))
+    merge_grades(out, grades)
 
     by_arm = {}
     for g in grades:
