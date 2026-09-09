@@ -71,3 +71,13 @@ bench/agent_ab/results/transcripts_noteab/
 
 # bench transcripts capture whatever the agent sees (env paths, dir listings) — never commit
 bench/workspace/results/transcripts/
+bench/workspace/results/fuse_traces_ws/
+# fuse agent homes: tool-output mirrors transcripts; config.yml embeds absolute $HOME paths
+bench/workspace/.fusehomes/
+# live run rows (regenerated); grades.jsonl is the curated archive and stays tracked
+bench/workspace/results/runs_fuse.jsonl
+# qwen fuse run logs; the arm*_haiku.log campaign records are tracked on purpose
+bench/workspace/results/fullA_qwen.log
+bench/workspace/results/fullB_qwen.log
+bench/workspace/results/smokeA.log
+bench/workspace/results/smokeB.log
