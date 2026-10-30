@@ -1,1 +1,7 @@
 agent_harnesses: [claude, cursor]
+build:
+  gate: local
+  test_command: "go test -count=1 ./..."
+finalize:
+  gate: local
+  test_command: "go test -count=1 ./..."
