@@ -11,7 +11,7 @@ depends_on: []
 related: [1, 3, 4]
 discovered_from: []
 adrs: []
-spec: docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md
+spec:
 plan: docs/superpowers/plans/2026-08-04-rip-out-lore-product-surface-plan.md
 results: docs/results/2026-08-04-rip-out-lore-product-surface-results.md
 trivial: false

@@ -11,7 +11,7 @@ depends_on: [2]
 related: [2, 4]
 discovered_from: []
 adrs: [9]
-spec: docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md
+spec:
 plan: docs/superpowers/plans/2026-08-04-decouple-graph-query-layer-plan.md
 results: docs/results/2026-08-04-decouple-graph-query-layer-results.md
 trivial: false

@@ -11,7 +11,7 @@ depends_on: [1, 3]
 related: [1, 2, 3]
 discovered_from: []
 adrs: []
-spec: docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md
+spec:
 plan: docs/superpowers/plans/2026-08-04-cleanup-delete-lore-rewrite-readme-plan.md
 results:
 trivial: false
