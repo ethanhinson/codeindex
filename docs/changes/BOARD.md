@@ -6,10 +6,10 @@
 
 | # | Title | Priority | Type | Readiness |
 |---|-------|----------|------|-----------|
-| [0006](active/0006-delta-impact-query-mode.md) | Delta impact query mode — what changed in the blast radius since X | `high` | `feat` | needs-brainstorm |
-| [0007](active/0007-session-stable-query-cache.md) | Session-stable query cache keyed by index version | `medium` | `perf` | needs-brainstorm |
-| [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-brainstorm |
-| [0018](active/0018-aliased-import-resolution.md) | Resolve references made through import aliases — the name-vs-alias schema decision | `medium` | `fix` | needs-brainstorm |
+| [0018](active/0018-aliased-import-resolution.md) | Resolve references made through import aliases — the name-vs-alias schema decision | `medium` | `fix` | needs-grooming |
+| [0008](active/0008-pr-issue-blast-radius-alignment-check.md) | PR ↔ issue blast-radius alignment check | `medium` | `feat` | needs-grooming |
+| [0007](active/0007-session-stable-query-cache.md) | Session-stable query cache keyed by index version | `medium` | `perf` | needs-grooming |
+| [0006](active/0006-delta-impact-query-mode.md) | Delta impact query mode — what changed in the blast radius since X | `high` | `feat` | needs-grooming |
 
 ```mermaid
 graph TD
@@ -21,7 +21,7 @@ graph TD
 
 <details><summary>✅🗑️ Archive — done + killed (14)</summary>
 
-| # | Title | Merged |
+| # | Title | Closed |
 |---|-------|--------|
 | [0010](archive/2026-08-23-0010-workspace-bench-corpus-monorepo-growth.md) | Grow the workspace bench corpus — monorepo declaration coverage in every supported language | 2026-08-23 |
 | [0017](archive/2026-08-22-0017-adapter-namespace-hints-extends-implements.md) | Go subtype references carry namespace hints — fix the qualifier discard and KindImports Source | 2026-08-22 |

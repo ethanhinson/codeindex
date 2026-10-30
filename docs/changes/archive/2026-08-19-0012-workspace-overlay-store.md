@@ -28,10 +28,9 @@ reconciled: true
 <!-- docket:artifacts:start (generated — do not hand-edit) -->
 | Artifact | Link |
 |---|---|
-| Spec | [2026-08-19-workspace-overlay-store-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-19-workspace-overlay-store-design.md) |
+| Spec | [2026-08-19-workspace-overlay-store-design.md](../../superpowers/specs/2026-08-19-workspace-overlay-store-design.md) |
 | Plan | [2026-08-19-workspace-overlay-store-plan.md](https://github.com/ethanhinson/codeindex/blob/main/docs/superpowers/plans/2026-08-19-workspace-overlay-store-plan.md) |
 | Results | [2026-08-19-workspace-overlay-store-results.md](https://github.com/ethanhinson/codeindex/blob/main/docs/results/2026-08-19-workspace-overlay-store-results.md) |
-| PR | [#10](https://github.com/ethanhinson/codeindex/pull/10) |
 <!-- docket:artifacts:end -->
 
 ## Why

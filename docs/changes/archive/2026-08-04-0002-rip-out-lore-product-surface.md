@@ -28,10 +28,8 @@ reconciled: true
 <!-- docket:artifacts:start (generated — do not hand-edit) -->
 | Artifact | Link |
 |---|---|
-| Spec | [2026-08-03-back-out-lore-lean-into-docket-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md) |
 | Plan | [2026-08-04-rip-out-lore-product-surface-plan.md](https://github.com/ethanhinson/codeindex/blob/main/docs/superpowers/plans/2026-08-04-rip-out-lore-product-surface-plan.md) |
 | Results | [2026-08-04-rip-out-lore-product-surface-results.md](https://github.com/ethanhinson/codeindex/blob/main/docs/results/2026-08-04-rip-out-lore-product-surface-results.md) |
-| PR | [#4](https://github.com/ethanhinson/codeindex/pull/4) |
 <!-- docket:artifacts:end -->
 
 ## Why

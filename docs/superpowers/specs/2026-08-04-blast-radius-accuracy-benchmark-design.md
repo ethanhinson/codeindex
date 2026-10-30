@@ -1,5 +1,5 @@
 <!-- docket:backlink:start (generated — do not hand-edit) -->
-> ↩ **[Change 0005 — Blast-radius accuracy benchmark — impact-set recall vs. false positives](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/active/0005-blast-radius-accuracy-benchmark.md)**
+> ↩ **[Change 0005 — Blast-radius accuracy benchmark — impact-set recall vs. false positives](../../changes/archive/2026-08-04-0005-blast-radius-accuracy-benchmark.md)**
 <!-- docket:backlink:end -->
 
 # Blast-radius accuracy benchmark — design

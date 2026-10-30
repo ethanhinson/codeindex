@@ -28,11 +28,9 @@ claimed_at:
 <!-- docket:artifacts:start (generated — do not hand-edit) -->
 | Artifact | Link |
 |---|---|
-| Spec | [2026-08-03-back-out-lore-lean-into-docket-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-03-back-out-lore-lean-into-docket-design.md) |
 | Plan | [2026-08-04-decouple-graph-query-layer-plan.md](https://github.com/ethanhinson/codeindex/blob/main/docs/superpowers/plans/2026-08-04-decouple-graph-query-layer-plan.md) |
 | Results | [2026-08-04-decouple-graph-query-layer-results.md](https://github.com/ethanhinson/codeindex/blob/main/docs/results/2026-08-04-decouple-graph-query-layer-results.md) |
-| PR | [#5](https://github.com/ethanhinson/codeindex/pull/5) |
-| ADRs | [ADR-0009](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0009-graph-api-schema-version-contract.md) |
+| ADRs | [ADR-0009](../../adrs/0009-graph-api-schema-version-contract.md) |
 <!-- docket:artifacts:end -->
 
 ## Why

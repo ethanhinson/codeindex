@@ -28,10 +28,9 @@ reconciled: true
 <!-- docket:artifacts:start (generated — do not hand-edit) -->
 | Artifact | Link |
 |---|---|
-| Spec | [2026-08-20-wsresolve-stamp-pruning-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-20-wsresolve-stamp-pruning-design.md) |
+| Spec | [2026-08-20-wsresolve-stamp-pruning-design.md](../../superpowers/specs/2026-08-20-wsresolve-stamp-pruning-design.md) |
 | Plan | [2026-08-20-wsresolve-stamp-pruning-plan.md](https://github.com/ethanhinson/codeindex/blob/main/docs/superpowers/plans/2026-08-20-wsresolve-stamp-pruning-plan.md) |
 | Results | [2026-08-20-wsresolve-stamp-pruning-results.md](https://github.com/ethanhinson/codeindex/blob/main/docs/results/2026-08-20-wsresolve-stamp-pruning-results.md) |
-| PR | [#13](https://github.com/ethanhinson/codeindex/pull/13) |
 <!-- docket:artifacts:end -->
 
 ## Why

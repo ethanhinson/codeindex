@@ -1,5 +1,5 @@
 <!-- docket:backlink:start (generated — do not hand-edit) -->
-> ↩ **[Change 0016 — Workspace query surfaces — union-graph verbs, CLI/MCP wiring, workspace-status; merge gated on the D7 evidence run](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/active/0016-workspace-query-surfaces-gated.md)**
+> ↩ **[Change 0016 — Workspace query surfaces — union-graph verbs, CLI/MCP wiring, workspace-status; merge gated on the D7 evidence run](../../changes/archive/2026-08-22-0016-workspace-query-surfaces-gated.md)**
 <!-- docket:backlink:end -->
 
 # Design: workspace query surfaces — union-graph verbs, CLI/MCP wiring, workspace-status

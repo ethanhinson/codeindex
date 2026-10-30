@@ -28,11 +28,10 @@ reconciled: true
 <!-- docket:artifacts:start (generated — do not hand-edit) -->
 | Artifact | Link |
 |---|---|
-| Spec | [2026-08-20-workspace-freshen-internals-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-20-workspace-freshen-internals-design.md) |
+| Spec | [2026-08-20-workspace-freshen-internals-design.md](../../superpowers/specs/2026-08-20-workspace-freshen-internals-design.md) |
 | Plan | [2026-08-20-workspace-freshen-internals-plan.md](https://github.com/ethanhinson/codeindex/blob/main/docs/superpowers/plans/2026-08-20-workspace-freshen-internals-plan.md) |
 | Results | [2026-08-20-workspace-freshen-internals-results.md](https://github.com/ethanhinson/codeindex/blob/main/docs/results/2026-08-20-workspace-freshen-internals-results.md) |
-| PR | [#12](https://github.com/ethanhinson/codeindex/pull/12) |
-| ADRs | [ADR-0012](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0012-workspace-freshness-re-resolves-whole-workspace.md) |
+| ADRs | [ADR-0012](../../adrs/0012-workspace-freshness-re-resolves-whole-workspace.md) |
 <!-- docket:artifacts:end -->
 
 ## Why

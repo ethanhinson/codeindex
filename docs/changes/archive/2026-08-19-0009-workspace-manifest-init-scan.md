@@ -28,10 +28,9 @@ reconciled: true
 <!-- docket:artifacts:start (generated — do not hand-edit) -->
 | Artifact | Link |
 |---|---|
-| Spec | [2026-08-18-workspace-manifest-init-scan-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-18-workspace-manifest-init-scan-design.md) |
+| Spec | [2026-08-18-workspace-manifest-init-scan-design.md](../../superpowers/specs/2026-08-18-workspace-manifest-init-scan-design.md) |
 | Plan | [2026-08-18-workspace-manifest-init-scan-plan.md](https://github.com/ethanhinson/codeindex/blob/main/docs/superpowers/plans/2026-08-18-workspace-manifest-init-scan-plan.md) |
 | Results | [2026-08-18-workspace-manifest-init-scan-results.md](https://github.com/ethanhinson/codeindex/blob/main/docs/results/2026-08-18-workspace-manifest-init-scan-results.md) |
-| PR | [#8](https://github.com/ethanhinson/codeindex/pull/8) |
 <!-- docket:artifacts:end -->
 
 ## Why

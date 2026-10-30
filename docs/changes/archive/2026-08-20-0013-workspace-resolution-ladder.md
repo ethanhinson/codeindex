@@ -28,10 +28,9 @@ reconciled: true
 <!-- docket:artifacts:start (generated — do not hand-edit) -->
 | Artifact | Link |
 |---|---|
-| Spec | [2026-08-19-workspace-resolution-ladder-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-19-workspace-resolution-ladder-design.md) |
+| Spec | [2026-08-19-workspace-resolution-ladder-design.md](../../superpowers/specs/2026-08-19-workspace-resolution-ladder-design.md) |
 | Plan | [2026-08-19-workspace-resolution-ladder-plan.md](https://github.com/ethanhinson/codeindex/blob/main/docs/superpowers/plans/2026-08-19-workspace-resolution-ladder-plan.md) |
 | Results | [2026-08-19-workspace-resolution-ladder-results.md](https://github.com/ethanhinson/codeindex/blob/main/docs/results/2026-08-19-workspace-resolution-ladder-results.md) |
-| PR | [#11](https://github.com/ethanhinson/codeindex/pull/11) |
 <!-- docket:artifacts:end -->
 
 ## Why

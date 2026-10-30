@@ -28,11 +28,10 @@ reconciled: true
 <!-- docket:artifacts:start (generated — do not hand-edit) -->
 | Artifact | Link |
 |---|---|
-| Spec | [2026-08-20-workspace-query-surfaces-gated-design.md](https://github.com/ethanhinson/codeindex/blob/docket/docs/superpowers/specs/2026-08-20-workspace-query-surfaces-gated-design.md) |
-| Plan | [2026-08-20-workspace-query-surfaces-gated-plan.md](https://github.com/ethanhinson/codeindex/pull/14) |
-| Results | [2026-08-21-workspace-query-surfaces-gated-results.md](https://github.com/ethanhinson/codeindex/pull/14) |
-| PR | [#14](https://github.com/ethanhinson/codeindex/pull/14) |
-| ADRs | [ADR-0012](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0012-workspace-freshness-re-resolves-whole-workspace.md), [ADR-0013](https://github.com/ethanhinson/codeindex/blob/docket/docs/adrs/0013-unindexed-member-named-stale-every-pass.md) |
+| Spec | [2026-08-20-workspace-query-surfaces-gated-design.md](../../superpowers/specs/2026-08-20-workspace-query-surfaces-gated-design.md) |
+| Plan | [2026-08-20-workspace-query-surfaces-gated-plan.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-query-surfaces-gated/docs/superpowers/plans/2026-08-20-workspace-query-surfaces-gated-plan.md) |
+| Results | [2026-08-21-workspace-query-surfaces-gated-results.md](https://github.com/ethanhinson/codeindex/blob/feat/workspace-query-surfaces-gated/docs/results/2026-08-21-workspace-query-surfaces-gated-results.md) |
+| ADRs | [ADR-0012](../../adrs/0012-workspace-freshness-re-resolves-whole-workspace.md), [ADR-0013](../../adrs/0013-unindexed-member-named-stale-every-pass.md) |
 <!-- docket:artifacts:end -->
 
 ## Why

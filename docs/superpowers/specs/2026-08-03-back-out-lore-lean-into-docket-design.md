@@ -1,5 +1,5 @@
 <!-- docket:backlink:start (generated — do not hand-edit) -->
-> ↩ **[Change 0004 — Cleanup — delete .lore/, drop lore config, rewrite README](https://github.com/ethanhinson/codeindex/blob/docket/docs/changes/archive/2026-08-04-0004-cleanup-delete-lore-rewrite-readme.md)**
+> ↩ **[Change 0001 — Migrate keeper lore decisions to docket ADRs](../../changes/archive/2026-08-04-0001-migrate-keeper-lore-decisions-to-adrs.md)**
 <!-- docket:backlink:end -->
 
 # Back out lore, lean into docket — design
