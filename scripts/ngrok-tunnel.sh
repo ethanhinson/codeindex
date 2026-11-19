@@ -18,7 +18,7 @@ REPO="."
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --serve) SERVE=1; shift; if [[ $# -gt 0 && "$1" != -* ]]; then REPO="$1"; shift; fi ;;
-    -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,10p' "$0"; exit 0 ;;
     *) PORT="$1"; shift ;;
   esac
 done
